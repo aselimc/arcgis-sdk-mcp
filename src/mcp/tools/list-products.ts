@@ -23,6 +23,9 @@ import { registerDocTool, type ToolDefinition, type ToolHandler } from '../tool.
 const DESCRIPTION =
   'Lists Esri ArcGIS products that have developer documentation here, or describes one. With no arguments: developer products grouped by category with id, current version line and status. With `product`: its profile (what it is, packages, version lines, documentation sources with page counts, which lookups work, start-here links, known pitfalls, successor if retired). With `product` and `section`: that source\'s table of contents with refs for arcgis_docs_read. `query` or `category` filter the list; end-user product help (ArcGIS Online, Enterprise, Pro, Survey123, ...) is category "product-help". Does not return page content.';
 
+/** Page size of the product list and of a table of contents. */
+const DEFAULT_LIMIT = 80;
+
 const Input = z.object({
   product: productArg(
     'Product id, name, package or alias, e.g. "js-maps-sdk", "javascript", "@arcgis/core", "arcpy". Omit to list products.',
@@ -48,7 +51,13 @@ const Input = z.object({
     .boolean()
     .default(false)
     .describe('Include retired and deprecated products (shown with their successor).'),
-  limit: z.number().int().min(1).max(200).default(80),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(200)
+    .default(DEFAULT_LIMIT)
+    .describe('Products, or table-of-contents entries, per call.'),
   cursor: cursorArg('Opaque cursor from a previous call.'),
 });
 
@@ -150,6 +159,8 @@ const handle: ToolHandler<typeof Input> = async (args, call, { ctx, services }) 
         query: args.query,
         category: args.category,
         include_legacy: args.include_legacy ? true : undefined,
+        // A continuation keeps the page size the caller chose.
+        limit: args.limit === DEFAULT_LIMIT ? undefined : args.limit,
         ...extra,
       }),
     );
@@ -206,7 +217,7 @@ const handle: ToolHandler<typeof Input> = async (args, call, { ctx, services }) 
   const section = args.section ?? resolution.source?.id;
 
   if (section !== undefined) {
-    const toc = await services.catalog.toc(args.product, section, args.cursor, call);
+    const toc = await services.catalog.toc(args.product, section, args.cursor, call, args.limit);
     const rows = toc.entries.map(tocRow);
     const notes =
       rows.length === 0 ? ['This source has no table of contents yet; try again shortly.'] : [];
@@ -222,7 +233,7 @@ const handle: ToolHandler<typeof Input> = async (args, call, { ctx, services }) 
       {
         status: statusLine([echo, `section: ${section}`, `${rows.length} of ${toc.total} entries`]),
         notes,
-        body: renderToc(rows),
+        body: renderToc(toc.entries),
         next:
           toc.nextCursor !== undefined
             ? again({ section, cursor: toc.nextCursor })

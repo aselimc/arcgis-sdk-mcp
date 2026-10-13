@@ -85,16 +85,43 @@ describe('product presenters', () => {
     );
   });
 
-  it('counts ancestors for the depth of a table-of-contents entry and caps the indentation', () => {
+  it('counts ancestors for the depth of a table-of-contents entry', () => {
     expect(tocRow(makeRecord()).depth).toBe(0);
     expect(tocRow(makeRecord({ breadcrumb: '' })).depth).toBe(0);
     expect(tocRow(makeRecord({ breadcrumb: 'Guide > Layers > Feature layers' })).depth).toBe(3);
+  });
+
+  // Regression: entries were indented by their depth alone. A page three levels down then
+  // appeared to be nested under whatever unrelated top-level page happened to precede it.
+  it('heads each run of table-of-contents entries with the path of its ancestors', () => {
+    const page = (title: string, breadcrumb?: string) =>
+      makeRecord({
+        title,
+        ref: `https://developers.arcgis.com/widgets/${title.toLowerCase()}/`,
+        ...(breadcrumb === undefined ? {} : { breadcrumb }),
+      });
     expect(
       renderToc([
-        { title: 'Group', depth: 0 },
-        { title: 'Deep', depth: 9, ref: 'https://developers.arcgis.com/widgets/deep/' },
+        page('Home'),
+        page('Install', ''),
+        page('Tiles', 'Guide > Layers'),
+        page('Rasters', 'Guide > Layers'),
+        page('Tokens', 'Guide > Security'),
       ]),
-    ).toBe(`- Group\n${' '.repeat(12)}- Deep: https://developers.arcgis.com/widgets/deep/`);
+    ).toBe(
+      [
+        '- Home: https://developers.arcgis.com/widgets/home/',
+        '- Install: https://developers.arcgis.com/widgets/install/',
+        '',
+        '**Guide > Layers**',
+        '- Tiles: https://developers.arcgis.com/widgets/tiles/',
+        '- Rasters: https://developers.arcgis.com/widgets/rasters/',
+        '',
+        '**Guide > Security**',
+        '- Tokens: https://developers.arcgis.com/widgets/tokens/',
+      ].join('\n'),
+    );
+    expect(renderToc([])).toBe('');
   });
 });
 

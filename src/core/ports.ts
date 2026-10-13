@@ -692,11 +692,16 @@ export interface CatalogService {
     resolution: ProductResolution;
     health: Record<string, T.SourceHealth>;
   };
+  /**
+   * One page of a source's table of contents. Entries that share a breadcrumb are adjacent.
+   * `limit` is the page size; default one hundred.
+   */
   toc(
     input: string,
     section: string,
     cursor: string | undefined,
     call: CallOptions,
+    limit?: number,
   ): Promise<{ entries: T.CatalogRecord[]; total: number; nextCursor?: string }>;
 }
 

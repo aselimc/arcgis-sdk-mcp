@@ -32,7 +32,7 @@ describe('catalogue tools', () => {
       const data = structuredOf(TOOLS.listProducts, outcome);
       expect(data.nextCursor).toEqual(expect.any(String));
       expect(outcome.text).toContain(
-        `Next: arcgis_docs_list_products({"category":"all","include_legacy":true,"cursor":"${String(data.nextCursor)}"})`,
+        `Next: arcgis_docs_list_products({"category":"all","include_legacy":true,"limit":2,"cursor":"${String(data.nextCursor)}"})`,
       );
       const rest = await call(TOOLS.listProducts, {
         include_legacy: true,
@@ -100,7 +100,8 @@ describe('catalogue tools', () => {
         ],
       });
       expect(outcome.text).toContain('\n- Layers: https://');
-      expect(outcome.text).toContain('\n  - Feature layers: https://');
+      // The nested page is headed by its ancestors instead of being indented.
+      expect(outcome.text).toContain('\n\n**Layers**\n- Feature layers: https://');
       expect(outcome.text).toContain(`"section":"guide","cursor":"${String(data.nextCursor)}"`);
 
       const scoped = await call(TOOLS.listProducts, {

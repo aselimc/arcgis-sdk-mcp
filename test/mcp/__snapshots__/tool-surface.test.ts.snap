@@ -43,6 +43,7 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
         },
         "limit": {
           "default": 80,
+          "description": "Products, or table-of-contents entries, per call.",
           "maximum": 200,
           "minimum": 1,
           "type": "integer",

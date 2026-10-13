@@ -13,7 +13,7 @@ import { tokenize } from '../core/tokenize.js';
 import { CATEGORIES, type Product, type SourceHealth } from '../core/types.js';
 import type { IndexInternals } from './index/types.js';
 
-/** Table-of-contents entries per call. */
+/** Table-of-contents entries per call when the caller sets no limit. */
 export const TOC_PAGE_SIZE = 100;
 
 /** Category of end-user product help, left out of the default list. */
@@ -137,7 +137,7 @@ export function createCatalogService(ctx: Ctx, index: IndexInternals): CatalogSe
       return { resolution, health };
     },
 
-    async toc(input, section, cursor, call) {
+    async toc(input, section, cursor, call, limit = TOC_PAGE_SIZE) {
       const { product } = ctx.registry.resolve(input);
       const wanted = section.trim().toLowerCase();
       const source = product.sources.find((candidate) => candidate.id.toLowerCase() === wanted);
@@ -150,7 +150,11 @@ export function createCatalogService(ctx: Ctx, index: IndexInternals): CatalogSe
       }
       const line = ctx.registry.line(product);
       await index.ensure(product, [source.id], line, call);
-      const entries = index.toc(product.id, source.id, line.id);
+      // Pages under the same ancestors are listed together, in catalogue order; a stable
+      // sort keeps that order inside a group, and so across the pages of a paged listing.
+      const entries = [...index.toc(product.id, source.id, line.id)].sort((a, b) =>
+        (a.breadcrumb ?? '').localeCompare(b.breadcrumb ?? '', 'en'),
+      );
 
       const args = { product: product.id, section: source.id };
       const key = shortHash(JSON.stringify(['toc', product.id, source.id, line.id]));
@@ -160,7 +164,7 @@ export function createCatalogService(ctx: Ctx, index: IndexInternals): CatalogSe
         line: line.id,
       });
       const offset = offsetOf(cursor, key, validator, formatCall(TOOLS.listProducts, args));
-      const end = offset + TOC_PAGE_SIZE;
+      const end = offset + Math.max(1, limit);
       return {
         entries: entries.slice(offset, end),
         total: entries.length,

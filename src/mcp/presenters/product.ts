@@ -189,13 +189,22 @@ export function tocRow(record: CatalogRecord): TocRow {
   return { title: record.title, ref: record.ref, depth: ancestors, kind: record.kind };
 }
 
-/** A table of contents as an indented Markdown list of `title: ref`. */
-export function renderToc(rows: readonly TocRow[]): string {
-  return rows
-    .map((row) => {
-      // Deep trees are flattened beyond six levels so that indentation never dominates the line.
-      const indent = '  '.repeat(Math.min(row.depth, 6));
-      return `${indent}- ${row.title}${row.ref === undefined ? '' : `: ${row.ref}`}`;
-    })
-    .join('\n');
+/**
+ * A table of contents as Markdown: `- title: ref` lines, each run of entries headed by the
+ * path of its ancestors (`**Guide > Layers**`). Indentation by depth could not say what an
+ * entry is nested under, because the ancestors are navigation groups, not always entries.
+ */
+export function renderToc(records: readonly CatalogRecord[]): string {
+  const lines: string[] = [];
+  let group = '';
+  for (const record of records) {
+    const breadcrumb = record.breadcrumb ?? '';
+    if (breadcrumb !== group) {
+      group = breadcrumb;
+      if (lines.length > 0) lines.push('');
+      if (breadcrumb !== '') lines.push(`**${breadcrumb}**`);
+    }
+    lines.push(`- ${record.title}: ${record.ref}`);
+  }
+  return lines.join('\n');
 }

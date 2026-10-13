@@ -154,6 +154,57 @@ describe('catalog toc', () => {
     });
   });
 
+  // Regression: `limit` was ignored for a table of contents, which always paged by a hundred.
+  it('pages by the limit of the call and continues where the page ended', async () => {
+    const records = Array.from({ length: 7 }, (_, i) =>
+      makeRecord({ ref: `https://developers.arcgis.com/widgets/p${i}/`, title: `Page ${i}` }),
+    );
+    const h = makeHarness({ products: [makeProduct()], records });
+    const first = await h.services.catalog.toc('widgets-sdk', 'guide', undefined, h.call(), 3);
+    expect(first.entries.map((entry) => entry.title)).toEqual(['Page 0', 'Page 1', 'Page 2']);
+    const second = await h.services.catalog.toc(
+      'widgets-sdk',
+      'guide',
+      first.nextCursor,
+      h.call(),
+      5,
+    );
+    expect(second.entries.map((entry) => entry.title)).toEqual([
+      'Page 3',
+      'Page 4',
+      'Page 5',
+      'Page 6',
+    ]);
+    expect(second.nextCursor).toBeUndefined();
+  });
+
+  it('lists the pages that share ancestors together, in catalogue order inside a group', async () => {
+    const page = (title: string, breadcrumb?: string) =>
+      makeRecord({
+        ref: `https://developers.arcgis.com/widgets/${title.toLowerCase()}/`,
+        title,
+        ...(breadcrumb === undefined ? {} : { breadcrumb }),
+      });
+    const h = makeHarness({
+      products: [makeProduct()],
+      records: [
+        page('Tiles', 'Guide > Layers'),
+        page('Home'),
+        page('Tokens', 'Guide > Access'),
+        page('Rasters', 'Guide > Layers'),
+        page('About'),
+      ],
+    });
+    const toc = await h.services.catalog.toc('widgets-sdk', 'guide', undefined, h.call());
+    expect(toc.entries.map((entry) => entry.title)).toEqual([
+      'Home',
+      'About',
+      'Tokens',
+      'Tiles',
+      'Rasters',
+    ]);
+  });
+
   it('names the sections of the product when the section is unknown', async () => {
     const h = makeHarness();
     await expect(
