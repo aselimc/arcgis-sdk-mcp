@@ -29,7 +29,7 @@ const STUBS: Array<[shape: string, html: string, target: string]> = [
   ],
   [
     'D: byte order mark, no body, trailing space in the value',
-    '﻿<html><head><meta http-equiv="refresh" content="0;url=/en/harbor-desk/latest/sdk/api-reference/topic1.html "></head></html>',
+    '\ufeff<html><head><meta http-equiv="refresh" content="0;url=/en/harbor-desk/latest/sdk/api-reference/topic1.html "></head></html>',
     'https://docs.example.com/en/harbor-desk/latest/sdk/api-reference/topic1.html',
   ],
 ];

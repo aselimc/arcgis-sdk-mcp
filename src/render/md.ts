@@ -75,6 +75,14 @@ export function firstSentence(markdown: string | undefined): string {
   return end === null ? text : text.slice(0, end.index + 1);
 }
 
+/**
+ * A one-line summary for member indexes: the first sentence with link targets removed, since
+ * a list of fifty members should not carry fifty URLs.
+ */
+export function summaryLine(markdown: string | undefined): string {
+  return firstSentence(markdown).replace(/\[([^\]]*)\]\([^)\s]*\)/g, '$1');
+}
+
 /** Cell text for a GFM table: one line, paragraph breaks as `<br>`, pipes escaped. */
 export function tableCell(text: string | undefined): string {
   if (text === undefined) return '';
@@ -106,6 +114,26 @@ export function bullets(items: readonly string[]): string {
     .filter((item) => item.trim() !== '')
     .map((item) => `- ${item.trim().replace(/\n/g, '\n  ')}`)
     .join('\n');
+}
+
+/**
+ * Splits a text at its first ATX heading (outside code fences): the introduction before it,
+ * and the titled parts from it on. A text without headings is all introduction.
+ */
+export function splitAtFirstHeading(markdown: string): { intro: string; titled: string } {
+  const lines = markdown.replace(/\r\n?/g, '\n').split('\n');
+  let open: OpenFence;
+  for (let index = 0; index < lines.length; index += 1) {
+    const step = stepFence(lines[index] ?? '', open);
+    open = step.open;
+    if (!step.fenced && ATX.test(lines[index] ?? '')) {
+      return {
+        intro: lines.slice(0, index).join('\n').trim(),
+        titled: lines.slice(index).join('\n').trim(),
+      };
+    }
+  }
+  return { intro: markdown.trim(), titled: '' };
 }
 
 /**

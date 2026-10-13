@@ -167,14 +167,13 @@ function memberOf(child: Json, group: string, context: CommentContext): ApiMembe
   const kind = num(child.kind) ?? 0;
   const declared = declare(child, name, context);
   const { comment } = declared;
-  const flags = asRecord(child.flags);
   const inherited = str(asRecord(child.inheritedFrom).name)?.replace(/\.[^.]+$/, '');
-  const facts = [
-    flags.isStatic === true ? 'static' : undefined,
-    declared.readonly === true ? 'readonly' : undefined,
-    flags.isOptional === true ? 'optional' : undefined,
-    comment.defaultValue === undefined ? undefined : `default ${inlineCode(comment.defaultValue)}`,
-  ].filter((fact) => fact !== undefined);
+  // `static`, `readonly` and `?` are in the declaration; only a documented default that the
+  // declaration does not show is worth a line of its own.
+  const facts =
+    comment.defaultValue === undefined || child.defaultValue !== undefined
+      ? []
+      : [`default ${inlineCode(comment.defaultValue)}`];
   return {
     id: name,
     name,
@@ -286,7 +285,10 @@ export function renderTypedoc(
   const signature =
     declared === undefined
       ? typeDeclaration(raw, name)
-      : `${kind === KIND.function ? 'function ' : 'const '}${declared.signature}`;
+      : kind === KIND.function
+        ? `function ${declared.signature}`
+        : // `const` already says what the readonly flag of a variable says.
+          `const ${declared.signature.replace(/^readonly /, '')}`;
 
   const type: ApiType = {
     title: name,

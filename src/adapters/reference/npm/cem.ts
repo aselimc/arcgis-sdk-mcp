@@ -10,7 +10,7 @@ import { BREADCRUMB_SEPARATOR, TOOLS } from '../../../core/names.js';
 import type { BoundSource, Ctx, ReadTarget, SourceAdapter } from '../../../core/ports.js';
 import type { CatalogRecord, DocPage } from '../../../core/types.js';
 import { loadPackageJson, packageMeta } from './package-file.js';
-import { resolvePackageVersion, versionNotice } from './resolve-version.js';
+import { resolvePackageVersion, withVersionNotice } from './resolve-version.js';
 import {
   baseRecord,
   docTemplate,
@@ -52,7 +52,9 @@ function hasTag(entry: Json, name: string): boolean {
 }
 
 function isDeprecated(entry: Json): boolean {
-  return (entry.deprecated !== undefined && entry.deprecated !== false) || hasTag(entry, 'deprecated');
+  return (
+    (entry.deprecated !== undefined && entry.deprecated !== false) || hasTag(entry, 'deprecated')
+  );
 }
 
 /**
@@ -250,8 +252,7 @@ async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
       ),
       renderOptionsOf(target),
     );
-    const notice = versionNotice(pkg);
-    return notice === undefined ? page : { ...page, notices: [...page.notices, notice] };
+    return withVersionNotice(page, pkg);
   }
   const wanted = address?.wanted ?? target.url.href;
   throw notFound(
@@ -260,7 +261,7 @@ async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
     address === undefined
       ? `Component pages of this source have URLs of the form ${template}`
       : 'The Custom Elements Manifest declares no element with that tag',
-    formatCall(TOOLS.search, { query: wanted, product: src.product.id }),
+    { next: formatCall(TOOLS.search, { query: wanted, product: src.product.id }) },
   );
 }
 
@@ -270,12 +271,14 @@ async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
  */
 export const npmCemAdapter: SourceAdapter<'npm-cem'> = {
   type: 'npm-cem',
-  // Two requests per package (version, manifest), with room for eight packages.
+  // Per package a version lookup (two requests when the registry fails over to the CDN) and
+  // the manifest; sixteen covers the five packages of the JavaScript SDK in the worst case.
   maxEnumerateRequests: 16,
   enumerate,
   /** A component page of one of the configured packages; the registry's prefix match is wider. */
   owns(url, src) {
-    return addressOf(src, { url })?.packages.length !== 0 && addressOf(src, { url }) !== undefined;
+    const address = addressOf(src, { url });
+    return address !== undefined && address.packages.length > 0;
   },
   read,
   symbol: defaultSymbolRead({ read }),

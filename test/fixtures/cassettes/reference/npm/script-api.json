@@ -1,0 +1,87 @@
+[
+  {
+    "id": "constants",
+    "title": "Constants",
+    "items": [
+      {
+        "type": "constant",
+        "name": "tau",
+        "bundle": "core",
+        "sinceVersion": "1.0",
+        "link": "https://developers.arcgis.com/widgets-script/function-reference/constants/#tau",
+        "description": "The ratio of a circle's circumference to its radius. An invented constant used by tests.",
+        "examples": "\n**Example**\n\n```arcade\nTau * 2\n```\n",
+        "completion": {
+          "label": "Tau",
+          "detail": "Tau -> Number",
+          "insertText": "Tau",
+          "documentation": { "kind": "markdown", "value": "The ratio of a circle's circumference to its radius." }
+        }
+      }
+    ]
+  },
+  {
+    "id": "text_functions",
+    "title": "Text functions",
+    "items": [
+      {
+        "type": "function",
+        "name": "shout",
+        "bundle": "core",
+        "sinceVersion": "1.4",
+        "link": "https://developers.arcgis.com/widgets-script/function-reference/text_functions/#shout",
+        "description": "Returns the text in upper case with an exclamation mark. Empty text stays empty.",
+        "examples": "\n**Example**\n\n```arcade\nShout('ready') // 'READY!'\n```\n",
+        "completion": {
+          "label": "Shout",
+          "detail": "Shout(inputText) -> Text",
+          "insertText": "Shout(${1:inputText_})$0",
+          "documentation": {
+            "kind": "markdown",
+            "value": "Returns the text in upper case.\n\n**Parameter**\n\n- **inputText**: Text - The text to change.\n\n**Return value**: Text"
+          }
+        },
+        "parametersInfo": { "min": 1, "max": 1 }
+      },
+      [
+        {
+          "type": "function",
+          "name": "glue",
+          "bundle": "core",
+          "sinceVersion": "1.0",
+          "link": "https://developers.arcgis.com/widgets-script/function-reference/text_functions/#glue1",
+          "description": "Joins the values of an array into one text.",
+          "examples": "\n**Example**\n\n```arcade\nGlue(['a', 'b'], '-') // 'a-b'\n```\n",
+          "completion": { "label": "Glue", "detail": "Glue(values, separator?) -> Text" },
+          "parametersInfo": { "min": 1, "max": 2 }
+        },
+        {
+          "type": "function",
+          "name": "glue",
+          "bundle": "core",
+          "sinceVersion": "1.9",
+          "link": "https://developers.arcgis.com/widgets-script/function-reference/text_functions/#glue2",
+          "description": "Joins two texts.",
+          "examples": "\n**Example**\n\n```arcade\nGlue('a', 'b') // 'ab'\n```\n",
+          "completion": { "label": "Glue", "detail": "Glue(first, second) -> Text" },
+          "parametersInfo": { "min": 2, "max": 2 }
+        }
+      ]
+    ]
+  },
+  {
+    "id": "geometry_functions",
+    "title": "Geometry functions",
+    "items": [
+      {
+        "type": "function",
+        "name": "span",
+        "bundle": "geometry",
+        "sinceVersion": "1.7",
+        "description": "Returns the width of a geometry's extent.",
+        "completion": { "label": "Span", "detail": "Span(inputGeometry) -> Number" }
+      }
+    ]
+  },
+  { "id": "empty_functions", "title": "Empty functions", "items": [] }
+]

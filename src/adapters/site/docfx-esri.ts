@@ -104,6 +104,8 @@ function verifiedKey(src: DocfxSource): string {
 }
 
 async function loadVerified(ctx: Ctx, src: DocfxSource): Promise<VerifiedNames> {
+  // Only tool pages state their own name; every other source has nothing stored.
+  if (src.source.config.gpParameters !== true) return { aliases: {}, names: {} };
   const stored = await ctx.cache.getDerived<Partial<VerifiedNames>>('symbols', verifiedKey(src));
   return { aliases: { ...stored?.aliases }, names: { ...stored?.names } };
 }
@@ -306,7 +308,9 @@ export const docfxEsriAdapter: SourceAdapter<'docfx-esri'> = {
       siteIndex: true,
       count: (body) => {
         try {
-          return parseToc(JSON.parse(body))?.filter((entry) => entry.href !== undefined).length;
+          // A document of another shape lists no page, whatever else it holds.
+          const entries = parseToc(JSON.parse(body)) ?? [];
+          return entries.filter((entry) => entry.href !== undefined).length;
         } catch {
           return undefined;
         }

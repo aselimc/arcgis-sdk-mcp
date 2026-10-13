@@ -99,7 +99,7 @@ export function doccRecords(
 
   const visit = (nodes: unknown, at: Walk): void => {
     if (!Array.isArray(nodes) || at.depth > maxDepth) return;
-    for (const node of nodes as readonly (DoccNode | null)[]) {
+    for (const node of nodes as ReadonlyArray<DoccNode | null>) {
       const { path, title, children } = node ?? {};
       const type = typeof node?.type === 'string' ? node.type : 'symbol';
       if (typeof path !== 'string' || typeof title !== 'string' || title === '') {
@@ -150,7 +150,9 @@ export function doccRecords(
 function navigatorRoots(index: unknown): unknown[] {
   const languages = (index as { interfaceLanguages?: unknown } | null)?.interfaceLanguages;
   if (typeof languages !== 'object' || languages === null) return [];
-  return Object.values(languages).flatMap((tree) => (Array.isArray(tree) ? (tree as unknown[]) : []));
+  return Object.values(languages).flatMap((tree) =>
+    Array.isArray(tree) ? (tree as unknown[]) : [],
+  );
 }
 
 /**
@@ -188,11 +190,10 @@ async function read(ctx: Ctx, src: BoundSource, target: ReadTarget): Promise<Doc
     ...budgetOf(src),
   });
   const prose = PROSE[String((data as { kind?: unknown } | null)?.kind)];
-  const meta = renderMeta(src, target, `${location.page}${target.url.hash}`, res);
   return ctx.render.render(
     'docc',
     { json: data },
-    target.record === undefined && prose !== undefined ? { ...meta, kind: prose } : meta,
+    renderMeta(src, target, `${location.page}${target.url.hash}`, res, prose),
     renderOptionsOf(target),
   );
 }
@@ -231,7 +232,8 @@ export const doccAdapter: SourceAdapter<'docc'> = {
     const roots = navigatorRoots(data);
     if (roots.length === 0) throw unusableIndex(url, 'The index has no interfaceLanguages tree');
     const records = doccRecords(src, roots);
-    if (records.length === 0) throw unusableIndex(url, 'No node of the index has a path and a title');
+    if (records.length === 0)
+      throw unusableIndex(url, 'No node of the index has a path and a title');
     return records;
   },
 

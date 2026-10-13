@@ -159,8 +159,7 @@ export function treePages(nodes: ReadonlyMap<string, TreeNode>): TreePage[] {
       if (node.url !== undefined) {
         pages.push({ url: node.url, title: node.label ?? '', ancestors: next.ancestors });
       }
-      const ancestors =
-        node.label === undefined ? next.ancestors : [...next.ancestors, node.label];
+      const ancestors = node.label === undefined ? next.ancestors : [...next.ancestors, node.label];
       const children = childrenOf.get(node.id) ?? [];
       for (let index = children.length - 1; index >= 0; index -= 1) {
         const id = children[index];

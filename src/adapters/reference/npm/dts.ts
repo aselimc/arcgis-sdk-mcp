@@ -14,7 +14,7 @@ import type { CatalogRecord, DocPage } from '../../../core/types.js';
 import { listPackageFiles } from './jsdelivr.js';
 import { listLocalFiles } from './local-packages.js';
 import { loadPackageText, packageMeta } from './package-file.js';
-import { resolvePackageVersion, versionNotice } from './resolve-version.js';
+import { resolvePackageVersion, withVersionNotice } from './resolve-version.js';
 import {
   baseRecord,
   docTemplate,
@@ -68,7 +68,8 @@ function moduleRecord(src: Src, template: string, file: string): CatalogRecord {
 async function enumerate(ctx: Ctx, src: Src): Promise<CatalogRecord[]> {
   const { config } = src.source;
   const pkg = await resolvePackageVersion(ctx, src, config.package);
-  const installed = pkg.local === undefined ? [] : await listLocalFiles(pkg.local, DECLARATION_SUFFIX);
+  const installed =
+    pkg.local === undefined ? [] : await listLocalFiles(pkg.local, DECLARATION_SUFFIX);
   const files =
     installed.length > 0
       ? installed
@@ -104,7 +105,7 @@ async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
       target.url.href,
       `${target.url.href} is not a module of ${config.package}`,
       `Modules of this source have URLs of the form ${template}`,
-      formatCall(TOOLS.search, { query: config.package, product: src.product.id }),
+      { next: formatCall(TOOLS.search, { query: config.package, product: src.product.id }) },
     );
   }
   const pkg = await resolvePackageVersion(ctx, src, config.package);
@@ -126,13 +127,8 @@ async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
     ),
     renderOptionsOf(target),
   );
-  const notice = versionNotice(pkg);
-  if (notice === undefined) return page;
   // The ref is the page of the current release; the text is the one of the version read.
-  return {
-    ...page,
-    notices: [...page.notices, `${notice} The linked page documents the current release.`],
-  };
+  return withVersionNotice(page, pkg, ' The linked page documents the current release.');
 }
 
 /**

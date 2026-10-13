@@ -13,6 +13,7 @@ import { formatCall } from '../../../core/budget.js';
 import { McpDocError, toMcpDocError } from '../../../core/errors.js';
 import { TOOLS } from '../../../core/names.js';
 import type { BoundSource, Ctx } from '../../../core/ports.js';
+import type { DocPage } from '../../../core/types.js';
 import { compareVersions, isPrerelease, parseVersion } from '../../../core/version-key.js';
 import { isExactVersion, resolveSpecifier } from './jsdelivr.js';
 import { findLocalPackage, type LocalPackage } from './local-packages.js';
@@ -131,7 +132,7 @@ async function resolveCurrent(ctx: Ctx, src: BoundSource, name: string): Promise
     try {
       const { data } = await ctx.http.getJson({ url, ttl: 'volatile', ...budgetOf(src) });
       const picked = pickDistTag(data);
-      if (picked !== undefined) return { name, version: picked.version, how: 'dist-tag', ...picked };
+      if (picked !== undefined) return { name, how: 'dist-tag', ...picked };
       failure = shapeError(url, 'a dist-tag list');
     } catch (error) {
       failure = tolerate(ctx, src, error, `The dist-tag list of ${name}`);
@@ -180,11 +181,7 @@ export async function resolvePackageVersion(
     : resolveRequested(ctx, src, name, requested);
 }
 
-/**
- * A notice for answers that do not describe the current release, so the agent knows which
- * build it is reading; `undefined` when the version is the current one.
- */
-export function versionNotice(pkg: ResolvedPackage): string | undefined {
+function versionNotice(pkg: ResolvedPackage): string | undefined {
   if (pkg.how === 'local') {
     return `Read from ${pkg.name} ${pkg.version} as installed in the project's node_modules.`;
   }
@@ -192,4 +189,15 @@ export function versionNotice(pkg: ResolvedPackage): string | undefined {
     return `Read from ${pkg.name} ${pkg.version}, the published release matching the requested version.`;
   }
   return undefined;
+}
+
+/**
+ * Adds a notice to a page that does not describe the current release (an installed or a
+ * requested version), so the agent knows which build it is reading. `suffix` is appended to
+ * that notice. A page of the current release is returned unchanged.
+ */
+export function withVersionNotice(page: DocPage, pkg: ResolvedPackage, suffix = ''): DocPage {
+  const notice = versionNotice(pkg);
+  if (notice === undefined) return page;
+  return { ...page, notices: [...page.notices, `${notice}${suffix}`] };
 }

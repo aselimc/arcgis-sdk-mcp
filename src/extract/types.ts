@@ -52,6 +52,8 @@ export interface PageView {
   $: CheerioAPI;
   /** The content root chosen by the profile. */
   root: Cheerio<Element>;
+  /** The page title, whitespace collapsed. */
+  title: string;
   /** Page URL without fragment. */
   url: string;
 }

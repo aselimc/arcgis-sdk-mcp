@@ -8,6 +8,7 @@ import { estimateTokens } from '../core/budget.js';
 import { LEAD_SECTION_ID, sectionsFromMarkdown } from '../core/sections.js';
 import type { DocSection } from '../core/types.js';
 import { slugify } from '../core/url.js';
+import { IdAllocator } from './id-allocator.js';
 import { HEADING_MARK, HEADING_MARKS, type Converted } from './turndown.js';
 
 /** Removes every heading marker from converted Markdown that is not split into sections. */
@@ -21,7 +22,7 @@ export function stripHeadingMarks(markdown: string): string {
  * order. `parent` links and token estimates are recomputed for the final ids and text.
  */
 export function buildSections(converted: Converted): DocSection[] {
-  const used = new Map<string, number>();
+  const ids = new IdAllocator();
   const renamed = new Map<string, string>();
   return sectionsFromMarkdown(converted.markdown).map((section) => {
     const firstLine = section.markdown.split('\n', 1)[0] ?? '';
@@ -31,9 +32,7 @@ export function buildSections(converted: Converted): DocSection[] {
     const markdown = stripHeadingMarks(section.markdown);
 
     const base = section.level === 0 ? LEAD_SECTION_ID : (pageId ?? slugify(title));
-    const count = used.get(base) ?? 0;
-    used.set(base, count + 1);
-    const id = count === 0 ? base : `${base}-${count}`;
+    const id = ids.next(base);
     renamed.set(section.id, id);
 
     const parent = section.parent === undefined ? undefined : renamed.get(section.parent);

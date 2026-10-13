@@ -1,0 +1,31 @@
+{
+  "name": "@arcgis/chart-widgets",
+  "schemaVersion": "2.1.0",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "components/arcgis-spark-chart",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "ArcgisSparkChart",
+          "customElement": true,
+          "tagName": "arcgis-spark-chart",
+          "description": "Draws a small trend line for one numeric field.",
+          "members": [
+            {
+              "kind": "field",
+              "name": "field",
+              "description": "Name of the numeric field to plot.",
+              "type": { "text": "string" }
+            }
+          ],
+          "events": [
+            { "name": "arcgisChartDrawn", "description": "Fires after each drawing pass." }
+          ]
+        }
+      ],
+      "exports": []
+    }
+  ]
+}

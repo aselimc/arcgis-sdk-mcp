@@ -113,7 +113,11 @@ export function javadocMemberRecords(
       recordOf(src, ref, `${type}.${label}`, {
         symbol: name,
         qualified: `${parent}.${name}`,
-        symbolKind: !callable ? 'field' : name === type.split('.').at(-1) ? 'constructor' : 'method',
+        symbolKind: !callable
+          ? 'field'
+          : name === type.split('.').at(-1)
+            ? 'constructor'
+            : 'method',
         parent,
         breadcrumb: [pkg === UNNAMED_PACKAGE ? '' : pkg, type],
       }),

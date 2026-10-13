@@ -52,7 +52,7 @@ describe('parseTreedata', () => {
     const hostile = [
       'treedata.data["a"] = (function () { throw new Error("evaluated"); })();',
       'treedata.data["b"] = { "label": "B", "url": "/b.htm", "children": [1, "c", null] };',
-      "treedata.data['c'] = { \"label\": \"quote \\\" and } brace\", \"url\": \"/c.htm\" };",
+      'treedata.data[\'c\'] = { "label": "quote \\" and } brace", "url": "/c.htm" };',
       'treedata.data["d"] = { "label": "unclosed"',
     ].join('\n');
     const parsed = parseTreedata(hostile);
@@ -141,7 +141,7 @@ describe('parseFileListing', () => {
 
   it('decodes entities and tolerates other quoting and attributes', () => {
     const html =
-      "<A class=\"x\" HREF='a&amp;b.htm' title=\"t\">Fish &amp; chips&mdash;menu</A><a name=\"top\">anchor</a><a href=\"\">empty</a>";
+      '<A class="x" HREF=\'a&amp;b.htm\' title="t">Fish &amp; chips&mdash;menu</A><a name="top">anchor</a><a href="">empty</a>';
     expect(parseFileListing(html)).toEqual([{ href: 'a&b.htm', title: 'Fish & chips—menu' }]);
     expect(parseFileListing('<main>Page not found</main>')).toEqual([]);
   });
@@ -154,7 +154,7 @@ describe('findTocScripts', () => {
       '/en/widget-earth/3.1/get-started/4102.js',
     ]);
     const twice =
-      "<script src='/en/a/b/12.js'></script><script defer src=\"/en/a/b/12.js\"></script><script src=\"/js/app.js\"></script>";
+      '<script src=\'/en/a/b/12.js\'></script><script defer src="/en/a/b/12.js"></script><script src="/js/app.js"></script>';
     expect(findTocScripts(twice)).toEqual(['/en/a/b/12.js']);
     expect(findTocScripts('<p>no scripts</p>')).toEqual([]);
   });

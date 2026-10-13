@@ -93,7 +93,7 @@ export function tocBooks(data: unknown): Array<{ title: string; toc: string }> {
     if (typeof item !== 'object' || item === null) continue;
     const title = text((item as { name?: unknown }).name);
     const tocHref = text((item as { tocHref?: unknown }).tocHref);
-    if (title === undefined || tocHref === undefined || !tocHref.endsWith('toc.html')) continue;
+    if (title === undefined || tocHref?.endsWith('toc.html') !== true) continue;
     books.push({ title, toc: tocHref.replace(/\.html$/, '.json') });
   }
   return books;
@@ -206,9 +206,12 @@ export function gpToolboxAlias(dir: string, verified?: VerifiedNames): string {
 /** Tool titles capitalise every word except a few small ones; topic titles are sentences. */
 function isToolTitle(title: string): boolean {
   if (/^(?:An overview of|Introduction to)\b/i.test(title)) return false;
+  // A lower-case start followed by capitals is a format name ("Table To dBASE"), not prose.
   return title
     .split(/\s+/)
-    .every((word) => /^[A-Z0-9(]/.test(word) || SMALL_WORDS.has(word.toLowerCase()));
+    .every(
+      (word) => /^(?:[A-Z0-9(]|[a-z]{1,3}[A-Z])/.test(word) || SMALL_WORDS.has(word.toLowerCase()),
+    );
 }
 
 /**

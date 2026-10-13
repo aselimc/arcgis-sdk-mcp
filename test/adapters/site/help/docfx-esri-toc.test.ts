@@ -60,7 +60,8 @@ describe('parseToc', () => {
 
   it('stops descending in a file nested deeper than any table of contents', () => {
     let nested: { name: string; items?: unknown[] } = { name: 'leaf' };
-    for (let depth = 0; depth < 40; depth += 1) nested = { name: `level ${depth}`, items: [nested] };
+    for (let depth = 0; depth < 40; depth += 1)
+      nested = { name: `level ${depth}`, items: [nested] };
     const entries = parseToc({ items: [nested] }) ?? [];
     expect(entries.length).toBeLessThan(40);
     expect(entries.length).toBeGreaterThan(20);
@@ -128,6 +129,10 @@ describe('gpToolSymbol', () => {
     expect(gpToolSymbol(inToolbox('Buffer'), 'analysis/buffer.html')?.keywords).toEqual([
       'Buffer_analysis',
     ]);
+    // A format name that starts in lower case does not make the title prose.
+    expect(
+      gpToolSymbol(inToolbox('Table To dBASE'), 'conversion/table-to-dbase.html')?.qualified,
+    ).toBe('arcpy.conversion.TableToDBASE');
   });
 
   it('finds the tools of the fixture and nothing else but title-cased topics', () => {
@@ -200,23 +205,91 @@ describe('gpToolSymbol', () => {
 
 describe('arcpySymbol', () => {
   it.each([
-    ['ListWidgets', ['ArcPy functions', 'Listing data'], 'functions/listwidgets.html', 'arcpy.ListWidgets', 'function'],
-    ['WidgetShape', ['ArcPy classes', 'Geometry'], 'classes/widgetshape.html', 'arcpy.WidgetShape', 'class'],
-    ['SearchCursor', ['Data Access module', 'Classes'], 'data-access/searchcursor-class.html', 'arcpy.da.SearchCursor', 'class'],
-    ['Walk', ['Data Access module', 'Functions'], 'data-access/walk.html', 'arcpy.da.Walk', 'function'],
-    ['Route', ['Network Analyst module', 'Classes'], 'network-analyst/route.html', 'arcpy.nax.Route', 'class'],
-    ['RouteShapeType', ['Network Analyst module', 'Classes', 'Enumerations'], 'network-analyst/routeshapetype.html', 'arcpy.nax.RouteShapeType', 'class'],
-    ['GetSolverProperties', ['Network Analyst module', 'Legacy', 'Functions'], 'network-analyst/getsolverproperties.html', 'arcpy.na.GetSolverProperties', 'function'],
-    ['GadgetDraft', ['Gadget module'], 'gadget-kit/gadgetdraft-class.html', 'arcpy.gadget_kit.GadgetDraft', 'class'],
-    ['Extent', ['Gadget module'], 'gadget-kit/extent-object.html', 'arcpy.gadget_kit.Extent', 'class'],
-    ['MakeGadget', ['Gadget module'], 'gadget-kit/makegadget.html', 'arcpy.gadget_kit.MakeGadget', 'function'],
+    [
+      'ListWidgets',
+      ['ArcPy functions', 'Listing data'],
+      'functions/listwidgets.html',
+      'arcpy.ListWidgets',
+      'function',
+    ],
+    [
+      'WidgetShape',
+      ['ArcPy classes', 'Geometry'],
+      'classes/widgetshape.html',
+      'arcpy.WidgetShape',
+      'class',
+    ],
+    [
+      'SearchCursor',
+      ['Data Access module', 'Classes'],
+      'data-access/searchcursor-class.html',
+      'arcpy.da.SearchCursor',
+      'class',
+    ],
+    [
+      'Walk',
+      ['Data Access module', 'Functions'],
+      'data-access/walk.html',
+      'arcpy.da.Walk',
+      'function',
+    ],
+    [
+      'Route',
+      ['Network Analyst module', 'Classes'],
+      'network-analyst/route.html',
+      'arcpy.nax.Route',
+      'class',
+    ],
+    [
+      'RouteShapeType',
+      ['Network Analyst module', 'Classes', 'Enumerations'],
+      'network-analyst/routeshapetype.html',
+      'arcpy.nax.RouteShapeType',
+      'class',
+    ],
+    [
+      'GetSolverProperties',
+      ['Network Analyst module', 'Legacy', 'Functions'],
+      'network-analyst/getsolverproperties.html',
+      'arcpy.na.GetSolverProperties',
+      'function',
+    ],
+    [
+      'GadgetDraft',
+      ['Gadget module'],
+      'gadget-kit/gadgetdraft-class.html',
+      'arcpy.gadget_kit.GadgetDraft',
+      'class',
+    ],
+    [
+      'Extent',
+      ['Gadget module'],
+      'gadget-kit/extent-object.html',
+      'arcpy.gadget_kit.Extent',
+      'class',
+    ],
+    [
+      'MakeGadget',
+      ['Gadget module'],
+      'gadget-kit/makegadget.html',
+      'arcpy.gadget_kit.MakeGadget',
+      'function',
+    ],
   ])('qualifies %s', (title, ancestors, path, qualified, symbolKind) => {
-    expect(arcpySymbol({ title, ancestors }, path)).toEqual({ symbol: title, qualified, symbolKind });
+    expect(arcpySymbol({ title, ancestors }, path)).toEqual({
+      symbol: title,
+      qualified,
+      symbolKind,
+    });
   });
 
   it('leaves topics alone', () => {
-    expect(arcpySymbol(entry('Widget properties', 'ArcPy functions'), 'functions/w.html')).toBeUndefined();
-    expect(arcpySymbol(entry('// (Integer Division) operator'), 'image-analyst/op.html')).toBeUndefined();
+    expect(
+      arcpySymbol(entry('Widget properties', 'ArcPy functions'), 'functions/w.html'),
+    ).toBeUndefined();
+    expect(
+      arcpySymbol(entry('// (Integer Division) operator'), 'image-analyst/op.html'),
+    ).toBeUndefined();
     expect(arcpySymbol(entry('ListWidgets'), 'listwidgets.html')).toBeUndefined();
     expect(arcpySymbol(entry('ListWidgets'), 'a/b/listwidgets.html')).toBeUndefined();
   });
@@ -233,7 +306,10 @@ describe('pythonSignature', () => {
       name: 'Buffer',
       alias: 'analysis',
     });
-    expect(pythonSignature('arcpy.sa.Aspect\\(in_raster\\)')).toEqual({ name: 'Aspect', alias: 'sa' });
+    expect(pythonSignature('arcpy.sa.Aspect\\(in_raster\\)')).toEqual({
+      name: 'Aspect',
+      alias: 'sa',
+    });
   });
 
   it('prefers the more frequent alias and the earlier one on a tie', () => {
@@ -244,6 +320,8 @@ describe('pythonSignature', () => {
 
   it('reports a name without an alias when no spelling is valid, and nothing without a call', () => {
     expect(pythonSignature('arcpy.3d.Viewshed2(in_raster)')).toEqual({ name: 'Viewshed2' });
-    expect(pythonSignature('import arcpy; arcpy.env.workspace = "x"; arcpy.ListFields(t)')).toBeUndefined();
+    expect(
+      pythonSignature('import arcpy; arcpy.env.workspace = "x"; arcpy.ListFields(t)'),
+    ).toBeUndefined();
   });
 });

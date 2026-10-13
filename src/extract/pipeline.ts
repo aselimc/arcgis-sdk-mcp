@@ -133,7 +133,7 @@ export function runProfile(
   const title = ownTitle === '' ? squash($('title').first().text()) : ownTitle;
   const root = profile.root($);
   if (root.length === 0) return undefined;
-  const page: PageView = { $, root, url: meta.url.replace(/#.*$/, '') };
+  const page: PageView = { $, root, title, url: meta.url.replace(/#.*$/, '') };
 
   const members = profile.members?.(page);
   const files = profile.files?.(page);

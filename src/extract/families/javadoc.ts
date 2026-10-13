@@ -2,7 +2,7 @@ import type { CheerioAPI } from 'cheerio';
 import type { Element } from 'domhandler';
 import type { MemberEntry } from '../../core/types.js';
 import { firstSentence, replaceWithPre, squash, tagged } from '../dom.js';
-import { stampOutline } from '../outline.js';
+import { HEADINGS, stampOutline } from '../outline.js';
 import type { FamilyProfile, PageView, Pass } from '../types.js';
 import { headingOrSectionId } from './shared.js';
 
@@ -121,7 +121,7 @@ export const javadoc: FamilyProfile = {
   root: ($) => $(ROOT).first(),
   title: ($) => $(ROOT).find('h1.title').first().text(),
   outline: (page) =>
-    stampOutline(page, { selector: 'h1, h2, h3, h4, h5, h6', id: headingOrSectionId }),
+    stampOutline(page, { ...HEADINGS, id: headingOrSectionId }),
   members,
   sliceMember: (page, id) =>
     page.root

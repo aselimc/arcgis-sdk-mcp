@@ -1,0 +1,48 @@
+{
+  "name": "npm-dts, happy path (synthetic package @arcgis/widget-core)",
+  "interactions": [
+    {
+      "url": "https://registry.npmjs.org/-/package/@arcgis/widget-core/dist-tags",
+      "response": {
+        "json": { "latest": "7.2.4", "next": "8.0.0-next.3", "rc": "7.3.0-next.12" }
+      }
+    },
+    {
+      "url": "https://data.jsdelivr.com/v1/packages/npm/@arcgis/widget-core@7.2.4?structure=flat",
+      "response": {
+        "json": {
+          "type": "npm",
+          "name": "@arcgis/widget-core",
+          "version": "7.2.4",
+          "default": null,
+          "files": [
+            { "name": "/package.json", "hash": "aaaa", "size": 812 },
+            { "name": "/Gadget.d.ts", "hash": "bbbb", "size": 2210 },
+            { "name": "/Gadget.js", "hash": "cccc", "size": 5120 },
+            { "name": "/layers/PanelLayer.d.ts", "hash": "dddd", "size": 1480 },
+            { "name": "/layers/PanelLayer.js", "hash": "eeee", "size": 9040 },
+            { "name": "/layers/support/fieldUtils.d.ts", "hash": "ffff", "size": 640 },
+            { "name": "/applications/Components/panelHelper.d.ts", "hash": "gggg", "size": 300 },
+            { "name": "/chunks/shared-1a2b.d.ts", "hash": "hhhh", "size": 120 },
+            { "name": "/node_modules/tiny-dep/index.d.ts", "hash": "iiii", "size": 90 }
+          ],
+          "links": {}
+        }
+      }
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/@arcgis/widget-core@7.2.4/layers/PanelLayer.d.ts",
+      "response": { "contentType": "application/typescript", "bodyFile": "PanelLayer.d.ts" }
+    },
+    {
+      "url": "https://data.jsdelivr.com/v1/packages/npm/@arcgis/widget-core/resolved?specifier=6.9",
+      "response": {
+        "json": { "type": "npm", "name": "@arcgis/widget-core", "version": "6.9.1", "links": {} }
+      }
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/@arcgis/widget-core@6.9.1/layers/PanelLayer.d.ts",
+      "response": { "contentType": "application/typescript", "bodyFile": "PanelLayer.d.ts" }
+    }
+  ]
+}

@@ -10,6 +10,8 @@ import { escapeHtml, firstSentence, squash, tagged } from '../dom.js';
 
 /** Selector of a member card. */
 export const CARD = 'div.lumina-detail';
+/** Marks a card that sits inside another card, so that it is known after slicing too. */
+export const NESTED_ATTR = 'data-md-nested';
 
 /** What a card says about its member. */
 export interface Card {
@@ -57,7 +59,7 @@ export function readCard($: CheerioAPI, el: Element): Card {
     signature: definition($, card, 'Signature'),
     inheritedFrom: squash(card.children('.lumina-inherited').find('a').first().text()),
     summary: firstSentence(description.text()),
-    nested: card.parent().closest(CARD).length > 0,
+    nested: card.attr(NESTED_ATTR) !== undefined || card.parent().closest(CARD).length > 0,
   };
 }
 

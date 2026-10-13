@@ -1,0 +1,43 @@
+{
+  "name": "@esri/gadget-components",
+  "schemaVersion": "2.1.0",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "components/gadget-button",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "GadgetButton",
+          "customElement": true,
+          "tagName": "gadget-button",
+          "description": "A button that starts one action.",
+          "members": [
+            {
+              "kind": "field",
+              "name": "kind",
+              "description": "Visual weight of the button.",
+              "type": { "text": "\"solid\" | \"outline\"" },
+              "default": "\"solid\""
+            }
+          ]
+        }
+      ],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "components/gadget-split-button",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "GadgetSplitButton",
+          "customElement": true,
+          "tagName": "gadget-split-button",
+          "description": "A button with a menu of secondary actions."
+        }
+      ],
+      "exports": []
+    }
+  ]
+}

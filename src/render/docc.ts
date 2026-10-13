@@ -13,7 +13,7 @@ import {
   type DoccContext,
 } from './docc-content.js';
 import { asRecord, isRecord, list, records, str, strings, type Json } from './json.js';
-import { blocks, bullets, fence, inlineCode, oneLine } from './md.js';
+import { blocks, bullets, fence, inlineCode, oneLine, summaryLine } from './md.js';
 import { buildSections, finishPage, invalidInput, type Block } from './page.js';
 
 /** `https://host/swift/api-reference` from the public URL of any page below it. */
@@ -94,7 +94,7 @@ function membersOf(json: Json, context: DoccContext): MemberEntry[] {
       const name = str(reference.title);
       if (name === undefined) return [];
       const signature = oneLine(fragmentsText(reference.fragments));
-      const summary = oneLine(inline(reference.abstract, context));
+      const summary = summaryLine(inline(reference.abstract, context));
       const url = referenceUrl(reference, context);
       return [
         {

@@ -1,0 +1,13 @@
+[
+  { "name": "Minimal", "id": "minimal", "bundles": ["core"], "variables": [] },
+  {
+    "name": "Row label",
+    "id": "row-label",
+    "bundles": ["core", "geometry"],
+    "variables": [
+      { "name": "$row", "type": "feature", "description": "The row the label is drawn for." },
+      { "name": "$panel", "type": "dictionary", "description": "Settings of the panel that owns the row." }
+    ]
+  },
+  { "name": "No id", "bundles": ["core"], "variables": [] }
+]

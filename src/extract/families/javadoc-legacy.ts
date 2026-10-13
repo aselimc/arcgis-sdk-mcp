@@ -9,7 +9,7 @@ import {
   squash,
   tagged,
 } from '../dom.js';
-import { stampOutline } from '../outline.js';
+import { HEADINGS, stampOutline } from '../outline.js';
 import type { FamilyProfile, PageView, Pass } from '../types.js';
 import { fragment } from './shared.js';
 
@@ -101,7 +101,7 @@ export const javadocLegacy: FamilyProfile = {
   defaultLanguage: 'java',
   root: ($) => $(ROOT).first(),
   title: ($) => $('div.header .title').first().text(),
-  outline: (page) => stampOutline(page, { selector: 'h1, h2, h3, h4, h5, h6', id: anchorOf }),
+  outline: (page) => stampOutline(page, { ...HEADINGS, id: anchorOf }),
   members,
   header: (page) => {
     const packageName = squash(page.$('div.header .subTitle').first().text());

@@ -8,15 +8,7 @@
 import type { RenderMeta, RenderOptions, RendererInputs } from '../../core/ports.js';
 import type { DocPage } from '../../core/types.js';
 import { renderApiPage, type ApiMember, type ApiType } from '../api-page.js';
-import {
-  blocks,
-  bullets,
-  fence,
-  fencedExample,
-  firstSentence,
-  inlineCode,
-  oneLine,
-} from '../md.js';
+import { blocks, bullets, fence, fencedExample, summaryLine, inlineCode, oneLine } from '../md.js';
 import { parseJsDoc, type JsDoc } from './jsdoc.js';
 import { classView, defaultClass, publicExports, rawMemberText, type ClassView } from './model.js';
 import { scanDts, type DtsDeclaration, type DtsFile, type DtsMember } from './scanner.js';
@@ -97,6 +89,7 @@ function mergeAccessors(members: readonly DtsMember[]): DtsMember[][] {
 function classMember(
   parts: readonly DtsMember[],
   options: Map<string, DtsMember>,
+  picked: ReadonlySet<string>,
 ): ApiMember | undefined {
   const [first] = parts;
   if (first === undefined) return undefined;
@@ -112,13 +105,11 @@ function classMember(
   const ownType = getter?.type ?? first.type;
   const { group: groupName, kind } = group(first.kind);
   const raw = parts.some((part) => part.raw === true);
+  // Modifiers are visible in the declaration; "readonly" is said only where it has to be
+  // inferred from a getter without a setter.
   const flags = [
-    first.modifiers.includes('static') ? 'static' : undefined,
-    first.modifiers.includes('abstract') ? 'abstract' : undefined,
-    first.modifiers.includes('protected') ? 'protected' : undefined,
-    readonly ? 'readonly' : undefined,
-    first.optional ? 'optional' : undefined,
-    option === undefined ? undefined : 'constructor option',
+    accessor && setter === undefined ? 'readonly' : undefined,
+    option === undefined && !picked.has(first.name) ? undefined : 'constructor option',
     doc.default === undefined ? undefined : `default ${inlineCode(doc.default)}`,
     raw ? 'unparsed declaration' : undefined,
   ].filter((flag) => flag !== undefined);
@@ -166,7 +157,7 @@ function extraMembers(
 function classMembers(view: ClassView): ApiMember[] {
   const options = new Map((view.properties?.members ?? []).map((member) => [member.name, member]));
   const own = mergeAccessors(view.members.filter((member) => !isHidden(member))).flatMap(
-    (parts) => classMember(parts, options) ?? [],
+    (parts) => classMember(parts, options, view.picked) ?? [],
   );
   const order = ['Constructors', 'Properties', 'Methods', 'Signatures'];
   own.sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group));
@@ -194,7 +185,7 @@ function classPage(view: ClassView, input: RendererInputs['dts'], isDefault: boo
   const importLine = isDefault
     ? `import ${view.name} from "${module}.js";`
     : `import { ${view.name} } from "${input.packageName}";`;
-  const inheritedOptions = view.properties?.extends ?? [];
+  const inheritedOptions = view.inheritedOptions;
   const inheritedEvents = view.events?.extends ?? [];
   const facts = [
     view.bases.length === 0
@@ -234,7 +225,7 @@ function exportMember(declaration: DtsDeclaration, file: DtsFile): ApiMember | u
     declaration.kind === 'class' || declaration.kind === 'interface' || declaration.kind === 'enum';
   const index = container
     ? classMembers(classView(file, declaration)).map((member) => {
-        const summary = firstSentence(member.description);
+        const summary = summaryLine(member.description);
         return `${inlineCode(member.name)}${summary === '' ? '' : `: ${summary}`}`;
       })
     : [];

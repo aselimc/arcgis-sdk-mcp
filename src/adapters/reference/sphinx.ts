@@ -161,7 +161,7 @@ export const sphinxAdapter: SourceAdapter<'sphinx'> = {
     /\.inv(?:[?#]|$)/.test(src.source.probe.url)
       ? probeSource(ctx, src, {
           encoding: 'base64',
-          count: (text) => parseObjectsInv(Buffer.from(text, 'base64'))?.entries.length,
+          count: (text) => parseObjectsInv(Buffer.from(text, 'latin1'))?.entries.length,
         })
       : probeSource(ctx, src, {
           count: (text) => parseSphinxSearchIndex(text)?.entries.length,

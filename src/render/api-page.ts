@@ -7,7 +7,17 @@
 import type { RenderMeta, RenderOptions } from '../core/ports.js';
 import type { DocPage, MemberEntry, SymbolDetail } from '../core/types.js';
 import { slugify } from '../core/url.js';
-import { blocks, bullets, fence, fencedExample, firstSentence, inlineCode, oneLine } from './md.js';
+import {
+  blocks,
+  bullets,
+  fence,
+  fencedExample,
+  firstSentence,
+  inlineCode,
+  oneLine,
+  splitAtFirstHeading,
+  summaryLine,
+} from './md.js';
 import { buildSections, finishPage, type Block } from './page.js';
 
 /** One parameter of a callable member. */
@@ -103,12 +113,15 @@ function docBody(doc: ApiDoc & Partial<ApiMember>, language: string, detail: Sym
   if (doc.since !== undefined) flags.push(`since ${doc.since}`);
   if (doc.inheritedFrom !== undefined) flags.push(`inherited from ${doc.inheritedFrom}`);
   const full = detail === 'full';
+  // Headings inside a description start sections of their own, so whatever follows them
+  // would land in the last of those sections: the titled part of a description goes last.
+  const description = splitAtFirstHeading(doc.description ?? '');
   return blocks(
     signature,
     flags.length > 0 ? `_${flags.join(' · ')}_` : undefined,
     ...(doc.facts ?? []),
     deprecation(doc),
-    doc.description,
+    description.intro,
     doc.params !== undefined && doc.params.length > 0
       ? blocks('**Parameters**', bullets(doc.params.map(paramLine)))
       : undefined,
@@ -121,6 +134,7 @@ function docBody(doc: ApiDoc & Partial<ApiMember>, language: string, detail: Sym
       ? blocks('**See also**', bullets(doc.see))
       : undefined,
     full ? doc.extra : undefined,
+    description.titled,
   );
 }
 
@@ -145,7 +159,7 @@ function indexLine(member: ApiMember): string {
     member.inheritedFrom === undefined ? undefined : `inherited from ${member.inheritedFrom}`,
     member.deprecated === undefined || member.deprecated === false ? undefined : 'deprecated',
   ].filter((mark) => mark !== undefined);
-  const summary = firstSentence(member.description);
+  const summary = summaryLine(member.description);
   return [
     inlineCode(member.name),
     marks.length > 0 ? ` _(${marks.join(', ')})_` : '',
@@ -209,7 +223,7 @@ export function typeBlocks(
 /** The `MemberEntry` list of a type: every member, whatever part of the page is shown. */
 export function memberEntries(members: readonly ApiMember[]): MemberEntry[] {
   return members.map((member) => {
-    const summary = firstSentence(member.description);
+    const summary = summaryLine(member.description);
     return {
       id: member.id,
       name: member.name,

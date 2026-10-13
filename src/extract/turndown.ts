@@ -76,11 +76,10 @@ export function createMarkdownConverter(): (html: string) => Converted {
   service.addRule('dropEmptyLinks', {
     filter: (node) => {
       const link = asRuleNode(node);
-      return (
-        link.nodeName === 'A' &&
-        (link.textContent ?? '').trim() === '' &&
-        link.querySelector('img') === null
-      );
+      if (link.nodeName !== 'A' || (link.textContent ?? '').trim() !== '') return false;
+      // Turndown's DOM answers `undefined`, a browser `null`, when nothing matches.
+      const image = link.querySelector('img');
+      return image === null || image === undefined;
     },
     replacement: () => '',
   });

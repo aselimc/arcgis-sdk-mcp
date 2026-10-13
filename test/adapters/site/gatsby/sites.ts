@@ -131,3 +131,10 @@ export function recordAt(records: readonly CatalogRecord[], suffix: string): Cat
   }
   return record;
 }
+
+/** The reason a promise rejected with, failing the test when it resolved. */
+export async function rejection(work: Promise<unknown>): Promise<unknown> {
+  const [outcome] = await Promise.allSettled([work]);
+  if (outcome.status === 'fulfilled') throw new Error('expected a rejection');
+  return outcome.reason;
+}

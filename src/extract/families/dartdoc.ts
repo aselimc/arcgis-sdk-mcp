@@ -1,6 +1,6 @@
 import type { CheerioAPI } from 'cheerio';
 import { escapeHtml, replaceWithPre, squash, tagged } from '../dom.js';
-import { stampOutline } from '../outline.js';
+import { HEADINGS, stampOutline } from '../outline.js';
 import type { FamilyProfile, Pass } from '../types.js';
 import { headingOrSectionId } from './shared.js';
 
@@ -67,6 +67,6 @@ export const dartdoc: FamilyProfile = {
   root: ($) => $(ROOT).first(),
   title,
   outline: (page) =>
-    stampOutline(page, { selector: 'h1, h2, h3, h4, h5, h6', id: headingOrSectionId }),
+    stampOutline(page, { ...HEADINGS, id: headingOrSectionId }),
   prepare,
 };

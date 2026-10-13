@@ -22,6 +22,10 @@ export interface ClassView {
   bases: string[];
   /** `XProperties`: what the constructor accepts. */
   properties?: DtsDeclaration;
+  /** Class members the constructor also accepts: the names in `Partial<Pick<X, "a" | "b">>`. */
+  picked: Set<string>;
+  /** Other interfaces `XProperties` extends; their options are accepted too. */
+  inheritedOptions: string[];
   /** `XEvents`: the event map of the class. */
   events?: DtsDeclaration;
   /** False when a body of the class could not be scanned to its end. */
@@ -65,12 +69,20 @@ export function classView(file: DtsFile, declaration: DtsDeclaration): ClassView
     .find((candidate) => candidate?.name === `__${name}SansType`);
   const properties = named(file, `${name}Properties`, ['interface']);
   const events = named(file, `${name}Events`, ['interface']);
+  const options = properties === declaration ? [] : (properties?.extends ?? []);
+  const picks = options.filter((item) => /^Partial\s*<\s*Pick\s*</.test(item));
   return {
     name,
     declaration,
     members: [...declaration.members, ...(half?.members ?? [])],
     bases: resolveBases(file, half?.extends ?? declaration.extends),
     ...(properties === undefined || properties === declaration ? {} : { properties }),
+    picked: new Set(
+      picks.flatMap((item) =>
+        [...item.matchAll(/["']([^"']+)["']/g)].map((match) => match[1] ?? ''),
+      ),
+    ),
+    inheritedOptions: options.filter((item) => !picks.includes(item)),
     ...(events === undefined || events === declaration ? {} : { events }),
     complete: declaration.bodyParsed && (half?.bodyParsed ?? true),
   };

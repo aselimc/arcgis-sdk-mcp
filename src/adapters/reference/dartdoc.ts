@@ -20,7 +20,7 @@ import type {
   SourceAdapter,
 } from '../../core/ports.js';
 import { expandTemplate } from '../../core/source-urls.js';
-import type { CatalogRecord, DocPage, HtmlFamily, LicenseTier } from '../../core/types.js';
+import type { CatalogRecord, DocKind, DocPage, HtmlFamily, LicenseTier } from '../../core/types.js';
 
 /** The licence tier of a source's content: its own, else the product default. */
 export function licenseOf(src: BoundSource): LicenseTier {
@@ -110,10 +110,12 @@ export function oneLine(text: unknown, max = 240): string | undefined {
 
 /** Optional fields of a symbol record; `breadcrumb` is given as ancestor titles, outermost first. */
 export type RecordExtras = {
-  [K in Exclude<
-    keyof CatalogRecord,
-    'ref' | 'product' | 'source' | 'line' | 'title' | 'license' | 'breadcrumb'
-  >]?: CatalogRecord[K] | undefined;
+  [
+    K in Exclude<
+      keyof CatalogRecord,
+      'ref' | 'product' | 'source' | 'line' | 'title' | 'license' | 'breadcrumb'
+    >
+  ]?: CatalogRecord[K] | undefined;
 } & { breadcrumb?: readonly string[] };
 
 /**
@@ -142,19 +144,23 @@ export function recordOf(
   };
 }
 
-/** The metadata a renderer needs for a page of this source. */
+/**
+ * The metadata a renderer needs for a page of this source. The kind is the one of the record
+ * that led to the page, else `kind`.
+ */
 export function renderMeta(
   src: BoundSource,
   target: ReadTarget,
   url: string,
   res?: HttpResponse,
+  kind: DocKind = 'api',
 ): RenderMeta {
   return {
     url,
     product: src.product.id,
     source: src.source.id,
     line: src.line.id,
-    kind: target.record?.kind ?? 'api',
+    kind: target.record?.kind ?? kind,
     license: licenseOf(src),
     ...(res === undefined ? {} : { res }),
   };
@@ -203,6 +209,7 @@ export async function readHtmlPage(
   src: BoundSource,
   target: ReadTarget,
   family: HtmlFamily | undefined = src.source.probe.family,
+  kind: DocKind = 'api',
 ): Promise<DocPage> {
   assertLive(src, target.url.href);
   const requested = target.url.href.replace(/#.*$/, '');
@@ -211,7 +218,7 @@ export async function readHtmlPage(
   return ctx.render.render(
     'html',
     { html: res.text, ...(family === undefined ? {} : { familyHint: family }) },
-    renderMeta(src, target, `${landed}${target.url.hash}`, res),
+    renderMeta(src, target, `${landed}${target.url.hash}`, res, kind),
     renderOptionsOf(target),
   );
 }
@@ -220,7 +227,10 @@ export async function readHtmlPage(
 export interface ProbeOptions {
   /** Counts the records of the canary body; default: entries of a JSON array or object. */
   count?: (text: string) => number | undefined;
-  /** `base64` for a binary canary (a Sphinx inventory). */
+  /**
+   * `base64` for a binary canary (a Sphinx inventory). The checks and `count` then see the
+   * bytes as a Latin-1 string, one character per byte.
+   */
   encoding?: 'base64';
 }
 
@@ -267,16 +277,18 @@ export async function probeSource(
       ttl: page ? 'page' : 'index',
       ...(options.encoding === undefined ? {} : { encoding: options.encoding }),
     });
-    const chars = res.text.length;
-    const family = page ? ctx.render.detectFamily(res.text) : undefined;
+    const text =
+      options.encoding === 'base64' ? Buffer.from(res.text, 'base64').toString('latin1') : res.text;
+    const chars = text.length;
+    const family = page ? ctx.render.detectFamily(text) : undefined;
     const records =
-      options.count?.(res.text) ?? (probe.expect === 'json' ? jsonCount(res.text) : undefined);
+      options.count?.(text) ?? (probe.expect === 'json' ? jsonCount(text) : undefined);
     let error: string | undefined;
     if (probe.minRecords !== undefined && (records ?? 0) < probe.minRecords) {
       error = `Expected at least ${probe.minRecords} records, found ${records ?? 0}`;
     } else if (probe.minChars !== undefined && chars < probe.minChars) {
       error = `Expected at least ${probe.minChars} characters, found ${chars}`;
-    } else if (probe.mustContain !== undefined && !res.text.includes(probe.mustContain)) {
+    } else if (probe.mustContain !== undefined && !text.includes(probe.mustContain)) {
       error = `The response does not contain "${probe.mustContain}"`;
     } else if (probe.family !== undefined && family !== undefined && family !== probe.family) {
       error = `Expected page family ${probe.family}, detected ${family}`;
@@ -338,7 +350,7 @@ const DART_CONTAINERS: ReadonlySet<unknown> = new Set([3, 5, 6, 7, 11]);
 export function dartdocRecords(src: BoundSource, entries: readonly unknown[]): CatalogRecord[] {
   const base = src.url();
   const records = new Map<string, CatalogRecord>();
-  for (const entry of entries as readonly (DartdocEntry | null)[]) {
+  for (const entry of entries as ReadonlyArray<DartdocEntry | null>) {
     const { name, qualifiedName, href } = entry ?? {};
     if (typeof name !== 'string' || typeof href !== 'string' || name === '') continue;
     const ref = new URL(href, base).href;

@@ -115,8 +115,6 @@ export function packageMeta(
     kind: kindOf(src),
     license: licenseOf(src),
     packageName: pkg.name,
-    ...(origin.res === undefined
-      ? { retrievedAt: origin.retrievedAt ?? '' }
-      : { res: origin.res }),
+    ...(origin.res === undefined ? { retrievedAt: origin.retrievedAt ?? '' } : { res: origin.res }),
   };
 }

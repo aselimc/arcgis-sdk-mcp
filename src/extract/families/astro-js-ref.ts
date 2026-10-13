@@ -1,10 +1,17 @@
 import type { CheerioAPI } from 'cheerio';
 import type { AnyNode, Element } from 'domhandler';
 import { headingLevel, ID_ATTR, replaceWithPre, squash, tagged } from '../dom.js';
-import { stampOutline } from '../outline.js';
+import { HEADINGS, stampOutline } from '../outline.js';
 import type { FamilyProfile, PageView, Pass } from '../types.js';
 import { dropCodePenStrips } from './astro.js';
-import { CARD, indexTable, readCard, toMember, type Card } from './js-ref-cards.js';
+import {
+  CARD,
+  indexTable,
+  NESTED_ATTR,
+  readCard,
+  toMember,
+  type Card,
+} from './js-ref-cards.js';
 import { themeRoot, themeTitle } from './shared.js';
 
 /** The page's own member summary tables; never the tables inside a card. */
@@ -113,11 +120,16 @@ export const astroJsRef: FamilyProfile = {
   root: themeRoot,
   title: themeTitle,
   // Headings inside cards are member headings; `prepare` writes them with the card id.
-  outline: (page) =>
-    stampOutline(page, {
-      selector: 'h1, h2, h3, h4, h5, h6',
+  outline: (page) => {
+    // A nested card keeps its heading level when it is read on its own.
+    page.root
+      .find(`${CARD} ${CARD}`)
+      .each((_, card) => void page.$(card).attr(NESTED_ATTR, ''));
+    return stampOutline(page, {
+      ...HEADINGS,
       level: (el, $) => ($(el).closest(CARD).length > 0 ? 0 : headingLevel(el)),
-    }),
+    });
+  },
   members: (page) =>
     page.root
       .find(CARD)

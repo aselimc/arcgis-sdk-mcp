@@ -4,7 +4,7 @@
  * registry-declared canary.
  */
 import { budgetExhausted } from '../../../core/async.js';
-import { McpDocError, toMcpDocError } from '../../../core/errors.js';
+import { McpDocError, toMcpDocError, type ErrorDetails } from '../../../core/errors.js';
 import { DEVELOPERS_ORIGIN } from '../../../core/names.js';
 import type {
   BoundSource,
@@ -69,7 +69,9 @@ export function baseRecord(src: BoundSource, ref: string, title: string): Catalo
  * of a Markdown text, with whitespace collapsed, at most `max` characters.
  */
 export function summaryOf(text: unknown, max = 200): string | undefined {
-  const paragraph = str(text)?.trim().split(/\n\s*\n/)[0];
+  const paragraph = str(text)
+    ?.trim()
+    .split(/\n\s*\n/)[0];
   if (paragraph === undefined) return undefined;
   const line = paragraph.replace(/\s+/g, ' ').trim();
   const sentence = /^.*?[.!?](?=\s|$)/.exec(line)?.[0] ?? line;
@@ -178,14 +180,17 @@ export function shapeError(url: string, what: string): McpDocError {
   });
 }
 
-/** The failure for a URL or record that names nothing in a package artefact. */
-export function notFound(url: string, what: string, why: string, next?: string): McpDocError {
-  return new McpDocError('DOC_NOT_FOUND', what, {
-    why,
-    url,
-    host: new URL(url).host,
-    ...(next === undefined ? {} : { next }),
-  });
+/**
+ * The failure for a URL or record that names nothing in a package artefact, with the way
+ * forward: a complete call (`next`) or the refs that do exist (`candidates`).
+ */
+export function notFound(
+  url: string,
+  what: string,
+  why: string,
+  recovery: Pick<ErrorDetails, 'next' | 'candidates'>,
+): McpDocError {
+  return new McpDocError('DOC_NOT_FOUND', what, { why, url, host: new URL(url).host, ...recovery });
 }
 
 /**

@@ -96,7 +96,9 @@ function strings(value: unknown): string[] {
 function objectRows(group: unknown): Array<{ name: string; row: ObjectRow }> {
   if (Array.isArray(group)) {
     return (group as unknown[]).flatMap((row) =>
-      Array.isArray(row) && typeof row[4] === 'string' ? [{ name: row[4], row: row as ObjectRow }] : [],
+      Array.isArray(row) && typeof row[4] === 'string'
+        ? [{ name: row[4], row: row as ObjectRow }]
+        : [],
     );
   }
   if (typeof group !== 'object' || group === null) return [];
@@ -126,15 +128,20 @@ export function parseSphinxSearchIndex(script: string): SphinxIndex | undefined 
   const docnames = strings(raw.docnames);
   if (docnames.length === 0) return undefined;
   const titles = strings(raw.titles);
-  const types = (typeof raw.objtypes === 'object' && raw.objtypes !== null ? raw.objtypes : {}) as Record<string, unknown>;
+  const types = (
+    typeof raw.objtypes === 'object' && raw.objtypes !== null ? raw.objtypes : {}
+  ) as Record<string, unknown>;
 
-  const entries: SphinxEntry[] = docnames.map((name, index) => ({
-    name,
-    domain: 'std',
-    role: 'doc',
-    uri: `${name}.html`,
-    display: titles[index] || name,
-  }));
+  const entries: SphinxEntry[] = docnames.map((name, index) => {
+    const title = titles[index];
+    return {
+      name,
+      domain: 'std',
+      role: 'doc',
+      uri: `${name}.html`,
+      display: title === undefined || title === '' ? name : title,
+    };
+  });
   const groups = typeof raw.objects === 'object' && raw.objects !== null ? raw.objects : {};
   for (const [prefix, group] of Object.entries(groups)) {
     for (const { name, row } of objectRows(group)) {

@@ -58,7 +58,7 @@ function declarations(src: BoundSource, entries: readonly unknown[]): Declaratio
   const base = src.url();
   const seen = new Set<string>();
   const found: Declaration[] = [];
-  for (const entry of entries as readonly (DokkaEntry | null)[]) {
+  for (const entry of entries as ReadonlyArray<DokkaEntry | null>) {
     const { name, description, location } = entry ?? {};
     if (typeof description !== 'string' || typeof location !== 'string') continue;
     if (description === '' || location === '') continue;

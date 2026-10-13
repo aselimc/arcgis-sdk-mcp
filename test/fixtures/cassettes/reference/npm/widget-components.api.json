@@ -1,0 +1,120 @@
+{
+  "name": "@arcgis/widget-components",
+  "timestamp": "2026-10-01T00:00:00",
+  "compiler": { "name": "synthetic", "version": "1.0.0" },
+  "schemaVersion": "2.1.0",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "components/arcgis-gadget-panel",
+      "sourcePath": "src/components/gadget-panel/gadget-panel.tsx",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "ArcgisGadgetPanel",
+          "customElement": true,
+          "tagName": "arcgis-gadget-panel",
+          "pascalCaseName": "ArcgisGadgetPanel",
+          "description": "Shows gadgets in a collapsible panel. Use it beside a map.\n\nThe panel is an invented component used by tests.",
+          "docsTags": [{ "name": "since", "text": "7.0" }],
+          "demos": [
+            {
+              "description": "Docs",
+              "url": "https://developers.arcgis.com/widgets/latest/references/widget-components/components/arcgis-gadget-panel/"
+            }
+          ],
+          "superclass": { "name": "LitElement" },
+          "members": [
+            {
+              "kind": "field",
+              "name": "heading",
+              "description": "Text shown in the panel header.",
+              "type": { "text": "string | undefined" },
+              "attribute": "heading"
+            },
+            {
+              "kind": "field",
+              "name": "collapsed",
+              "description": "Whether the panel body is hidden.",
+              "type": { "text": "boolean" },
+              "default": "false",
+              "attribute": "collapsed",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "legacyMode",
+              "description": "Draws the panel the way version 6 did.",
+              "type": { "text": "boolean" },
+              "deprecated": "Use the default rendering instead"
+            },
+            {
+              "kind": "field",
+              "name": "internalState",
+              "privacy": "private",
+              "type": { "text": "unknown" }
+            },
+            {
+              "kind": "method",
+              "name": "refresh",
+              "description": "Draws the panel again.",
+              "parameters": [{ "name": "force", "type": { "text": "boolean" }, "optional": true }],
+              "return": { "type": { "text": "Promise<void>" } }
+            },
+            {
+              "kind": "method",
+              "name": "componentOnReady",
+              "description": "Resolves when the component has rendered once.",
+              "inheritedFrom": { "name": "this" },
+              "return": { "type": { "text": "Promise<this>" } }
+            }
+          ],
+          "attributes": [
+            { "name": "heading", "fieldName": "heading", "type": { "text": "string" } }
+          ],
+          "events": [
+            {
+              "name": "arcgisGadgetReady",
+              "description": "Fires once the gadgets are drawn.",
+              "type": { "text": "void" }
+            },
+            {
+              "name": "arcgisGadgetToggle",
+              "description": "Fires when the panel is collapsed or expanded.",
+              "docsTags": [{ "name": "deprecated", "text": "Listen for arcgisPropertyChange" }],
+              "type": { "text": "{ collapsed: boolean }" }
+            }
+          ],
+          "slots": [{ "name": "", "description": "Rows of the panel." }],
+          "cssProperties": [{ "name": "--arcgis-gadget-panel-width", "description": "Panel width." }],
+          "importPath": "components/arcgis-gadget-panel"
+        }
+      ],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "components/arcgis-gadget-debugger",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "ArcgisGadgetDebugger",
+          "customElement": true,
+          "tagName": "arcgis-gadget-debugger",
+          "docsTags": [{ "name": "internal" }],
+          "members": [{ "kind": "field", "name": "verbose", "type": { "text": "boolean" } }]
+        }
+      ],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "index",
+      "declarations": [
+        { "kind": "interface", "name": "GadgetRow", "description": "One row of a panel." },
+        { "kind": "function", "name": "setAssetPath", "description": "Sets where assets load from." }
+      ],
+      "exports": []
+    }
+  ]
+}
