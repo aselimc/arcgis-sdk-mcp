@@ -104,6 +104,44 @@ export function memberIndexSection(members: readonly MemberEntry[]): DocSection 
   return section(MEMBERS_SECTION_ID, 'Members', body);
 }
 
+function namesOnly(members: readonly MemberEntry[], shown: number): string {
+  const kinds = [...new Set(members.map((member) => member.kind))];
+  return kinds
+    .map((kind) => {
+      const names = members.filter((member) => member.kind === kind).map((member) => member.name);
+      // Every kind keeps its share of the names, and at least one.
+      const kept = Math.max(1, Math.ceil((names.length * shown) / members.length));
+      const more = names.length - kept;
+      const list = names
+        .slice(0, kept)
+        .map((name) => `\`${name}\``)
+        .join(', ');
+      return `**${kind}** (${names.length}): ${list}${more > 0 ? ` and ${more} more` : ''}`;
+    })
+    .join('\n\n');
+}
+
+/**
+ * The member index of a type with many members: names only, grouped by kind, within
+ * `maxTokens`. Names are left out, evenly over the kinds, only when even the bare list is
+ * too long.
+ */
+export function compactMemberIndexSection(
+  members: readonly MemberEntry[],
+  maxTokens: number,
+): DocSection {
+  const hint = 'Look a member up as "Type.member" for its declaration and documentation.';
+  let shown = members.length;
+  const build = (): DocSection =>
+    section(MEMBERS_SECTION_ID, 'Members', `${namesOnly(members, shown)}\n\n${hint}`);
+  let index = build();
+  while (index.tokens > maxTokens && shown > 1) {
+    shown = Math.floor(shown * 0.8);
+    index = build();
+  }
+  return index;
+}
+
 /** The section for a member that is listed on a page but has no section of its own. */
 export function memberSection(member: MemberEntry): DocSection {
   const parts = [

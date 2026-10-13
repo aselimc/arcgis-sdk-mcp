@@ -149,6 +149,8 @@ describe('the shared pass order', () => {
       'fixTabs',
       'iconLabelsToText',
       'removeCommon',
+      // Not in the design's list: added when live pages showed `<details>` toggle labels.
+      'fixDetails',
       'fixCodeLinks',
       'fixAsides',
       'fixDl',

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { absolutize } from '../../src/extract/passes/absolutize.js';
 import { fixAsides } from '../../src/extract/passes/fix-asides.js';
+import { fixDetails } from '../../src/extract/passes/fix-details.js';
 import { fixDl } from '../../src/extract/passes/fix-dl.js';
 import { fixIslands } from '../../src/extract/passes/fix-islands.js';
 import { fixTabs } from '../../src/extract/passes/fix-tabs.js';
@@ -291,5 +292,34 @@ describe('absolutize', () => {
   it('leaves a target that cannot be resolved as it is', () => {
     const html = '<a href="http://[bad">x</a><img src="http://[bad">';
     expect(applyPass(html, absolutize, env)).toBe(html);
+  });
+});
+
+describe('fixDetails', () => {
+  // Regression: a class overview folded behind "Read More" kept that button text as a line.
+  it('opens a disclosure and drops a summary that is only the toggle label', () => {
+    expect(
+      applyPass(
+        '<p>Three ways.</p><details><summary>Read More</summary><h3>By URL</h3><p>Set it.</p></details>',
+        fixDetails,
+      ),
+    ).toBe('<p>Three ways.</p><h3>By URL</h3><p>Set it.</p>');
+    expect(applyPass('<details><summary> show details… </summary>x</details>', fixDetails)).toBe(
+      'x',
+    );
+  });
+
+  it('keeps a summary that names the content as a bold line', () => {
+    expect(
+      applyPass(
+        '<details><summary>Tide <code>datum</code> options</summary><p>Two.</p></details>',
+        fixDetails,
+      ),
+    ).toBe('<p><strong>Tide <code>datum</code> options</strong></p><p>Two.</p>');
+  });
+
+  it('leaves the collapsed lines of a code block to the code passes', () => {
+    const html = '<pre><code><details><summary>2 collapsed lines</summary>a</details></code></pre>';
+    expect(applyPass(html, fixDetails)).toBe(html);
   });
 });

@@ -3,10 +3,20 @@
  * a format's structure already apply `detail`; this is the uniform trimming for those that
  * cannot, and it leaves an already trimmed page as it is.
  */
-import { estimateTokens, fitSections, splitBlocks } from '../../core/budget.js';
+import { estimateTokens, fitSections, joinSections, splitBlocks } from '../../core/budget.js';
 import { sectionSubtree } from '../../core/sections.js';
-import type { CatalogRecord, DocPage, DocSection, SymbolDetail } from '../../core/types.js';
-import { memberIndexSection } from '../doc/display.js';
+import type {
+  CatalogRecord,
+  DocPage,
+  DocSection,
+  MemberEntry,
+  SymbolDetail,
+} from '../../core/types.js';
+import {
+  MEMBERS_SECTION_ID,
+  compactMemberIndexSection,
+  memberIndexSection,
+} from '../doc/display.js';
 import { resolveSection } from '../doc/section-resolve.js';
 import { simpleName } from '../index/symbol-map.js';
 
@@ -19,6 +29,15 @@ export interface SymbolText {
 
 const FENCE = /^ {0,3}(?:`{3,}|~{3,})/;
 const HEADING = /^ {0,3}#{1,6}[ \t]/;
+/** A table row or list line that opens with a name in code: one line of a member index. */
+const INDEX_LINE = /^(?:\| ?|[-*] )`([^`]+)`/;
+
+/** Least share of the budget that the member index of a type summary can count on. */
+const INDEX_SHARE = 0.5;
+
+/** Said where the description of a type was shortened in favour of its member index. */
+export const DESCRIPTION_CUT_NOTE =
+  '_The description is cut here to leave room for the member index._';
 
 function withTokens(section: DocSection, markdown: string): DocSection {
   return { ...section, markdown, tokens: estimateTokens(markdown) };
@@ -94,12 +113,58 @@ function typeSummary(page: DocPage, sections: readonly DocSection[]): DocSection
   return [...own, memberIndexSection(members)];
 }
 
+/** Position of the first section that lists members rather than describes the type; -1 if none. */
+function indexStart(sections: readonly DocSection[], members: readonly MemberEntry[]): number {
+  const names = new Set(members.flatMap((member) => [member.id, member.name]));
+  return sections.findIndex(
+    (section, position) =>
+      position > 0 &&
+      (section.id === MEMBERS_SECTION_ID ||
+        section.markdown.split('\n').some((line) => names.has(INDEX_LINE.exec(line)?.[1] ?? ''))),
+  );
+}
+
+/**
+ * Fits the summary of a type. Its member index is what the caller goes on from, so a long
+ * description does not push it out: the index keeps at least {@link INDEX_SHARE} of the
+ * budget (as bare names when one line per member is too much) and the description is cut to
+ * what is left.
+ */
+function fitTypeSummary(
+  page: DocPage,
+  sections: readonly DocSection[],
+  budget: number,
+): { text: string; shownAll: boolean } {
+  const whole = fitSections(sections, budget);
+  if (whole.nextOffset === undefined) return { text: whole.text, shownAll: true };
+  const members = page.members ?? [];
+  const start = indexStart(sections, members);
+  if (start === -1) return { text: whole.text, shownAll: false };
+
+  const tokensOf = (list: readonly DocSection[]): number =>
+    list.reduce((sum, section) => sum + section.tokens, 0);
+  const prose = sections.slice(0, start);
+  const listed = sections.slice(start);
+  const room = Math.max(Math.floor(budget * INDEX_SHARE), budget - tokensOf(prose));
+  const index = tokensOf(listed) <= room ? listed : [compactMemberIndexSection(members, room)];
+  const description = fitSections(prose, Math.max(1, budget - tokensOf(index)));
+  return {
+    text: [
+      description.text,
+      ...(description.nextOffset === undefined ? [] : [DESCRIPTION_CUT_NOTE]),
+      joinSections(index),
+    ].join('\n\n'),
+    shownAll: false,
+  };
+}
+
 /**
  * The text of a symbol at a detail level within `maxTokens`.
  *
  * - `signature`: the header block when the page has one, else the first code block, plus
  *   one line of description.
- * - `summary`: a member in full; a type as its own documentation and a member index.
+ * - `summary`: a member in full; a type as its own documentation and a member index, the
+ *   index kept when the two do not fit together.
  * - `full`: everything.
  */
 export function symbolText(
@@ -116,12 +181,19 @@ export function symbolText(
 
   const header = page.header?.trim() ?? '';
   const budget = Math.max(50, maxTokens - (header === '' ? 0 : estimateTokens(header)));
-  const fit = fitSections(sections, budget);
-  const shownAll = fit.nextOffset === undefined;
+  let text: string;
+  let shownAll: boolean;
+  if (detail === 'summary' && record.parent === undefined) {
+    ({ text, shownAll } = fitTypeSummary(page, sections, budget));
+  } else {
+    const fit = fitSections(sections, budget);
+    text = fit.text;
+    shownAll = fit.nextOffset === undefined;
+  }
   const reduced =
     sections.reduce((sum, s) => sum + s.tokens, 0) < own.reduce((sum, s) => sum + s.tokens, 0);
   return {
-    text: [header, fit.text].filter((part) => part !== '').join('\n\n'),
+    text: [header, text].filter((part) => part !== '').join('\n\n'),
     truncated: !shownAll || (detail === 'signature' && reduced),
   };
 }

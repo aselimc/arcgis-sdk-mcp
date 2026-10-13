@@ -22,6 +22,7 @@ import { squash, tagged } from './dom.js';
 import { absolutize } from './passes/absolutize.js';
 import { fixAsides } from './passes/fix-asides.js';
 import { fixCodeLinks } from './passes/fix-code-links.js';
+import { fixDetails } from './passes/fix-details.js';
 import { fixDl } from './passes/fix-dl.js';
 import { fixExpressiveCode } from './passes/fix-expressive-code.js';
 import { fixGatsbyCode } from './passes/fix-gatsby-code.js';
@@ -47,6 +48,7 @@ export const SHARED_PASSES: readonly Pass[] = [
   fixTabs,
   iconLabelsToText,
   removeCommon,
+  fixDetails,
   fixCodeLinks,
   fixAsides,
   fixDl,

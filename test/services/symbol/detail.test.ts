@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { symbolText } from '../../../src/services/symbol/detail.js';
+import { estimateTokens } from '../../../src/core/budget.js';
+import { DESCRIPTION_CUT_NOTE, symbolText } from '../../../src/services/symbol/detail.js';
 import { makeDocPage, makeRecord } from '../../support/builders.js';
 
 describe('symbolText', () => {
@@ -117,6 +118,108 @@ describe('symbolText', () => {
     expect(text).toContain('## Members');
     expect(text).toContain('`refresh` (method): Reloads gauges.');
     expect(text).not.toContain('Reloads every gauge from the service.');
+  });
+});
+
+// Regression: the summary of a class with a long overview (the flagship layer class of the
+// JavaScript SDK) was cut inside the overview, so the member index never appeared.
+describe('symbolText: a type whose description is longer than the budget', () => {
+  const record = makeRecord({
+    ref: 'https://developers.arcgis.com/widgets/api/TideLayer/',
+    kind: 'api',
+    title: 'TideLayer',
+    symbol: 'TideLayer',
+    qualified: 'TideLayer',
+    symbolKind: 'class',
+  });
+  const section = (id: string, level: number, markdown: string) => ({
+    id,
+    level,
+    title: id,
+    markdown,
+    tokens: estimateTokens(markdown),
+  });
+  const overview = section(
+    'tidelayer',
+    1,
+    [
+      '# TideLayer',
+      ...Array.from({ length: 40 }, (_, n) => `Paragraph ${n} about tide gauges. `.repeat(8)),
+    ].join('\n\n'),
+  );
+  const members = Array.from({ length: 120 }, (_, n) => ({
+    id: `member${n}`,
+    name: `member${n}`,
+    kind: n < 90 ? 'property' : 'method',
+    summary: `Reads or changes setting number ${n} of the layer and reports the result.`,
+  }));
+  const memberSections = members.map((m) => section(m.id, 3, `### ${m.name}\n\n${m.summary}`));
+  const note = estimateTokens(DESCRIPTION_CUT_NOTE);
+
+  it('keeps a member index that fits and cuts the description instead', () => {
+    const few = members.slice(0, 3);
+    const rows = few.map((m) => `| \`${m.name}\` | ${m.summary} |`);
+    const table = ['| Name | Summary |', '| --- | --- |', ...rows].join('\n');
+    const page = makeDocPage({
+      url: record.ref,
+      kind: 'api',
+      sections: [overview, section('properties', 2, `## Properties\n\n${table}`)],
+      members: few,
+    });
+    const { text, truncated } = symbolText(page, record, 'summary', 600);
+    expect(truncated).toBe(true);
+    expect(text).toContain('Paragraph 0 about tide gauges.');
+    expect(text).not.toContain('Paragraph 39 about tide gauges.');
+    expect(text).toContain('| `member2` |');
+    expect(text.indexOf(DESCRIPTION_CUT_NOTE)).toBeGreaterThan(0);
+    expect(text.indexOf(DESCRIPTION_CUT_NOTE)).toBeLessThan(text.indexOf('## Properties'));
+    expect(estimateTokens(text)).toBeLessThanOrEqual(600 + note);
+  });
+
+  it('lists bare names when one line per member does not fit either', () => {
+    const page = makeDocPage({
+      url: record.ref,
+      kind: 'api',
+      sections: [overview, ...memberSections],
+      members,
+    });
+    const { text, truncated } = symbolText(page, record, 'summary', 1500);
+    expect(truncated).toBe(true);
+    expect(text).toContain('**property** (90): `member0`, `member1`');
+    expect(text).toContain('**method** (30): `member90`');
+    expect(text).toContain('`member119`');
+    expect(text).not.toContain('Reads or changes setting number 5 ');
+    expect(text).toContain('Paragraph 0 about tide gauges.');
+    expect(estimateTokens(text)).toBeLessThanOrEqual(1500 + note);
+  });
+
+  it('leaves names out, evenly over the kinds, when even the bare list is too long', () => {
+    const page = makeDocPage({
+      url: record.ref,
+      kind: 'api',
+      sections: [overview, ...memberSections],
+      members,
+    });
+    const { text } = symbolText(page, record, 'summary', 400);
+    expect(text).toMatch(/\*\*property\*\* \(90\): `member0`.* and \d+ more/);
+    expect(text).toMatch(/\*\*method\*\* \(30\): `member90`.* and \d+ more/);
+    expect(text).toContain('Paragraph 0 about tide gauges.');
+  });
+
+  it('changes nothing when description and index fit together', () => {
+    const page = makeDocPage({
+      url: record.ref,
+      kind: 'api',
+      sections: [
+        section('tidelayer', 1, '# TideLayer\n\nA layer of tide gauges.'),
+        section('member0', 3, '### member0\n\nFirst.'),
+      ],
+      members: members.slice(0, 1),
+    });
+    const { text } = symbolText(page, record, 'summary', 3000);
+    expect(text).toContain('A layer of tide gauges.');
+    expect(text).toContain('`member0` (property)');
+    expect(text).not.toContain(DESCRIPTION_CUT_NOTE);
   });
 });
 
