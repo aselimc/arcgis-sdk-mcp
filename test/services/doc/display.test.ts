@@ -217,6 +217,27 @@ describe('resolveSection', () => {
     expect(find('   ')).toBeUndefined();
   });
 
+  // Regression: a C# documentation id ends in its parameter list, which was stripped as if
+  // the caller had written a call, so the section of an overload could not be asked for.
+  it('matches an id that ends in a parameter list as it is written', () => {
+    const id = 'M:Example.Queue.Dock.Run(System.Action,System.Int32)';
+    const page = makeDocPage({
+      sections: [
+        {
+          id: 'M:Example.Queue.Dock.Run(System.Action)',
+          level: 3,
+          title: 'Run',
+          markdown: '### Run\n\nOne.',
+          tokens: 4,
+        },
+        { id, level: 3, title: 'Run', markdown: '### Run\n\nTwo.', tokens: 4 },
+      ],
+    });
+    expect(find(id, page)).toEqual(['id', id, [id]]);
+    // A call spelling still names the member.
+    expect(find('colours()')).toEqual(['id', 'colours', ['colours', 'dark-mode']]);
+  });
+
   it('matches heading text without case when the slug differs', () => {
     const page = makeDocPage({ markdown: '# T\n\nx\n\n## C++ API {#cpp}\n\ny' });
     expect(find('c++ api', page)).toEqual(['heading', 'cpp', ['cpp']]);

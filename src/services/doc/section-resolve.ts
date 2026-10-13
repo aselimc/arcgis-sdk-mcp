@@ -132,6 +132,10 @@ export function resolveSection(
   // On a sample, "source" means all of its code, not only the main file's section.
   if (lower === 'source' && (page.files?.length ?? 0) > 0) return pseudo(page, sections, 'source');
 
+  // An id is matched as written first: the id of a C# member ends in its parameter list
+  // (`M:Ns.Type.Run(System.Action)`), which `name` has lost by being read as a call.
+  const raw = wanted.trim();
+  if (sections.some((section) => section.id === raw)) return subtree(sections, raw, 'id');
   if (sections.some((section) => section.id === name)) return subtree(sections, name, 'id');
 
   const slug = slugify(name);

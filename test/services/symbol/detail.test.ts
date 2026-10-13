@@ -119,3 +119,53 @@ describe('symbolText', () => {
     expect(text).not.toContain('Reloads every gauge from the service.');
   });
 });
+
+// Regression: a C# method of the Pro SDK is read as the overload its record names plus its
+// other overloads. The service then looked the member up by name on that page, found the
+// first overload in the member list, which had no section there, and answered with a
+// one-line stub of the wrong overload.
+describe('symbolText: a page its adapter cut to the overloads of one member', () => {
+  const ASYNC = 'M:Example.Queue.Dock.Run``1(System.Func{``0})';
+  const PLAIN = 'M:Example.Queue.Dock.Run(System.Action)';
+  const page = makeDocPage({
+    url: `https://github.com/example/queue/blob/main/Example.Queue.xml#${ASYNC}`,
+    kind: 'api',
+    sections: [
+      {
+        id: ASYNC,
+        level: 3,
+        title: 'Run<TResult>',
+        markdown: '### `Run<TResult>`\n\n```csharp\nDock.Run<TResult>(Func<TResult> job)\n```',
+        tokens: 20,
+      },
+      {
+        id: PLAIN,
+        level: 3,
+        title: 'Run',
+        markdown: '### Run\n\n```csharp\nDock.Run(Action job)\n```',
+        tokens: 14,
+      },
+    ],
+    members: [
+      { id: PLAIN, name: 'Run', kind: 'method', signature: 'Dock.Run(Action)' },
+      { id: ASYNC, name: 'Run<TResult>', kind: 'method', signature: 'Dock.Run<TResult>(...)' },
+    ],
+  });
+  const record = makeRecord({
+    ref: `https://github.com/example/queue/blob/main/Example.Queue.xml#${ASYNC}`,
+    kind: 'api',
+    title: 'Run',
+    symbol: 'Run',
+    qualified: 'Example.Queue.Dock.Run',
+    parent: 'Example.Queue.Dock',
+    symbolKind: 'method',
+  });
+
+  it.each(['summary', 'full'] as const)('shows every overload at detail %s', (detail) => {
+    const { text, truncated } = symbolText(page, record, detail, 3000);
+    expect(text).toContain('Dock.Run<TResult>(Func<TResult> job)');
+    expect(text).toContain('Dock.Run(Action job)');
+    expect(text).not.toContain('```text');
+    expect(truncated).toBe(false);
+  });
+});

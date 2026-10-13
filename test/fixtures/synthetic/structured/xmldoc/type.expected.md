@@ -69,10 +69,10 @@ The reading at an index.
 
 ## Methods
 
-### `Sample<M0>`
+### `Sample<T>`
 
 ```csharp
-TideClock.Sample<M0>(IEnumerable<M0> moments, int? precision, ref double[] heights)
+TideClock.Sample<T>(IEnumerable<T> moments, int? precision, ref double[] heights)
 ```
 
 Heights at several moments. Uses `precision` digits and returns `null` for moments outside the record.
@@ -83,7 +83,7 @@ Heights at several moments. Uses `precision` digits and returns `null` for momen
 
 **Parameters**
 
-- `moments` (`IEnumerable<M0>`): The moments to sample.
+- `moments` (`IEnumerable<T>`): The moments to sample.
 - `precision` (`int?`): Digits after the decimal point.
 - `heights` (`ref double[]`): Receives the heights.
 

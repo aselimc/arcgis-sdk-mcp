@@ -186,6 +186,16 @@ function toMember(slice: Slice): ApiMember | undefined {
   );
   const root = $('member').get(0);
   const section = (name: string): string => markdown($, $(root).children(name).get(0));
+  // The id numbers a method's type parameters (``0); the comment names them.
+  const generics = $(root)
+    .children('typeparam')
+    .toArray()
+    .map((element) => $(element).attr('name') ?? '');
+  const named = (text: string): string =>
+    text.replace(/\bM(\d+)\b/g, (placeholder, index: string) => {
+      const name = generics[Number(index)];
+      return name === undefined || name === '' ? placeholder : name;
+    });
   const params: ApiParam[] = $(root)
     .children('param')
     .toArray()
@@ -194,7 +204,7 @@ function toMember(slice: Slice): ApiMember | undefined {
       const type = id.parameters[index];
       return {
         name: $(element).attr('name') ?? `arg${index}`,
-        ...(type === undefined ? {} : { type }),
+        ...(type === undefined ? {} : { type: named(type) }),
         ...(description === '' ? {} : { description }),
       };
     });
@@ -230,15 +240,18 @@ function toMember(slice: Slice): ApiMember | undefined {
     .toArray()
     .map((element) => markdown($, element))
     .filter((text) => text !== '');
+  // With one documented parameter per type in the id, the names can be shown too.
+  const signature =
+    id.prefix === 'M' && params.length > 0 && params.length === id.parameters.length
+      ? `${id.display}(${params.map((item) => `${item.type ?? ''} ${item.name}`).join(', ')})`
+      : id.signature;
   return {
     id: slice.id,
-    name: id.name,
+    name: named(id.name),
     ...(id.constructor ? { group: 'Constructors', kind: 'constructor' } : GROUPS[id.prefix]),
-    // With one documented parameter per type in the id, the names can be shown too.
-    signature:
-      id.prefix === 'M' && params.length > 0 && params.length === id.parameters.length
-        ? `${id.display}(${params.map((item) => `${item.type ?? ''} ${item.name}`).join(', ')})`
-        : id.signature,
+    signature: named(signature),
+    // Overloads differ in their parameter list and in the number of type parameters only.
+    ...(id.prefix === 'M' ? { overload: id.qualified.replace(/``\d+$/, '') } : {}),
     ...(description === '' ? {} : { description }),
     ...(params.length === 0 ? {} : { params }),
     ...(returns === '' ? {} : { returns }),

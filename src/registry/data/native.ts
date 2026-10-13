@@ -202,6 +202,8 @@ const MAPS_SDK_KEYWORDS = [
   'utility network',
   'feature layer',
   'graphics overlay',
+  'cluster',
+  'clustering',
   'authentication',
   'toolkit',
 ];

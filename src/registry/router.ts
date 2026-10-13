@@ -142,6 +142,13 @@ interface Candidate {
   /** Term to field weight (the highest of the fields the term occurs in). */
   weights: Map<string, number>;
   multiplier: number;
+  /** End-user help or a niche subject: named next to another product only on evidence of its own. */
+  secondary: boolean;
+}
+
+/** A vocabulary route with the query terms its product knows. */
+interface Ranked extends Route {
+  known: ReadonlySet<string>;
 }
 
 function candidateOf(product: Product): Candidate {
@@ -164,13 +171,16 @@ function candidateOf(product: Product): Candidate {
   add(product.keywords, WEIGHT.keyword);
   add(product.languages, WEIGHT.language);
   add([product.summary, ...product.sources.map((source) => source.title)], WEIGHT.text);
+  const help = product.tier === 'help';
+  const niche = NICHE_CATEGORIES.has(product.category);
   return {
     product,
     weights,
     multiplier:
       STATUS_MULTIPLIER[product.status] *
-      (product.tier === 'help' ? HELP_MULTIPLIER : 1) *
-      (NICHE_CATEGORIES.has(product.category) ? NICHE_MULTIPLIER : 1),
+      (help ? HELP_MULTIPLIER : 1) *
+      (niche ? NICHE_MULTIPLIER : 1),
+    secondary: help || niche,
   };
 }
 
@@ -225,7 +235,7 @@ export function createRouter(products: readonly Product[]): (query: string, n?: 
     return undefined;
   }
 
-  function byVocabulary(query: string): Route[] {
+  function byVocabulary(query: string): Ranked[] {
     const wanted = [...new Set(terms(query))].filter((term) => rarity(term) > 0);
     const total = wanted.reduce((sum, term) => sum + rarity(term) * WEIGHT.identity, 0);
     if (total === 0) return [];
@@ -238,6 +248,7 @@ export function createRouter(products: readonly Product[]): (query: string, n?: 
         return {
           product: candidate.product.id,
           confidence: (score / total) * candidate.multiplier,
+          known: new Set(wanted.filter((term) => candidate.weights.has(term))),
         };
       })
       .filter((route) => route.confidence >= MIN_CONFIDENCE)
@@ -248,16 +259,26 @@ export function createRouter(products: readonly Product[]): (query: string, n?: 
     if (n <= 0 || query.trim() === '') return [];
     // A shape identifies its product on its own; the other words describe what is wanted in it.
     const shaped = byShape(query);
-    const ranked =
+    const ranked: Ranked[] =
       shaped === undefined
         ? byVocabulary(query)
-        : [{ product: shaped, confidence: SHAPE_CONFIDENCE }];
+        : [{ product: shaped, confidence: SHAPE_CONFIDENCE, known: new Set() }];
     const top = ranked[0];
     if (top === undefined) return [];
     // Words that many products share equally (`maps sdk`) single none of them out.
     const tied = ranked.filter((route) => route.confidence > top.confidence - TIE_MARGIN);
     if (tied.length > MAX_TIED) return [];
-    let routes = ranked.filter((route) => route.confidence >= top.confidence * RELATIVE_CUTOFF);
+    // A help or niche product that knows only some of the words the best product knows has no
+    // evidence of its own: one shared word (`cluster` in "cluster points with popups") would
+    // otherwise add Kubernetes help to a question about a web map.
+    const echoes = (route: Ranked): boolean =>
+      route !== top &&
+      byId.get(route.product)?.secondary === true &&
+      route.known.size < top.known.size &&
+      [...route.known].every((term) => top.known.has(term));
+    let routes: Route[] = ranked
+      .filter((route) => route.confidence >= top.confidence * RELATIVE_CUTOFF && !echoes(route))
+      .map(({ product, confidence }) => ({ product, confidence }));
 
     for (const [pattern, companion] of COMPANIONS) {
       if (!pattern.test(query) || !byId.has(companion) || top.product === companion) continue;
@@ -266,7 +287,7 @@ export function createRouter(products: readonly Product[]): (query: string, n?: 
         top.confidence * 0.8,
       );
       routes = [
-        top,
+        { product: top.product, confidence: top.confidence },
         { product: companion, confidence },
         ...routes.slice(1).filter((route) => route.product !== companion),
       ];

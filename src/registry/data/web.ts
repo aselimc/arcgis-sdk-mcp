@@ -274,6 +274,7 @@ const jsMapsSdk: Product = {
     'webgl',
     'popup',
     'renderer',
+    'cluster',
     'clustering',
   ],
   languages: ['javascript', 'typescript'],

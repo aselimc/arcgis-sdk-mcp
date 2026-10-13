@@ -79,7 +79,7 @@ describe('renderXmldoc: synthetic file', () => {
       'constructor TideClock',
       'property NextHighTide',
       'property Item',
-      'method Sample<M0>',
+      'method Sample<T>',
       'event Turned',
       'field DefaultUnits',
     ]);
@@ -118,7 +118,7 @@ describe('renderXmldoc: synthetic file', () => {
   it('adds parameter names to the types of the id', () => {
     const sample = page.sections.find((section) => section.id === SAMPLE)?.markdown ?? '';
     expect(sample).toContain(
-      'TideClock.Sample<M0>(IEnumerable<M0> moments, int? precision, ref double[] heights)',
+      'TideClock.Sample<T>(IEnumerable<T> moments, int? precision, ref double[] heights)',
     );
     expect(sample).toContain(
       'Uses `precision` digits and returns `null` for moments outside the record.',
@@ -188,6 +188,45 @@ describe('renderXmldoc: synthetic file', () => {
     expect(text).toContain('| Unit | Meaning |\n| --- | --- |\n| m | Metres |');
     expect(text).toContain('> **Note:** Mind the _tide_.');
     expect(text).toContain('See [here](https://example.com)\n\nand `the level`.');
+  });
+});
+
+// Regression: the catalogue keeps one record per method name, so a lookup of `Type.Method`
+// read whichever overload was listed last and said nothing of the others.
+describe('renderXmldoc: overloads', () => {
+  const doc = `<doc><assembly><name>Example.Queue</name></assembly><members>
+    <member name="T:Example.Queue.Dock"><summary>Schedules work on the dock.</summary></member>
+    <member name="M:Example.Queue.Dock.Run(System.Action)"><summary>Runs a job.</summary><param name="job">The job.</param></member>
+    <member name="M:Example.Queue.Dock.Run(System.Action,System.Int32)"><summary>Runs a job after a delay.</summary><param name="job">The job.</param><param name="delay">Seconds to wait.</param></member>
+    <member name="M:Example.Queue.Dock.Run\`\`1(System.Func{\`\`0})"><typeparam name="TResult">What the job returns.</typeparam><summary>Runs a job that returns a value.</summary><param name="job">The job.</param></member>
+    <member name="M:Example.Queue.Dock.RunLater(System.Action)"><summary>Runs a job at night.</summary></member>
+    <member name="P:Example.Queue.Dock.Run"><summary>Not an overload: a property.</summary></member>
+  </members></doc>`;
+  const GENERIC = 'M:Example.Queue.Dock.Run``1(System.Func{``0})';
+
+  it('shows every overload of the selected method, the selected one first', () => {
+    const page = renderXmldoc({ xml: doc, memberId: GENERIC }, meta);
+    expect(sectionIds(page)).toEqual([
+      GENERIC,
+      'M:Example.Queue.Dock.Run(System.Action)',
+      'M:Example.Queue.Dock.Run(System.Action,System.Int32)',
+    ]);
+    expect(pageText(page)).toContain('Dock.Run(Action job, int delay)');
+    expect(pageText(page)).not.toContain('Runs a job at night.');
+    expect(pageText(page)).not.toContain('Not an overload');
+  });
+
+  it('names the type parameters of a generic method as its comment does', () => {
+    const page = renderXmldoc({ xml: doc, memberId: GENERIC }, meta, { detail: 'signature' });
+    expect(page.sections[0]?.markdown).toBe(
+      '### `Run<TResult>`\n\n```csharp\nDock.Run<TResult>(Func<TResult> job)\n```\n\nRuns a job that returns a value.',
+    );
+    expect(page.members?.find((member) => member.id === GENERIC)?.name).toBe('Run<TResult>');
+  });
+
+  it('shows a member that is not a method alone', () => {
+    const page = renderXmldoc({ xml: doc, memberId: 'P:Example.Queue.Dock.Run' }, meta);
+    expect(sectionIds(page)).toEqual(['P:Example.Queue.Dock.Run']);
   });
 });
 

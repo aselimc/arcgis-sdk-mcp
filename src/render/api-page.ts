@@ -61,6 +61,11 @@ export interface ApiMember extends ApiDoc {
   readonly?: boolean;
   /** Markdown appended at detail `full`, for content that fits no other field. */
   extra?: string;
+  /**
+   * Key shared by the overloads of one callable. Selecting any of them shows them all, the
+   * selected one first: a caller that names `Type.Method` cannot say which overload it means.
+   */
+  overload?: string;
 }
 
 /** A documented type, component or module. */
@@ -263,12 +268,22 @@ export function findMember<M extends ApiMember>(
   );
 }
 
+/** The selected member followed by its other overloads, in declaration order. */
+function withOverloads<M extends ApiMember>(selected: M, members: readonly M[]): M[] {
+  if (selected.overload === undefined) return [selected];
+  const others = members.filter(
+    (member) => member !== selected && member.overload === selected.overload,
+  );
+  return [selected, ...others];
+}
+
 /**
  * Renders a type as a page.
  *
  * With `member` (or `opts.select.member`) naming one of the type's members, `sections` hold
- * that member only, rendered at `opts.detail`; `title`, `header` and `members` still describe
- * the whole type. An unknown member name gives the whole type, as `SectionSelector` requires.
+ * that member (and its overloads, when the source marks them) rendered at `opts.detail`;
+ * `title`, `header` and `members` still describe the whole type. An unknown member name
+ * gives the whole type, as `SectionSelector` requires.
  */
 export function renderApiPage(
   renderer: string,
@@ -283,7 +298,9 @@ export function renderApiPage(
   const sectionBlocks =
     selected === undefined
       ? typeBlocks({ ...type, members }, detail, 1, type.id)
-      : [memberBlock(selected, type.language, detail, 3)];
+      : withOverloads(selected, members).map((shown) =>
+          memberBlock(shown, type.language, detail, 3),
+        );
   return finishPage(
     renderer,
     meta,

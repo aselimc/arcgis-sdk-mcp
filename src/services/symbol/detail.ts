@@ -27,6 +27,12 @@ function withTokens(section: DocSection, markdown: string): DocSection {
 /** The part of a page that documents the record: one member's section, or the whole type page. */
 function ownSections(page: DocPage, record: CatalogRecord): DocSection[] {
   if (record.parent === undefined) return page.sections;
+  // A page that opens with a member's section was cut by its adapter already, to the member
+  // or to its overloads: looking the name up again would keep one overload and drop the rest.
+  const first = page.sections[0];
+  if (first !== undefined && (page.members ?? []).some((member) => member.id === first.id)) {
+    return page.sections;
+  }
   // An adapter that could not slice returns the whole type page; cut the member out here.
   const fragment = record.ref.includes('#') ? record.ref.slice(record.ref.indexOf('#') + 1) : '';
   for (const name of [fragment, simpleName(record)]) {

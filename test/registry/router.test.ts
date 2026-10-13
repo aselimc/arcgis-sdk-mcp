@@ -133,6 +133,16 @@ describe('query routing', () => {
     }
   });
 
+  it.skipIf(!ids.has('arcgis-enterprise-k8s'))(
+    'keeps Kubernetes help out of a question about clustering points on a map',
+    () => {
+      const products = route('cluster points with popups').map((entry) => entry.product);
+      expect(products[0]).toBe('js-maps-sdk');
+      expect(products).not.toContain('arcgis-enterprise-k8s');
+      expect(route('kubernetes cluster upgrade')[0]?.product).toBe('arcgis-enterprise-k8s');
+    },
+  );
+
   it('ranks a retired product far below a live one on the same evidence', () => {
     const routes = route('runtime sdk android 100.15', 10);
     const tombstone = routes.find((entry) => entry.product === 'runtime-100');
@@ -207,6 +217,35 @@ describe('createRouter', () => {
     expect(routes.map((entry) => entry.product)).toEqual(['gadgets-sdk', 'gadgets-help']);
     expect(routes[1]!.confidence).toBeCloseTo(routes[0]!.confidence * 0.85, 2);
     expect(local('gizmos')).toEqual([{ product: 'gizmos-sdk', confidence: 0.2 }]);
+  });
+
+  // Regression: "cluster points with popups" added Kubernetes help to a search of the
+  // JavaScript SDK, because `cluster` is a word of both.
+  it('drops a help product that only knows some of the words the best product knows', () => {
+    const sdk = makeProduct({
+      id: 'charts-sdk',
+      name: 'Charts SDK',
+      aliases: [],
+      keywords: ['cluster', 'popup'],
+    });
+    const cluster = makeProduct({
+      id: 'cluster-help',
+      name: 'Cluster administration help',
+      aliases: [],
+      keywords: [],
+      category: 'product-help',
+      tier: 'help',
+    });
+    const filler = ['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta'].map((word) =>
+      makeProduct({ id: `${word}-sdk`, name: `${word} SDK`, aliases: [], keywords: [word] }),
+    );
+    const routed = createRouter([sdk, cluster, ...filler]);
+    expect(routed('cluster popup').map((entry) => entry.product)).toEqual(['charts-sdk']);
+    // The same word alone is evidence for both, and a word of its own keeps the help product.
+    expect(routed('cluster').map((entry) => entry.product)).toEqual(['cluster-help', 'charts-sdk']);
+    expect(routed('cluster administration popup').map((entry) => entry.product)).toContain(
+      'cluster-help',
+    );
   });
 
   it('skips link-tier products, also when the query is their id', () => {
