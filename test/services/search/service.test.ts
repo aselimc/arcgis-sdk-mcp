@@ -488,6 +488,28 @@ describe('site search', () => {
     });
   });
 
+  it('keeps a scoped search inside its source and skips the remote for uncovered sources', async () => {
+    const h = makeHarness({
+      enabled: ['website', 'site-index', 'site-search', 'github', 'package-cdn'],
+    });
+    h.ctx.http.on(ESEARCH, { json: body }, 'POST');
+    const scoped = await h.services.search.search(
+      { query: 'arcade expressions', product: 'js-maps-sdk/core', limit: 5 },
+      h.call(),
+    );
+    expect(scoped.mode).toBe('local+site');
+    // The remote hits belong to the guide source: none of them may leak into a core search.
+    expect(scoped.hits.filter((hit) => hit.source !== 'core')).toEqual([]);
+
+    const requests = h.ctx.http.count();
+    const typings = await h.services.search.search(
+      { query: 'FeatureLayer', product: 'js-maps-sdk/typings', limit: 5 },
+      h.call(),
+    );
+    expect(typings.mode).toBe('local');
+    expect(h.ctx.http.count()).toBe(requests);
+  });
+
   it('answers locally when the remote fails', async () => {
     const h = makeHarness({ enabled: ['website', 'site-index', 'site-search'] });
     h.ctx.http.on(ESEARCH, { json: body }, 'POST').fail(ESEARCH, 403);

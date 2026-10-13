@@ -166,10 +166,10 @@ describe('displaySections', () => {
     expect(index).toContain('- `legacyMode` (property, deprecated, inherited from BaseWidget)');
     expect(index).toContain('- `theme` (property, read-only): The active theme.');
 
-    expect(memberSection(members[0] as MemberEntry).markdown).toBe(
+    expect(memberSection(members[0]!).markdown).toBe(
       '### resize\n\n```text\nresize(width: number): void\n```\n\nChanges the width.',
     );
-    expect(memberSection(members[2] as MemberEntry)).toMatchObject({
+    expect(memberSection(members[2]!)).toMatchObject({
       id: 'legacyMode',
       markdown: expect.stringContaining('Inherited from BaseWidget') as string,
     });

@@ -219,7 +219,7 @@ export function createSearchService(deps: SearchDeps): SearchService {
             : targets.map((t) => `${t.product.id}:${t.line.id}`).join(', '),
       };
       const siteEnabled = targets.some((target) =>
-        coveredBySiteSearch(ctx, target.product, target.line),
+        coveredBySiteSearch(ctx, target.product, target.line, target.sources),
       );
       const mode = siteEnabled ? 'local+site' : 'local';
 
@@ -258,6 +258,7 @@ export function createSearchService(deps: SearchDeps): SearchService {
           hit.kind === req.kind ||
           // Named spec objects count as API reference, as in the catalogue query.
           (req.kind === 'api' && hit.kind === 'spec' && hit.symbolKind !== undefined)) &&
+        (sources === undefined || sources.includes(hit.source)) &&
         (!versionGiven || hit.line === '' || hit.line === lineOf.get(hit.product));
 
       const onlyLine = lineIds.length === 1 ? lineIds[0] : undefined;

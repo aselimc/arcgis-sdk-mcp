@@ -185,15 +185,28 @@ export function createSymbolService(
     knownType: CatalogRecord | undefined,
   ): McpDocError => {
     const products = targets.map((target) => target.product.id);
-    const pending = states.filter(
-      (state) => state.state === 'building' || state.state === 'unavailable',
-    );
-    const why =
-      knownType !== undefined
-        ? `${displayName(knownType)} is documented but no member with this name was found; not verified, and this does not prove it does not exist`
-        : pending.length > 0
-          ? `The reference index of ${pending.map((s) => `${s.product}/${s.source}`).join(', ')} is not ready (building or unavailable); retry`
-          : `Not verified: the reference of ${products.join(', ') || 'no product'} has no symbol with this name. This does not prove it does not exist`;
+    // Without an enumerated index (fresh or stale) a miss says nothing about the symbol.
+    const pending = states.filter((state) => state.state !== 'ready' && state.state !== 'stale');
+    const transient = pending.some((state) => state.state !== 'unavailable');
+    const unsearched = pending
+      .map((state) => {
+        const cause =
+          state.state === 'unavailable'
+            ? 'switched off or link-only'
+            : state.state === 'building'
+              ? 'index still building'
+              : 'upstream failing';
+        return `${state.product}/${state.source} (${cause})`;
+      })
+      .join(', ');
+    let why: string;
+    if (knownType !== undefined) {
+      why = `${displayName(knownType)} is documented but no member with this name was found; not verified, and this does not prove it does not exist`;
+    } else if (pending.length > 0) {
+      why = `Not verified: ${unsearched} could not be searched${transient ? '; retry' : ''}. This does not prove it does not exist`;
+    } else {
+      why = `Not verified: the reference of ${products.join(', ') || 'no product'} has no symbol with this name. This does not prove it does not exist`;
+    }
     return new McpDocError('SYMBOL_NOT_FOUND', `No symbol "${req.symbol}" was found`, {
       why,
       ...(names.length > 0 ? { candidates: names.slice(0, MAX_NEAREST) } : {}),
@@ -202,7 +215,7 @@ export function createSymbolService(
         product: req.product ?? products[0],
         kind: 'api',
       }),
-      retryable: pending.length > 0,
+      retryable: knownType === undefined && transient,
     });
   };
 

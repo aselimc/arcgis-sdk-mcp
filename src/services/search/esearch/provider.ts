@@ -11,7 +11,15 @@ import type { CallOptions, Ctx, SearchProvider } from '../../../core/ports.js';
 import type { DocKind, Product, SearchHit, VersionLine } from '../../../core/types.js';
 import { canonicalize } from '../../../core/url.js';
 import { stripHighlight } from '../excerpt.js';
-import { ESEARCH_URL, MIN_RETRY_NUM, bodyJson, planRequest, type EsearchPlan } from './request.js';
+import {
+  ESEARCH_URL,
+  MIN_RETRY_NUM,
+  bodyJson,
+  neverSearched,
+  planRequest,
+  sourceCovered,
+  type EsearchPlan,
+} from './request.js';
 
 /** Minimum spacing between two requests. */
 export const MIN_INTERVAL_MS = 1000;
@@ -149,6 +157,8 @@ export function createEsearchProvider(
     const url = pageUrl(raw.doc?.url);
     if (url === undefined) return undefined;
     if (plan.keep?.test(url) === false || plan.drop?.test(url) === true) return undefined;
+    // An outer tree was searched: results from an excluded tree inside it are not usable.
+    if (neverSearched(url)) return undefined;
     // The URL-prefix filter is a token phrase and over-matches; the registry decides ownership.
     const owner = ctx.registry.ownerOf(new URL(url));
     if (owner?.product.id !== product.id) return undefined;
@@ -231,7 +241,23 @@ export function createEsearchProvider(
   };
 }
 
-/** True when the provider would send a request for this product: decides the reported search mode. */
-export function coveredBySiteSearch(ctx: Ctx, product: Product, line: VersionLine): boolean {
-  return ctx.policy.enabled('site-search') && !('skip' in planRequest(product, line, 'probe'));
+/**
+ * True when the provider is worth asking for this product: the capability is on, a request
+ * can be built, and (for a search narrowed to some sources) at least one of them is covered.
+ * Decides the reported search mode.
+ */
+export function coveredBySiteSearch(
+  ctx: Ctx,
+  product: Product,
+  line: VersionLine,
+  sources?: readonly string[],
+): boolean {
+  if (!ctx.policy.enabled('site-search')) return false;
+  if ('skip' in planRequest(product, line, 'probe')) return false;
+  return (
+    sources === undefined ||
+    product.sources.some(
+      (source) => sources.includes(source.id) && sourceCovered(product, source, line),
+    )
+  );
 }

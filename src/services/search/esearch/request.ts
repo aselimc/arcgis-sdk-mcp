@@ -5,7 +5,7 @@
  * well-formed) gets no request at all.
  */
 import { sourceBaseUrls } from '../../../core/source-urls.js';
-import type { Product, VersionLine } from '../../../core/types.js';
+import type { Product, SourceDef, VersionLine } from '../../../core/types.js';
 import { FilterError, and, or, serializeFilter, term, type FilterNode } from './filters.js';
 
 /** The only endpoint ever contacted. */
@@ -99,25 +99,55 @@ function prefixPhrase(url: string): string {
   return url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
 }
 
+/**
+ * True for a URL inside a tree the backend cannot answer for. Such trees are never the
+ * scope of a request, and results inside them are dropped when an outer tree was searched.
+ */
+export function neverSearched(url: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  return (
+    parsed.hostname === DEVELOPERS_HOST &&
+    NEVER_SEARCHED.some((pattern) => pattern.test(parsed.pathname))
+  );
+}
+
+/** The developers.arcgis.com trees of one source that may be the scope of a request. */
+function searchablePrefixes(source: SourceDef, line: VersionLine): string[] {
+  if (source.capability !== 'website' && source.capability !== 'site-index') return [];
+  if (source.lines !== undefined && !source.lines.includes(line.id)) return [];
+  const phrases: string[] = [];
+  for (const base of sourceBaseUrls(source, line)) {
+    let url: URL;
+    try {
+      url = new URL(base);
+    } catch {
+      continue;
+    }
+    if (url.hostname !== DEVELOPERS_HOST || url.pathname === '/') continue;
+    if (neverSearched(url.href)) continue;
+    phrases.push(prefixPhrase(`${url.hostname}${url.pathname}`));
+  }
+  return phrases;
+}
+
+/**
+ * True when site search can answer for one source of a product: the product has its own
+ * `esearch` entry, or the source has a searchable tree on developers.arcgis.com.
+ */
+export function sourceCovered(product: Product, source: SourceDef, line: VersionLine): boolean {
+  const config = product.esearch;
+  if (config?.index !== undefined || config?.site !== undefined) return true;
+  return searchablePrefixes(source, line).length > 0;
+}
+
 /** The developers.arcgis.com trees of a product on one line, outermost only. */
 function developerPrefixes(product: Product, line: VersionLine): string[] {
-  const phrases = new Set<string>();
-  for (const source of product.sources) {
-    if (source.capability !== 'website' && source.capability !== 'site-index') continue;
-    if (source.lines !== undefined && !source.lines.includes(line.id)) continue;
-    for (const base of sourceBaseUrls(source, line)) {
-      let url: URL;
-      try {
-        url = new URL(base);
-      } catch {
-        continue;
-      }
-      if (url.hostname !== DEVELOPERS_HOST || url.pathname === '/') continue;
-      if (NEVER_SEARCHED.some((pattern) => pattern.test(url.pathname))) continue;
-      phrases.add(prefixPhrase(`${url.hostname}${url.pathname}`));
-    }
-  }
-  const all = [...phrases];
+  const all = [...new Set(product.sources.flatMap((source) => searchablePrefixes(source, line)))];
   // A tree inside another one is already covered by the outer filter.
   return all.filter(
     (phrase) => !all.some((other) => other !== phrase && phrase.startsWith(`${other}/`)),

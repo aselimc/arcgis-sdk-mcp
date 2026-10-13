@@ -302,6 +302,61 @@ describe('site-search provider', () => {
     expect(hits[2]).toMatchObject({ excerpt: 'Offline sample', score: 0 });
   });
 
+  it('drops results from trees it must not be used for, and knows which sources it covers', async () => {
+    const swift = makeProduct({
+      id: 'swift-like',
+      sources: [
+        makeSource('gatsby', { base: '/swift/', exclude: ['^api-reference/'] }),
+        makeSource(
+          'docc',
+          { base: '/swift/api-reference/' },
+          { id: 'api', kinds: ['api'], floor: false },
+        ),
+        makeSource(
+          'github-repo',
+          { repo: 'Esri/x', preset: 'samples-readme' },
+          { id: 'samples', floor: false, capability: 'github' },
+        ),
+      ],
+    });
+    const ctx = makeCtx({
+      registry: fakeRegistry({ products: [swift] }),
+      policy: fakePolicy({ enabled: ['website', 'site-search'] }),
+    });
+    ctx.http.on(
+      ESEARCH_URL,
+      {
+        json: {
+          search: {
+            hits: [
+              hit('/swift/api-reference/documentation/arcgis/map/', 9),
+              hit('/swift/offline/', 5),
+            ],
+          },
+        },
+      },
+      'POST',
+    );
+    const provider = createEsearchProvider(ctx, { sleep: async () => undefined });
+    const hits = await provider.search(
+      { text: 'offline', products: [swift], line: 'latest', limit: 10 },
+      makeCall(ctx),
+    );
+    expect(hits.map((entry) => entry.ref)).toEqual([
+      'https://developers.arcgis.com/swift/offline/',
+    ]);
+    expect((JSON.parse(ctx.http.requests[0]?.body ?? '{}') as EsearchBody).partialfields).toBe(
+      'Content-Location:developers%2Earcgis%2Ecom/swift',
+    );
+
+    expect(coveredBySiteSearch(ctx, swift, line)).toBe(true);
+    expect(coveredBySiteSearch(ctx, swift, line, ['guide'])).toBe(true);
+    expect(coveredBySiteSearch(ctx, swift, line, ['api'])).toBe(false);
+    expect(coveredBySiteSearch(ctx, swift, line, ['samples', 'api'])).toBe(false);
+    const help = makeProduct({ esearch: { index: 'esri_docs_main_v1', products: ['x'] } });
+    expect(coveredBySiteSearch(ctx, help, line, ['guide'])).toBe(true);
+  });
+
   it('keeps requests at least a second apart and one at a time', async () => {
     const { ctx, slept, provider } = setup();
     ctx.http.on(ESEARCH_URL, { json: { search: { hits: [] } } }, 'POST');
