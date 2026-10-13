@@ -68,9 +68,20 @@ async function pagePointers(
   wantGlossary: boolean,
   options: SessionRequest,
 ): Promise<IndexPointers | undefined> {
-  const pageData = await session.optional(`Page-data of ${pageUrl}`, () =>
-    fetchPageData(session, site.prefix, pageUrl, options),
-  );
+  const pageData = await session.optional(`Page-data of ${pageUrl}`, async () => {
+    try {
+      return await fetchPageData(session, site.prefix, pageUrl, options);
+    } catch (error) {
+      // A page without page-data is ordinary (a site root that only redirects): the caller
+      // starts from another page, so this is not worth a warning in the host's log.
+      if (!isMcpDocError(error) || error.code !== 'DOC_NOT_FOUND') throw error;
+      session.ctx.logger.debug(`Page-data of ${pageUrl} does not exist`, {
+        product: session.src.product.id,
+        source: session.src.source.id,
+      });
+      return undefined;
+    }
+  });
   if (pageData === undefined) return undefined;
   const pointers = pointersOf(pageData.data);
   const wanted: StaticQueryRole[] = [];

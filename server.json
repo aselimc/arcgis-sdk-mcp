@@ -1,0 +1,50 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.aselimc/arcgis-sdk-mcp",
+  "title": "ArcGIS SDK and Developer Docs (unofficial)",
+  "description": "Unofficial, not affiliated with Esri. On-demand ArcGIS developer docs for coding agents.",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/aselimc/arcgis-sdk-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "arcgis-sdk-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ARCGIS_DOCS_SOURCES",
+          "description": "Source policy: a preset (strict or standard) and/or +capability / -capability, comma separated. Default: standard.",
+          "isRequired": false,
+          "default": "standard"
+        },
+        {
+          "name": "ARCGIS_DOCS_OFFLINE",
+          "description": "Set to 1 to answer from the local cache only.",
+          "isRequired": false
+        },
+        {
+          "name": "ARCGIS_DOCS_CACHE_DIR",
+          "description": "Cache directory. Default: the per-user cache directory.",
+          "isRequired": false
+        },
+        {
+          "name": "ARCGIS_DOCS_PROJECT_DIR",
+          "description": "Project in which installed Esri SDK versions are detected. Default: the working directory.",
+          "isRequired": false
+        },
+        {
+          "name": "GITHUB_TOKEN",
+          "description": "Optional GitHub token; raises the API quota used for Esri's sample repositories from 60 to 5000 requests per hour.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

@@ -25,8 +25,10 @@ import { SYNONYMS } from '../search/synonyms.js';
 import {
   confirmsApi,
   fitCode,
+  isGithubSample,
   matchesPlatform,
   mentionsApi,
+  mergeSampleTwins,
   parseApi,
   type ApiName,
 } from './rank.js';
@@ -56,9 +58,7 @@ function firstSentence(page: DocPage | undefined): string | undefined {
 }
 
 function originOf(record: CatalogRecord): SampleHit['origin'] {
-  return /^https:\/\/(?:github\.com|raw\.githubusercontent\.com)\//.test(record.ref)
-    ? 'github'
-    : 'esri-site';
+  return isGithubSample(record) ? 'github' : 'esri-site';
 }
 
 /** Creates the sample service. */
@@ -201,6 +201,9 @@ export function createSampleService(
           ...ranked.filter((record) => !namingRefs.has(record.ref)),
         ];
       }
+
+      // A sample published on the site and in the repository is one sample, listed once.
+      candidates = mergeSampleTwins(candidates);
 
       const failures: string[] = [];
       const pages = new Map<string, DocPage>();

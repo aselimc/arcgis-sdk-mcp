@@ -89,6 +89,69 @@ export function matchesPlatform(record: CatalogRecord, platform: string): boolea
   );
 }
 
+/** True when a sample record points into a GitHub repository rather than at a site page. */
+export function isGithubSample(record: CatalogRecord): boolean {
+  return /^https:\/\/(?:github\.com|raw\.githubusercontent\.com)\//.test(record.ref);
+}
+
+const titleKey = (record: CatalogRecord): string =>
+  record.title.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+
+const samePlatform = (a: CatalogRecord, b: CatalogRecord): boolean =>
+  a.platform === undefined ||
+  b.platform === undefined ||
+  a.platform.toLowerCase() === b.platform.toLowerCase();
+
+/**
+ * Lists a sample once when both Esri's site and its GitHub repository have it. The
+ * repository copy is kept (Apache-2.0, with metadata and source files) at the better of the
+ * two ranks, and takes the description and location from the site page when it has none.
+ * Samples are twins when their titles agree and their platforms do not differ.
+ */
+export function mergeSampleTwins(ranked: readonly CatalogRecord[]): CatalogRecord[] {
+  const groups = new Map<string, { site: CatalogRecord[]; github: CatalogRecord[] }>();
+  for (const record of ranked) {
+    const key = titleKey(record);
+    const group = groups.get(key) ?? { site: [], github: [] };
+    (isGithubSample(record) ? group.github : group.site).push(record);
+    groups.set(key, group);
+  }
+  const enrich = (record: CatalogRecord): CatalogRecord => {
+    const page = groups
+      .get(titleKey(record))
+      ?.site.find((candidate) => samePlatform(candidate, record));
+    if (page === undefined) return record;
+    const description = record.description ?? page.description;
+    const breadcrumb = record.breadcrumb ?? page.breadcrumb;
+    return {
+      ...record,
+      ...(description === undefined ? {} : { description }),
+      ...(breadcrumb === undefined ? {} : { breadcrumb }),
+    };
+  };
+
+  const merged: CatalogRecord[] = [];
+  const placed = new Set<string>();
+  const place = (record: CatalogRecord): void => {
+    if (placed.has(record.ref)) return;
+    placed.add(record.ref);
+    merged.push(enrich(record));
+  };
+  for (const record of ranked) {
+    if (isGithubSample(record)) {
+      place(record);
+      continue;
+    }
+    const twins = (groups.get(titleKey(record))?.github ?? []).filter((candidate) =>
+      samePlatform(candidate, record),
+    );
+    if (twins.length === 0) merged.push(record);
+    // The repository copies take the place of the page they duplicate.
+    else twins.forEach(place);
+  }
+  return merged;
+}
+
 /** Cuts source text at a line boundary within `maxTokens`. */
 export function fitCode(text: string, maxTokens: number): { text: string; truncated: boolean } {
   // Code tokenises at about 3.5 characters per token (design section 3.1).

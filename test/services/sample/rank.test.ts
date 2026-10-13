@@ -5,6 +5,7 @@ import {
   fitCode,
   matchesPlatform,
   mentionsApi,
+  mergeSampleTwins,
   parseApi,
 } from '../../../src/services/sample/rank.js';
 import { makeDocPage, makeRecord } from '../../support/builders.js';
@@ -71,6 +72,66 @@ describe('sample rank helpers', () => {
     expect(matchesPlatform(inRepo('MAUI/Sample'), 'maui')).toBe(true);
     expect(matchesPlatform(inRepo('WPF/Sample'), 'maui')).toBe(false);
     expect(matchesPlatform(makeRecord(), ' ')).toBe(true);
+  });
+
+  it('lists a sample once when the site and the repository both have it', () => {
+    const page = (slug: string, title: string, extra = {}) =>
+      makeRecord({
+        ref: `https://developers.arcgis.com/widgets/sample-code/${slug}/`,
+        kind: 'sample',
+        title,
+        ...extra,
+      });
+    const repo = (path: string, title: string, extra = {}) =>
+      makeRecord({
+        ref: `https://github.com/Esri/widgets-samples/blob/v3.1.0/${path}/README.md`,
+        kind: 'sample',
+        title,
+        license: 'apache-2.0',
+        ...extra,
+      });
+    const sitePlanned = page('download-planned-area', 'Download planned area', {
+      description: 'Take a planned area offline.',
+      breadcrumb: 'Offline',
+    });
+    const repoPlanned = repo('samples/download-planned-area', 'Download planned area');
+    const repoOffline = repo('samples/go-offline', 'Go offline', { description: 'Own summary.' });
+    const siteOnly = page('show-tides', 'Show tides');
+    const siteOffline = page('go-offline', 'Go Offline', { description: 'Site summary.' });
+
+    expect(
+      mergeSampleTwins([sitePlanned, repoPlanned, repoOffline, siteOnly, siteOffline]),
+    ).toEqual([
+      // The repository copy takes the page's rank, description and location.
+      { ...repoPlanned, description: 'Take a planned area offline.', breadcrumb: 'Offline' },
+      repoOffline,
+      siteOnly,
+    ]);
+    // The repository copy moves up to the rank of a better-placed page.
+    expect(mergeSampleTwins([siteOffline, siteOnly, repoOffline]).map((r) => r.ref)).toEqual([
+      repoOffline.ref,
+      siteOnly.ref,
+    ]);
+  });
+
+  it('keeps per-platform copies apart from a page of another platform', () => {
+    const maui = makeRecord({
+      ref: 'https://github.com/Esri/widgets-samples/blob/main/src/MAUI/ShowTides/readme.md',
+      title: 'Show tides',
+      platform: 'maui',
+    });
+    const wpf = { ...maui, ref: maui.ref.replace('MAUI', 'WPF'), platform: 'wpf' };
+    const wpfPage = makeRecord({
+      ref: 'https://developers.arcgis.com/widgets/wpf/sample-code/show-tides/',
+      title: 'Show tides',
+      platform: 'WPF',
+    });
+    expect(mergeSampleTwins([wpfPage, maui, wpf]).map((r) => r.ref)).toEqual([wpf.ref, maui.ref]);
+    const winuiPage = { ...wpfPage, ref: wpfPage.ref.replace('wpf', 'winui'), platform: 'winui' };
+    expect(mergeSampleTwins([winuiPage, maui]).map((r) => r.ref)).toEqual([
+      winuiPage.ref,
+      maui.ref,
+    ]);
   });
 
   it('cuts code at a line boundary', () => {

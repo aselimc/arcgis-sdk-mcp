@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "arcgis-docs": {
+      "command": "npx",
+      "args": ["-y", "arcgis-sdk-mcp"],
+      "env": {
+        "ARCGIS_DOCS_SOURCES": "standard"
+      }
+    },
+    "arcgis-docs-windows": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "arcgis-sdk-mcp"],
+      "env": {
+        "ARCGIS_DOCS_SOURCES": "standard"
+      }
+    }
+  }
+}
