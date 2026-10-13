@@ -242,26 +242,20 @@ describe('openapi: read', () => {
       kind: 'openapi',
       opts: { detail: 'summary' },
     });
-    expect(lastInput(ctx).target).toBe('getEvent');
-    expect(lastInput(ctx).operation).toMatchObject({
-      operationId: 'getEvent',
-      method: 'get',
-      path: '/api/events/v1/events/{id}',
-      parameters: [{ name: 'id' }, { name: 'expand' }],
-    });
+    // The operation is named by method and path; the renderer reads it out of the document.
+    expect(Object.keys(lastInput(ctx)).sort()).toEqual(['spec', 'target']);
+    expect(lastInput(ctx).target).toBe('GET /api/events/v1/events/{id}');
     expect(lastInput(ctx).spec).toMatchObject({ openapi: '3.0.0' });
   });
 
   it('finds an operation of a document without operation ids by the slug of its summary', async () => {
     const ctx = ctxOf();
     await openapiAdapter.read(ctx, bound(), { url: new URL(`${SCAN}#List-Projects`) });
-    expect(lastInput(ctx)).toMatchObject({ target: 'list-projects', operation: { method: 'get' } });
+    const listed = String(lastInput(ctx).target);
+    expect(listed.startsWith('GET /')).toBe(true);
 
     await openapiAdapter.read(ctx, bound(), { url: new URL(`${SCAN}#list-projects-post`) });
-    expect(lastInput(ctx)).toMatchObject({
-      target: 'list-projects-post',
-      operation: { method: 'post' },
-    });
+    expect(lastInput(ctx).target).toBe(listed.replace(/^GET/, 'POST'));
   });
 
   it('hands the renderer one schema for a JSON-pointer fragment, from either container', async () => {
@@ -269,13 +263,13 @@ describe('openapi: read', () => {
     await openapiAdapter.read(ctx, bound(), {
       url: new URL(`${EVENTS}#/components/schemas/Event`),
     });
-    expect(lastInput(ctx)).toMatchObject({
-      target: 'Event',
-      schemas: { Event: { type: 'object' } },
-    });
+    expect(Object.keys(lastInput(ctx)).sort()).toEqual(['spec', 'target']);
+    expect(lastInput(ctx).target).toBe('Event');
 
     await openapiAdapter.read(ctx, bound(), { url: new URL(`${FEED}#/definitions/Catalog`) });
-    expect(lastInput(ctx)).toMatchObject({ target: 'Catalog', schemas: { Catalog: {} } });
+    expect(lastInput(ctx).target).toBe('Catalog');
+    expect(lastInput(ctx).operation).toBeUndefined();
+    expect(lastInput(ctx).schemas).toBeUndefined();
     expect(ctx.http.requests.at(-1)).toMatchObject({ url: FEED, expect: 'text' });
   });
 

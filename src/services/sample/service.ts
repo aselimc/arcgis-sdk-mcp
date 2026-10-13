@@ -21,6 +21,7 @@ import type { CatalogRecord, DocPage, Product, VersionLine } from '../../core/ty
 import type { IndexInternals } from '../index/types.js';
 import { indexNotes } from '../notes.js';
 import { resolveScope } from '../scope.js';
+import { plainText } from '../search/excerpt.js';
 import { SYNONYMS } from '../search/synonyms.js';
 import {
   confirmsApi,
@@ -46,14 +47,19 @@ const MIN_CODE_TOKENS = 200;
 /** Share of the budget kept for the code when it was asked for; the listing gets the rest. */
 const CODE_SHARE = 0.5;
 
+/** A block that is not a sentence about the sample: heading, aside, code, table, list or image. */
+const NOT_PROSE = /^ {0,3}(?:#{1,6}[ \t]|>|`{3,}|~{3,}|\||[-*+][ \t]|\d+\.[ \t]|!\[)/;
+
+/**
+ * The first sentence of the first paragraph of a sample's description, as plain text. Many
+ * sample pages open with a notice (a deprecation warning in a block quote); that is said
+ * of the sample, not what it shows.
+ */
 function firstSentence(page: DocPage | undefined): string | undefined {
-  const lead = page?.sections[0]?.markdown.replace(/^ {0,3}#{1,6}[ \t]+.*$/m, '').trim();
-  if (lead === undefined || lead === '') return undefined;
-  const paragraph =
-    lead
-      .split(/\n\s*\n/)[0]
-      ?.replace(/\s+/g, ' ')
-      .trim() ?? '';
+  const blocks = page?.sections[0]?.markdown.split(/\n\s*\n/) ?? [];
+  const prose = blocks.find((block) => block.trim() !== '' && !NOT_PROSE.test(block));
+  if (prose === undefined) return undefined;
+  const paragraph = plainText(prose).replace(/\s+/g, ' ').trim();
   const sentence = /^.*?[.!?](?=\s|$)/.exec(paragraph)?.[0] ?? paragraph;
   return sentence === '' ? undefined : sentence.slice(0, 240);
 }

@@ -115,7 +115,55 @@ describe('dartdoc rules', () => {
       '<h1>load method</h1><section class="multi-line-signature">\n  <span class="returntype">Future&lt;void&gt;</span>\n  <span class="name">load</span>(\n    <span class="parameter">bool   force</span>\n  )\n</section>' +
       '<section class="summary"><h2>Methods</h2><dl class="callables"><dt id="x" class="callable"><span class="name">x</span>()</dt><dd></dd></dl></section>';
     expect(prepared('dartdoc', html)).toBe(
-      '<pre data-md-lang="dart">Future&lt;void&gt;\nload(\nbool force\n)</pre><section class="summary"><h2>Methods</h2><ul><li><code>x()</code></li></ul></section>',
+      '<pre data-md-lang="dart">Future&lt;void&gt; load(bool force)</pre><section class="summary"><h2>Methods</h2><ul><li><code>x()</code></li></ul></section>',
+    );
+  });
+
+  // Regression: the signature block has one token per line in the page source, and was
+  // fenced that way: a getter read `LoadStatus`, `get`, `loadStatus` on three lines.
+  const signature = (inner: string): string =>
+    prepared('dartdoc', `<section class="multi-line-signature">\n${inner}\n</section>`)
+      .replace(/^<pre data-md-lang="dart">|<\/pre>$/g, '')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>');
+  const parameter = (type: string, name: string, after: string): string =>
+    `<li><span class="parameter"><span class="type-annotation">${type}</span> <span class="parameter-name">${name}</span>${after}</span></li>`;
+
+  it('writes a getter on one line', () => {
+    expect(
+      signature(
+        '  <span class="returntype"><a href="../TideState.html">TideState</a></span>\n  get\n  <span class="name ">tideState</span>\n',
+      ),
+    ).toBe('TideState get tideState');
+  });
+
+  it('writes a method with its parameters on one line, annotations above it', () => {
+    expect(
+      signature(
+        '<div><ol class="annotation-list"><li>@<a href="x.html">awaitNotRequired</a></li></ol></div>\n' +
+          '<span class="returntype">Future<span class="signature">&lt;<wbr><span class="type-parameter">bool</span>&gt;</span></span>\n' +
+          `<span class="name ">moveTo</span>(<wbr><ol class="parameter-list"> ${parameter('Berth', 'berth', ', {')}\n${parameter('double?', 'speed', ', ')}\n</ol>})`,
+      ),
+    ).toBe('@awaitNotRequired\nFuture<bool> moveTo(Berth berth, {double? speed})');
+  });
+
+  it('writes one parameter per line when the declaration is long', () => {
+    const names = ['harbourMasterApproval', 'tideWindowInMinutes', 'pilotBoatCallSign'];
+    const list = names
+      .map((name, index) => parameter('NavigationClearance?', name, index === 0 ? ', {' : ', '))
+      .join('\n');
+    expect(
+      signature(
+        `<span class="returntype">void</span>\n<span class="name ">requestDeparture</span>(<wbr><ol class="parameter-list"> ${list}\n</ol>})`,
+      ),
+    ).toBe(
+      [
+        'void requestDeparture(',
+        '  NavigationClearance? harbourMasterApproval, {',
+        '  NavigationClearance? tideWindowInMinutes,',
+        '  NavigationClearance? pilotBoatCallSign,',
+        '})',
+      ].join('\n'),
     );
   });
 });

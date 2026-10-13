@@ -205,12 +205,17 @@ function specRecords(src: OpenApiSource, url: string, spec: Json): CatalogRecord
   return records;
 }
 
-/** What to hand the `openapi` renderer for a ref fragment: one operation, one schema, or the whole document. */
+/**
+ * What to hand the `openapi` renderer for a ref fragment: the document, and as `target` the
+ * operation (`METHOD path`, which every operation has, unlike an operation id) or the schema
+ * the fragment names. The renderer reads both out of the document itself, so that references
+ * (`$ref`), shared parameters and responses are resolved; its `operation` and `schemas`
+ * inputs are for the page data of a documentation site, which has another shape.
+ */
 function renderInput(spec: Json, fragment: string): RendererInputs['openapi'] {
   if (fragment.startsWith('/')) {
     const name = fragment.split('/').at(-1) ?? '';
-    const schema = schemasOf(spec).schemas[name];
-    return schema === undefined ? { spec } : { spec, schemas: { [name]: schema }, target: name };
+    return schemasOf(spec).schemas[name] === undefined ? { spec } : { spec, target: name };
   }
   const wanted = fragment.toLowerCase();
   const found =
@@ -221,8 +226,7 @@ function renderInput(spec: Json, fragment: string): RendererInputs['openapi'] {
             key.toLowerCase() === wanted || slugify(str(operation.summary) ?? '') === wanted,
         );
   if (found === undefined) return { spec };
-  const { key, method, path, operation } = found;
-  return { spec, operation: { ...operation, method, path }, target: key };
+  return { spec, target: `${found.method.toUpperCase()} ${found.path}` };
 }
 
 function decoded(hash: string): string {

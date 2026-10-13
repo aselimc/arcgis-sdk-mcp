@@ -144,6 +144,34 @@ describe('find samples', () => {
     const response = await find(h, { query: 'spin', product: 'widgets-sdk' });
     expect(response.hits[0]?.summary).toBe('Rotates the widget on click.');
   });
+
+  // Regression: sample pages that open with a notice were summarised by the notice
+  // ("> **Warning:** > > This sample uses legacy programming patterns."), links included.
+  it('summarises a page by its first paragraph of prose, as plain text', async () => {
+    const product = makeProduct({
+      sources: [
+        makeSource('docc', { base: '/widgets/samples/' }, { id: 'samples', kinds: ['sample'] }),
+      ],
+    });
+    const ref = 'https://developers.arcgis.com/widgets/samples/spin/';
+    const h = makeHarness({
+      products: [product],
+      records: [makeRecord({ ref, source: 'samples', kind: 'sample', title: 'Spin a widget' })],
+    });
+    h.adapter('docc').addPage(
+      makeDocPage({
+        url: ref,
+        markdown: [
+          '# Spin a widget',
+          '> **Warning:**\n>\n> This sample uses an old pattern.',
+          '![Screenshot](https://developers.arcgis.com/widgets/spin.png)',
+          'Rotates a [widget](https://developers.arcgis.com/widgets/api/widget/) when its **handle** is clicked. More follows.',
+        ].join('\n\n'),
+      }),
+    );
+    const response = await find(h, { query: 'spin', product: 'widgets-sdk' });
+    expect(response.hits[0]?.summary).toBe('Rotates a widget when its handle is clicked.');
+  });
 });
 
 describe('find samples: uses_api', () => {
