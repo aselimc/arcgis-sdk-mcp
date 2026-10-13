@@ -118,6 +118,18 @@ describe('fallback to the generic extractor', () => {
     expect(pageMarkdown(page)).not.toContain('Home');
   });
 
+  // Regression: notebook pages of the Python guide, whose body is a fragment taken out of
+  // page-data, were labelled "degraded" although the generic profile was asked for.
+  it('does not call it a fallback when the caller asked for the generic profile', () => {
+    const page = createHtmlExtractor().extract(
+      { html: `<html><body><main>${article}</main></body></html>`, familyHint: 'generic' },
+      metaFor('https://docs.example.com/notes/'),
+    );
+    expect(page.diagnostics.family).toBe('generic');
+    expect(page.degraded).toBeUndefined();
+    expect(page.title).toBe('Harbour notes');
+  });
+
   it('takes the title from <title> when the page has no h1, and prefers the richest container', () => {
     const page = extractHtml(
       `<html><head><title> Pier  office </title></head><body><main><p>short</p></main><div role="main"><p>${'The pier office opens at six. '.repeat(10)}</p></div></body></html>`,

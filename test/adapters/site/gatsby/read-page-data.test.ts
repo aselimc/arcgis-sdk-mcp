@@ -128,6 +128,9 @@ describe('gatsby read: bodies in page-data', () => {
     const call = rendered(ctx, 'html');
     expect(call.input.html).toContain('<h1>A first notebook</h1>');
     expect(call.input.html).toContain('gis = connect()');
+    // A body taken out of page-data has no site chrome: the generic profile is asked for,
+    // so the page is not reported as a degraded conversion (regression).
+    expect(call.input.familyHint).toBe('generic');
   });
 
   it('renders a specification page verbatim under its own name', async () => {

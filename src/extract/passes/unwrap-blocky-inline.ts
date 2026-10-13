@@ -3,12 +3,17 @@ import type { AnyNode, Element } from 'domhandler';
 import { isElement, unwrap } from '../dom.js';
 import type { Pass } from '../types.js';
 
+/** True for a text node that holds nothing but whitespace. */
+function isBlankText(node: AnyNode): boolean {
+  // `type` is an enum of the parser package; its values are plain strings.
+  const type: string = node.type;
+  return type === 'text' && 'data' in node && node.data.trim() === '';
+}
+
 /** The nearest sibling in a direction that is not whitespace-only text. */
 function sibling(node: AnyNode, direction: 'prev' | 'next'): AnyNode | null {
   let current = node[direction];
-  while (current !== null && current.type === 'text' && current.data.trim() === '') {
-    current = current[direction];
-  }
+  while (current !== null && isBlankText(current)) current = current[direction];
   return current;
 }
 

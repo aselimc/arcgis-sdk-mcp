@@ -65,10 +65,14 @@ export function extractPage(
   let result: ProfileResult | undefined;
 
   if (family === 'generic') {
-    degraded = {
-      level: 'generic-extractor',
-      reason: 'No known page family matched; converted with the generic extractor.',
-    };
+    // A caller that asks for the generic profile (a fragment taken out of structured data)
+    // made a choice; only a page whose family could not be told is a lower rung.
+    if (input.familyHint !== 'generic') {
+      degraded = {
+        level: 'generic-extractor',
+        reason: 'No known page family matched; converted with the generic extractor.',
+      };
+    }
   } else {
     result = runProfile($, PROFILES[family], meta, opts, convert);
     const reason = driftReason(family, result, html.length);

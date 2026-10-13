@@ -165,9 +165,11 @@ export function renderVariant(ctx: Ctx, variant: BodyVariant, request: RenderReq
       );
     }
     case 'html':
+      // The fragment is the page's own body as its build stored it, without the site chrome
+      // a family profile looks for: the generic profile is the right one, not a fallback.
       return ctx.render.render(
         'html',
-        { html: documentOf(variant.title, variant.html) },
+        { html: documentOf(variant.title, variant.html), familyHint: 'generic' },
         meta,
         opts,
       );

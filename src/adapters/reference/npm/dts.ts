@@ -8,13 +8,19 @@
  */
 import { defaultSymbolRead } from '../../../core/adapter-helpers.js';
 import { formatCall } from '../../../core/budget.js';
+import { isMcpDocError } from '../../../core/errors.js';
 import { BREADCRUMB_SEPARATOR, TOOLS } from '../../../core/names.js';
 import type { BoundSource, Ctx, ReadTarget, SourceAdapter } from '../../../core/ports.js';
 import type { CatalogRecord, DocPage } from '../../../core/types.js';
+import { moduleFromNamespace, namespaceAlias } from './dts-namespace.js';
 import { listPackageFiles } from './jsdelivr.js';
 import { listLocalFiles } from './local-packages.js';
 import { loadPackageText, packageMeta } from './package-file.js';
-import { resolvePackageVersion, withVersionNotice } from './resolve-version.js';
+import {
+  resolvePackageVersion,
+  withVersionNotice,
+  type ResolvedPackage,
+} from './resolve-version.js';
 import {
   baseRecord,
   docTemplate,
@@ -96,6 +102,35 @@ function addSuffix(module: string | undefined): string | undefined {
   return module === undefined || module === '' ? undefined : `${module}${DECLARATION_SUFFIX}`;
 }
 
+/**
+ * The declarations of a module. Releases that keep every class in one namespace file
+ * (`@arcgis/core` 4.x) publish module files that only alias into it; the class is then cut
+ * out of that file, which costs one more request per release (the file never changes).
+ */
+async function moduleSource(
+  ctx: Ctx,
+  src: Src,
+  pkg: ResolvedPackage,
+  file: string,
+  text: string,
+): Promise<string> {
+  const alias = namespaceAlias(text, file);
+  if (alias === undefined || !SAFE_MODULE_PATH.test(alias.file)) return text;
+  try {
+    const namespace = await loadPackageText(ctx, src, pkg, alias.file);
+    return moduleFromNamespace(namespace.text, alias.name) ?? text;
+  } catch (error) {
+    if (!isMcpDocError(error)) throw error;
+    // Without the namespace file the alias is all there is to show.
+    ctx.logger.warn('namespace typings unavailable; showing the module file as published', {
+      product: src.product.id,
+      file: alias.file,
+      code: error.code,
+    });
+    return text;
+  }
+}
+
 async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
   const { config } = src.source;
   const template = docTemplate(src, config.docUrl);
@@ -114,7 +149,7 @@ async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
   const page = ctx.render.render(
     'dts',
     {
-      source: loaded.text,
+      source: await moduleSource(ctx, src, pkg, file, loaded.text),
       modulePath: file,
       packageName: pkg.name,
       ...(member === undefined ? {} : { member }),
