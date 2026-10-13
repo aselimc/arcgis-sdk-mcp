@@ -193,8 +193,8 @@ const REPOSITORIES: Array<[string, string, string, string]> = [
 
 /** `[product, oracle types in order]`. */
 const ORACLES: Array<[string, string[]]> = [
-  ['js-maps-sdk', ['npm-dist-tags', 'page-regex']],
-  ['calcite', ['npm-dist-tags', 'page-regex']],
+  ['js-maps-sdk', ['npm-dist-tags', 'page-regex', 'plc']],
+  ['calcite', ['npm-dist-tags', 'page-regex', 'plc']],
   ['arcade', ['page-regex']],
   ['rest-js', ['npm-dist-tags']],
   ['experience-builder', ['page-regex']],
@@ -202,16 +202,16 @@ const ORACLES: Array<[string, string[]]> = [
   ['maplibre-arcgis', ['npm-dist-tags']],
   ['openlayers-arcgis', []],
   ['cesium-arcgis', []],
-  ['swift-maps-sdk', ['github-release', 'page-regex']],
-  ['kotlin-maps-sdk', ['page-regex', 'github-release']],
-  ['dotnet-maps-sdk', ['page-regex', 'nuget-flat']],
-  ['qt-maps-sdk', ['page-regex']],
-  ['flutter-maps-sdk', ['pub-dev', 'page-regex']],
+  ['swift-maps-sdk', ['github-release', 'page-regex', 'plc']],
+  ['kotlin-maps-sdk', ['page-regex', 'github-release', 'plc']],
+  ['dotnet-maps-sdk', ['page-regex', 'nuget-flat', 'plc']],
+  ['qt-maps-sdk', ['page-regex', 'plc']],
+  ['flutter-maps-sdk', ['pub-dev', 'page-regex', 'plc']],
   ['java-maps-sdk', ['static', 'page-regex']],
-  ['unity-maps-sdk', ['page-regex']],
-  ['unreal-maps-sdk', ['page-regex']],
+  ['unity-maps-sdk', ['page-regex', 'plc']],
+  ['unreal-maps-sdk', ['page-regex', 'plc']],
   ['runtime-100', ['static']],
-  ['python-api', ['pypi', 'page-regex', 'github-release']],
+  ['python-api', ['pypi', 'page-regex', 'github-release', 'plc']],
   ['arcpy', ['docesri-sitemap']],
   ['geoanalytics-engine', ['page-regex']],
   ['geoanalytics-fabric', []],
@@ -257,6 +257,28 @@ describe('registry data of design sections 4.1 to 4.4', () => {
 
   it.each(ORACLES)('%s asks the oracles %j', (id, types) => {
     expect(product(id).oracles.map((oracle) => oracle.type)).toEqual(types);
+  });
+
+  // Regression: the life cycle oracle existed but no product declared it, so switching the
+  // capability `lifecycle-api` on changed nothing. The service lists a product by its name.
+  it('asks the life cycle service by category for the products it lists by name', () => {
+    const asked = ALL.filter((entry) => entry.oracles.some((oracle) => oracle.type === 'plc'));
+    expect(asked.map((entry) => entry.name).sort()).toEqual([
+      'ArcGIS API for Python',
+      'ArcGIS Maps SDK for .NET',
+      'ArcGIS Maps SDK for Flutter',
+      'ArcGIS Maps SDK for JavaScript',
+      'ArcGIS Maps SDK for Kotlin',
+      'ArcGIS Maps SDK for Qt',
+      'ArcGIS Maps SDK for Swift',
+      'ArcGIS Maps SDK for Unity',
+      'ArcGIS Maps SDK for Unreal Engine',
+      'Calcite Design System',
+    ]);
+    for (const entry of asked) {
+      const oracle = entry.oracles.find((candidate) => candidate.type === 'plc');
+      expect(oracle).toMatchObject({ options: { category: 'Developer' }, provides: ['lifecycle'] });
+    }
   });
 
   it('gives every source the capability of its adapter class', () => {

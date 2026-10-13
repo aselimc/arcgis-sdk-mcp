@@ -27,7 +27,7 @@ Lists Esri ArcGIS products that have developer documentation here, or describes 
 | `query` | string (max 120 chars) | no |  | Words to filter the product list, e.g. "offline mobile", "webhooks", "3D game engine". |
 | `category` | "web" \| "native" \| "game-engine" \| "python" \| "desktop-enterprise" \| "rest-services" \| "ai" \| "specs" \| "devops-oss" \| "support" \| "product-help" \| "all" | no |  | Limit the list to one category. Default: all developer categories (not product-help). |
 | `include_legacy` | boolean | no | `false` | Include retired and deprecated products (shown with their successor). |
-| `limit` | integer 1..200 | no | `80` |  |
+| `limit` | integer 1..200 | no | `80` | Products, or table-of-contents entries, per call. |
 | `cursor` | string (max 600 chars) | no |  | Opaque cursor from a previous call. |
 
 ### Examples

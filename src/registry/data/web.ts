@@ -111,6 +111,16 @@ const banner = (path: string): Product['oracles'][number] => ({
   provides: ['documented', 'released'],
 });
 
+/**
+ * Release, maturity and retirement dates from Esri's product life cycle service, which lists
+ * the product under its registry name. Read only with the opt-in capability `lifecycle-api`.
+ */
+const LIFECYCLE: Product['oracles'][number] = {
+  type: 'plc',
+  options: { category: 'Developer' },
+  provides: ['lifecycle'],
+};
+
 const JS = '/javascript/latest/';
 
 const JS_COMPONENT_PACKAGES = [
@@ -305,7 +315,7 @@ const jsMapsSdk: Product = {
     },
   ],
   sources: jsSources,
-  oracles: [npmDistTags('@arcgis/core'), banner(JS)],
+  oracles: [npmDistTags('@arcgis/core'), banner(JS), LIFECYCLE],
   compatibility: [{ name: 'Version matrix', url: `${D}${JS}version-matrix/` }],
   releaseNotes: {
     current: `${D}${JS}release-notes/`,
@@ -387,7 +397,7 @@ const calcite: Product = {
       probe: npmProbe('@esri/calcite-components'),
     },
   ],
-  oracles: [npmDistTags('@esri/calcite-components'), banner('/calcite-design-system/')],
+  oracles: [npmDistTags('@esri/calcite-components'), banner('/calcite-design-system/'), LIFECYCLE],
   releaseNotes: {
     current: `${D}/calcite-design-system/whats-new/`,
     pattern: `${D}/calcite-design-system/releases/changelogs/{version}/`,

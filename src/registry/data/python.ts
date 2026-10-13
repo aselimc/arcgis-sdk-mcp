@@ -84,6 +84,16 @@ const banner = (path: string): OracleSpec => ({
   provides: ['documented', 'released'],
 });
 
+/**
+ * Release, maturity and retirement dates from Esri's product life cycle service, which lists
+ * the product under its registry name. Read only with the opt-in capability `lifecycle-api`.
+ */
+const LIFECYCLE: OracleSpec = {
+  type: 'plc',
+  options: { category: 'Developer' },
+  provides: ['lifecycle'],
+};
+
 const PY = '/python/latest/';
 
 const pythonApi: Product = {
@@ -203,6 +213,7 @@ const pythonApi: Product = {
       options: { repo: 'Esri/arcgis-python-api' },
       provides: ['released'],
     },
+    LIFECYCLE,
   ],
   releaseNotes: {
     // The slug runs the digits together: 2.4.4 is `release-notes-244`.

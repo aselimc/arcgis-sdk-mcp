@@ -161,6 +161,16 @@ const oracle = (
   value: string,
 ): OracleSpec => ({ type, options: { [key]: value }, provides: ['installable'] });
 
+/**
+ * Release, maturity and retirement dates from Esri's product life cycle service, which lists
+ * the product under its registry name. Read only with the opt-in capability `lifecycle-api`.
+ */
+const LIFECYCLE: OracleSpec = {
+  type: 'plc',
+  options: { category: 'Developer' },
+  provides: ['lifecycle'],
+};
+
 interface NativeSpec {
   id: string;
   /** First path segment on developers.arcgis.com. */
@@ -305,7 +315,11 @@ const swift = nativeSdk({
       count: 243,
     }),
   ],
-  oracles: [oracle('github-release', 'repo', 'Esri/arcgis-maps-sdk-swift'), banner('/swift/')],
+  oracles: [
+    oracle('github-release', 'repo', 'Esri/arcgis-maps-sdk-swift'),
+    banner('/swift/'),
+    LIFECYCLE,
+  ],
   pitfalls: [
     LTS_PITFALL,
     MIGRATION_PITFALL,
@@ -374,6 +388,7 @@ const kotlin = nativeSdk({
   oracles: [
     banner('/kotlin/'),
     oracle('github-release', 'repo', 'Esri/arcgis-maps-sdk-kotlin-toolkit'),
+    LIFECYCLE,
   ],
   pitfalls: [
     LTS_PITFALL,
@@ -444,7 +459,7 @@ const dotnet = nativeSdk({
     ),
     samples({ repo: 'Esri/arcgis-maps-sdk-dotnet-samples', pin: 'release-tag', count: 690 }),
   ],
-  oracles: [banner('/net/'), oracle('nuget-flat', 'id', 'esri.arcgisruntime')],
+  oracles: [banner('/net/'), oracle('nuget-flat', 'id', 'esri.arcgisruntime'), LIFECYCLE],
   pitfalls: [
     LTS_PITFALL,
     MIGRATION_PITFALL,
@@ -478,7 +493,7 @@ const qt = nativeSdk({
     // Tags of this repository are pre-release builds, so samples follow the default branch.
     samples({ repo: 'Esri/arcgis-maps-sdk-samples-qt', pin: 'branch', count: 232 }),
   ],
-  oracles: [banner('/qt/')],
+  oracles: [banner('/qt/'), LIFECYCLE],
   pitfalls: [
     LTS_PITFALL,
     MIGRATION_PITFALL,
@@ -537,7 +552,7 @@ const flutter = nativeSdk({
       count: 143,
     }),
   ],
-  oracles: [oracle('pub-dev', 'package', 'arcgis_maps'), banner('/flutter/')],
+  oracles: [oracle('pub-dev', 'package', 'arcgis_maps'), banner('/flutter/'), LIFECYCLE],
   pitfalls: [
     LTS_PITFALL,
     'pub.dev versions carry a build suffix (300.1.0+5042); the SDK version is the part before the plus sign.',
@@ -672,7 +687,7 @@ function gameEngine(spec: {
       // Most samples of these repositories have a README but no metadata file.
       samples({ repo: spec.samplesRepo, pin: 'branch', preset: 'samples-readme' }),
     ],
-    oracles: [banner(`/${spec.slug}/`)],
+    oracles: [banner(`/${spec.slug}/`), LIFECYCLE],
     releaseNotesSlug: 'release-notes-{major}-{minor}-{patch}',
     pitfalls: spec.pitfalls,
     related: spec.related,
