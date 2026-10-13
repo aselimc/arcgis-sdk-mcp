@@ -171,10 +171,11 @@ export function createEsearchProvider(
         : typeof description === 'string' && description.trim() !== ''
           ? description.trim()
           : undefined;
-    const title = raw.doc?.title;
+    // The index stores the page's `<title>`, which ends in " | Sample | <site name>".
+    const own = typeof raw.doc?.title === 'string' ? raw.doc.title.split(' | ')[0]?.trim() : '';
     return {
       ref: url,
-      title: typeof title === 'string' && title.trim() !== '' ? title.trim() : humanizeSlug(url),
+      title: own === undefined || own === '' ? humanizeSlug(url) : own,
       product: product.id,
       source: owner.source.id,
       line: owner.line.id,

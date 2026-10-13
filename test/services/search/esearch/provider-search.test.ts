@@ -98,7 +98,9 @@ describe('site-search provider', () => {
         json: {
           search: {
             hits: [
-              hit('/kotlin/offline-maps/', 9),
+              hit('/kotlin/offline-maps/', 9, {
+                title: 'Offline maps | Sample | Widgets SDK for Kotlin',
+              }),
               hit('/kotlin/offline-maps/index.html?highlight=x#top', 8),
               hit('/kotlin/v200/offline-maps/', 7),
               hit('/javascript/latest/offline/', 6),
@@ -127,6 +129,8 @@ describe('site-search provider', () => {
       ['/kotlin/api-reference/pkg/-cls/', 'api', 'api'],
       ['/kotlin/samples/x/', 'sample', 'guide'],
     ]);
+    // The site name that the page title carries is not part of the title.
+    expect(hits[0]?.title).toBe('Offline maps');
     expect(hits[1]).toMatchObject({ title: 'Cls', excerpt: 'A class.' });
     expect(hits[2]).toMatchObject({ excerpt: 'Offline sample', score: 0 });
   });

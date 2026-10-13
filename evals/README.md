@@ -40,18 +40,8 @@ and is slower.
 
 `tasks.jsonl` holds one task per line:
 
-```jsonl
-{
-  "id": "js-current-version-pairing",
-  "prompt": "What is the current released version of ...",
-  "facts": [
-    "\\b\\d+\\.\\d+(?:\\.\\d+)?\\b",
-    "Enterprise"
-  ],
-  "tools": [
-    "arcgis_docs_get_versions"
-  ]
-}
+```text
+{"id":"js-current-version-pairing","prompt":"What is the current released version of ...","facts":["Enterprise"],"tools":["arcgis_docs_get_versions"]}
 ```
 
 - `facts`: case-insensitive regular expressions the final answer must match, all of them.
