@@ -27,6 +27,15 @@
       <exclude/>
       <summary>Hidden from the published reference.</summary>
     </member>
+    <member name="F:Widgets.Core.Widget._cache">
+      <summary>A private field the compiler documented anyway.</summary>
+    </member>
+    <member name="T:XamlGeneratedNamespace.GeneratedInternalTypeHelper">
+      <summary>Not part of the API.</summary>
+    </member>
+    <member name="M:XamlGeneratedNamespace.GeneratedInternalTypeHelper.CreateInstance(System.Type)">
+      <summary>Not part of the API either.</summary>
+    </member>
     <member name="M:Widgets.Core.Widget.#cctor">
       <summary>Static set-up.</summary>
     </member>

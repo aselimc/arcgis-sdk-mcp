@@ -86,7 +86,11 @@ export interface IndexInternals extends IndexService {
   /** Persists body indexes changed by `addBody`. Never rejects. */
   flush(): Promise<void>;
   /** Fingerprint of the loaded indexes in a scope; changes when one of them is rebuilt. */
-  validator(scope: { products: string[]; sources?: string[]; line?: string }): string;
+  validator(scope: {
+    products: string[];
+    sources?: string[] | undefined;
+    line?: string | undefined;
+  }): string;
   /** The catalogue record with this ref among the loaded indexes. */
   record(ref: string): CatalogRecord | undefined;
   /** Why a source is not serving a fresh index, when that is the case. */

@@ -35,7 +35,11 @@ const FOCUSED_CODE_NOTICE =
   'Code blocks show only the lines each step adds; read with view "full" for complete listings.';
 
 /** Creates the document service. */
-export function createDocService(ctx: Ctx, adapters: AdapterRegistry, index: IndexInternals): DocService {
+export function createDocService(
+  ctx: Ctx,
+  adapters: AdapterRegistry,
+  index: IndexInternals,
+): DocService {
   const reader = createPageReader(ctx, adapters, index);
 
   /** Reads a page, records it in the body index, and labels stale content. */
@@ -49,7 +53,7 @@ export function createDocService(ctx: Ctx, adapters: AdapterRegistry, index: Ind
       options.focusedCode === true &&
       route.kind === 'owned' &&
       route.source.adapter === 'astro' &&
-      /\/tutorials\//.test(route.url.pathname);
+      route.url.pathname.includes('/tutorials/');
     let page = await reader.read(route, call, {
       ...(options.select === undefined ? {} : { select: options.select }),
       ...(focused ? { focusedCode: true } : {}),
@@ -57,7 +61,10 @@ export function createDocService(ctx: Ctx, adapters: AdapterRegistry, index: Ind
     if (page.cache === 'stale' && page.degraded === undefined) {
       page = {
         ...page,
-        degraded: { level: 'stale', reason: 'served from an expired cached copy after an upstream failure' },
+        degraded: {
+          level: 'stale',
+          reason: 'served from an expired cached copy after an upstream failure',
+        },
       };
     }
     if (focused && !page.notices.includes(FOCUSED_CODE_NOTICE)) {
@@ -68,7 +75,11 @@ export function createDocService(ctx: Ctx, adapters: AdapterRegistry, index: Ind
     return page;
   };
 
-  const sectionNotFound = (ref: string, wanted: string, sections: readonly DocSection[]): McpDocError =>
+  const sectionNotFound = (
+    ref: string,
+    wanted: string,
+    sections: readonly DocSection[],
+  ): McpDocError =>
     new McpDocError('SECTION_NOT_FOUND', `No section "${wanted}" in this document`, {
       why: 'The name matched no section id, heading, member or pseudo-section',
       candidates: sections.map((section) => section.id).slice(0, MAX_SECTION_CANDIDATES),
@@ -84,11 +95,14 @@ export function createDocService(ctx: Ctx, adapters: AdapterRegistry, index: Ind
       const wanted = explicit ?? fragment;
       // A pseudo-section is assembled here; anything else lets the adapter slice a heavy page.
       const select =
-        wanted === undefined || isPseudoSection(wanted) ? undefined : { section: wanted, member: wanted };
+        wanted === undefined || isPseudoSection(wanted)
+          ? undefined
+          : { section: wanted, member: wanted };
       const page = await load(req.ref, call, { select, focusedCode: req.view !== 'full' });
 
       const all = displaySections(page, 'all');
-      let shown: DocSection[] = req.view === 'auto' && req.cursor === undefined ? displaySections(page, 'default') : all;
+      let shown: DocSection[] =
+        req.view === 'auto' && req.cursor === undefined ? displaySections(page, 'default') : all;
       let selected: string | undefined;
       if (wanted !== undefined && page.degraded?.level !== 'link-only') {
         const resolved = resolveSection(page, all, wanted);
@@ -101,7 +115,10 @@ export function createDocService(ctx: Ctx, adapters: AdapterRegistry, index: Ind
         // A fragment that names nothing (a tab or UI anchor) reads the whole page.
       }
 
-      const continuation = { ref: req.ref, ...(explicit === undefined ? {} : { section: explicit }) };
+      const continuation = {
+        ref: req.ref,
+        ...(explicit === undefined ? {} : { section: explicit }),
+      };
       const key = shortHash(JSON.stringify([page.ref.replace(/#.*$/, ''), selected ?? '']));
       let validator = shortHash(joinSections(shown));
       let offset = 0;
@@ -147,7 +164,13 @@ export function createDocService(ctx: Ctx, adapters: AdapterRegistry, index: Ind
         truncated: view.truncated,
       };
       if (view.nextOffset !== undefined) {
-        response.nextCursor = encodeCursor({ v: 1, t: TOOLS.read, k: key, e: validator, o: view.nextOffset });
+        response.nextCursor = encodeCursor({
+          v: 1,
+          t: TOOLS.read,
+          k: key,
+          e: validator,
+          o: view.nextOffset,
+        });
         response.next = formatCall(TOOLS.read, {
           ...continuation,
           view: 'full',
@@ -155,7 +178,10 @@ export function createDocService(ctx: Ctx, adapters: AdapterRegistry, index: Ind
           cursor: response.nextCursor,
         });
       } else if (view.suggest !== undefined) {
-        response.next = formatCall(TOOLS.read, { ref: req.ref.replace(/#.*$/, ''), section: view.suggest });
+        response.next = formatCall(TOOLS.read, {
+          ref: req.ref.replace(/#.*$/, ''),
+          section: view.suggest,
+        });
       }
       return response;
     },

@@ -8,7 +8,7 @@ Identifies a kind of beacon.
 
 Constraints: one of `tower`, `buoy`.
 
-```
+```json
 "tower"
 ```
 

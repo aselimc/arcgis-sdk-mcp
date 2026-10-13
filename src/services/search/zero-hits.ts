@@ -18,7 +18,9 @@ export function zeroHitNotes(
 ): string[] {
   const notes: string[] = [];
   if (products.length === 0) {
-    notes.push('No product matched the query. Pass "product", or call arcgis_docs_list_products to find its id.');
+    notes.push(
+      'No product matched the query. Pass "product", or call arcgis_docs_list_products to find its id.',
+    );
   }
 
   const neighbour = ctx.registry

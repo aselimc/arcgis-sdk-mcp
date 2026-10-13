@@ -47,7 +47,11 @@ export function hitFromRecord(
 /** Units inside a scope of products, optional sources and an optional line. */
 export function unitsInScope(
   units: Iterable<Unit>,
-  scope: { products: readonly string[]; sources?: readonly string[] | undefined; line?: string | undefined },
+  scope: {
+    products: readonly string[];
+    sources?: readonly string[] | undefined;
+    line?: string | undefined;
+  },
 ): Unit[] {
   return [...units].filter(
     (unit) =>

@@ -274,7 +274,8 @@
       "url": "https://doc.arcgis.com/en/survey123/analyze/webhooks.htm",
       "expect": "html",
       "family": "legacy-help",
-      "covers": "extract: legacy help topic"
+      "adapter": "legacy-help",
+      "covers": "extract: legacy help topic; adapter legacy-help: page read"
     },
     {
       "id": "support-kb-article",

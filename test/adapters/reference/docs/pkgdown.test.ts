@@ -84,7 +84,9 @@ describe('pkgdown: enumerate', () => {
     const ctx = ctxOf();
     const records = await pkgdownAdapter.enumerate!(ctx, bound());
 
-    expect(records.map((record) => [record.ref.slice(HOST.length), record.kind, record.title])).toEqual([
+    expect(
+      records.map((record) => [record.ref.slice(HOST.length), record.kind, record.title]),
+    ).toEqual([
       ['widgetr/', 'guide', 'Make widgets from R'],
       ['widgetr/reference/make_widget.html', 'api', 'make_widget'],
       ['widgetr/reference/resize.html', 'api', 'resize_widget'],
@@ -92,7 +94,11 @@ describe('pkgdown: enumerate', () => {
       ['widgetr/news/', 'release-notes', 'widgetr 0.2.0'],
       ['widgetviz/reference/plot_widget.html', 'api', 'plot_widget'],
     ]);
-    expect(ctx.http.requests.map((request) => request.url)).toEqual([WIDGETR, WIDGETVIZ, WIDGETNEW]);
+    expect(ctx.http.requests.map((request) => request.url)).toEqual([
+      WIDGETR,
+      WIDGETVIZ,
+      WIDGETNEW,
+    ]);
     expect(ctx.logger.messages('warn')).toEqual([
       'The package site widgetnew is unavailable; enumerating without it',
     ]);
@@ -187,7 +193,10 @@ describe('pkgdown: read', () => {
       `${HOST}widgetr/articles/first-widget.md`,
       ARTICLE,
     ]);
-    expect(rendererOf(ctx).calls[0]).toMatchObject({ kind: 'html', meta: { url: ARTICLE, kind: 'guide' } });
+    expect(rendererOf(ctx).calls[0]).toMatchObject({
+      kind: 'html',
+      meta: { url: ARTICLE, kind: 'guide' },
+    });
   });
 
   it('reads HTML only on a site without Markdown twins', async () => {
@@ -226,11 +235,20 @@ describe('pkgdown: read', () => {
     ctx.http.on(`${HOST}widgetr/news/`, { body: '<main><h1>Changelog</h1></main>' });
     const records = await pkgdownAdapter.enumerate!(ctx, bound());
     ctx.http.resetLog();
-    await pkgdownAdapter.symbol!(ctx, bound(), records.find((r) => r.title === 'make_widget')!, 'summary');
+    await pkgdownAdapter.symbol!(
+      ctx,
+      bound(),
+      records.find((r) => r.title === 'make_widget')!,
+      'summary',
+    );
     await pkgdownAdapter.read(ctx, bound(), { url: new URL(`${HOST}widgetr/news/`) });
     const calls = rendererOf(ctx).calls;
 
-    expect(calls[0]).toMatchObject({ kind: 'markdown', meta: { kind: 'api' }, opts: { detail: 'summary' } });
+    expect(calls[0]).toMatchObject({
+      kind: 'markdown',
+      meta: { kind: 'api' },
+      opts: { detail: 'summary' },
+    });
     expect(calls[1]).toMatchObject({ kind: 'html', meta: { kind: 'release-notes' } });
     expect(ctx.http.count(`${HOST}widgetr/news/`)).toBe(1);
   });

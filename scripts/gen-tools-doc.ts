@@ -48,12 +48,17 @@ export const EXAMPLES: Readonly<Record<string, ReadonlyArray<Record<string, unkn
   ],
   [TOOLS.getVersions]: [
     {},
-    { product: 'arcgis-python-api' },
+    { product: 'python-api' },
     { product: '@arcgis/core', version: '4.33' },
   ],
   [TOOLS.search]: [
     { query: 'cluster points with popups', product: 'js-maps-sdk' },
-    { query: 'applyEdits attachments', product: 'rest-api/feature-service', kind: 'api', limit: 5 },
+    {
+      query: 'applyEdits attachments',
+      product: 'rest-api/services-enterprise',
+      kind: 'api',
+      limit: 5,
+    },
   ],
   [TOOLS.read]: [
     { ref: 'https://developers.arcgis.com/javascript/latest/tutorials/add-a-feature-layer/' },
@@ -106,7 +111,10 @@ export function exampleProblems(schema: JsonSchema, args: Record<string, unknown
   const problems: string[] = [];
   const properties = schema.properties ?? {};
   for (const name of schema.required ?? []) {
-    if (!(name in args)) problems.push(`missing required argument "${name}"`);
+    // A converted schema lists a defaulted argument as required; a caller may still omit it.
+    if (!(name in args) && properties[name]?.default === undefined) {
+      problems.push(`missing required argument "${name}"`);
+    }
   }
   for (const [name, value] of Object.entries(args)) {
     const property = properties[name];
@@ -157,7 +165,6 @@ const cell = (text: string): string => text.replace(/\r?\n/g, ' ').replace(/(?<!
 
 function argumentTable(schema: JsonSchema): string[] {
   const properties = Object.entries(schema.properties ?? {});
-  if (properties.length === 0) return ['This tool takes no arguments.'];
   const required = new Set(schema.required ?? []);
   return [
     '| Argument | Type | Required | Default | Description |',

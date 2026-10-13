@@ -109,12 +109,18 @@ export function createSearchService(deps: SearchDeps): SearchService {
       void pending.then((hits) => {
         remember(key, hits);
       });
-      notes.push('Site search did not answer in time; its results are included when this call is repeated.');
+      notes.push(
+        'Site search did not answer in time; its results are included when this call is repeated.',
+      );
       return [];
     }
   };
 
-  const symbolHits = (names: readonly string[], targets: Target[], req: SearchRequest): SearchHit[] => {
+  const symbolHits = (
+    names: readonly string[],
+    targets: Target[],
+    req: SearchRequest,
+  ): SearchHit[] => {
     for (const name of names) {
       const records = targets
         .flatMap((target) => index.symbols(target.product.id, target.line.id).exact(name))
@@ -179,12 +185,16 @@ export function createSearchService(deps: SearchDeps): SearchService {
       const versionGiven = req.version !== undefined;
 
       const targets: Target[] = [];
-      let lineError: unknown;
+      let lineError: McpDocError | undefined;
       for (const resolution of scope.resolutions) {
         try {
           const line = ctx.registry.line(resolution.product, req.version);
           const sources = resolution.source === undefined ? undefined : [resolution.source.id];
-          targets.push({ product: resolution.product, line, ...(sources === undefined ? {} : { sources }) });
+          targets.push({
+            product: resolution.product,
+            line,
+            ...(sources === undefined ? {} : { sources }),
+          });
         } catch (error) {
           // A routed product without the requested line is left out; a named one is an error.
           if (scope.origin === 'argument' || !isMcpDocError(error)) throw error;
@@ -199,11 +209,18 @@ export function createSearchService(deps: SearchDeps): SearchService {
       const responseScope: SearchResponse['scope'] = {
         products,
         ...(sources === undefined ? {} : { sources }),
-        ...(scope.origin === 'argument' ? { resolvedFrom: req.product ?? '' } : { resolvedFrom: scope.origin }),
+        ...(scope.origin === 'argument'
+          ? { resolvedFrom: req.product ?? '' }
+          : { resolvedFrom: scope.origin }),
         ...(req.kind === undefined ? {} : { kind: req.kind }),
-        line: lineIds.length === 1 ? (lineIds[0] ?? '') : targets.map((t) => `${t.product.id}:${t.line.id}`).join(', '),
+        line:
+          lineIds.length === 1
+            ? (lineIds[0] ?? '')
+            : targets.map((t) => `${t.product.id}:${t.line.id}`).join(', '),
       };
-      const siteEnabled = targets.some((target) => coveredBySiteSearch(ctx, target.product, target.line));
+      const siteEnabled = targets.some((target) =>
+        coveredBySiteSearch(ctx, target.product, target.line),
+      );
       const mode = siteEnabled ? 'local+site' : 'local';
 
       if (targets.length === 0) {
@@ -243,11 +260,12 @@ export function createSearchService(deps: SearchDeps): SearchService {
           (req.kind === 'api' && hit.kind === 'spec' && hit.symbolKind !== undefined)) &&
         (!versionGiven || hit.line === '' || hit.line === lineOf.get(hit.product));
 
+      const onlyLine = lineIds.length === 1 ? lineIds[0] : undefined;
       const catalogue = index.query({
         text: req.query,
         products,
         ...(sources === undefined ? {} : { sources }),
-        ...(versionGiven && lineIds.length === 1 ? { line: lineIds[0] as string } : {}),
+        ...(versionGiven && onlyLine !== undefined ? { line: onlyLine } : {}),
         ...(req.kind === undefined ? {} : { kind: req.kind }),
         limit: CANDIDATE_DEPTH,
         offset: 0,
@@ -288,7 +306,9 @@ export function createSearchService(deps: SearchDeps): SearchService {
           // Nothing could be searched: answer with the products' entry links and say so.
           ranked = productCards(targets);
           total = ranked.length;
-          notes.push('degraded: no search index is available for this scope; showing the entry links of the products instead.');
+          notes.push(
+            'degraded: no search index is available for this scope; showing the entry links of the products instead.',
+          );
         }
         notes.push(...zeroHitNotes(ctx, index, req, products, siteEnabled));
       }
@@ -302,7 +322,15 @@ export function createSearchService(deps: SearchDeps): SearchService {
         total,
         hits: await labelled(page, targets),
         ...(more
-          ? { nextCursor: encodeCursor({ v: 1, t: TOOLS.search, k: key, e: validator, o: offset + req.limit }) }
+          ? {
+              nextCursor: encodeCursor({
+                v: 1,
+                t: TOOLS.search,
+                k: key,
+                e: validator,
+                o: offset + req.limit,
+              }),
+            }
           : {}),
         notes,
       };

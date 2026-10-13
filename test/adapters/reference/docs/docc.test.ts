@@ -41,7 +41,9 @@ describeReferenceContract('docc', () => ({
     renamedField: {
       arrange: (ctx) =>
         replaceResponses(ctx, cassette(), {
-          [INDEX]: { json: { languages: { swift: [{ path: '/documentation/widgets', title: 'W' }] } } },
+          [INDEX]: {
+            json: { languages: { swift: [{ path: '/documentation/widgets', title: 'W' }] } },
+          },
         }),
       outcome: 'typed-failure',
       codes: ['UPSTREAM_UNAVAILABLE'],
@@ -53,7 +55,9 @@ describeReferenceContract('docc', () => ({
     },
     emptyIndex: {
       arrange: (ctx) =>
-        replaceResponses(ctx, cassette(), { [INDEX]: { json: { interfaceLanguages: { swift: [] } } } }),
+        replaceResponses(ctx, cassette(), {
+          [INDEX]: { json: { interfaceLanguages: { swift: [] } } },
+        }),
       outcome: 'typed-failure',
       codes: ['UPSTREAM_UNAVAILABLE'],
     },
@@ -78,7 +82,11 @@ describe('docc: enumerate', () => {
     const records = await doccAdapter.enumerate!(ctx, bound());
 
     expect(
-      records.map((record) => [record.title, record.symbolKind ?? record.kind, record.parent ?? null]),
+      records.map((record) => [
+        record.title,
+        record.symbolKind ?? record.kind,
+        record.parent ?? null,
+      ]),
     ).toEqual([
       ['Widgets', 'module', null],
       ['Getting Started', 'guide', null],
@@ -100,7 +108,11 @@ describe('docc: enumerate', () => {
     const records = await doccAdapter.enumerate!(ctxOf(), bound());
     const byTitle = new Map(records.map((record) => [record.title, record]));
 
-    expect(byTitle.get('Widget')).toMatchObject({ ref: WIDGET, symbol: 'Widget', breadcrumb: 'Widgets' });
+    expect(byTitle.get('Widget')).toMatchObject({
+      ref: WIDGET,
+      symbol: 'Widget',
+      breadcrumb: 'Widgets',
+    });
     expect(byTitle.get('Widget')?.description).toBeUndefined();
     expect(byTitle.get('Widget.resize')).toMatchObject({
       ref: `${WIDGET}resize(to:)/`,
@@ -109,17 +121,27 @@ describe('docc: enumerate', () => {
       description: 'func resize(to: Int) -> Widget',
       breadcrumb: 'Widgets > Widget',
     });
-    expect(byTitle.get('Widget.init')).toMatchObject({ symbol: 'init', ref: `${WIDGET}init(size:)/` });
+    expect(byTitle.get('Widget.init')).toMatchObject({
+      symbol: 'init',
+      ref: `${WIDGET}init(size:)/`,
+    });
     expect(byTitle.get('Widget.Shape.round')?.breadcrumb).toBe('Widgets > Widget > Widget.Shape');
-    expect(byTitle.get('Getting Started')).toMatchObject({ kind: 'guide', ref: `${DOCS}gettingstarted/` });
+    expect(byTitle.get('Getting Started')).toMatchObject({
+      kind: 'guide',
+      ref: `${DOCS}gettingstarted/`,
+    });
     expect(byTitle.get('Getting Started')?.symbol).toBeUndefined();
   });
 
   it('honours maxDepth, which drops what a type inherits', async () => {
-    const shallow = makeSource('docc', { base: '/widgets/api-reference/swift/', maxDepth: 3 }, {
-      id: 'api',
-      probe: source.probe,
-    });
+    const shallow = makeSource(
+      'docc',
+      { base: '/widgets/api-reference/swift/', maxDepth: 3 },
+      {
+        id: 'api',
+        probe: source.probe,
+      },
+    );
     const records = await doccAdapter.enumerate!(ctxOf(), bindSource(product, shallow, makeLine()));
     const titles = records.map((record) => record.title);
 
@@ -179,26 +201,34 @@ describe('docc: read', () => {
   it('reads a symbol record without a selector, keeping the record kind', async () => {
     const ctx = ctxOf();
     const records = await doccAdapter.enumerate!(ctx, bound());
-    await doccAdapter.symbol!(ctx, bound(), records.find((r) => r.title === 'Widget')!, 'signature');
+    await doccAdapter.symbol!(
+      ctx,
+      bound(),
+      records.find((r) => r.title === 'Widget')!,
+      'signature',
+    );
 
     expect(rendererOf(ctx).calls[0]?.opts).toEqual({ detail: 'signature' });
     expect(rendererOf(ctx).calls[0]?.meta.kind).toBe('api');
   });
 
-  it.each([BASE, `${BASE}index/index.json`, 'https://developers.arcgis.com/other/documentation/x/'])(
-    'answers %s with DOC_NOT_FOUND and a search to try',
-    async (url) => {
-      const ctx = ctxOf();
-      await expect(doccAdapter.read(ctx, bound(), { url: new URL(url) })).rejects.toMatchObject({
-        code: 'DOC_NOT_FOUND',
-        details: { next: 'arcgis_docs_search({"query":"API reference","product":"widgets-sdk"})' },
-      });
-      expect(ctx.http.count()).toBe(0);
-    },
-  );
+  it.each([
+    BASE,
+    `${BASE}index/index.json`,
+    'https://developers.arcgis.com/other/documentation/x/',
+  ])('answers %s with DOC_NOT_FOUND and a search to try', async (url) => {
+    const ctx = ctxOf();
+    await expect(doccAdapter.read(ctx, bound(), { url: new URL(url) })).rejects.toMatchObject({
+      code: 'DOC_NOT_FOUND',
+      details: { next: 'arcgis_docs_search({"query":"API reference","product":"widgets-sdk"})' },
+    });
+    expect(ctx.http.count()).toBe(0);
+  });
 
   it('maps public and data URLs onto each other', () => {
-    expect(doccLocation(bound(), new URL(`${WIDGET}init(size:)/?language=swift#discussion`))).toEqual({
+    expect(
+      doccLocation(bound(), new URL(`${WIDGET}init(size:)/?language=swift#discussion`)),
+    ).toEqual({
       page: `${WIDGET}init(size:)/`,
       data: `${BASE}data/documentation/widgets/widget/init(size:).json`,
     });

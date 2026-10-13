@@ -25,7 +25,13 @@ import { simpleName } from '../index/symbol-map.js';
 import type { IndexInternals } from '../index/types.js';
 import { resolveScope, type Scope } from '../scope.js';
 import { symbolText } from './detail.js';
-import { displayName, MAX_NEAREST, resolveSymbol, type Candidate, type SymbolScope } from './resolve.js';
+import {
+  displayName,
+  MAX_NEAREST,
+  resolveSymbol,
+  type Candidate,
+  type SymbolScope,
+} from './resolve.js';
 
 /** Most products a lookup without a `product` argument covers. */
 const MAX_ROUTED_PRODUCTS = 3;
@@ -48,7 +54,11 @@ interface Target {
 }
 
 /** Creates the symbol service. */
-export function createSymbolService(ctx: Ctx, adapters: AdapterRegistry, index: IndexInternals): SymbolService {
+export function createSymbolService(
+  ctx: Ctx,
+  adapters: AdapterRegistry,
+  index: IndexInternals,
+): SymbolService {
   const targetOf = (product: Product, scope: Scope, req: SymbolRequest): Target => {
     const detected = scope.workspace.find((sdk) => sdk.product === product.id)?.version;
     const version = req.version ?? detected;
@@ -56,7 +66,11 @@ export function createSymbolService(ctx: Ctx, adapters: AdapterRegistry, index: 
     const base = { product, explicit, ...(version === undefined ? {} : { version }) };
     try {
       const line = ctx.registry.line(product, version);
-      return { ...base, line, preferVersioned: version !== undefined && (explicit || !line.current) };
+      return {
+        ...base,
+        line,
+        preferVersioned: version !== undefined && (explicit || !line.current),
+      };
     } catch (error) {
       // A version without a documentation line can still be read from versioned packages;
       // a detected one that fits no line just means "use the current docs".
@@ -87,7 +101,11 @@ export function createSymbolService(ctx: Ctx, adapters: AdapterRegistry, index: 
   ): Promise<DocPage | undefined> => {
     const { capability } = source;
     if (capability !== undefined && !ctx.policy.enabled(capability)) return undefined;
-    if (target.line.access === 'link-only' && capability !== undefined && SITE_CAPABILITIES.has(capability)) {
+    if (
+      target.line.access === 'link-only' &&
+      capability !== undefined &&
+      SITE_CAPABILITIES.has(capability)
+    ) {
       return undefined;
     }
     const adapter = adapters.get(source.adapter);
@@ -130,7 +148,10 @@ export function createSymbolService(ctx: Ctx, adapters: AdapterRegistry, index: 
         const page = await readVia(target, attempt.source, attempt.record, req, call);
         if (page === undefined) continue;
         if (position === 0) return page;
-        return { ...page, notices: [...page.notices, `Read from ${attempt.source.title}: ${reason}.`] };
+        return {
+          ...page,
+          notices: [...page.notices, `Read from ${attempt.source.title}: ${reason}.`],
+        };
       } catch (error) {
         if (!isMcpDocError(error)) {
           ctx.logger.error('symbol read failed unexpectedly', { ref: attempt.record.ref, error });
@@ -167,7 +188,9 @@ export function createSymbolService(ctx: Ctx, adapters: AdapterRegistry, index: 
     knownType: CatalogRecord | undefined,
   ): McpDocError => {
     const products = targets.map((target) => target.product.id);
-    const pending = states.filter((state) => state.state === 'building' || state.state === 'unavailable');
+    const pending = states.filter(
+      (state) => state.state === 'building' || state.state === 'unavailable',
+    );
     const why =
       knownType !== undefined
         ? `${displayName(knownType)} is documented but no member with this name was found; not verified, and this does not prove it does not exist`
@@ -177,13 +200,21 @@ export function createSymbolService(ctx: Ctx, adapters: AdapterRegistry, index: 
     return new McpDocError('SYMBOL_NOT_FOUND', `No symbol "${req.symbol}" was found`, {
       why,
       ...(names.length > 0 ? { candidates: names.slice(0, MAX_NEAREST) } : {}),
-      next: formatCall(TOOLS.search, { query: req.symbol, product: req.product ?? products[0], kind: 'api' }),
+      next: formatCall(TOOLS.search, {
+        query: req.symbol,
+        product: req.product ?? products[0],
+        kind: 'api',
+      }),
       retryable: pending.length > 0,
     });
   };
 
   /** Names to suggest when nothing resolved: members of a known type, else what the text index finds. */
-  const nearestNames = (req: SymbolRequest, targets: Target[], knownType: CatalogRecord | undefined): string[] => {
+  const nearestNames = (
+    req: SymbolRequest,
+    targets: Target[],
+    knownType: CatalogRecord | undefined,
+  ): string[] => {
     const { simple } = normalizeSymbol(req.symbol);
     if (knownType !== undefined) {
       const members = targets.flatMap((target) =>
@@ -199,19 +230,35 @@ export function createSymbolService(ctx: Ctx, adapters: AdapterRegistry, index: 
       limit: MAX_NEAREST * 2,
       offset: 0,
     }).hits;
-    const names = hits.map((hit) => index.record(hit.ref)).filter((record) => record !== undefined).map(displayName);
+    const names = hits
+      .map((hit) => index.record(hit.ref))
+      .filter((record) => record !== undefined)
+      .map(displayName);
     return [...new Set(names.filter((name) => name !== ''))].slice(0, MAX_NEAREST);
   };
 
   return {
     async lookup(req, call): Promise<SymbolResponse> {
-      const scope = await resolveScope(ctx, { product: req.product, query: req.symbol, max: MAX_ROUTED_PRODUCTS });
-      const targets = scope.resolutions.map((resolution) => targetOf(resolution.product, scope, req));
+      const scope = await resolveScope(ctx, {
+        product: req.product,
+        query: req.symbol,
+        max: MAX_ROUTED_PRODUCTS,
+      });
+      const targets = scope.resolutions.map((resolution) =>
+        targetOf(resolution.product, scope, req),
+      );
       const states: IndexState[] = [];
       const scopes: SymbolScope[] = [];
       for (const [position, target] of targets.entries()) {
         const scoped = scope.resolutions[position]?.source;
-        states.push(...(await index.ensure(target.product, symbolSources(target.product, scoped), target.line, call)));
+        states.push(
+          ...(await index.ensure(
+            target.product,
+            symbolSources(target.product, scoped),
+            target.line,
+            call,
+          )),
+        );
         scopes.push({
           product: target.product.id,
           productRank: position,
@@ -222,25 +269,37 @@ export function createSymbolService(ctx: Ctx, adapters: AdapterRegistry, index: 
             // Decision 7: the site reference answers for the current docs, versioned packages
             // when a particular version is wanted.
             const versioned = source !== undefined && VERSION_ADDRESSED.has(source.adapter);
-            return target.preferVersioned && versioned ? rank - target.product.sources.length : rank;
+            return target.preferVersioned && versioned
+              ? rank - target.product.sources.length
+              : rank;
           },
         });
       }
 
       const resolution = resolveSymbol(req.symbol, scopes);
       if (resolution.kind === 'none') {
-        throw notFound(req, targets, states, nearestNames(req, targets, resolution.knownType), resolution.knownType);
+        throw notFound(
+          req,
+          targets,
+          states,
+          nearestNames(req, targets, resolution.knownType),
+          resolution.knownType,
+        );
       }
       if (resolution.kind === 'ambiguous') {
         const pairs = resolution.candidates.map((candidate) => ({
           symbol: displayName(candidate.record),
           product: candidate.record.product,
         }));
-        throw new McpDocError('AMBIGUOUS_SYMBOL', `"${req.symbol}" matches ${pairs.length} symbols equally well`, {
-          why: 'Several API entities share this name; pick one by its qualified name and product',
-          candidates: pairs.map((pair) => JSON.stringify(pair)),
-          next: formatCall(TOOLS.lookupSymbol, { ...pairs[0], detail: req.detail }),
-        });
+        throw new McpDocError(
+          'AMBIGUOUS_SYMBOL',
+          `"${req.symbol}" matches ${pairs.length} symbols equally well`,
+          {
+            why: 'Several API entities share this name; pick one by its qualified name and product',
+            candidates: pairs.map((pair) => JSON.stringify(pair)),
+            next: formatCall(TOOLS.lookupSymbol, { ...pairs[0], detail: req.detail }),
+          },
+        );
       }
 
       const { winner, alternates } = resolution;
@@ -253,10 +312,19 @@ export function createSymbolService(ctx: Ctx, adapters: AdapterRegistry, index: 
 
       let page = await fetchPage(target, winner, req, call);
       if (!target.explicit && target.version !== undefined) {
-        page = { ...page, notices: [...page.notices, `Version ${target.version} was detected in the project.`] };
+        page = {
+          ...page,
+          notices: [...page.notices, `Version ${target.version} was detected in the project.`],
+        };
       }
       if (winner.step === 'fuzzy' || winner.step === 'case-insensitive') {
-        page = { ...page, notices: [...page.notices, `"${req.symbol}" was matched to ${displayName(winner.record)}.`] };
+        page = {
+          ...page,
+          notices: [
+            ...page.notices,
+            `"${req.symbol}" was matched to ${displayName(winner.record)}.`,
+          ],
+        };
       }
       index.addBody(page);
       await index.flush();
@@ -267,7 +335,11 @@ export function createSymbolService(ctx: Ctx, adapters: AdapterRegistry, index: 
         ? undefined
         : req.detail === 'full'
           ? formatCall(TOOLS.read, { ref: winner.record.ref, view: 'full' })
-          : formatCall(TOOLS.lookupSymbol, { symbol: name, product: winner.record.product, detail: req.detail === 'signature' ? 'summary' : 'full' });
+          : formatCall(TOOLS.lookupSymbol, {
+              symbol: name,
+              product: winner.record.product,
+              detail: req.detail === 'signature' ? 'summary' : 'full',
+            });
       return {
         record: winner.record,
         page,

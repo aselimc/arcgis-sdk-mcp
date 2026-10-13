@@ -58,7 +58,9 @@ function makeFactories() {
     },
     detectWorkspace: async () => {
       seen.workspaceCalls += 1;
-      return [{ product: 'widgets-sdk', package: '@widgets/core', version: '1.2.3', file: 'p.json' }];
+      return [
+        { product: 'widgets-sdk', package: '@widgets/core', version: '1.2.3', file: 'p.json' },
+      ];
     },
     createHtmlExtractor: () => {
       created.push('extractor');
@@ -234,12 +236,17 @@ describe('createAdapterRegistry', () => {
   it('answers INTERNAL for a type it does not have', () => {
     const registry = createAdapterRegistry([new FakeAdapter('gatsby')]);
     expect(() => registry.get('pkgdown')).toThrow(
-      expect.objectContaining({ code: 'INTERNAL', message: expect.stringContaining('pkgdown') }),
+      expect.objectContaining({
+        code: 'INTERNAL',
+        message: expect.stringContaining('pkgdown') as string,
+      }),
     );
   });
 
   it('lists the adapter types that are missing', () => {
-    const registry = createAdapterRegistry(ADAPTER_TYPES.slice(2).map((type) => new FakeAdapter(type)));
+    const registry = createAdapterRegistry(
+      ADAPTER_TYPES.slice(2).map((type) => new FakeAdapter(type)),
+    );
     expect(missingAdapterTypes(registry)).toEqual(ADAPTER_TYPES.slice(0, 2));
     expect(missingAdapterTypes(createAdapterRegistry())).toEqual([...ADAPTER_TYPES]);
   });

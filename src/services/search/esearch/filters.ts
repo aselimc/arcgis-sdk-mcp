@@ -84,7 +84,7 @@ function serializeTerm(node: FilterTerm, param: FilterParam): string {
   }
   // The structural characters of the grammar, a percent sign (only %2E is decoded, so any
   // other escape would be matched literally) and a leading minus (there is no negation).
-  if (/[|():%\u0000-\u001f]/.test(value) || value.startsWith('-')) {
+  if (/[|():%]|\p{Cc}/u.test(value) || value.startsWith('-')) {
     throw new FilterError(`The value of ${node.key} contains a character the grammar reserves`);
   }
   if (node.key === URL_KEY) {
@@ -100,10 +100,15 @@ function serializeTerm(node: FilterTerm, param: FilterParam): string {
   return `${node.key}:${value.replaceAll('.', '%2E')}`;
 }
 
-function serializeNode(node: FilterNode, param: FilterParam, parent: 'and' | 'or' | undefined): string {
+function serializeNode(
+  node: FilterNode,
+  param: FilterParam,
+  parent: 'and' | 'or' | undefined,
+): string {
   if (node.kind === 'term') return serializeTerm(node, param);
-  if (node.nodes.length === 0) throw new FilterError(`An ${node.kind} group needs a member`);
-  if (node.nodes.length === 1) return serializeNode(node.nodes[0] as FilterNode, param, parent);
+  const [only] = node.nodes;
+  if (only === undefined) throw new FilterError(`An ${node.kind} group needs a member`);
+  if (node.nodes.length === 1) return serializeNode(only, param, parent);
   if (node.kind === 'and' && parent === 'or' && param === 'partialfields') {
     // Verified live: AND groups inside OR match nothing in partialfields.
     throw new FilterError('partialfields cannot hold AND groups inside OR');

@@ -43,7 +43,9 @@ export function fileSections(files: readonly SourceFile[]): DocSection[] {
 
 function apisSection(page: DocPage): DocSection[] {
   const apis = page.relevantApis ?? [];
-  const present = page.sections.some((existing) => /relevant[- ]apis?/i.test(`${existing.id} ${existing.title}`));
+  const present = page.sections.some((existing) =>
+    /relevant[- ]apis?/i.test(`${existing.id} ${existing.title}`),
+  );
   if (apis.length === 0 || present) return [];
   return [section(APIS_SECTION_ID, 'Relevant APIs', apis.map((api) => `- ${api}`).join('\n'))];
 }
@@ -71,7 +73,11 @@ export function displaySections(page: DocPage, scope: 'default' | 'all'): DocSec
     ...page.sections,
     ...apisSection(page),
     ...(main === undefined ? [] : [main]),
-    section(OTHER_FILES_SECTION_ID, 'Other source files', `${list}\n\nRead them with section "source" or view "full".`),
+    section(
+      OTHER_FILES_SECTION_ID,
+      'Other source files',
+      `${list}\n\nRead them with section "source" or view "full".`,
+    ),
   ];
 }
 
@@ -81,7 +87,8 @@ function memberLine(member: MemberEntry): string {
     member.readonly === true ? 'read-only' : '',
     member.inheritedFrom === undefined ? '' : `inherited from ${member.inheritedFrom}`,
   ].filter((flag) => flag !== '');
-  const summary = member.summary === undefined ? '' : `: ${member.summary.replace(/\s+/g, ' ').trim()}`;
+  const summary =
+    member.summary === undefined ? '' : `: ${member.summary.replace(/\s+/g, ' ').trim()}`;
   return `- \`${member.name}\` (${[member.kind, ...flags].join(', ')})${summary}`;
 }
 
@@ -107,7 +114,13 @@ export function memberSection(member: MemberEntry): DocSection {
       : `Inherited from ${member.inheritedFrom}: look that type up for the full documentation.`,
   ].filter((part) => part !== '');
   const markdown = `### ${member.name}\n\n${parts.join('\n\n')}`.trim();
-  return { id: member.id, level: 3, title: member.name, markdown, tokens: estimateTokens(markdown) };
+  return {
+    id: member.id,
+    level: 3,
+    title: member.name,
+    markdown,
+    tokens: estimateTokens(markdown),
+  };
 }
 
 /**

@@ -39,7 +39,10 @@ const PAGE_HTML = readFixture('cassettes', 'reference', 'docs', 'page.html');
 const cassette = (): Cassette => ({
   name: 'Sphinx reference, happy path',
   interactions: [
-    { url: INVENTORY, response: { contentType: 'application/octet-stream', body: inventory(ROWS) } },
+    {
+      url: INVENTORY,
+      response: { contentType: 'application/octet-stream', body: inventory(ROWS) },
+    },
     { url: SEARCH_INDEX, response: { contentType: 'application/javascript', body: SEARCH_SCRIPT } },
     { url: PAGE, response: { body: PAGE_HTML } },
   ],
@@ -123,7 +126,11 @@ describe('sphinx: enumerate', () => {
       { method: 'GET', url: INVENTORY, expect: 'text', encoding: 'base64' },
     ]);
     expect(
-      records.map((record) => [record.title, record.symbolKind ?? null, record.ref.slice(BASE.length)]),
+      records.map((record) => [
+        record.title,
+        record.symbolKind ?? null,
+        record.ref.slice(BASE.length),
+      ]),
     ).toEqual([
       ['widgets', 'module', 'widgets.html#module-widgets'],
       ['make_widget', 'function', 'widgets.html#widgets.make_widget'],
@@ -165,14 +172,14 @@ describe('sphinx: enumerate', () => {
 
     expect(ctx.http.requests.map((request) => request.url)).toEqual([INVENTORY, SEARCH_INDEX]);
     expect(records.map((record) => [record.title, record.symbolKind ?? null])).toEqual([
-      ['Widgets package', null],
-      ['widgets.tools', null],
       ['make_widget', 'function'],
       ['Widget', 'class'],
       ['Widget.resize', 'method'],
-      // `Widget.hidden` has no anchor, so its ref is the page, which the document already has.
+      // `Widget.hidden` has no anchor, so nothing but its page could be shown for it.
       ['Polish', 'class'],
       ['Polish.run', 'method'],
+      ['Widgets package', null],
+      ['widgets.tools', null],
     ]);
     expect(records.find((record) => record.title === 'Widget.resize')?.ref).toBe(
       `${PAGE}#widgets.Widget.resize`,
@@ -183,30 +190,61 @@ describe('sphinx: enumerate', () => {
   it('reports the inventory failure when the search index cannot be used either', async () => {
     const ctx = ctxOf();
     ctx.http.fail(INVENTORY, 'truncated');
-    replaceResponses(ctx, { interactions: [] }, {
-      [INVENTORY]: { body: inventory(ROWS).slice(0, 200) },
-      [SEARCH_INDEX]: { body: 'Search.setIndex({docnames:["widgets"]})' },
-    });
+    replaceResponses(
+      ctx,
+      { interactions: [] },
+      {
+        [INVENTORY]: { body: inventory(ROWS).slice(0, 200) },
+        [SEARCH_INDEX]: { body: 'Search.setIndex({docnames:["widgets"]})' },
+      },
+    );
     await expect(sphinxAdapter.enumerate!(ctx, bound())).rejects.toMatchObject({
       code: 'UPSTREAM_UNAVAILABLE',
       details: { url: INVENTORY, why: 'The file is not a Sphinx inventory version 2' },
     });
   });
 
+  const entry = (name: string, role: string, uri: string, priority = 1, domain = 'py') => ({
+    name,
+    domain,
+    role,
+    priority,
+    uri,
+    display: name,
+  });
+
   it('maps directory-style inventory URIs to the published page', () => {
     const records = sphinxRecords(bound(), [
-      { name: 'pkg.mod.Thing', domain: 'py', role: 'class', uri: 'pkg.mod/#pkg.mod.Thing', display: 'x' },
-      { name: 'pkg.mod.Thing.go', domain: 'py', role: 'function', uri: 'pkg.mod/#pkg.mod.Thing.go', display: 'x' },
-      { name: 'index', domain: 'std', role: 'doc', uri: '', display: 'Welcome' },
-      { name: 'away', domain: 'py', role: 'function', uri: 'https://example.com/away.html', display: 'x' },
+      entry('pkg.mod.Thing', 'class', 'pkg.mod/#pkg.mod.Thing'),
+      entry('pkg.mod.Thing.go', 'function', 'pkg.mod/#pkg.mod.Thing.go'),
+      { ...entry('index', 'doc', '', -1, 'std'), display: 'Welcome' },
+      entry('away', 'function', 'https://example.com/away.html'),
+      entry('constructor', 'constructor', 'pkg.mod/#constructor'),
     ]);
 
-    expect(records.map((record) => [record.ref.slice(BASE.length), record.parent ?? null])).toEqual([
-      ['pkg.mod.html#pkg.mod.Thing', null],
+    expect(
+      records.map((record) => [
+        record.ref.slice(BASE.length),
+        record.parent ?? null,
+        record.symbolKind,
+      ]),
+    ).toEqual([
+      ['pkg.mod.html#pkg.mod.Thing', null, 'class'],
       // A function named inside a class of the index is a member of that class.
-      ['pkg.mod.html#pkg.mod.Thing.go', 'pkg.mod.Thing'],
-      ['index.html', null],
+      ['pkg.mod.html#pkg.mod.Thing.go', 'pkg.mod.Thing', 'function'],
+      // A role that is also the name of an Object property is still just a role.
+      ['pkg.mod.html#constructor', null, 'constructor'],
+      ['index.html', null, undefined],
     ]);
+  });
+
+  it('records the name Sphinx shows in search where an alias shares its anchor', () => {
+    const records = sphinxRecords(bound(), [
+      entry('pkg.a_internal.Tool', 'class', 'pkg.html#pkg.tools.Tool', -1),
+      entry('pkg.tools.Tool', 'class', 'pkg.html#pkg.tools.Tool'),
+    ]);
+
+    expect(records.map((record) => record.qualified)).toEqual(['pkg.tools.Tool']);
   });
 });
 
@@ -237,7 +275,12 @@ describe('sphinx: read, symbol and probe', () => {
   it('reads a symbol record at its anchor', async () => {
     const ctx = ctxOf();
     const records = await sphinxAdapter.enumerate!(ctx, bound());
-    await sphinxAdapter.symbol!(ctx, bound(), records.find((r) => r.title === 'Widget.size')!, 'full');
+    await sphinxAdapter.symbol!(
+      ctx,
+      bound(),
+      records.find((r) => r.title === 'Widget.size')!,
+      'full',
+    );
 
     expect(rendererOf(ctx).calls[0]).toMatchObject({
       input: { anchor: 'widgets.Widget.size' },
@@ -254,7 +297,10 @@ describe('sphinx: read, symbol and probe', () => {
   });
 
   it('probes the search index when that is the canary', async () => {
-    const other = { ...source, probe: { url: SEARCH_INDEX, expect: 'text' as const, minRecords: 5 } };
+    const other = {
+      ...source,
+      probe: { url: SEARCH_INDEX, expect: 'text' as const, minRecords: 5 },
+    };
     const ctx = ctxOf();
     const result = await sphinxAdapter.probe(ctx, bindSource(product, other, makeLine()));
 
@@ -274,6 +320,7 @@ describe('Sphinx index readers', () => {
       name: 'widgets',
       domain: 'py',
       role: 'module',
+      priority: 0,
       uri: 'widgets.html#module-widgets',
       display: 'widgets',
     });
@@ -281,13 +328,23 @@ describe('Sphinx index readers', () => {
   });
 
   it('keeps names with spaces and roles with colons', () => {
-    const rows = 'A long label std:label -1 page.html#a-long-label A long label\nx c:cpp:func 1 x.html -\n';
-    const index = parseObjectsInv(Buffer.from(inventory(rows, [HEADER[0]!, '# Project:', '#', '#']), 'base64'));
+    const rows =
+      'A long label std:label -1 page.html#a-long-label A long label\nx c:cpp:func 1 x.html -\n';
+    const index = parseObjectsInv(
+      Buffer.from(inventory(rows, [HEADER[0]!, '# Project:', '#', '#']), 'base64'),
+    );
 
     expect(index).toEqual({
       entries: [
-        { name: 'A long label', domain: 'std', role: 'label', uri: 'page.html#a-long-label', display: 'A long label' },
-        { name: 'x', domain: 'c', role: 'cpp:func', uri: 'x.html', display: 'x' },
+        {
+          name: 'A long label',
+          domain: 'std',
+          role: 'label',
+          priority: -1,
+          uri: 'page.html#a-long-label',
+          display: 'A long label',
+        },
+        { name: 'x', domain: 'c', role: 'cpp:func', priority: 1, uri: 'x.html', display: 'x' },
       ],
     });
   });
@@ -317,9 +374,23 @@ describe('Sphinx index readers', () => {
       'py:method widgets.tools.html#widgets.tools.Polish.run',
     ]);
     expect(mapForm?.entries).toEqual([
-      { name: 'a', domain: 'std', role: 'doc', uri: 'a.html', display: 'a' },
-      { name: 'top', domain: 'py', role: 'function', uri: 'a.html#top', display: 'top' },
-      { name: 'a.f', domain: 'py', role: 'function', uri: 'a.html#a-f', display: 'a.f' },
+      { name: 'a', domain: 'std', role: 'doc', priority: -1, uri: 'a.html', display: 'a' },
+      {
+        name: 'top',
+        domain: 'py',
+        role: 'function',
+        priority: 1,
+        uri: 'a.html#top',
+        display: 'top',
+      },
+      {
+        name: 'a.f',
+        domain: 'py',
+        role: 'function',
+        priority: 1,
+        uri: 'a.html#a-f',
+        display: 'a.f',
+      },
     ]);
   });
 

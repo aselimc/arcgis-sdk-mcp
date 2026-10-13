@@ -11,9 +11,57 @@ import { recordOf } from './dartdoc.js';
 /** How javadoc names the package of a class declared without one. */
 const UNNAMED_PACKAGE = '<Unnamed>';
 
+const BARE_KEY = /[A-Za-z_$][\w$]*(?=\s*:)/y;
+const TRAILING_COMMA = /,(?=\s*[}\]])/y;
+
+/**
+ * Rewrites a JavaScript literal of plain data as JSON: property names get quotes, single
+ * quotes become double quotes and trailing commas go. Sites that run their generated files
+ * through a code formatter publish search indexes in this form. Strings are copied as they
+ * are, so a label such as `"put(K key, V value)"` is never mistaken for a property.
+ */
+function literalToJson(literal: string): string {
+  const out: string[] = [];
+  let at = 0;
+  while (at < literal.length) {
+    const char = literal.charAt(at);
+    if (char === '"' || char === "'") {
+      let end = at + 1;
+      let body = '';
+      while (end < literal.length && literal.charAt(end) !== char) {
+        const piece = literal.charAt(end);
+        if (piece === '\\') {
+          const escaped = literal.charAt(end + 1);
+          // An escaped apostrophe is JavaScript only; every other escape is kept for JSON.
+          body += escaped === "'" ? "'" : `\\${escaped}`;
+          end += 2;
+        } else {
+          body += piece === '"' ? '\\"' : piece;
+          end += 1;
+        }
+      }
+      out.push(`"${body}"`);
+      at = end + 1;
+      continue;
+    }
+    BARE_KEY.lastIndex = at;
+    const key = BARE_KEY.exec(literal)?.[0];
+    if (key !== undefined) {
+      out.push(`"${key}"`);
+      at += key.length;
+      continue;
+    }
+    TRAILING_COMMA.lastIndex = at;
+    if (!TRAILING_COMMA.test(literal)) out.push(char);
+    at += 1;
+  }
+  return out.join('');
+}
+
 /**
  * The array a search-index script assigns: `memberSearchIndex = [...];updateSearchResults();`.
- * The text between the first `[` and the last `]` is JSON; nothing is evaluated.
+ * The text between the first `[` and the last `]` is JSON as javadoc writes it, or a
+ * JavaScript literal after a formatter has been over it; either way nothing is evaluated.
  *
  * @returns `undefined` when the script holds no parseable array.
  */
@@ -21,12 +69,16 @@ export function parseSearchIndex(script: string): unknown[] | undefined {
   const start = script.indexOf('[');
   const end = script.lastIndexOf(']');
   if (start < 0 || end <= start) return undefined;
-  try {
-    const data: unknown = JSON.parse(script.slice(start, end + 1));
-    return Array.isArray(data) ? (data as unknown[]) : undefined;
-  } catch {
-    return undefined;
+  const literal = script.slice(start, end + 1);
+  for (const text of [() => literal, () => literalToJson(literal)]) {
+    try {
+      const data: unknown = JSON.parse(text());
+      return Array.isArray(data) ? (data as unknown[]) : undefined;
+    } catch {
+      // Not JSON in this form; the next one is tried.
+    }
   }
+  return undefined;
 }
 
 /** A search-index entry: `p` package, `c` class, `l` label, `m` module, `u` explicit URL or anchor. */

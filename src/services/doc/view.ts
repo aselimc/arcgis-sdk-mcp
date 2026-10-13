@@ -50,7 +50,9 @@ export interface ViewResult {
 }
 
 function joinParts(parts: ReadonlyArray<string | undefined>): string {
-  return parts.filter((part): part is string => part !== undefined && part.trim() !== '').join('\n\n');
+  return parts
+    .filter((part): part is string => part !== undefined && part.trim() !== '')
+    .join('\n\n');
 }
 
 function row(entry: OutlineEntry, top: number): string {
@@ -64,7 +66,11 @@ function row(entry: OutlineEntry, top: number): string {
  * subtree, two levels deep. A member-heavy API page lists member counts by kind instead of
  * every member; an outline over `maxTokens` drops to one level, then is cut with a count.
  */
-export function renderOutline(page: DocPage, sections: readonly DocSection[], maxTokens: number): string {
+export function renderOutline(
+  page: DocPage,
+  sections: readonly DocSection[],
+  maxTokens: number,
+): string {
   const budget = Math.min(maxTokens, MAX_OUTLINE_TOKENS);
   const memberIds = new Set((page.members ?? []).map((member) => member.id));
   const top = sections.filter((s) => s.level > 0).reduce((min, s) => Math.min(min, s.level), 6);
@@ -77,7 +83,8 @@ export function renderOutline(page: DocPage, sections: readonly DocSection[], ma
     if (memberRows.length > MEMBER_HEAVY) {
       entries = entries.filter((entry) => !memberIds.has(entry.id));
       const counts = new Map<string, number>();
-      for (const member of page.members ?? []) counts.set(member.kind, (counts.get(member.kind) ?? 0) + 1);
+      for (const member of page.members ?? [])
+        counts.set(member.kind, (counts.get(member.kind) ?? 0) + 1);
       const kinds = [...counts].map(([kind, count]) => `${count} ${kind}`).join(', ');
       summary = `Members: ${kinds}. Pass a member name as "section" to read one, or "members" for the index.`;
     }
@@ -103,9 +110,8 @@ function largestSection(page: DocPage, sections: readonly DocSection[]): string 
   );
   // A section that is the whole document (a single top-level heading) is no narrowing.
   const whole = sections.reduce((sum, section) => sum + section.tokens, 0);
-  return candidates
-    .filter((entry) => entry.tokens < whole)
-    .sort((a, b) => b.tokens - a.tokens)[0]?.id;
+  return candidates.filter((entry) => entry.tokens < whole).sort((a, b) => b.tokens - a.tokens)[0]
+    ?.id;
 }
 
 /** Renders one view of a page within `maxTokens`. */

@@ -56,7 +56,11 @@ function firstMatching(sections: readonly DocSection[], pattern: RegExp): DocSec
   return sections.find((section) => pattern.test(section.id) || pattern.test(section.title));
 }
 
-function pseudo(page: DocPage, sections: readonly DocSection[], name: PseudoSection): ResolvedSection | undefined {
+function pseudo(
+  page: DocPage,
+  sections: readonly DocSection[],
+  name: PseudoSection,
+): ResolvedSection | undefined {
   switch (name) {
     case 'source': {
       const files = fileSections(page.files ?? []);
@@ -66,7 +70,9 @@ function pseudo(page: DocPage, sections: readonly DocSection[], name: PseudoSect
     }
     case 'readme':
       // The description of a sample or repository page, without its source files.
-      return page.sections.length === 0 ? undefined : { sections: [...page.sections], id: 'readme', by: 'pseudo' };
+      return page.sections.length === 0
+        ? undefined
+        : { sections: [...page.sections], id: 'readme', by: 'pseudo' };
     case 'parameters': {
       const found = firstMatching(sections, /^(?:param|argument|input)/i);
       return found === undefined ? undefined : subtree(sections, found.id, 'pseudo');
@@ -134,7 +140,9 @@ export function resolveSection(
   const members = page.members ?? [];
   const member =
     members.find((candidate) => candidate.id === name || candidate.name === name) ??
-    members.find((candidate) => candidate.id.toLowerCase() === lower || candidate.name.toLowerCase() === lower);
+    members.find(
+      (candidate) => candidate.id.toLowerCase() === lower || candidate.name.toLowerCase() === lower,
+    );
   if (member !== undefined) {
     const documented = sectionSubtree(sections, member.id);
     return documented.length > 0

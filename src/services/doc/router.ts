@@ -30,7 +30,14 @@ export interface OwnedRoute {
 
 /** How a ref will be read. */
 export type Route =
-  | { kind: 'brief'; ref: string; fragment?: string; brief: Brief; product?: Product; source?: SourceDef }
+  | {
+      kind: 'brief';
+      ref: string;
+      fragment?: string;
+      brief: Brief;
+      product?: Product;
+      source?: SourceDef;
+    }
   | OwnedRoute
   | { kind: 'github'; url: URL; fragment?: string; location: GithubLocation }
   | { kind: 'generic'; url: URL; fragment?: string };
@@ -64,22 +71,36 @@ function briefRoute(ctx: Ctx, slug: string, fragment: string | undefined): Route
   if (brief === undefined) {
     throw new McpDocError('DOC_NOT_FOUND', `There is no brief "${slug}"`, {
       why: 'Briefs are a fixed set of curated notes shipped with this server',
-      candidates: nearest(slug, briefs.map((candidate) => `brief:${candidate.slug}`), 5),
+      candidates: nearest(
+        slug,
+        briefs.map((candidate) => `brief:${candidate.slug}`),
+        5,
+      ),
       next: formatCall(TOOLS.search, { query: humanizeSlug(slug) || slug }),
     });
   }
   // A brief belongs to the product whose `brief` source lists it, when there is one.
   for (const product of ctx.registry.all()) {
     const source = product.sources.find(
-      (candidate) =>
-        candidate.adapter === 'brief' &&
-        matchesAnyGlob(slug, candidate.config.slugs),
+      (candidate) => candidate.adapter === 'brief' && matchesAnyGlob(slug, candidate.config.slugs),
     );
     if (source !== undefined) {
-      return { kind: 'brief', ref: `brief:${brief.slug}`, brief, product, source, ...(fragment === undefined ? {} : { fragment }) };
+      return {
+        kind: 'brief',
+        ref: `brief:${brief.slug}`,
+        brief,
+        product,
+        source,
+        ...(fragment === undefined ? {} : { fragment }),
+      };
     }
   }
-  return { kind: 'brief', ref: `brief:${brief.slug}`, brief, ...(fragment === undefined ? {} : { fragment }) };
+  return {
+    kind: 'brief',
+    ref: `brief:${brief.slug}`,
+    brief,
+    ...(fragment === undefined ? {} : { fragment }),
+  };
 }
 
 /**
@@ -88,10 +109,16 @@ function briefRoute(ctx: Ctx, slug: string, fragment: string | undefined): Route
  * @throws McpDocError `DOC_NOT_FOUND` (not a ref, unknown brief), `HOST_NOT_ALLOWED`,
  *   `LINK_ONLY` (a link-only host or version line) or `SOURCE_DISABLED`.
  */
-export function routeRef(ctx: Ctx, adapters: AdapterRegistry, ref: string, budget?: RequestBudget): Route {
+export function routeRef(
+  ctx: Ctx,
+  adapters: AdapterRegistry,
+  ref: string,
+  budget?: RequestBudget,
+): Route {
   const { url, fragment, brief } = splitRef(ref);
   if (brief !== undefined) return briefRoute(ctx, brief, fragment);
-  if (url === undefined) throw new McpDocError('DOC_NOT_FOUND', `"${ref}" is not a documentation ref`);
+  if (url === undefined)
+    throw new McpDocError('DOC_NOT_FOUND', `"${ref}" is not a documentation ref`);
   const part = fragment === undefined ? {} : { fragment };
 
   let hostDisabled: McpDocError | undefined;
@@ -109,7 +136,9 @@ export function routeRef(ctx: Ctx, adapters: AdapterRegistry, ref: string, budge
   if (owner === undefined) {
     if (hostDisabled !== undefined) throw hostDisabled;
     const location = parseGithubUrl(url.href);
-    return location === undefined ? { kind: 'generic', url, ...part } : { kind: 'github', url, location, ...part };
+    return location === undefined
+      ? { kind: 'generic', url, ...part }
+      : { kind: 'github', url, location, ...part };
   }
 
   // A finer claim inside the product wins: a structured twin, or one directory of a shared repo.
@@ -121,7 +150,11 @@ export function routeRef(ctx: Ctx, adapters: AdapterRegistry, ref: string, budge
   });
   const source: SourceDef = claimant ?? owner.source;
 
-  if (line.access === 'link-only' && source.capability !== undefined && SITE_CAPABILITIES.has(source.capability)) {
+  if (
+    line.access === 'link-only' &&
+    source.capability !== undefined &&
+    SITE_CAPABILITIES.has(source.capability)
+  ) {
     const typings = product.sources.some((candidate) => candidate.adapter === 'npm-dts');
     throw new McpDocError('LINK_ONLY', `${product.name} ${line.label} pages are not fetched`, {
       why: typings
@@ -132,7 +165,15 @@ export function routeRef(ctx: Ctx, adapters: AdapterRegistry, ref: string, budge
       next: formatCall(TOOLS.listProducts, { product: product.successor ?? product.id }),
     });
   }
-  return { kind: 'owned', url, product, source, line, ...part, ...(hostDisabled === undefined ? {} : { hostDisabled }) };
+  return {
+    kind: 'owned',
+    url,
+    product,
+    source,
+    line,
+    ...part,
+    ...(hostDisabled === undefined ? {} : { hostDisabled }),
+  };
 }
 
 /** Adds the recovery the catalogue promises when the policy's error carries none. */
@@ -145,12 +186,17 @@ function withRecovery(ctx: Ctx, error: McpDocError, url: URL): McpDocError {
       .map((host) => host.host);
     return new McpDocError(error.code, error.message, {
       ...error.details,
-      ...(error.details?.candidates === undefined && hosts.length > 0 ? { candidates: hosts.slice(0, 12) } : {}),
+      ...(error.details?.candidates === undefined && hosts.length > 0
+        ? { candidates: hosts.slice(0, 12) }
+        : {}),
       next: searchFromUrl(url.href),
     });
   }
   if (error.code === 'LINK_ONLY') {
-    return new McpDocError(error.code, error.message, { ...error.details, next: searchFromUrl(url.href) });
+    return new McpDocError(error.code, error.message, {
+      ...error.details,
+      next: searchFromUrl(url.href),
+    });
   }
   return error;
 }

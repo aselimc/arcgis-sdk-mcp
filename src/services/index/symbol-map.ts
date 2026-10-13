@@ -83,7 +83,9 @@ export function buildSymbolMap(records: readonly CatalogRecord[]): SymbolMap {
       () => (dotted ? [] : sameSimple.filter((r) => simpleName(r) === name)),
       () => byLowerQualified.get(lower) ?? [],
       () =>
-        sameSimple.filter((r) => dotted && endsWithSegment((r.qualified ?? '').toLowerCase(), lower)),
+        sameSimple.filter(
+          (r) => dotted && endsWithSegment((r.qualified ?? '').toLowerCase(), lower),
+        ),
       () => (dotted ? [] : sameSimple),
     ];
     for (const reading of readings) {

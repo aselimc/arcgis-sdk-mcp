@@ -35,7 +35,10 @@ export interface RankContext {
 }
 
 function normalise(text: string): string {
-  return text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
 }
 
 /** The product of the multipliers that apply to one hit. */

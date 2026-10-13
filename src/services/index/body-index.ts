@@ -197,7 +197,8 @@ export function createBodyIndex(ctx: Ctx): BodyIndex {
           const lead = sectionId === LEAD_SECTION_ID || page.sections[0]?.id === sectionId;
           hits.push({
             ref: lead ? page.url : `${page.url}#${sectionId}`,
-            title: lead || section.heading === '' ? page.title : `${page.title}: ${section.heading}`,
+            title:
+              lead || section.heading === '' ? page.title : `${page.title}: ${section.heading}`,
             product,
             source: page.source,
             line: page.line,
@@ -220,7 +221,10 @@ export function createBodyIndex(ctx: Ctx): BodyIndex {
         await load(product);
         bodies.dirty = false;
         try {
-          const stored: StoredBodies = { v: BODY_SCHEMA_VERSION, pages: [...bodies.pages.values()] };
+          const stored: StoredBodies = {
+            v: BODY_SCHEMA_VERSION,
+            pages: [...bodies.pages.values()],
+          };
           await ctx.cache.putDerived('bodies', product, stored);
         } catch (error) {
           ctx.logger.warn('body index could not be written', { product, error });

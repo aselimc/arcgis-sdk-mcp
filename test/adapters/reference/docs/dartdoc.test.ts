@@ -124,10 +124,17 @@ describe('dartdoc: enumerate', () => {
   });
 
   it('resolves the index under the version line of the source', async () => {
-    const v200 = makeLine({ id: 'v200', label: '200.x', current: false, vars: { prefix: 'v200/' } });
+    const v200 = makeLine({
+      id: 'v200',
+      label: '200.x',
+      current: false,
+      vars: { prefix: 'v200/' },
+    });
     const ctx = makeCtx();
     const url = 'https://developers.arcgis.com/widgets/v200/api-reference/reference/index.json';
-    ctx.http.on(url, { json: [{ name: 'Old', qualifiedName: 'lib.Old', href: 'lib/Old.html', kind: 3 }] });
+    ctx.http.on(url, {
+      json: [{ name: 'Old', qualifiedName: 'lib.Old', href: 'lib/Old.html', kind: 3 }],
+    });
     const records = await dartdocAdapter.enumerate!(ctx, bindSource(product, source, v200));
 
     expect(records).toHaveLength(1);
@@ -143,7 +150,12 @@ describe('dartdoc: enumerate', () => {
       null,
       'text',
       { name: 'Topic', href: 'topics/Topic-topic.html', kind: 18 },
-      { name: 'x', qualifiedName: 'lib.Mix.x', href: 'lib/Mix/x.html', enclosedBy: { name: 'Mix', kind: 11 } },
+      {
+        name: 'x',
+        qualifiedName: 'lib.Mix.x',
+        href: 'lib/Mix/x.html',
+        enclosedBy: { name: 'Mix', kind: 11 },
+      },
       { name: '', href: 'lib/empty.html' },
     ]);
 
@@ -231,7 +243,10 @@ describe('dartdoc: read, symbol and probe', () => {
   });
 
   it('checks length, marker and family of a page canary', async () => {
-    const page = { ...source, probe: { url: 'widgets_sdk/Widget-class.html', expect: 'html' as const } };
+    const page = {
+      ...source,
+      probe: { url: 'widgets_sdk/Widget-class.html', expect: 'html' as const },
+    };
     const probeWith = async (probe: Partial<typeof source.probe>) => {
       const ctx = ctxOf();
       rendererOf(ctx).family = 'dartdoc';
@@ -249,6 +264,8 @@ describe('dartdoc: read, symbol and probe', () => {
     expect((await probeWith({ mustContain: 'Gadget' })).error).toBe(
       'The response does not contain "Gadget"',
     );
-    expect((await probeWith({ minChars: 100_000 })).error).toMatch(/^Expected at least 100000 char/);
+    expect((await probeWith({ minChars: 100_000 })).error).toMatch(
+      /^Expected at least 100000 char/,
+    );
   });
 });

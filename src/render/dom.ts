@@ -6,6 +6,7 @@
  */
 import type { AnyNode, Element, Text } from 'domhandler';
 
+/** The DOM node types of a parsed document. */
 export type { AnyNode, Element };
 
 /** True for an element node. Node kinds are compared as text, not as the parser's enum. */

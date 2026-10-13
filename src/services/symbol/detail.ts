@@ -72,7 +72,10 @@ function typeSummary(page: DocPage, sections: readonly DocSection[]): DocSection
     members.flatMap((member) => sectionSubtree(sections, member.id).map((section) => section.id)),
   );
   if (memberSections.size === 0) return [...sections];
-  return [...sections.filter((section) => !memberSections.has(section.id)), memberIndexSection(members)];
+  return [
+    ...sections.filter((section) => !memberSections.has(section.id)),
+    memberIndexSection(members),
+  ];
 }
 
 /**
@@ -99,7 +102,8 @@ export function symbolText(
   const budget = Math.max(50, maxTokens - (header === '' ? 0 : estimateTokens(header)));
   const fit = fitSections(sections, budget);
   const shownAll = fit.nextOffset === undefined;
-  const reduced = sections.reduce((sum, s) => sum + s.tokens, 0) < own.reduce((sum, s) => sum + s.tokens, 0);
+  const reduced =
+    sections.reduce((sum, s) => sum + s.tokens, 0) < own.reduce((sum, s) => sum + s.tokens, 0);
   return {
     text: [header, fit.text].filter((part) => part !== '').join('\n\n'),
     truncated: !shownAll || (detail === 'signature' && reduced),

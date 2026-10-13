@@ -32,7 +32,8 @@ const BREAKER_OPEN_MS = 5 * 60 * 1000;
  * Error texts of deterministic request mistakes. Repeating such a request cannot succeed,
  * so it is never retried.
  */
-const SYNTAX_SIGNATURES = /is not a function|No mapping found|Result window|index_not_found|Invalid json/i;
+const SYNTAX_SIGNATURES =
+  /is not a function|No mapping found|Result window|index_not_found|Invalid json/i;
 
 interface RawHit {
   score?: number;
@@ -61,7 +62,7 @@ export function kindFromUrl(url: string, fallback: DocKind): DocKind {
   const path = url.replace(/^https?:\/\/[^/]+/, '');
   if (/\/(?:release-notes|whats-new)\//.test(path)) return 'release-notes';
   if (/\/(?:sample-code|samples)\//.test(path)) return 'sample';
-  if (/\/tutorials\//.test(path)) return 'tutorial';
+  if (path.includes('/tutorials/')) return 'tutorial';
   if (/\/(?:api-reference|references)\//.test(path)) return 'api';
   return fallback;
 }
@@ -80,7 +81,10 @@ function pageUrl(raw: unknown): string | undefined {
 }
 
 /** Creates the provider. It is safe to create when the capability is off: it then returns no hits. */
-export function createEsearchProvider(ctx: Ctx, options: EsearchProviderOptions = {}): SearchProvider {
+export function createEsearchProvider(
+  ctx: Ctx,
+  options: EsearchProviderOptions = {},
+): SearchProvider {
   const sleep = options.sleep ?? realSleep;
   let queue: Promise<unknown> = Promise.resolve();
   let lastRequestAt = Number.NEGATIVE_INFINITY;
@@ -148,7 +152,8 @@ export function createEsearchProvider(ctx: Ctx, options: EsearchProviderOptions 
     // The URL-prefix filter is a token phrase and over-matches; the registry decides ownership.
     const owner = ctx.registry.ownerOf(new URL(url));
     if (owner?.product.id !== product.id) return undefined;
-    const highlight = Array.isArray(raw.highlight?.content) ? raw.highlight.content[0] : undefined;
+    const snippets: unknown = raw.highlight?.content;
+    const highlight: unknown = Array.isArray(snippets) ? snippets[0] : undefined;
     const description = raw.doc?.description;
     const excerpt =
       typeof highlight === 'string' && highlight.trim() !== ''
@@ -199,7 +204,10 @@ export function createEsearchProvider(ctx: Ctx, options: EsearchProviderOptions 
     } catch (error) {
       failures += 1;
       if (failures >= BREAKER_FAILURES) openUntil = ctx.clock.now() + BREAKER_OPEN_MS;
-      ctx.logger.warn('site search failed; local indexes answer alone', { product: product.id, error });
+      ctx.logger.warn('site search failed; local indexes answer alone', {
+        product: product.id,
+        error,
+      });
       return [];
     }
   };

@@ -108,8 +108,9 @@ describe('dokka: enumerate', () => {
       ref: `${PACKAGE}-widget/-builder/build.html`,
       breadcrumb: 'com.example.widgets > Widget > Builder',
     });
-    expect(records.find((record) => record.symbol === 'Widget' && record.parent === undefined))
-      .toMatchObject({ ref: CLASS_PAGE, breadcrumb: 'com.example.widgets' });
+    expect(
+      records.find((record) => record.symbol === 'Widget' && record.parent === undefined),
+    ).toMatchObject({ ref: CLASS_PAGE, breadcrumb: 'com.example.widgets' });
   });
 
   it('marks deprecated declarations and ignores keywords inside annotations', async () => {
@@ -119,7 +120,11 @@ describe('dokka: enumerate', () => {
     expect(grow?.deprecated).toBe(true);
     expect(records.filter((record) => record.deprecated === true)).toHaveLength(1);
     const [annotated] = dokkaRecords(bound(), [
-      { name: '@Suppress("class") val flag: Boolean', description: 'pkg.flag', location: 'pkg/flag.html' },
+      {
+        name: '@Suppress("class") val flag: Boolean',
+        description: 'pkg.flag',
+        location: 'pkg/flag.html',
+      },
     ]);
     expect(annotated).toMatchObject({ symbolKind: 'property', title: 'flag' });
   });
@@ -133,7 +138,11 @@ describe('dokka: enumerate', () => {
     ]);
 
     expect(records).toHaveLength(1);
-    expect(records[0]).toMatchObject({ title: 'thing', symbolKind: 'symbol', description: 'pkg.thing' });
+    expect(records[0]).toMatchObject({
+      title: 'thing',
+      symbolKind: 'symbol',
+      description: 'pkg.thing',
+    });
   });
 });
 

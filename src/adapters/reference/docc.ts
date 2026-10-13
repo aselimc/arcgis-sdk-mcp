@@ -47,26 +47,26 @@ const OWNERS: ReadonlySet<string> = new Set([
  * Node types that are pages rather than symbols: prose, and the collection pages (`symbol`)
  * that group what a type inherits from elsewhere. Render JSON states the same kinds.
  */
-const PAGES: Readonly<Record<string, DocKind>> = {
-  symbol: 'api',
-  collection: 'api',
-  article: 'guide',
-  overview: 'guide',
-  learn: 'guide',
-  resources: 'guide',
-  section: 'tutorial',
-  tutorial: 'tutorial',
-  project: 'tutorial',
-  sampleCode: 'sample',
-};
+const PAGES: ReadonlyMap<string, DocKind> = new Map([
+  ['symbol', 'api'],
+  ['collection', 'api'],
+  ['article', 'guide'],
+  ['overview', 'guide'],
+  ['learn', 'guide'],
+  ['resources', 'guide'],
+  ['section', 'tutorial'],
+  ['tutorial', 'tutorial'],
+  ['project', 'tutorial'],
+  ['sampleCode', 'sample'],
+]);
 
 /** Navigator abbreviations spelled out; other types are used as they are. */
-const KINDS: Readonly<Record<string, string>> = {
-  init: 'initializer',
-  op: 'operator',
-  func: 'function',
-  var: 'variable',
-};
+const KINDS: ReadonlyMap<string, string> = new Map([
+  ['init', 'initializer'],
+  ['op', 'operator'],
+  ['func', 'function'],
+  ['var', 'variable'],
+]);
 
 /** Declaration keywords in front of a member name in a navigator title. */
 const MODIFIERS =
@@ -118,7 +118,7 @@ export function doccRecords(
         visit(children, { ...below, owners: at.owners });
         continue;
       }
-      const page = PAGES[type];
+      const page = PAGES.get(type);
       if (page !== undefined || type === 'module') {
         const extras =
           page === undefined
@@ -138,7 +138,7 @@ export function doccRecords(
         recordOf(src, ref, qualified, {
           symbol: name,
           qualified,
-          symbolKind: KINDS[type] ?? type,
+          symbolKind: KINDS.get(type) ?? type,
           parent,
           breadcrumb: at.trail,
           description: owner ? undefined : oneLine(title),
@@ -195,7 +195,7 @@ async function read(ctx: Ctx, src: BoundSource, target: ReadTarget): Promise<Doc
     ttl: 'page',
     ...budgetOf(src),
   });
-  const kind = PAGES[String((data as { kind?: unknown } | null)?.kind)];
+  const kind = PAGES.get(String((data as { kind?: unknown } | null)?.kind));
   return ctx.render.render(
     'docc',
     { json: data },

@@ -36,7 +36,10 @@ const MEMBER_ROLES: ReadonlySet<string> = new Set([
   'staticmethod',
 ]);
 const OWNER_ROLES: ReadonlySet<string> = new Set(['class', 'exception']);
-const KINDS: Readonly<Record<string, string>> = { classmethod: 'method', staticmethod: 'method' };
+const KINDS: ReadonlyMap<string, string> = new Map([
+  ['classmethod', 'method'],
+  ['staticmethod', 'method'],
+]);
 /** Generated pages that document nothing. */
 const GENERATED_DOCS: ReadonlySet<string> = new Set(['genindex', 'search', 'py-modindex']);
 
@@ -55,7 +58,7 @@ function pageRef(base: string, uri: string): string | undefined {
  * Catalogue records of a Sphinx index: every object of a language domain plus one record per
  * document. Labels and other `std` entries are navigation aids, not symbols. An object is a
  * member when its role says so or when the name before its last segment is a class of the
- * same index.
+ * same index. An alias (a second name for the same anchor) yields no record of its own.
  */
 export function sphinxRecords(src: BoundSource, entries: readonly SphinxEntry[]): CatalogRecord[] {
   const base = src.url();
@@ -63,7 +66,12 @@ export function sphinxRecords(src: BoundSource, entries: readonly SphinxEntry[])
     entries.filter((entry) => OWNER_ROLES.has(entry.role)).map((entry) => entry.name),
   );
   const records = new Map<string, CatalogRecord>();
-  for (const entry of entries) {
+  // Where two names share an anchor, the one Sphinx shows in its own search is the record.
+  const visibleFirst = [
+    ...entries.filter((entry) => entry.priority >= 0),
+    ...entries.filter((entry) => entry.priority < 0),
+  ];
+  for (const entry of visibleFirst) {
     const ref = pageRef(base, entry.uri);
     if (ref === undefined || records.has(ref)) continue;
     if (entry.domain === 'std') {
@@ -71,6 +79,8 @@ export function sphinxRecords(src: BoundSource, entries: readonly SphinxEntry[])
       records.set(ref, recordOf(src, ref, entry.display));
       continue;
     }
+    // An object without an anchor cannot be told from the page it is on.
+    if (!ref.includes('#')) continue;
     const parts = entry.name.split('.');
     const symbol = parts.at(-1) ?? entry.name;
     const prefix = parts.slice(0, -1).join('.');
@@ -80,7 +90,7 @@ export function sphinxRecords(src: BoundSource, entries: readonly SphinxEntry[])
       recordOf(src, ref, owned ? parts.slice(-2).join('.') : symbol, {
         symbol,
         qualified: entry.name,
-        symbolKind: KINDS[entry.role] ?? entry.role,
+        symbolKind: KINDS.get(entry.role) ?? entry.role,
         parent: owned ? prefix : undefined,
         breadcrumb: owned ? [parts.slice(0, -2).join('.'), parts.at(-2) ?? ''] : [prefix],
       }),

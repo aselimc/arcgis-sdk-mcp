@@ -43,7 +43,9 @@ export function indexNotes(
         degraded.push(`degraded: ${name} has no index, only its entry links were used${because}`);
         break;
       case 'unavailable':
-        skipped.push(`not searched: ${name}${because === '' ? ' (not available in this configuration)' : because}`);
+        skipped.push(
+          `not searched: ${name}${because === '' ? ' (not available in this configuration)' : because}`,
+        );
         break;
     }
   }

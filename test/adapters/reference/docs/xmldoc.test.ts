@@ -45,7 +45,11 @@ const source = makeSource(
     floor: false,
     capability: 'github',
     license: 'apache-2.0',
-    probe: { url: `https://api.github.com/repos/${REPO}`, expect: 'json', mustContain: 'full_name' },
+    probe: {
+      url: `https://api.github.com/repos/${REPO}`,
+      expect: 'json',
+      mustContain: 'full_name',
+    },
   },
 );
 const product = makeProduct({ sources: [source] });
@@ -70,7 +74,9 @@ describeReferenceContract('xmldoc', () => ({
       arrange: (ctx) =>
         ctx.github.addRepo(
           REPO,
-          repo({ [CORE_PATH]: '<doc><members><member id="T:Widgets.Core.Widget"/></members></doc>' }),
+          repo({
+            [CORE_PATH]: '<doc><members><member id="T:Widgets.Core.Widget"/></members></doc>',
+          }),
         ),
       outcome: 'typed-failure',
       codes: ['UPSTREAM_UNAVAILABLE'],
@@ -85,18 +91,24 @@ describeReferenceContract('xmldoc', () => ({
       outcome: 'typed-failure',
       codes: ['UPSTREAM_UNAVAILABLE'],
     },
-    htmlInsteadOfJson: { notApplicable: 'files come through the GitHub client, not from a website' },
+    htmlInsteadOfJson: {
+      notApplicable: 'files come through the GitHub client, not from a website',
+    },
     oversizedBody: { notApplicable: 'the GitHub client applies its own size cap to raw files' },
     secondary5xx: {
       arrange: (ctx) => {
         const raw = ctx.github.raw.bind(ctx.github);
         ctx.github.raw = async (name, ref, path, opts) => {
           if (path === DESKTOP_PATH) {
-            throw new McpDocError('UPSTREAM_UNAVAILABLE', 'raw.githubusercontent.com is not responding', {
-              why: 'HTTP 503',
-              host: 'raw.githubusercontent.com',
-              retryable: true,
-            });
+            throw new McpDocError(
+              'UPSTREAM_UNAVAILABLE',
+              'raw.githubusercontent.com is not responding',
+              {
+                why: 'HTTP 503',
+                host: 'raw.githubusercontent.com',
+                retryable: true,
+              },
+            );
           }
           return raw(name, ref, path, opts);
         };
@@ -112,7 +124,9 @@ describe('xmldoc: enumerate', () => {
     const ctx = ctxOf();
     const records = await xmldocAdapter.enumerate!(ctx, bound());
 
-    expect(records.map((record) => [record.title, record.symbolKind, record.parent ?? null])).toEqual([
+    expect(
+      records.map((record) => [record.title, record.symbolKind, record.parent ?? null]),
+    ).toEqual([
       ['Widget', 'type', null],
       ['Widget.Widget(Int32)', 'constructor', 'Widgets.Core.Widget'],
       ['Widget.ResizeAsync(Int32,IEnumerable{Part})', 'method', 'Widgets.Core.Widget'],
@@ -128,7 +142,9 @@ describe('xmldoc: enumerate', () => {
       ['WidgetPane', 'type', null],
       ['WidgetPane.Show(Widget)', 'method', 'Widgets.Desktop.WidgetPane'],
     ]);
-    expect(ctx.github.calls.map((call) => [call.method, call.ref ?? null, call.path ?? null])).toEqual([
+    expect(
+      ctx.github.calls.map((call) => [call.method, call.ref ?? null, call.path ?? null]),
+    ).toEqual([
       ['repoMeta', null, null],
       ['tree', 'main', null],
       ['raw', 'main', CORE_PATH],
@@ -174,16 +190,23 @@ describe('xmldoc: enumerate', () => {
 
     expect(ids).not.toContain('M:Widgets.Core.Widget.InternalReset');
     expect(ids).not.toContain('M:Widgets.Core.Widget.#cctor');
+    // Not API: an underscore name, the namespace of generated XAML helpers.
+    expect(ids).not.toContain('F:Widgets.Core.Widget._cache');
+    expect(ids.some((id) => id?.includes('XamlGeneratedNamespace'))).toBe(false);
     expect(ids.some((id) => id?.startsWith('!:'))).toBe(false);
     expect(records).toHaveLength(12);
   });
 
   it('uses a configured ref without asking for the default branch and caches a tag for good', async () => {
-    const pinned = makeSource('xmldoc', { repo: REPO, dir: `/${DIR}/`, ref: 'v1.2.0' }, {
-      id: 'api',
-      capability: 'github',
-      probe: source.probe,
-    });
+    const pinned = makeSource(
+      'xmldoc',
+      { repo: REPO, dir: `/${DIR}/`, ref: 'v1.2.0' },
+      {
+        id: 'api',
+        capability: 'github',
+        probe: source.probe,
+      },
+    );
     const ctx = ctxOf();
     const seen: unknown[] = [];
     const raw = ctx.github.raw.bind(ctx.github);
@@ -239,12 +262,22 @@ describe('xmldoc: owns', () => {
     const owns = (url: string) => xmldocAdapter.owns!(new URL(url), bound());
 
     expect(owns(`${CORE_URL}#T:Widgets.Core.Widget`)).toBe(true);
-    expect(owns(`https://raw.githubusercontent.com/${REPO}/main/References/Widgets%20API/Widgets.Desktop.xml`)).toBe(true);
-    expect(owns(`https://github.com/esri/WIDGETS-SDK/blob/main/References/Widgets%20API/Widgets.Core.XML`)).toBe(true);
+    expect(
+      owns(
+        `https://raw.githubusercontent.com/${REPO}/main/References/Widgets%20API/Widgets.Desktop.xml`,
+      ),
+    ).toBe(true);
+    expect(
+      owns(
+        `https://github.com/esri/WIDGETS-SDK/blob/main/References/Widgets%20API/Widgets.Core.XML`,
+      ),
+    ).toBe(true);
     expect(owns(`https://github.com/${REPO}/blob/main/README.md`)).toBe(false);
     expect(owns(`https://github.com/${REPO}/blob/main/Other/Elsewhere.xml`)).toBe(false);
     expect(owns(`https://github.com/${REPO}/wiki/Home`)).toBe(false);
-    expect(owns(`https://github.com/Esri/other/blob/main/References/Widgets%20API/Widgets.Core.XML`)).toBe(false);
+    expect(
+      owns(`https://github.com/Esri/other/blob/main/References/Widgets%20API/Widgets.Core.XML`),
+    ).toBe(false);
   });
 });
 
@@ -274,6 +307,8 @@ describe('xmldoc: read', () => {
     expect(input.xml).toContain('name="F:Widgets.Core.Widget.Shape.Round"');
     expect(input.xml).not.toContain('Widgets.Core.Part.op_Addition');
     expect(input.xml).not.toContain('WidgetList');
+    expect(input.xml).not.toContain('InternalReset');
+    expect(input.xml).not.toContain('_cache');
     expect(page.notices).toEqual([
       'Declared types are not part of XML documentation; the rendered reference is on doc.esri.com.',
     ]);
@@ -283,7 +318,9 @@ describe('xmldoc: read', () => {
   it('reads a raw URL and takes a documentation id from the selector', async () => {
     const ctx = ctxOf();
     const page = await xmldocAdapter.read(ctx, bound(), {
-      url: new URL(`https://raw.githubusercontent.com/${REPO}/main/References/Widgets%20API/Widgets.Core.XML`),
+      url: new URL(
+        `https://raw.githubusercontent.com/${REPO}/main/References/Widgets%20API/Widgets.Core.XML`,
+      ),
       select: { member: 'T:Widgets.Core.Part' },
     });
 
@@ -305,11 +342,15 @@ describe('xmldoc: read', () => {
   });
 
   it('omits the note about declared types when the source names no reference host', async () => {
-    const plain = makeSource('xmldoc', { repo: REPO, dir: DIR }, {
-      id: 'api',
-      capability: 'github',
-      probe: source.probe,
-    });
+    const plain = makeSource(
+      'xmldoc',
+      { repo: REPO, dir: DIR },
+      {
+        id: 'api',
+        capability: 'github',
+        probe: source.probe,
+      },
+    );
     const page = await xmldocAdapter.read(ctxOf(), bindSource(product, plain, makeLine()), {
       url: new URL(`${CORE_URL}#T:Widgets.Core.Widget`),
     });
@@ -336,7 +377,9 @@ describe('xmldoc: read', () => {
     const ctx = ctxOf();
     await expect(
       xmldocAdapter.read(ctx, bound(), {
-        url: new URL(`https://github.com/${REPO}/blob/main/References/Widgets%20API/Gone.xml#T:Gone.Type`),
+        url: new URL(
+          `https://github.com/${REPO}/blob/main/References/Widgets%20API/Gone.xml#T:Gone.Type`,
+        ),
       }),
     ).rejects.toMatchObject({ code: 'DOC_NOT_FOUND' });
   });

@@ -14,7 +14,7 @@ export interface Token {
   text: string;
   start: number;
   end: number;
-  /** True when only whitespace precedes the token on its line. */
+  /** True when only whitespace and comments precede the token on its line. */
   lineStart: boolean;
 }
 
@@ -61,7 +61,9 @@ export function tokenize(source: string): Token[] {
   let i = 0;
   const push = (kind: TokenKind, end: number): void => {
     tokens.push({ kind, text: source.slice(i, end), start: i, end, lineStart });
-    lineStart = false;
+    // The compiler emits `*/ export declare ...` on one line: a comment does not end the
+    // "start of line" state of the code that follows it.
+    if (kind !== 'comment' && kind !== 'jsdoc') lineStart = false;
     i = end;
   };
 

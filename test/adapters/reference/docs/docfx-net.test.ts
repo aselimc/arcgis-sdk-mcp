@@ -97,7 +97,9 @@ describe('docfx-net: enumerate', () => {
     const ctx = ctxOf();
     const records = await docfxNetAdapter.enumerate!(ctx, bound());
 
-    expect(records.map((record) => [record.title, record.symbolKind, record.parent ?? null])).toEqual([
+    expect(
+      records.map((record) => [record.title, record.symbolKind, record.parent ?? null]),
+    ).toEqual([
       ['Example.Widgets', 'namespace', null],
       ['Widget', 'class', null],
       ['Widget.Widget(int)', 'constructor', 'Example.Widgets.Widget'],
@@ -112,7 +114,12 @@ describe('docfx-net: enumerate', () => {
       ['WidgetView', 'class', null],
       ['WidgetView.Widget', 'property', 'Example.Widgets.UI.WidgetView'],
     ]);
-    expect(ctx.http.requests.map((request) => request.url)).toEqual([NET, NET_TOC, NETWIN, NETWIN_TOC]);
+    expect(ctx.http.requests.map((request) => request.url)).toEqual([
+      NET,
+      NET_TOC,
+      NETWIN,
+      NETWIN_TOC,
+    ]);
   });
 
   it('writes qualified names as in code and keeps the uid as locator', async () => {
@@ -169,17 +176,25 @@ describe('docfx-net: enumerate', () => {
   });
 
   it('never accepts an xrefmap without references as the catalogue', async () => {
-    const single = makeSource('docfx-net', { base: '/widgets/api-reference/net/', xrefmaps: ['xrefmap.yml'] }, {
-      id: 'api',
-      probe: source.probe,
-    });
+    const single = makeSource(
+      'docfx-net',
+      { base: '/widgets/api-reference/net/', xrefmaps: ['xrefmap.yml'] },
+      {
+        id: 'api',
+        probe: source.probe,
+      },
+    );
     const ctx = makeCtx();
     ctx.http.on(`${BASE}xrefmap.yml`, { body: EMPTY_XREFMAP });
     await expect(
       docfxNetAdapter.enumerate!(ctx, bindSource(product, single, makeLine())),
     ).rejects.toMatchObject({
       code: 'UPSTREAM_UNAVAILABLE',
-      details: { url: `${BASE}xrefmap.yml`, why: 'The xrefmap has no references', retryable: false },
+      details: {
+        url: `${BASE}xrefmap.yml`,
+        why: 'The xrefmap has no references',
+        retryable: false,
+      },
     });
     expect(ctx.http.count()).toBe(1);
   });
@@ -197,7 +212,11 @@ describe('docfx-net: enumerate', () => {
     ctx.http.on(/toc\.json$/, { json: {} });
     const records = await docfxNetAdapter.enumerate!(ctx, bindSource(product, many, makeLine()));
 
-    expect(records.map((record) => record.ref)).toEqual([`${BASE}a.html`, `${BASE}b.html`, `${BASE}c.html`]);
+    expect(records.map((record) => record.ref)).toEqual([
+      `${BASE}a.html`,
+      `${BASE}b.html`,
+      `${BASE}c.html`,
+    ]);
     expect(ctx.http.count()).toBeLessThanOrEqual(docfxNetAdapter.maxEnumerateRequests);
     expect(ctx.logger.messages('warn')).toContain(
       'More xrefmaps are configured than one enumeration reads',
@@ -304,7 +323,11 @@ describe('docfx-net record builders', () => {
     expect(records[0]?.symbol).toBeUndefined();
     expect(records[0]?.qualified).toBeUndefined();
     // A member without a containing type cannot name a parent.
-    expect(records[1]).toMatchObject({ symbol: 'Global', qualified: 'Global', symbolKind: 'method' });
+    expect(records[1]).toMatchObject({
+      symbol: 'Global',
+      qualified: 'Global',
+      symbolKind: 'method',
+    });
     expect(records[1]?.parent).toBeUndefined();
   });
 });

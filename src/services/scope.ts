@@ -63,7 +63,9 @@ export async function resolveScope(
   const routed = ctx.registry
     .route(input.query, input.max)
     .map((entry) => ({ ...entry, product: ctx.registry.get(entry.product) }))
-    .filter((entry): entry is { product: Product; confidence: number } => entry.product !== undefined);
+    .filter(
+      (entry): entry is { product: Product; confidence: number } => entry.product !== undefined,
+    );
   const [top, second] = routed;
   if (
     top !== undefined &&
@@ -79,7 +81,9 @@ export async function resolveScope(
       (a, b) => Number(inProject.has(b.product.id)) - Number(inProject.has(a.product.id)),
     );
     return {
-      resolutions: ordered.slice(0, input.max).map((entry) => resolutionOf(entry.product, input.query)),
+      resolutions: ordered
+        .slice(0, input.max)
+        .map((entry) => resolutionOf(entry.product, input.query)),
       origin: 'router',
       workspace,
     };

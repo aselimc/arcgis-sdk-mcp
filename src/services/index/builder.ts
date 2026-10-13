@@ -22,8 +22,7 @@ const BACKGROUND_DEADLINE_FACTOR = 6;
 
 /** Result of one enumeration. */
 export type BuildOutcome =
-  | { ok: true; records: CatalogRecord[] }
-  | { ok: false; reason: string; disabled?: boolean };
+  { ok: true; records: CatalogRecord[] } | { ok: false; reason: string; disabled?: boolean };
 
 function describe(error: unknown): string {
   if (isMcpDocError(error)) {
@@ -78,7 +77,8 @@ export async function enumerateSource(
       ctx,
       bindSource(product, source, line, undefined, budget),
     );
-    if (!Array.isArray(records)) return { ok: false, reason: 'the adapter returned no record list' };
+    if (!Array.isArray(records))
+      return { ok: false, reason: 'the adapter returned no record list' };
     return { ok: true, records: clean(records, product, source, line) };
   } catch (error) {
     if (!isMcpDocError(error)) {
@@ -91,7 +91,9 @@ export async function enumerateSource(
     const spent = budget !== undefined && budgetExhausted(budget, ctx.clock);
     return {
       ok: false,
-      reason: spent ? `request budget of the index build spent; ${describe(error)}` : describe(error),
+      reason: spent
+        ? `request budget of the index build spent; ${describe(error)}`
+        : describe(error),
       disabled: isMcpDocError(error) && error.code === 'SOURCE_DISABLED',
     };
   }
@@ -126,7 +128,7 @@ export function seedRecords(
   } as const;
   const records = new Map<string, CatalogRecord>();
   const add = (ref: string, title: string): void => {
-    if (/^https:\/\//.test(ref) && !records.has(ref)) records.set(ref, { ...base, ref, title });
+    if (ref.startsWith('https://') && !records.has(ref)) records.set(ref, { ...base, ref, title });
   };
 
   add(bindSource(product, source, line).url(), `${product.name}: ${source.title}`);
@@ -176,7 +178,10 @@ export function makeUnit(
     product: product.id,
     source: source.id,
     line: line.id,
-    sourceRank: Math.max(0, product.sources.findIndex((candidate) => candidate.id === source.id)),
+    sourceRank: Math.max(
+      0,
+      product.sources.findIndex((candidate) => candidate.id === source.id),
+    ),
     records,
     builtAt,
     origin,

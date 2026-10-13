@@ -55,7 +55,9 @@ export function displayName(record: CatalogRecord): string {
 }
 
 function endsWithSegment(qualified: string, suffix: string): boolean {
-  return qualified === suffix || qualified.endsWith(`.${suffix}`) || qualified.endsWith(`#${suffix}`);
+  return (
+    qualified === suffix || qualified.endsWith(`.${suffix}`) || qualified.endsWith(`#${suffix}`)
+  );
 }
 
 function isType(record: CatalogRecord): boolean {

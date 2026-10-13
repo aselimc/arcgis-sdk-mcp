@@ -36,7 +36,11 @@ const MAX_PREFIXES = 8;
  * indexed), Python API-reference pages (multi-megabyte documents that time out) and `/ai/`
  * (not indexed).
  */
-const NEVER_SEARCHED = [/^\/swift\/(?:.*\/)?api-reference\//, /^\/python\/(?:.*\/)?api-reference\//, /^\/ai\//];
+const NEVER_SEARCHED = [
+  /^\/swift\/(?:.*\/)?api-reference\//,
+  /^\/python\/(?:.*\/)?api-reference\//,
+  /^\/ai\//,
+];
 
 /** Version trees to drop from results of a current-line search (research section 4.3). */
 const OLD_TREES = /\/(?:v\d+|python-2-3|qt\/qml|unity\/v1|unreal-engine\/v1)\//;
@@ -115,12 +119,17 @@ function developerPrefixes(product: Product, line: VersionLine): string[] {
   }
   const all = [...phrases];
   // A tree inside another one is already covered by the outer filter.
-  return all.filter((phrase) => !all.some((other) => other !== phrase && phrase.startsWith(`${other}/`)));
+  return all.filter(
+    (phrase) => !all.some((other) => other !== phrase && phrase.startsWith(`${other}/`)),
+  );
 }
 
 /** Removes what the backend does not treat as an operator but would match literally. */
 function cleanQuery(text: string): string {
-  return text.replace(/[*\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim();
+  return text
+    .replace(/\*|\p{Cc}/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**
@@ -148,8 +157,14 @@ export function planRequest(
   const partial: FilterNode[] = [];
   let scope: Pick<EsearchBody, 'index' | 'site'>;
 
-  if (config !== undefined && (config.index !== undefined || config.site !== undefined)) {
-    scope = config.index !== undefined ? { index: config.index } : { site: config.site as string };
+  const where =
+    config?.index !== undefined
+      ? { index: config.index }
+      : config?.site !== undefined
+        ? { site: config.site }
+        : undefined;
+  if (config !== undefined && where !== undefined) {
+    scope = where;
     const ids = config.products ?? [];
     if (ids.length > 0) required.push(or(...ids.map((id) => term('product', id))));
     if (config.site !== undefined && SITES_NEEDING_LANGUAGE.has(config.site)) {
@@ -178,7 +193,8 @@ export function planRequest(
     _source: { includes: [...PROJECTION] },
   };
   try {
-    if (required.length > 0) body.requiredfields = serializeFilter(and(...required), 'requiredfields');
+    if (required.length > 0)
+      body.requiredfields = serializeFilter(and(...required), 'requiredfields');
     if (partial.length > 0) body.partialfields = serializeFilter(and(...partial), 'partialfields');
   } catch (error) {
     if (error instanceof FilterError) return { skip: error.message };

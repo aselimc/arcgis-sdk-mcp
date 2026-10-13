@@ -87,15 +87,28 @@ function summaryOf(block: string): string | undefined {
 }
 
 /**
+ * The compiler documents whatever carries a comment, public or not. Two things are certainly
+ * not API: the namespace of generated XAML helpers, and a member whose name starts with an
+ * underscore. (An `Internal` namespace is not a reliable sign: some are documented API.)
+ */
+const NOT_API = /^XamlGeneratedNamespace(?:\.|$)|\._[^.]*$/;
+
+/** A member of the published API: not marked `<exclude/>` and not private by convention. */
+function published(id: string, block: string): boolean {
+  return !NOT_API.test(idPath(id)) && !/<exclude\s*\/?>/.test(block);
+}
+
+/**
  * Catalogue records of one documentation file: types, and their methods, properties,
  * fields and events as members. Members marked `<exclude/>` are hidden from the published
- * reference and are dropped; static constructors and malformed ids are skipped.
+ * reference and are dropped, as are generated helpers and underscore-named members; static
+ * constructors and malformed ids are skipped.
  *
  * @param fileUrl the github.com blob URL of the file; a record's ref is this URL plus the id.
  */
 export function xmldocRecords(src: BoundSource, fileUrl: string, xml: string): CatalogRecord[] {
   const kept = [...memberBlocks(xml)].filter(
-    ({ id, block }) => /^[TMPFE]:./.test(id) && !/<exclude\s*\/?>/.test(block),
+    ({ id, block }) => /^[TMPFE]:./.test(id) && published(id, block),
   );
   const types = new Set(kept.filter(({ id }) => id.startsWith('T:')).map(({ id }) => idPath(id)));
   const records = new Map<string, CatalogRecord>();
@@ -142,15 +155,17 @@ export function xmldocRecords(src: BoundSource, fileUrl: string, xml: string): C
 }
 
 /**
- * A documentation file reduced to one type: the type's own entry, its members and those of
- * its nested types. The renderer needs exactly these to render the type or one member of it.
+ * A documentation file reduced to one type: the type's own entry, its published members and
+ * those of its nested types. The renderer needs exactly these to render the type or one
+ * member of it. The requested member itself is always kept.
  */
 export function sliceType(xml: string, memberId: string): string {
   const type = typeOf(memberId);
   const blocks: string[] = [];
   for (const { id, block } of memberBlocks(xml)) {
     const path = idPath(id);
-    if (path === type || path.startsWith(`${type}.`)) blocks.push(block);
+    if (path !== type && !path.startsWith(`${type}.`)) continue;
+    if (id === memberId || published(id, block)) blocks.push(block);
   }
   const assembly = /<assembly>\s*<name>([^<]*)<\/name>/.exec(xml)?.[1]?.trim() ?? '';
   return [

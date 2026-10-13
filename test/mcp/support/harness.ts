@@ -9,7 +9,8 @@ import type { McpContainer } from '../../../src/mcp/container.js';
 import { createServer } from '../../../src/mcp/server.js';
 import { fakeRegistry } from '../../support/fake-registry.js';
 import { makeCtx, type MakeCtxOptions, type TestCtx } from '../../support/make-ctx.js';
-import { BRIEFS, makeFakeServices, PRODUCTS } from './fake-services.js';
+import { BRIEFS, PRODUCTS } from './catalogue.js';
+import { makeFakeServices } from './fake-services.js';
 
 /** A container whose parts are fakes a test can script and inspect. */
 export interface Harness extends McpContainer {

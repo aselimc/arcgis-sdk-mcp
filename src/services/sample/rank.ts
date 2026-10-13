@@ -29,10 +29,17 @@ export function parseApi(usesApi: string | undefined): ApiName | undefined {
 export function mentionsApi(record: CatalogRecord, api: ApiName): boolean {
   const terms = new Set(
     tokenize(
-      [record.title, record.description ?? '', ...(record.keywords ?? []), ...(record.headings ?? [])].join(' '),
+      [
+        record.title,
+        record.description ?? '',
+        ...(record.keywords ?? []),
+        ...(record.headings ?? []),
+      ].join(' '),
     ),
   );
-  const wanted = [api.simple, ...(api.type === undefined ? [] : [api.type])].map((name) => name.toLowerCase());
+  const wanted = [api.simple, ...(api.type === undefined ? [] : [api.type])].map((name) =>
+    name.toLowerCase(),
+  );
   return wanted.every((name) => terms.has(name));
 }
 
@@ -43,11 +50,16 @@ function sameName(listed: string, api: ApiName): boolean {
   // A sample that lists the type demonstrates its members only loosely: require the member
   // when one was asked for, and accept the type alone when the type was asked for.
   if (api.type === undefined) return lower === api.simple.toLowerCase();
-  return lower === api.simple.toLowerCase() && parts.at(-2)?.toLowerCase() === api.type.toLowerCase();
+  return (
+    lower === api.simple.toLowerCase() && parts.at(-2)?.toLowerCase() === api.type.toLowerCase()
+  );
 }
 
 function identifierIn(text: string, name: string): boolean {
-  return new RegExp(`(?<![\\p{L}\\p{N}_])${name.replace(/[\\^$*+?.()|[\]{}]/g, '\\$&')}(?![\\p{L}\\p{N}_])`, 'u').test(text);
+  return new RegExp(
+    `(?<![\\p{L}\\p{N}_])${name.replace(/[\\^$*+?.()|[\]{}]/g, '\\$&')}(?![\\p{L}\\p{N}_])`,
+    'u',
+  ).test(text);
 }
 
 /**
@@ -66,9 +78,15 @@ export function matchesPlatform(record: CatalogRecord, platform: string): boolea
   const wanted = platform.trim().toLowerCase();
   if (wanted === '') return true;
   if (record.platform?.toLowerCase() === wanted) return true;
-  if (record.platform !== undefined) return record.platform.toLowerCase().split(/[\s,/]+/).includes(wanted);
+  if (record.platform !== undefined)
+    return record.platform
+      .toLowerCase()
+      .split(/[\s,/]+/)
+      .includes(wanted);
   // Repositories keep one directory per platform: `.../MAUI/...`, `.../wpf/...`.
-  return new RegExp(`[/_.-]${wanted.replace(/[\\^$*+?.()|[\]{}]/g, '\\$&')}(?:[/_.-]|$)`, 'i').test(record.ref);
+  return new RegExp(`[/_.-]${wanted.replace(/[\\^$*+?.()|[\]{}]/g, '\\$&')}(?:[/_.-]|$)`, 'i').test(
+    record.ref,
+  );
 }
 
 /** Cuts source text at a line boundary within `maxTokens`. */

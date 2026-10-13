@@ -14,6 +14,11 @@ export interface SphinxEntry {
   domain: string;
   /** `class`, `method`, `function`, `attribute`, `doc`, `label`, ... */
   role: string;
+  /**
+   * Search priority as Sphinx assigns it; negative for an object that is hidden from search,
+   * which is how an alias of an object documented under another name is marked.
+   */
+  priority: number;
   /** Page and anchor relative to the site root: `package.module.html#package.module.Class`. */
   uri: string;
   /** Display name; equal to `name` when the index gives none. */
@@ -60,11 +65,12 @@ export function parseObjectsInv(bytes: Uint8Array): SphinxIndex | undefined {
   for (const line of body.split('\n')) {
     const row = INVENTORY_ROW.exec(line.trimEnd());
     if (row === null) continue;
-    const [, name = '', domain = '', role = '', , uri = '', display = ''] = row;
+    const [, name = '', domain = '', role = '', priority = '', uri = '', display = ''] = row;
     entries.push({
       name,
       domain,
       role,
+      priority: Number(priority),
       uri: uri.endsWith('$') ? `${uri.slice(0, -1)}${name}` : uri,
       display: display === '-' || display === '' ? name : display,
     });
@@ -138,6 +144,7 @@ export function parseSphinxSearchIndex(script: string): SphinxIndex | undefined 
       name,
       domain: 'std',
       role: 'doc',
+      priority: -1,
       uri: `${name}.html`,
       display: title === undefined || title === '' ? name : title,
     };
@@ -154,6 +161,7 @@ export function parseSphinxSearchIndex(script: string): SphinxIndex | undefined 
         name: full,
         domain: type.slice(0, type.indexOf(':')),
         role: type.slice(type.indexOf(':') + 1),
+        priority: typeof row[2] === 'number' ? row[2] : 1,
         uri: anchor === '' ? `${document}.html` : `${document}.html#${anchor}`,
         display: full,
       });

@@ -38,7 +38,10 @@ export interface PageReader {
 
 /** Upstream conditions that a lower rung can answer for. */
 function isUpstreamFailure(error: unknown): error is McpDocError {
-  return isMcpDocError(error) && (error.code === 'UPSTREAM_UNAVAILABLE' || error.code === 'UPSTREAM_BLOCKED');
+  return (
+    isMcpDocError(error) &&
+    (error.code === 'UPSTREAM_UNAVAILABLE' || error.code === 'UPSTREAM_BLOCKED')
+  );
 }
 
 function reasonOf(error: McpDocError): string {
@@ -51,11 +54,19 @@ function renderOptions(options: ReadOptions): RenderOptions | undefined {
 }
 
 /** Creates the reader. */
-export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: IndexInternals): PageReader {
+export function createPageReader(
+  ctx: Ctx,
+  adapters: AdapterRegistry,
+  index: IndexInternals,
+): PageReader {
   const titleOf = (url: string): string => index.record(url)?.title ?? (humanizeSlug(url) || url);
 
   /** Runs a fetch-and-render step for an unregistered page with the shared failure handling. */
-  const guarded = async (meta: RenderMeta, product: string | undefined, step: () => Promise<DocPage>): Promise<DocPage> => {
+  const guarded = async (
+    meta: RenderMeta,
+    product: string | undefined,
+    step: () => Promise<DocPage>,
+  ): Promise<DocPage> => {
     try {
       return await step();
     } catch (error) {
@@ -63,8 +74,15 @@ export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: Ind
         const placeholder = { ...meta, retrievedAt: ctx.clock.iso() };
         return linkOnlyPage(placeholder, titleOf(meta.url), reasonOf(error));
       }
-      if (isMcpDocError(error) && error.code === 'DOC_NOT_FOUND' && error.details?.next === undefined) {
-        throw new McpDocError(error.code, error.message, { ...error.details, next: searchFromUrl(meta.url, product) });
+      if (
+        isMcpDocError(error) &&
+        error.code === 'DOC_NOT_FOUND' &&
+        error.details?.next === undefined
+      ) {
+        throw new McpDocError(error.code, error.message, {
+          ...error.details,
+          next: searchFromUrl(meta.url, product),
+        });
       }
       if (isMcpDocError(error)) throw error;
       ctx.logger.error('document read failed unexpectedly', { url: meta.url, error });
@@ -72,7 +90,11 @@ export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: Ind
     }
   };
 
-  const readOwned = async (route: OwnedRoute, call: CallOptions, options: ReadOptions): Promise<DocPage> => {
+  const readOwned = async (
+    route: OwnedRoute,
+    call: CallOptions,
+    options: ReadOptions,
+  ): Promise<DocPage> => {
     const { product, line, url } = route;
     const record = index.record(url.href);
     const target: ReadTarget = {
@@ -95,16 +117,25 @@ export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: Ind
 
     const fallbacks = (route.source.fallbacks ?? [])
       .map((id) => product.sources.find((candidate) => candidate.id === id))
-      .filter((candidate): candidate is (typeof product.sources)[number] => candidate !== undefined);
+      .filter(
+        (candidate): candidate is (typeof product.sources)[number] => candidate !== undefined,
+      );
     const primaryUsable = route.hostDisabled === undefined && enabled(route.source);
-    const chain: SourceDef[] = [...(primaryUsable ? [route.source] : []), ...fallbacks.filter(enabled)];
+    const chain: SourceDef[] = [
+      ...(primaryUsable ? [route.source] : []),
+      ...fallbacks.filter(enabled),
+    ];
 
     let upstream: McpDocError | undefined;
     for (const source of chain) {
       const primary = source === route.source;
       try {
         const adapter = adapters.get(source.adapter);
-        const page = await adapter.read(ctx, bindSource(product, source, line, undefined, call.budget), target);
+        const page = await adapter.read(
+          ctx,
+          bindSource(product, source, line, undefined, call.budget),
+          target,
+        );
         const filled: DocPage = {
           ...page,
           product: page.product ?? product.id,
@@ -112,8 +143,15 @@ export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: Ind
           line: page.line ?? line.id,
         };
         if (primary) return filled;
-        const because = upstream === undefined ? `${route.source.title} is switched off` : reasonOf(upstream);
-        return { ...filled, notices: [...filled.notices, `Read from ${source.title} instead of ${route.source.title}: ${because}.`] };
+        const because =
+          upstream === undefined ? `${route.source.title} is switched off` : reasonOf(upstream);
+        return {
+          ...filled,
+          notices: [
+            ...filled.notices,
+            `Read from ${source.title} instead of ${route.source.title}: ${because}.`,
+          ],
+        };
       } catch (error) {
         if (isUpstreamFailure(error)) {
           upstream ??= error;
@@ -121,16 +159,28 @@ export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: Ind
         }
         // A fallback that cannot answer is skipped; only the primary's verdict is the agent's.
         if (!primary) continue;
-        if (isMcpDocError(error) && error.code === 'DOC_NOT_FOUND' && error.details?.next === undefined) {
-          throw new McpDocError(error.code, error.message, { ...error.details, next: searchFromUrl(url.href, product.id) });
+        if (
+          isMcpDocError(error) &&
+          error.code === 'DOC_NOT_FOUND' &&
+          error.details?.next === undefined
+        ) {
+          throw new McpDocError(error.code, error.message, {
+            ...error.details,
+            next: searchFromUrl(url.href, product.id),
+          });
         }
         if (isMcpDocError(error)) throw error;
-        ctx.logger.error('adapter read failed unexpectedly', { url: url.href, source: source.id, error });
+        ctx.logger.error('adapter read failed unexpectedly', {
+          url: url.href,
+          source: source.id,
+          error,
+        });
         throw toMcpDocError(error);
       }
     }
 
-    if (upstream !== undefined) return linkOnlyPage(meta(route.source), titleOf(url.href), reasonOf(upstream));
+    if (upstream !== undefined)
+      return linkOnlyPage(meta(route.source), titleOf(url.href), reasonOf(upstream));
     const capability = route.source.capability;
     throw (
       route.hostDisabled ??
@@ -144,20 +194,40 @@ export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: Ind
     );
   };
 
-  const readGithub = (route: Extract<Route, { kind: 'github' }>, call: CallOptions, options: ReadOptions): Promise<DocPage> => {
+  const readGithub = (
+    route: Extract<Route, { kind: 'github' }>,
+    call: CallOptions,
+    options: ReadOptions,
+  ): Promise<DocPage> => {
     const { location, url } = route;
-    const base = { url: url.href, kind: 'guide', license: 'unlicensed' } as const satisfies RenderMeta;
+    const base = {
+      url: url.href,
+      kind: 'guide',
+      license: 'unlicensed',
+    } as const satisfies RenderMeta;
     return guarded(base, undefined, async () => {
-      const github = { budget: call.budget, ...(call.signal === undefined ? {} : { signal: call.signal }) };
+      const github = {
+        budget: call.budget,
+        ...(call.signal === undefined ? {} : { signal: call.signal }),
+      };
       if (location.wikiPage !== undefined) {
         const res = await ctx.github.wikiRaw(location.repo, location.wikiPage, github);
-        return ctx.render.render('markdown', { markdown: res.text }, { ...base, res }, renderOptions(options));
+        return ctx.render.render(
+          'markdown',
+          { markdown: res.text },
+          { ...base, res },
+          renderOptions(options),
+        );
       }
       if (location.ref === undefined || location.path === undefined) {
-        throw new McpDocError('DOC_NOT_FOUND', `${url.href} is a repository or directory, not a file`, {
-          why: 'Only files and wiki pages can be read',
-          url: url.href,
-        });
+        throw new McpDocError(
+          'DOC_NOT_FOUND',
+          `${url.href} is a repository or directory, not a file`,
+          {
+            why: 'Only files and wiki pages can be read',
+            url: url.href,
+          },
+        );
       }
       const res = await ctx.github.raw(location.repo, location.ref, location.path, github);
       let license: LicenseTier = 'unlicensed';
@@ -174,13 +244,23 @@ export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: Ind
       }
       if (/\.ipynb$/i.test(name)) {
         try {
-          return ctx.render.render('notebook', { ipynb: JSON.parse(res.text) as unknown }, meta, renderOptions(options));
+          return ctx.render.render(
+            'notebook',
+            { ipynb: JSON.parse(res.text) as unknown },
+            meta,
+            renderOptions(options),
+          );
         } catch {
           // Not valid notebook JSON: show it as the source file it is.
         }
       }
       const files = [{ name, text: res.text, ref: url.href }];
-      return ctx.render.render('source', { files }, { ...meta, kind: 'sample' }, renderOptions(options));
+      return ctx.render.render(
+        'source',
+        { files },
+        { ...meta, kind: 'sample' },
+        renderOptions(options),
+      );
     });
   };
 
@@ -196,7 +276,12 @@ export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: Ind
             ...(route.product === undefined ? {} : { product: route.product.id }),
             ...(route.source === undefined ? {} : { source: route.source.id }),
           };
-          const page = ctx.render.render('markdown', { markdown: route.brief.markdown }, meta, renderOptions(options));
+          const page = ctx.render.render(
+            'markdown',
+            { markdown: route.brief.markdown },
+            meta,
+            renderOptions(options),
+          );
           return page.title === '' ? { ...page, title: route.brief.title } : page;
         }
         case 'owned':
@@ -204,7 +289,11 @@ export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: Ind
         case 'github':
           return readGithub(route, call, options);
         case 'generic': {
-          const meta = { url: route.url.href, kind: 'guide', license: 'esri-website-terms' } as const satisfies RenderMeta;
+          const meta = {
+            url: route.url.href,
+            kind: 'guide',
+            license: 'esri-website-terms',
+          } as const satisfies RenderMeta;
           return guarded(meta, undefined, async () => {
             const res = await ctx.http.get({
               url: route.url.href.replace(/#.*$/, ''),
@@ -212,7 +301,12 @@ export function createPageReader(ctx: Ctx, adapters: AdapterRegistry, index: Ind
               budget: call.budget,
               ...(call.signal === undefined ? {} : { signal: call.signal }),
             });
-            return ctx.render.render('html', { html: res.text }, { ...meta, res }, renderOptions(options));
+            return ctx.render.render(
+              'html',
+              { html: res.text },
+              { ...meta, res },
+              renderOptions(options),
+            );
           });
         }
       }

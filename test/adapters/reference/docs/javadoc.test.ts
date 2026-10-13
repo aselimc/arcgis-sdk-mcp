@@ -89,30 +89,39 @@ describe('javadoc: enumerate', () => {
     const ctx = ctxOf();
     const records = await javadocAdapter.enumerate!(ctx, bound());
 
-    expect(records.map((record) => [record.title, record.symbolKind, record.ref.slice(BASE.length)]))
-      .toEqual([
-        ['Widget', 'type', 'com.example.widgets/com/example/widgets/Widget.html'],
-        ['Widget.Builder', 'type', 'com.example.widgets/com/example/widgets/Widget.Builder.html'],
-        ['Part', 'type', 'com.example.widgets/com/example/widgets/parts/Part.html'],
-        ['Widget.ROUND', 'field', 'com.example.widgets/com/example/widgets/Widget.html#ROUND'],
-        [
-          'Widget.Widget(int)',
-          'constructor',
-          'com.example.widgets/com/example/widgets/Widget.html#%3Cinit%3E(int)',
-        ],
-        [
-          'Widget.resize(int, int)',
-          'method',
-          'com.example.widgets/com/example/widgets/Widget.html#resize(int,int)',
-        ],
-        ['Widget.resize(int)', 'method', 'com.example.widgets/com/example/widgets/Widget.html#resize(int)'],
-        [
-          'Widget.Builder.build()',
-          'method',
-          'com.example.widgets/com/example/widgets/Widget.Builder.html#build()',
-        ],
-        ['Part.Part()', 'constructor', 'com.example.widgets/com/example/widgets/parts/Part.html#%3Cinit%3E()'],
-      ]);
+    expect(
+      records.map((record) => [record.title, record.symbolKind, record.ref.slice(BASE.length)]),
+    ).toEqual([
+      ['Widget', 'type', 'com.example.widgets/com/example/widgets/Widget.html'],
+      ['Widget.Builder', 'type', 'com.example.widgets/com/example/widgets/Widget.Builder.html'],
+      ['Part', 'type', 'com.example.widgets/com/example/widgets/parts/Part.html'],
+      ['Widget.ROUND', 'field', 'com.example.widgets/com/example/widgets/Widget.html#ROUND'],
+      [
+        'Widget.Widget(int)',
+        'constructor',
+        'com.example.widgets/com/example/widgets/Widget.html#%3Cinit%3E(int)',
+      ],
+      [
+        'Widget.resize(int, int)',
+        'method',
+        'com.example.widgets/com/example/widgets/Widget.html#resize(int,int)',
+      ],
+      [
+        'Widget.resize(int)',
+        'method',
+        'com.example.widgets/com/example/widgets/Widget.html#resize(int)',
+      ],
+      [
+        'Widget.Builder.build()',
+        'method',
+        'com.example.widgets/com/example/widgets/Widget.Builder.html#build()',
+      ],
+      [
+        'Part.Part()',
+        'constructor',
+        'com.example.widgets/com/example/widgets/parts/Part.html#%3Cinit%3E()',
+      ],
+    ]);
     expect(ctx.http.requests.map((request) => request.url)).toEqual([PACKAGES, TYPES, MEMBERS]);
   });
 
@@ -137,7 +146,9 @@ describe('javadoc: enumerate', () => {
       parent: 'com.example.widgets.Widget',
       breadcrumb: 'com.example.widgets > Widget',
     });
-    expect(byTitle.get('Widget.Builder.build()')?.parent).toBe('com.example.widgets.Widget.Builder');
+    expect(byTitle.get('Widget.Builder.build()')?.parent).toBe(
+      'com.example.widgets.Widget.Builder',
+    );
   });
 
   it('lists the types when the member index is unavailable', async () => {
@@ -171,7 +182,10 @@ describe('javadoc: read, symbol and probe', () => {
   it('reads a class page with the javadoc family hint', async () => {
     const ctx = ctxOf();
     await javadocAdapter.read(ctx, bound(), { url: new URL(WIDGET) });
-    expect(rendererOf(ctx).calls[0]).toMatchObject({ kind: 'html', input: { familyHint: 'javadoc' } });
+    expect(rendererOf(ctx).calls[0]).toMatchObject({
+      kind: 'html',
+      input: { familyHint: 'javadoc' },
+    });
   });
 
   it('selects a member by the decoded anchor of its ref', async () => {
@@ -207,9 +221,23 @@ describe('javadoc index readers', () => {
   });
 
   it('builds URLs without a module directory for a site without modules', () => {
-    const modules = packageModules([{ l: 'All Packages', u: 'allpackages-index.html' }, { l: 'pkg' }]);
-    const types = javadocTypeRecords(bound(), [{ p: 'pkg.sub', l: 'Thing' }, { p: '<Unnamed>', l: 'Loose' }], modules);
-    const members = javadocMemberRecords(bound(), [{ p: '<Unnamed>', c: 'Loose', l: 'run()' }, null], modules);
+    const modules = packageModules([
+      { l: 'All Packages', u: 'allpackages-index.html' },
+      { l: 'pkg' },
+    ]);
+    const types = javadocTypeRecords(
+      bound(),
+      [
+        { p: 'pkg.sub', l: 'Thing' },
+        { p: '<Unnamed>', l: 'Loose' },
+      ],
+      modules,
+    );
+    const members = javadocMemberRecords(
+      bound(),
+      [{ p: '<Unnamed>', c: 'Loose', l: 'run()' }, null],
+      modules,
+    );
 
     expect(modules.size).toBe(0);
     expect(types.map((record) => [record.ref, record.qualified])).toEqual([
@@ -217,11 +245,19 @@ describe('javadoc index readers', () => {
       [`${BASE}Loose.html`, 'Loose'],
     ]);
     expect(types[1]?.breadcrumb).toBeUndefined();
-    expect(members[0]).toMatchObject({ ref: `${BASE}Loose.html#run()`, parent: 'Loose', qualified: 'Loose.run' });
+    expect(members[0]).toMatchObject({
+      ref: `${BASE}Loose.html#run()`,
+      parent: 'Loose',
+      qualified: 'Loose.run',
+    });
   });
 
   it('uses the explicit URL of a type entry', () => {
-    const [record] = javadocTypeRecords(bound(), [{ p: 'pkg', l: 'Odd', u: 'elsewhere/Odd.html' }], new Map());
+    const [record] = javadocTypeRecords(
+      bound(),
+      [{ p: 'pkg', l: 'Odd', u: 'elsewhere/Odd.html' }],
+      new Map(),
+    );
     expect(record?.ref).toBe(`${BASE}elsewhere/Odd.html`);
   });
 });
@@ -259,7 +295,9 @@ describeReferenceContract('javadoc (JDK 8 class list)', () => ({
     renamedField: {
       arrange: (ctx) =>
         replaceResponses(ctx, legacyCassette(), {
-          [CLASS_LIST]: { body: '<html><body><ul><li><a href="Gadget.html">Gadget</a></li></ul></body></html>' },
+          [CLASS_LIST]: {
+            body: '<html><body><ul><li><a href="Gadget.html">Gadget</a></li></ul></body></html>',
+          },
         }),
       outcome: 'typed-failure',
       codes: ['UPSTREAM_UNAVAILABLE'],
@@ -271,7 +309,9 @@ describeReferenceContract('javadoc (JDK 8 class list)', () => ({
     },
     emptyIndex: {
       arrange: (ctx) =>
-        replaceResponses(ctx, legacyCassette(), { [CLASS_LIST]: { body: '<html><body></body></html>' } }),
+        replaceResponses(ctx, legacyCassette(), {
+          [CLASS_LIST]: { body: '<html><body></body></html>' },
+        }),
       outcome: 'typed-failure',
       codes: ['UPSTREAM_UNAVAILABLE'],
     },

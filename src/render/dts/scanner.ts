@@ -7,6 +7,7 @@
 import { parseMember, type DtsMember } from './member.js';
 import { depthChange, isCode, matchingClose, tokenize, type Token } from './tokens.js';
 
+/** Re-exported so that callers of the scanner need one import. */
 export type { DtsMember } from './member.js';
 
 /** Kind of a top-level statement. */

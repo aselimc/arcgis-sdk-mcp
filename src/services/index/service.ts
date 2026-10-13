@@ -12,7 +12,13 @@ import { createBodyIndex } from './body-index.js';
 import { canEnumerate, enumerateSource, makeUnit, seedRecords } from './builder.js';
 import { createHealthTracker, FAILING_SKIP_MS } from './health.js';
 import { runCatalogQuery, unitsInScope } from './query.js';
-import { deleteSnapshot, loadSnapshot, saveSnapshot, sourceFingerprint, unitKey } from './snapshot.js';
+import {
+  deleteSnapshot,
+  loadSnapshot,
+  saveSnapshot,
+  sourceFingerprint,
+  unitKey,
+} from './snapshot.js';
 import { mergeSymbolMaps } from './symbol-map.js';
 import {
   INDEX_SCHEMA_VERSION,
@@ -104,7 +110,16 @@ export function createIndexService(ctx: Ctx, adapters: AdapterRegistry): IndexIn
       }
       await deleteSnapshot(ctx, product.id, source.id, line.id);
     }
-    const seeds = makeUnit(ctx, product, source, line, seedRecords(ctx, product, source, line), 'seed', now, reason);
+    const seeds = makeUnit(
+      ctx,
+      product,
+      source,
+      line,
+      seedRecords(ctx, product, source, line),
+      'seed',
+      now,
+      reason,
+    );
     seeds.retryAt = now + retryAfterMs;
     install(seeds);
     return stateOf(seeds);
@@ -118,7 +133,15 @@ export function createIndexService(ctx: Ctx, adapters: AdapterRegistry): IndexIn
     const key = unitKey(product.id, source.id, line.id);
     if (!canEnumerate(adapters, source)) {
       // A read-only source has nothing to enumerate: its entry links are its whole catalogue.
-      const fixed = makeUnit(ctx, product, source, line, seedRecords(ctx, product, source, line), 'fresh', ctx.clock.now());
+      const fixed = makeUnit(
+        ctx,
+        product,
+        source,
+        line,
+        seedRecords(ctx, product, source, line),
+        'fresh',
+        ctx.clock.now(),
+      );
       install(fixed);
       return stateOf(fixed);
     }
@@ -128,7 +151,16 @@ export function createIndexService(ctx: Ctx, adapters: AdapterRegistry): IndexIn
       const snapshot = await loadSnapshot(ctx, product.id, source, line);
       if (snapshot !== undefined) {
         const current = ctx.clock.now() - snapshot.builtAt < REVALIDATE_AFTER_MS;
-        previous = makeUnit(ctx, product, source, line, snapshot.records, current ? 'fresh' : 'stale', snapshot.builtAt, current ? undefined : 'the snapshot is older than a day and is being revalidated');
+        previous = makeUnit(
+          ctx,
+          product,
+          source,
+          line,
+          snapshot.records,
+          current ? 'fresh' : 'stale',
+          snapshot.builtAt,
+          current ? undefined : 'the snapshot is older than a day and is being revalidated',
+        );
         install(previous);
         if (current) return stateOf(previous);
       }
@@ -151,7 +183,8 @@ export function createIndexService(ctx: Ctx, adapters: AdapterRegistry): IndexIn
 
     const { records } = outcome;
     const expected = source.probe.minRecords ?? 0;
-    const previousCount = previous !== undefined && previous.origin !== 'seed' ? previous.records.length : 0;
+    const previousCount =
+      previous !== undefined && previous.origin !== 'seed' ? previous.records.length : 0;
     // Swap rule: a rebuilt index must not be much smaller than the one it replaces.
     const required = previousCount === 0 ? 1 : Math.max(expected, Math.ceil(previousCount / 2));
     if (records.length < required) {
@@ -178,7 +211,12 @@ export function createIndexService(ctx: Ctx, adapters: AdapterRegistry): IndexIn
       records,
     });
     if (records.length < expected) {
-      health.degraded(product.id, source.id, `only ${records.length} records where at least ${expected} are expected`, records.length);
+      health.degraded(
+        product.id,
+        source.id,
+        `only ${records.length} records where at least ${expected} are expected`,
+        records.length,
+      );
     } else {
       health.ok(product.id, source.id, records.length, builtAt);
     }
@@ -230,7 +268,11 @@ export function createIndexService(ctx: Ctx, adapters: AdapterRegistry): IndexIn
         try {
           settled.set(source.id, await ensureUnit(product, source, line));
         } catch (error) {
-          ctx.logger.error('index build crashed', { product: product.id, source: source.id, error });
+          ctx.logger.error('index build crashed', {
+            product: product.id,
+            source: source.id,
+            error,
+          });
           settled.set(source.id, without(product, source, line, 'unavailable'));
         }
       });
@@ -239,7 +281,10 @@ export function createIndexService(ctx: Ctx, adapters: AdapterRegistry): IndexIn
       void all.finally(() => running.delete(all));
 
       const remaining = call.budget.deadline - ctx.clock.now();
-      const wait = Math.min(ctx.config.limits.indexBuildDeadlineMs, Math.max(MIN_WAIT_MS, remaining));
+      const wait = Math.min(
+        ctx.config.limits.indexBuildDeadlineMs,
+        Math.max(MIN_WAIT_MS, remaining),
+      );
       try {
         await withDeadline(all, wait);
       } catch (error) {
