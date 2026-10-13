@@ -274,7 +274,7 @@ describe('createOwnership', () => {
     const briefs = makeProduct({
       id: 'briefs',
       aliases: [],
-      sources: [makeSource('brief', { slugs: ['ai/*'] }, { capability: undefined })],
+      sources: [makeSource('brief', { slugs: ['ai/*'] })],
     });
     expect(
       createOwnership([briefs])(new URL('https://developers.arcgis.com/widgets/')),
