@@ -4,6 +4,7 @@
   "title": "ArcGIS SDK and Developer Docs (unofficial)",
   "description": "Unofficial, not affiliated with Esri. On-demand ArcGIS developer docs for coding agents.",
   "version": "0.1.0",
+  "websiteUrl": "https://github.com/aselimc/arcgis-sdk-mcp#readme",
   "repository": {
     "url": "https://github.com/aselimc/arcgis-sdk-mcp",
     "source": "github"
@@ -13,6 +14,7 @@
       "registryType": "npm",
       "identifier": "arcgis-sdk-mcp",
       "version": "0.1.0",
+      "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
       },
@@ -31,12 +33,35 @@
         {
           "name": "ARCGIS_DOCS_CACHE_DIR",
           "description": "Cache directory. Default: the per-user cache directory.",
+          "format": "filepath",
           "isRequired": false
+        },
+        {
+          "name": "ARCGIS_DOCS_CACHE_MAX_MB",
+          "description": "Size cap of the cache in megabytes. Default: 500.",
+          "format": "number",
+          "isRequired": false,
+          "default": "500"
         },
         {
           "name": "ARCGIS_DOCS_PROJECT_DIR",
           "description": "Project in which installed Esri SDK versions are detected. Default: the working directory.",
+          "format": "filepath",
           "isRequired": false
+        },
+        {
+          "name": "ARCGIS_DOCS_MAX_TOKENS",
+          "description": "Size of an arcgis_docs_read result when the call does not choose max_tokens (500 to 20000). Default: 6000.",
+          "format": "number",
+          "isRequired": false,
+          "default": "6000"
+        },
+        {
+          "name": "ARCGIS_DOCS_LOG_LEVEL",
+          "description": "Log verbosity on stderr. Default: warn.",
+          "isRequired": false,
+          "default": "warn",
+          "choices": ["debug", "info", "warn", "error", "silent"]
         },
         {
           "name": "GITHUB_TOKEN",
