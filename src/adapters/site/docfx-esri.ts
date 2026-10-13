@@ -32,10 +32,10 @@ import { readSitemap, sitemapRecords } from './sitemap.js';
 import {
   assertLive,
   budgetOf,
-  tolerate,
   probeSource,
   readHtmlPage,
   recordOf,
+  tolerate,
 } from '../kit/index.js';
 
 type DocfxSource = BoundSource<'docfx-esri'>;

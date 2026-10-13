@@ -13,10 +13,10 @@ import {
   absoluteUrl,
   assertLive,
   budgetOf,
-  tolerate,
   probeSource,
   readHtmlPage,
   recordOf,
+  tolerate,
 } from '../kit/index.js';
 
 /** A sitemap index may fan out; this many requests are spent on one sitemap at most. */

@@ -1,17 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { bindSource } from '../../../../src/core/adapter-helpers.js';
-import { isMcpDocError, type ErrorCode } from '../../../../src/core/errors.js';
-import type { BoundSource } from '../../../../src/core/ports.js';
-import type { AdapterType, CatalogRecord } from '../../../../src/core/types.js';
-import { canonicalize } from '../../../../src/core/url.js';
-import {
-  describeAdapterContract,
-  type AdapterContractCase,
-} from '../../../support/adapter-contract.js';
-import { FakeHttp, type Cassette, type RecordedResponse } from '../../../support/fake-http.js';
+import { isMcpDocError } from '../../../../src/core/errors.js';
+import type { AdapterType } from '../../../../src/core/types.js';
+import { describeAdapterContract } from '../../../support/adapter-contract.js';
 import { fakePolicy } from '../../../support/fake-policy.js';
-import { FakeRenderer } from '../../../support/fake-render.js';
-import type { TestCtx } from '../../../support/make-ctx.js';
+import {
+  boundTo,
+  expectWellFormedRefs,
+  itHandlesFailureModes,
+  requests,
+  type FailureContractCase,
+} from '../../contract-kit.js';
+
+export { rendererOf, replaceResponses } from '../../contract-kit.js';
 
 /**
  * The shared contract of the API-reference adapters (design section 9, work package 6): the
@@ -32,85 +33,15 @@ export const FAILURE_MODES = [
 /** One of {@link FAILURE_MODES}. */
 export type FailureMode = (typeof FAILURE_MODES)[number];
 
-/** How `enumerate()` must behave when one failure mode is injected. */
-export interface FailureScenario {
-  /** Injects the failure into a fresh happy-path context. */
-  arrange: (ctx: TestCtx) => void;
-  /**
-   * - `typed-failure`: `enumerate()` rejects with an `McpDocError`;
-   * - `degraded`: `enumerate()` answers from what is left with at least `minRecords` records.
-   */
-  outcome: 'typed-failure' | 'degraded';
-  /** `typed-failure`: the acceptable error codes. Default: any `McpDocError`. */
-  codes?: readonly ErrorCode[];
-  /** `degraded`: smallest acceptable number of records. Default 1. */
-  minRecords?: number;
-}
-
-/** A failure mode that cannot happen to an adapter, with the reason shown in the test name. */
-export interface NotApplicable {
-  notApplicable: string;
-}
-
 /** One reference adapter under the contract suite. */
-export interface ReferenceContractCase<A extends AdapterType> extends AdapterContractCase<A> {
-  /** Hosts catalogue refs may point to. */
-  allowedHosts: readonly string[];
-  failures: Record<FailureMode, FailureScenario | NotApplicable>;
+export interface ReferenceContractCase<A extends AdapterType> extends FailureContractCase<
+  A,
+  FailureMode
+> {
   /** Index files that may not be requested while capability `site-index` is off. */
   siteIndexFiles?: ReadonlyArray<string | RegExp>;
   /** False for a source whose index lists no members (a JDK 8 class list, a package site). */
   hasMembers?: boolean;
-}
-
-/**
- * Gives a context a new HTTP fake over `cassette` in which the listed URLs answer with other
- * responses. `FakeHttp.on` can only queue a response behind a recorded one, so a scenario
- * that needs a recorded URL to answer differently from the first request on uses this.
- */
-export function replaceResponses(
-  ctx: TestCtx,
-  cassette: Cassette,
-  responses: Readonly<Record<string, RecordedResponse>>,
-): void {
-  const kept = cassette.interactions.filter((interaction) => !(interaction.url in responses));
-  const replaced = Object.entries(responses).map(([url, response]) => ({ url, response }));
-  ctx.http = new FakeHttp({ clock: ctx.clock, cassette: { interactions: [...kept, ...replaced] } });
-}
-
-/** The context's renderer as the fake it is, to inspect what an adapter passed in. */
-export function rendererOf(ctx: TestCtx): FakeRenderer {
-  if (!(ctx.render instanceof FakeRenderer)) {
-    throw new Error('this context was built with a renderer of its own');
-  }
-  return ctx.render;
-}
-
-function boundTo<A extends AdapterType>(c: ReferenceContractCase<A>): BoundSource<A> {
-  const line = c.line ?? c.product.lines.find((candidate) => candidate.current);
-  if (line === undefined) throw new Error('the contract case needs a current version line');
-  return bindSource(c.product, c.source, line);
-}
-
-function requests(ctx: TestCtx): number {
-  return ctx.http.count() + ctx.github.count();
-}
-
-/** Refs are absolute https URLs on an allowed host and unique also in canonical form. */
-function expectWellFormedRefs(records: CatalogRecord[], allowedHosts: readonly string[]): void {
-  const canonical = new Set<string>();
-  for (const record of records) {
-    const url = new URL(record.ref);
-    expect(url.protocol, record.ref).toBe('https:');
-    expect(allowedHosts, record.ref).toContain(url.host);
-    canonical.add(canonicalize(record.ref));
-    expect(record.title.trim(), record.ref).not.toBe('');
-  }
-  expect(canonical.size, 'refs are unique in canonical form').toBe(records.length);
-}
-
-function isScenario(value: FailureScenario | NotApplicable): value is FailureScenario {
-  return 'arrange' in value;
 }
 
 /**
@@ -154,35 +85,7 @@ export function describeReferenceContract<A extends AdapterType>(
       else expect(members).toEqual([]);
     });
 
-    for (const mode of FAILURE_MODES) {
-      const declared = makeCase().failures[mode];
-      if (!isScenario(declared)) {
-        it.skip(`${mode}: not applicable (${declared.notApplicable})`, () => undefined);
-        continue;
-      }
-      it(`${mode}: ${declared.outcome}`, async () => {
-        const c = makeCase();
-        const scenario = c.failures[mode];
-        if (!isScenario(scenario)) return;
-        const ctx = c.ctx();
-        scenario.arrange(ctx);
-        const [outcome] = await Promise.allSettled([c.adapter.enumerate!(ctx, boundTo(c))]);
-
-        expect(ctx.http.unrecorded).toEqual([]);
-        expect(requests(ctx)).toBeLessThanOrEqual(c.adapter.maxEnumerateRequests);
-        if (outcome.status === 'rejected') {
-          expect(isMcpDocError(outcome.reason), String(outcome.reason)).toBe(true);
-          expect(scenario.outcome, `rejected with ${String(outcome.reason)}`).toBe('typed-failure');
-          if (scenario.codes !== undefined && isMcpDocError(outcome.reason)) {
-            expect(scenario.codes).toContain(outcome.reason.code);
-          }
-          return;
-        }
-        expect(scenario.outcome, `returned ${outcome.value.length} records`).toBe('degraded');
-        expect(outcome.value.length).toBeGreaterThanOrEqual(scenario.minRecords ?? 1);
-        expectWellFormedRefs(outcome.value, c.allowedHosts);
-      });
-    }
+    itHandlesFailureModes(FAILURE_MODES, makeCase);
 
     it('requests no site-published index file while site-index is off', async () => {
       const c = makeCase();

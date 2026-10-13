@@ -29,6 +29,12 @@ export interface DoctorReport {
   version: string;
   node: string;
   checks: DoctorCheck[];
+  /**
+   * Which sources were selected: the floor source of each product (the default), or every
+   * source of the product named with `--product`. A report that does not say so reads as
+   * if every source had been checked.
+   */
+  probed: 'floor-sources' | 'product-sources';
   probes: ProbeOutcome[];
   /** Floor sources of developer products whose probe failed, as `product/source`. */
   failedFloors: string[];
@@ -219,7 +225,12 @@ export async function runDoctor(
     adaptersCheck(container),
   ];
 
-  deps.progress?.(`probing ${targets.length} sources`);
+  const probed = options.product === undefined ? 'floor-sources' : 'product-sources';
+  deps.progress?.(
+    probed === 'floor-sources'
+      ? `probing ${targets.length} floor sources (one per product)`
+      : `probing ${targets.length} sources`,
+  );
   const probes = await runProbes(container, targets, deps.sleep, (outcome) => {
     const tail = outcome.reason === undefined ? '' : `: ${outcome.reason}`;
     deps.progress?.(`${outcome.status} ${outcome.product}/${outcome.source}${tail}`);
@@ -234,6 +245,7 @@ export async function runDoctor(
     version: container.config.version,
     node: deps.nodeVersion,
     checks,
+    probed,
     probes,
     failedFloors,
     exitCode: failed ? 1 : 0,

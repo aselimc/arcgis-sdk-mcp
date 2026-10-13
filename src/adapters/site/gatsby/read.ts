@@ -6,7 +6,14 @@
 import { toMcpDocError } from '../../../core/errors.js';
 import type { BoundSource, Ctx, ReadTarget, RenderMeta } from '../../../core/ports.js';
 import type { CatalogRecord, DocPage, SymbolDetail } from '../../../core/types.js';
-import { assertLive, budgetOf, tolerate, licenseOf, renderOptionsOf } from '../../kit/index.js';
+import {
+  assertLive,
+  budgetOf,
+  fragmentOf,
+  licenseOf,
+  renderOptionsOf,
+  tolerate,
+} from '../../kit/index.js';
 import {
   bodyModeOf,
   bodyVariantOf,
@@ -28,16 +35,6 @@ interface FoundBody {
   variant: BodyVariant;
   pageData: PageData;
   prefix: string;
-}
-
-function decodedFragment(url: URL): string | undefined {
-  const raw = url.hash.replace(/^#/, '');
-  if (raw === '') return undefined;
-  try {
-    return decodeURIComponent(raw);
-  } catch {
-    return raw;
-  }
 }
 
 /**
@@ -159,7 +156,7 @@ export async function readGatsby(
   const rendered = renderVariant(ctx, found.variant, {
     meta,
     opts,
-    fragment: decodedFragment(target.url),
+    fragment: fragmentOf(target.url),
     sitePrefix: sitePrefixPath(found.prefix),
   });
   return complete(rendered, target, found.variant.title);
@@ -175,7 +172,7 @@ export function symbolGatsby(
   record: CatalogRecord,
   detail: SymbolDetail,
 ): Promise<DocPage> {
-  const anchor = record.locator?.anchor ?? decodedFragment(new URL(record.ref));
+  const anchor = record.locator?.anchor ?? fragmentOf(new URL(record.ref));
   const select =
     record.parent !== undefined
       ? { member: anchor ?? record.symbol ?? record.title }

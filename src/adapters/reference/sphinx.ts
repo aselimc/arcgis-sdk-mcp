@@ -10,16 +10,16 @@ import type { CatalogRecord, DocPage } from '../../core/types.js';
 import {
   assertLive,
   budgetOf,
-  tolerate,
   indexRequest,
+  isIndexCanary,
   probeSource,
-  symbolRecord,
   renderMeta,
   renderOptionsOf,
   siteIndexEnabled,
+  symbolRecord,
   symbolTarget,
+  tolerate,
   unusableIndex,
-  isIndexCanary,
 } from '../kit/index.js';
 import {
   parseObjectsInv,

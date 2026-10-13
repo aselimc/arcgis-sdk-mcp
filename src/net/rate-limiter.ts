@@ -191,17 +191,24 @@ export function createRateLimiter(deps: {
     return untilGone(options, (gaveUp) => semaphore.wait(gaveUp));
   }
 
+  /** Waits for a reserved start time; `false` when the caller cancels first. */
+  async function untilStart(ms: number, signal: AbortSignal | undefined): Promise<boolean> {
+    if (ms > 0) await untilGone({ signal }, (gaveUp) => Promise.race([sleep(ms), gaveUp]));
+    return signal?.aborted !== true;
+  }
+
   /**
    * Reserves the next start time in the bucket, synchronously, so that concurrent callers
    * queue up behind each other instead of all seeing the same free token.
    *
-   * @returns how long to wait, or `undefined` (nothing reserved) when that passes `deadline`.
+   * @returns how long to wait and how to hand the turn back, or `undefined` (nothing
+   *   reserved) when the start would pass `deadline`.
    */
   function reserve(
     bucket: Bucket,
     limits: HostLimits,
     deadline: number | undefined,
-  ): number | undefined {
+  ): { wait: number; giveBack: () => void } | undefined {
     const now = clock.now();
     const rate = Math.max(limits.ratePerSec, Number.EPSILON);
     const refilled = Math.min(
@@ -212,10 +219,22 @@ export function createRateLimiter(deps: {
     const tokenWait = afterTake < 0 ? (-afterTake / rate) * 1000 : 0;
     const start = Math.max(now + tokenWait, bucket.lastStart + (limits.minIntervalMs ?? 0));
     if (deadline !== undefined && start >= deadline) return undefined;
+    const before = { tokens: bucket.tokens, refilledAt: bucket.refilledAt };
+    const previousStart = bucket.lastStart;
     bucket.tokens = afterTake;
     bucket.refilledAt = now;
     bucket.lastStart = start;
-    return Math.ceil(start - now);
+    return {
+      wait: Math.ceil(start - now),
+      // A caller that leaves without sending returns its turn, or a cancelled call would
+      // cost the next one a whole interval (a minute on the slowest host). Only while the
+      // turn is still the last one reserved: later turns were timed after it.
+      giveBack: () => {
+        if (bucket.lastStart !== start || bucket.tokens !== afterTake) return;
+        Object.assign(bucket, before);
+        bucket.lastStart = previousStart;
+      },
+    };
   }
 
   return {
@@ -223,17 +242,13 @@ export function createRateLimiter(deps: {
       const bucket = bucketOf(key, limits);
       if (!(await slot(bucket.slots, options))) return undefined;
 
-      const wait = reserve(bucket, limits, options.deadline);
-      let started = wait !== undefined;
-      if (wait !== undefined && wait > 0) {
-        // The token is spent either way: a cancelled caller does not hand its turn back.
-        await untilGone({ signal: options.signal }, (gaveUp) =>
-          Promise.race([sleep(wait), gaveUp]),
-        );
-        started = options.signal?.aborted !== true;
-      }
-      started &&= await slot(global, options);
+      const turn = reserve(bucket, limits, options.deadline);
+      const started =
+        turn !== undefined &&
+        (await untilStart(turn.wait, options.signal)) &&
+        (await slot(global, options));
       if (!started) {
+        turn?.giveBack();
         bucket.slots.release();
         return undefined;
       }

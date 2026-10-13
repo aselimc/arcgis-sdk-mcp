@@ -23,6 +23,7 @@ const LANGUAGE_ALIASES: Readonly<Record<string, string>> = {
   'c#': 'csharp',
   cs: 'csharp',
   'c++': 'cpp',
+  kt: 'kotlin',
   sh: 'bash',
   shell: 'bash',
   text: '',

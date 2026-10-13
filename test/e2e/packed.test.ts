@@ -217,8 +217,8 @@ describe('stdio', () => {
 describe('--http', () => {
   it('serves the health check on loopback and rejects a foreign Host header', async () => {
     const child = start(['--http', '--port', '0']);
+    let err = '';
     const port = await new Promise<number>((found, failed) => {
-      let err = '';
       child.stderr.on('data', (chunk: Buffer) => {
         err += chunk.toString();
         const match = /listening on http:\/\/127\.0\.0\.1:(\d+)\/mcp/.exec(err);
@@ -249,6 +249,26 @@ describe('--http', () => {
     expect(JSON.parse(local.body)).toMatchObject({ status: 'ok', version });
     const foreign = await get('attacker.example');
     expect(foreign.status).toBe(403);
+
+    // Regression: a request target that is not a URL ("//[" names the host "[") threw in
+    // the request listener and ended the process. A socket sends it as written.
+    const answer = await new Promise<string>((received, failed) => {
+      const socket = connect(port, '127.0.0.1');
+      let data = '';
+      socket.on('connect', () => {
+        socket.write(`GET //[ HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nConnection: close\r\n\r\n`);
+      });
+      socket.on('data', (chunk: Buffer) => (data += chunk.toString('latin1')));
+      socket.once('error', failed);
+      socket.once('close', () => {
+        received(data);
+      });
+    });
+    expect(answer).toMatch(/^HTTP\/1\.1 404 /);
+    expect((await get(`127.0.0.1:${port}`)).status).toBe(200);
+    expect(child.exitCode).toBeNull();
+    // Start-up prints the server's own line only (regression: an SDK warning preceded it).
+    expect(err.slice(0, err.indexOf('listening on')).split('\n')).toHaveLength(1);
     child.kill();
   }, 30_000);
 });

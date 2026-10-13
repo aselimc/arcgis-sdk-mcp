@@ -186,7 +186,7 @@ describe('astro samples: enumerate and read', () => {
     const records = await astroAdapter.enumerate!(ctx, bound());
     expect(records).toHaveLength(3);
     expect(ctx.logger.messages('warn')).toEqual([
-      'The sitemap is unavailable; enumerating without it',
+      'The sitemap is unavailable; continuing without it',
     ]);
   });
 

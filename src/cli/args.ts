@@ -66,7 +66,8 @@ Usage:
                                           Serve MCP over HTTP at /mcp (health check at /healthz).
                                           Loopback only; any other --host needs --allow-remote
   ${PACKAGE_NAME} doctor [--product <id>] [--tier developer|all] [--json]
-                                          Check configuration, cache, proxy and upstream sources.
+                                          Check configuration, cache and proxy, and probe the floor
+                                          source of each product (--product: every source of one).
                                           Exits 1 when a floor source of a developer product fails
   ${PACKAGE_NAME} cache info               Show the cache directory, size and entry count
   ${PACKAGE_NAME} cache clear [http|derived|all]

@@ -205,7 +205,10 @@ describe('runCli: doctor', () => {
     const cli = makeCli();
     expect(await runCli(['doctor'], cli.deps)).toBe(EXIT.ok);
     expect(cli.out.join('')).toContain('Result: ok');
-    expect(cli.err).toEqual(['probing 1 sources\n', 'ok widgets-sdk/guide\n']);
+    expect(cli.err).toEqual([
+      'probing 1 floor sources (one per product)\n',
+      'ok widgets-sdk/guide\n',
+    ]);
   });
 
   it('prints only JSON with --json', async () => {

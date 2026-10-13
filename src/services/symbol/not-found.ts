@@ -1,24 +1,48 @@
 /**
  * The `SYMBOL_NOT_FOUND` answer (design section 3.6): nearby names, a search to try, and
- * wording that never turns "not found here" into "does not exist".
+ * wording that never turns "not found here" into "does not exist". A lookup that could
+ * search nothing at all is not a miss and gets the error of its cause instead.
  */
 import { formatCall } from '../../core/budget.js';
 import { McpDocError } from '../../core/errors.js';
 import { TOOLS } from '../../core/names.js';
-import type { IndexState, SymbolRequest } from '../../core/ports.js';
+import type { Ctx, IndexState, SymbolRequest } from '../../core/ports.js';
 import { nearest } from '../../core/text-distance.js';
 import { normalizeSymbol } from '../../core/tokenize.js';
-import type { CatalogRecord } from '../../core/types.js';
+import type { Capability, CatalogRecord } from '../../core/types.js';
 import { simpleName } from '../index/symbol-map.js';
 import type { IndexInternals } from '../index/types.js';
 import { displayName } from './resolve.js';
-import type { Target } from './target.js';
+import { symbolSources, type Target } from './target.js';
 
 /** Names suggested when nothing matches. */
 export const MAX_NEAREST = 5;
 
 /** Of those, how many may be the same member name on other types. */
 const MAX_INHERITED = 3;
+
+/** A namespace segment that marks implementation detail. */
+const INTERNAL = /(?:^|[.#/:])_?internal(?:[.#/:]|$)/i;
+
+function lastSegment(name: string): string {
+  return (name.split(/::|[.#/]/).at(-1) ?? name).toLowerCase();
+}
+
+/**
+ * How likely the owner of a same-named member is the type a caller's type inherits it from,
+ * lower first: an owner whose name contains the type's (`BasicFeatureLayer` for
+ * `FeatureLayer`) or that lives in the same namespace, before unrelated ones; internal
+ * namespaces last. A reference without base types (C# XML documentation) leaves only this.
+ */
+function kinship(record: CatalogRecord, type: CatalogRecord): number {
+  const owner = record.parent ?? '';
+  const typeName = displayName(type);
+  const namespace = typeName.slice(0, typeName.length - lastSegment(typeName).length);
+  let rank = 2;
+  if (lastSegment(owner).includes(lastSegment(typeName))) rank = 0;
+  else if (namespace !== '' && owner.startsWith(namespace)) rank = 1;
+  return rank + (INTERNAL.test(owner) ? 3 : 0);
+}
 
 /**
  * Names to suggest when nothing resolved: members of the type when only the member is
@@ -38,11 +62,13 @@ export function nearestNames(
     const all = [...new Set(members.map(simpleName))];
     const near = nearest(simple, all, MAX_NEAREST);
     // A member a type inherits is indexed under the type that declares it: the same name
-    // on other types is the likeliest answer and goes first.
+    // on other types is the likeliest answer and goes first, nearest relatives leading.
     const elsewhere = targets
       .flatMap((target) => index.symbols(target.product.id, target.line.id).exact(simple))
       .filter((record) => record.parent !== undefined && record.parent !== displayName(knownType))
-      .map(displayName);
+      .map((record, position) => ({ record, position, rank: kinship(record, knownType) }))
+      .sort((a, b) => a.rank - b.rank || a.position - b.position)
+      .map((entry) => displayName(entry.record));
     const inherited = [...new Set(elsewhere)].slice(0, MAX_INHERITED);
     // Nothing similar anywhere: the first members still show what the type offers.
     const names = near.length > 0 || inherited.length > 0 ? near : all.slice(0, MAX_NEAREST);
@@ -67,8 +93,65 @@ export function nearestNames(
 
 /** Why a source's index could not be searched, in a few words. */
 function causeOf(state: IndexState['state']): string {
-  if (state === 'unavailable') return 'switched off or link-only';
+  if (state === 'unavailable') return 'not available in this configuration';
   return state === 'building' ? 'index still building' : 'upstream failing';
+}
+
+function searched(state: IndexState): boolean {
+  return state.state === 'ready' || state.state === 'stale';
+}
+
+/** The capabilities that are switched off among the symbol sources of the targets. */
+function disabledCapabilities(ctx: Ctx, targets: readonly Target[]): Capability[] {
+  const off = new Set<Capability>();
+  for (const { product } of targets) {
+    const ids = symbolSources(product, undefined);
+    for (const source of product.sources) {
+      if (ids !== undefined && !ids.includes(source.id)) continue;
+      const { capability } = source;
+      if (capability !== undefined && !ctx.policy.enabled(capability)) off.add(capability);
+    }
+  }
+  return [...off];
+}
+
+/**
+ * The error of a lookup that could search no reference index at all, or `undefined` when at
+ * least one was searched (the lookup is then an honest miss) or when the indexes are merely
+ * still building. "Not found" would be the wrong code: nothing was looked at, and the
+ * recovery is to leave offline mode, to switch a capability on, or to wait for the upstream.
+ */
+export function unsearchedError(
+  ctx: Ctx,
+  req: SymbolRequest,
+  targets: readonly Target[],
+  states: readonly IndexState[],
+): McpDocError | undefined {
+  if (states.length === 0 || states.some(searched)) return undefined;
+  if (states.some((state) => state.state === 'building')) return undefined;
+  const products = targets.map((target) => target.product.id).join(', ');
+  const what = `"${req.symbol}" could not be looked up: no reference index of ${products} is available`;
+
+  if (ctx.policy.summary().offline) {
+    return new McpDocError('OFFLINE_MISS', what, {
+      why: 'Offline mode is on and the index is not in the cache, so nothing was searched',
+      next: 'Unset ARCGIS_DOCS_OFFLINE to fetch it',
+    });
+  }
+  const off = disabledCapabilities(ctx, targets);
+  const [capability] = off;
+  if (states.every((state) => state.state === 'unavailable') && capability !== undefined) {
+    return new McpDocError('SOURCE_DISABLED', what, {
+      why: `Its reference sources need ${off.map((name) => `capability "${name}"`).join(' or ')}, which is switched off`,
+      next: `Set ARCGIS_DOCS_SOURCES=+${capability}`,
+      capability,
+    });
+  }
+  if (states.every((state) => state.state === 'unavailable')) return undefined;
+  return new McpDocError('UPSTREAM_UNAVAILABLE', what, {
+    why: 'Its reference sources could not be reached, so nothing was searched; this says nothing about whether the symbol exists',
+    retryable: true,
+  });
 }
 
 /**
@@ -84,7 +167,7 @@ export function notFoundError(
 ): McpDocError {
   const products = targets.map((target) => target.product.id);
   // Without an enumerated index (fresh or stale) a miss says nothing about the symbol.
-  const pending = states.filter((state) => state.state !== 'ready' && state.state !== 'stale');
+  const pending = states.filter((state) => !searched(state));
   const transient = pending.some((state) => state.state !== 'unavailable');
   const unsearched = pending
     .map((state) => `${state.product}/${state.source} (${causeOf(state.state)})`)
@@ -92,11 +175,14 @@ export function notFoundError(
 
   let why: string;
   if (knownType !== undefined) {
-    why = `${displayName(knownType)} is documented but no member with this name was found (an inherited member is listed under the type that declares it); not verified, and this does not prove it does not exist`;
+    why = `${displayName(knownType)} is documented but no member with this name was found, in the index or on its page (an inherited member is listed under the type that declares it); not verified, and this does not prove it does not exist`;
+  } else if (products.length === 0) {
+    why =
+      'Not verified: no product could be inferred from this name, so nothing was searched. Pass "product" (arcgis_docs_list_products lists the ids). This does not prove it does not exist';
   } else if (pending.length > 0) {
     why = `Not verified: ${unsearched} could not be searched${transient ? '; retry' : ''}. This does not prove it does not exist`;
   } else {
-    why = `Not verified: the reference of ${products.join(', ') || 'no product'} has no symbol with this name. This does not prove it does not exist`;
+    why = `Not verified: the reference of ${products.join(', ')} has no symbol with this name. This does not prove it does not exist`;
   }
   return new McpDocError('SYMBOL_NOT_FOUND', `No symbol "${req.symbol}" was found`, {
     why,

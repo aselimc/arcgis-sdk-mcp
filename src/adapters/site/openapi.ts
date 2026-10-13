@@ -22,11 +22,12 @@ import {
   absoluteUrl,
   assertLive,
   budgetOf,
-  tolerate,
+  fragmentOf,
   licenseOf,
   probeSource,
   recordOf,
   renderOptionsOf,
+  tolerate,
 } from '../kit/index.js';
 
 type Json = Record<string, unknown>;
@@ -229,14 +230,6 @@ function renderInput(spec: Json, fragment: string): RendererInputs['openapi'] {
   return { spec, target: `${found.method.toUpperCase()} ${found.path}` };
 }
 
-function decoded(hash: string): string {
-  try {
-    return decodeURIComponent(hash.replace(/^#/, ''));
-  } catch {
-    return hash.replace(/^#/, '');
-  }
-}
-
 /**
  * `openapi`: one request per document for the catalogue (operations and schemas as symbols),
  * the `openapi` renderer for content. A ref whose fragment names nothing in the document is
@@ -288,7 +281,7 @@ export const openapiAdapter: SourceAdapter<'openapi'> = {
     const version = str(isObject(spec.info) ? spec.info.version : undefined);
     return ctx.render.render(
       'openapi',
-      renderInput(spec, decoded(target.url.hash)),
+      renderInput(spec, fragmentOf(target.url) ?? ''),
       {
         url: target.url.href,
         product: src.product.id,

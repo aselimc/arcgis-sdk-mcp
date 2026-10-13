@@ -8,14 +8,14 @@ import type { BoundSource, Ctx, SourceAdapter } from '../../core/ports.js';
 import type { CatalogRecord, HtmlFamily } from '../../core/types.js';
 import {
   assertLive,
-  tolerate,
   indexRequest,
+  isIndexCanary,
   probeSource,
   readHtmlPage,
   siteIndexEnabled,
   symbolTarget,
+  tolerate,
   unusableIndex,
-  isIndexCanary,
 } from '../kit/index.js';
 import {
   javadocLegacyRecords,

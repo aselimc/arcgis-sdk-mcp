@@ -17,7 +17,7 @@ import type {
 } from '../../core/ports.js';
 import type { CatalogRecord, DocPage } from '../../core/types.js';
 import { parseGithubUrl } from '../../core/url.js';
-import { tolerate, oneLine, symbolRecord, renderMeta, renderOptionsOf } from '../kit/index.js';
+import { oneLine, renderMeta, renderOptionsOf, symbolRecord, tolerate } from '../kit/index.js';
 
 /** Files read by one enumeration; the Pro SDK has 16. */
 const MAX_FILES = 20;

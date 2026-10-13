@@ -20,7 +20,7 @@ import type { RenderMeta, RenderOptions, SectionSelector } from '../core/ports.j
 import { sectionSubtree } from '../core/sections.js';
 import type { DocSection, MemberEntry, SourceFile } from '../core/types.js';
 import { buildSections, stripHeadingMarks } from './build-sections.js';
-import { squash, tagged, WORK_ROOT, workRoot } from './dom.js';
+import { isElement, squash, tagged, WORK_ROOT, workRoot } from './dom.js';
 import { absolutize } from './passes/absolutize.js';
 import { fixAsides } from './passes/fix-asides.js';
 import { fixCodeLinks } from './passes/fix-code-links.js';
@@ -117,6 +117,35 @@ function select(
   return nodes !== undefined && nodes.length > 0 ? { nodes } : {};
 }
 
+/** Children of one element above which they are grouped before conversion. */
+const WIDE = 512;
+/** Elements whose children mean something only as direct children. */
+const NOT_CHUNKED = new Set(
+  'ul ol dl table thead tbody tfoot tr pre code select a em strong b i span'.split(' '),
+);
+
+/**
+ * Groups the children of very wide elements into plain `div`s of {@link WIDE}. The Markdown
+ * converter joins the output of siblings one by one, re-reading everything joined so far,
+ * so its cost grows with the square of the number of siblings: ten thousand top-level
+ * blocks take seconds, grouped they take milliseconds. A `div` adds nothing to the Markdown
+ * of block content. Lists, tables and inline elements are left as they are.
+ */
+function chunkWideElements($: CheerioAPI): void {
+  const wide = $('*')
+    .get()
+    .filter((el) => isElement(el) && el.children.length > WIDE && !NOT_CHUNKED.has(el.tagName));
+  for (const el of wide) {
+    if (!isElement(el)) continue;
+    const children = [...el.children];
+    for (let start = 0; start < children.length; start += WIDE) {
+      const group = $('<div></div>');
+      $(el).append(group);
+      group.append(children.slice(start, start + WIDE));
+    }
+  }
+}
+
 /** Moves the nodes into a working document, runs the steps over it and converts the result. */
 function convertNodes(
   nodes: AnyNode[],
@@ -127,6 +156,7 @@ function convertNodes(
   const $ = load(`<${WORK_ROOT}></${WORK_ROOT}>`, null, false);
   workRoot($).append(nodes);
   for (const step of steps) step?.($, env);
+  chunkWideElements($);
   const converted = convert(workRoot($).html() ?? '');
   return { markdown: postProcess(converted.markdown), headingIds: converted.headingIds };
 }

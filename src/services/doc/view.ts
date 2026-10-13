@@ -5,16 +5,21 @@
  *   capped at a quarter of the budget, the outline and a suggestion for the next section.
  *   A document with nothing to outline is paged instead, and so is a section asked for by
  *   name whose own text does not fit the opening.
- * - `outline`: the structure only, at most 600 tokens.
+ * - `outline`: the structure only, at most 600 tokens unless the caller set a budget of its
+ *   own; sections that do not fit are still named, by id.
  * - `full`: sections in order, continued from a character offset; cuts fall between
  *   sections, or inside an oversized one at a paragraph or fence boundary.
  */
 import { estimateTokens, fitSections, joinSections } from '../../core/budget.js';
 import { LEAD_SECTION_ID, outlineOf, type OutlineEntry } from '../../core/sections.js';
 import type { DocPage, DocSection } from '../../core/types.js';
+import { mergeChunks } from './paging.js';
 
-/** Upper bound of an outline. */
+/** Upper bound of an outline whose size the caller did not choose. */
 export const MAX_OUTLINE_TOKENS = 600;
+
+/** Ids named on the line that stands for the rows an outline had no room for. */
+const MAX_COMPACT_IDS = 80;
 
 /** Share of the budget the opening of a large document may take in `auto`. */
 const LEAD_SHARE = 0.25;
@@ -42,6 +47,11 @@ export interface ViewRequest {
   offset: number;
   /** True when `shown` is one section the caller asked for by name. */
   selected?: boolean;
+  /**
+   * Budget of `view: "outline"` when the caller passed `max_tokens` itself; the default is
+   * {@link MAX_OUTLINE_TOKENS}.
+   */
+  outlineTokens?: number;
 }
 
 /** The rendered body. */
@@ -70,14 +80,19 @@ function row(entry: OutlineEntry, top: number): string {
 /**
  * The outline as text: one row per section with its id, title and the token size of its
  * subtree, two levels deep. A member-heavy API page lists member counts by kind instead of
- * every member; an outline over `maxTokens` drops to one level, then is cut with a count.
+ * every member; an outline over the budget drops to one level, then gives the rows that
+ * still do not fit as bare ids on one line. A section is never left unnamed: an id the
+ * agent cannot see is a part of the document it cannot ask for.
+ *
+ * @param limit the cap of the outline; `maxTokens` applies below it.
  */
 export function renderOutline(
   page: DocPage,
   sections: readonly DocSection[],
   maxTokens: number,
+  limit: number = MAX_OUTLINE_TOKENS,
 ): string {
-  const budget = Math.min(maxTokens, MAX_OUTLINE_TOKENS);
+  const budget = Math.min(maxTokens, limit);
   const memberIds = new Set((page.members ?? []).map((member) => member.id));
   const top = sections.filter((s) => s.level > 0).reduce((min, s) => Math.min(min, s.level), 6);
   const heading = 'Outline (pass an id as "section" to read that part):';
@@ -106,13 +121,18 @@ export function renderOutline(
   }
   if (estimateTokens(text()) > budget) {
     const all = rows;
+    const ids = all.map((line) => /`([^`]+)`/.exec(line)?.[1] ?? '');
     let kept = all.length;
     do {
       kept -= 1;
-      rows = [
-        ...all.slice(0, kept),
-        `- ... ${all.length - kept} more sections; ask for one by its heading text`,
-      ];
+      const dropped = ids.slice(kept).filter((id) => id !== '');
+      const named = dropped
+        .slice(0, MAX_COMPACT_IDS)
+        .map((id) => `\`${id}\``)
+        .join(', ');
+      const unnamed = dropped.length - Math.min(dropped.length, MAX_COMPACT_IDS);
+      const rest = unnamed > 0 ? ` and ${unnamed} more` : '';
+      rows = [...all.slice(0, kept), `- ... ${all.length - kept} more sections: ${named}${rest}`];
     } while (kept > 1 && estimateTokens(text()) > budget);
   }
   return text();
@@ -126,8 +146,10 @@ function largestSection(page: DocPage, sections: readonly DocSection[]): string 
   );
   // A section that is the whole document (a single top-level heading) is no narrowing.
   const whole = sections.reduce((sum, section) => sum + section.tokens, 0);
-  return candidates.filter((entry) => entry.tokens < whole).sort((a, b) => b.tokens - a.tokens)[0]
-    ?.id;
+  const narrower = candidates.filter((entry) => entry.tokens < whole);
+  // One section below a bare title is no choice either: a source file under its name.
+  if (candidates.length === 1 && sections.length === 2) return undefined;
+  return narrower.sort((a, b) => b.tokens - a.tokens)[0]?.id;
 }
 
 /** Renders one view of a page within `maxTokens`. */
@@ -140,7 +162,10 @@ export function renderView(request: ViewRequest): ViewResult {
   if (view === 'outline') {
     const suggest = largestSection(page, shown);
     return {
-      text: joinParts([`# ${page.title}`, renderOutline(page, shown, maxTokens)]),
+      text: joinParts([
+        `# ${page.title}`,
+        renderOutline(page, shown, maxTokens, request.outlineTokens ?? MAX_OUTLINE_TOKENS),
+      ]),
       truncated: false,
       ...(suggest === undefined ? {} : { suggest }),
     };
@@ -149,7 +174,7 @@ export function renderView(request: ViewRequest): ViewResult {
   const whole = joinSections(shown);
   if (view === 'auto' && offset === 0) {
     if (estimateTokens(joinParts([header, whole])) <= maxTokens) {
-      return { text: joinParts([header, whole]), truncated: false };
+      return { text: joinParts([header, mergeChunks(whole)]), truncated: false };
     }
     const suggest = largestSection(page, shown);
     const [lead, second] = shown;
@@ -165,7 +190,11 @@ export function renderView(request: ViewRequest): ViewResult {
       if (request.selected !== true || opening.cutInside !== lead.id) {
         const used = estimateTokens(joinParts([header, opening.text]));
         const outline = renderOutline(page, shown, Math.max(MIN_CONTENT_TOKENS, maxTokens - used));
-        return { text: joinParts([header, opening.text, outline]), truncated: true, suggest };
+        return {
+          text: joinParts([header, mergeChunks(opening.text), outline]),
+          truncated: true,
+          suggest,
+        };
       }
     }
     // Nothing to choose between (one long section): fall through to paging.
@@ -173,7 +202,7 @@ export function renderView(request: ViewRequest): ViewResult {
 
   const fit = fitSections(shown, budget, offset);
   return {
-    text: joinParts([header, fit.text]),
+    text: joinParts([header, mergeChunks(fit.text)]),
     truncated: fit.nextOffset !== undefined,
     ...(fit.nextOffset === undefined ? {} : { nextOffset: fit.nextOffset }),
   };

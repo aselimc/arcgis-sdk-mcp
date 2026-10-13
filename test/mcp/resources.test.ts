@@ -151,6 +151,8 @@ describe('resources', () => {
     });
   });
 
+  // Regression: over HTTP, which has no authentication, the status gave any caller the
+  // cache and project directories, and with them the account name of the machine's user.
   it('leaves local paths and the project out of the status in HTTP mode', async () => {
     const http = makeHarness({
       config: { mode: 'http', projectDir: '/home/someone/project' },
@@ -169,9 +171,17 @@ describe('resources', () => {
       expect(text).not.toContain(process.cwd());
       expect(text).not.toContain(JSON.stringify(process.cwd()).slice(1, -1));
       const status = JSON.parse(text) as Record<string, unknown>;
-      expect(Object.keys(status)).toEqual(['server', 'asOf', 'policy', 'cache', 'github', 'hosts', 'sources']);
+      expect(Object.keys(status)).toEqual([
+        'server',
+        'asOf',
+        'policy',
+        'cache',
+        'github',
+        'hosts',
+        'sources',
+      ]);
       expect(status.server).toMatchObject({ mode: 'http' });
-      expect(status.cache).toEqual({ bytes: expect.any(Number), entries: expect.any(Number), maxMb: 500 });
+      expect(status.cache).toEqual({ bytes: 0, entries: 0, maxMb: 500 });
     } finally {
       await served.close();
     }

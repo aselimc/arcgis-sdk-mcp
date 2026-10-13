@@ -1,9 +1,13 @@
 /**
  * The HTTP gateway (design section 6.2): the single place where this server talks to the
  * network. In order: URL guard and source policy, offline mode, single-flight, cache lookup,
- * then per hop live robots, request budget, circuit breaker, rate limiter and fetch, with
- * redirects and meta-refresh hops re-checked against the policy, body validation, negative
- * caching and stale-if-error.
+ * then per hop live robots, request budget, a pause the host asked for, circuit breaker,
+ * rate limiter and fetch, with redirects and meta-refresh hops re-checked against the
+ * policy, body validation, negative caching and stale-if-error.
+ *
+ * What is remembered as "no such document" for an hour: 404, 410, the host's own "not
+ * found" page, and a body of another shape than expected when no earlier copy is held.
+ * Everything else that is not the document leaves the cache as it was.
  */
 import { freshness } from '../cache/ttl.js';
 import { budgetExhausted } from '../core/async.js';
@@ -11,8 +15,8 @@ import { isMcpDocError, type McpDocError } from '../core/errors.js';
 import { PACKAGE_NAME } from '../core/names.js';
 import type { CachedHttpEntry, HttpClient, HttpRequest, HttpResponse } from '../core/ports.js';
 import type { HostPolicy } from '../core/types.js';
-import { CircuitBreakers } from './circuit-breaker.js';
 import { robotsDenied } from '../policy/policy-errors.js';
+import { CircuitBreakers } from './circuit-breaker.js';
 import { hostOf, located, notFound, staleMayAnswer, unavailable } from './errors.js';
 import { createExchange } from './exchange.js';
 import { Flights } from './flights.js';

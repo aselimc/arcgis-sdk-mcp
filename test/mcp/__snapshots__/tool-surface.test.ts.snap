@@ -255,7 +255,7 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
                   },
                   "pages": {
                     "maximum": 9007199254740991,
-                    "minimum": -9007199254740991,
+                    "minimum": 0,
                     "type": "integer",
                   },
                   "ref": {
@@ -388,7 +388,7 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
             "properties": {
               "depth": {
                 "maximum": 9007199254740991,
-                "minimum": -9007199254740991,
+                "minimum": 0,
                 "type": "integer",
               },
               "kind": {
@@ -411,7 +411,7 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
         },
         "total": {
           "maximum": 9007199254740991,
-          "minimum": -9007199254740991,
+          "minimum": 0,
           "type": "integer",
         },
       },
@@ -845,7 +845,7 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
               },
               "rank": {
                 "maximum": 9007199254740991,
-                "minimum": -9007199254740991,
+                "minimum": 1,
                 "type": "integer",
               },
               "ref": {
@@ -911,7 +911,7 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
         },
         "total": {
           "maximum": 9007199254740991,
-          "minimum": -9007199254740991,
+          "minimum": 0,
           "type": "integer",
         },
       },
@@ -1151,7 +1151,7 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
                   "properties": {
                     "bytes": {
                       "maximum": 9007199254740991,
-                      "minimum": -9007199254740991,
+                      "minimum": 0,
                       "type": "integer",
                     },
                     "name": {
@@ -1193,7 +1193,7 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
               },
               "rank": {
                 "maximum": 9007199254740991,
-                "minimum": -9007199254740991,
+                "minimum": 1,
                 "type": "integer",
               },
               "ref": {
@@ -1250,7 +1250,7 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
         },
         "total": {
           "maximum": 9007199254740991,
-          "minimum": -9007199254740991,
+          "minimum": 0,
           "type": "integer",
         },
       },

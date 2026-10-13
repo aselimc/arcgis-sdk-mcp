@@ -113,6 +113,34 @@ describe('catalogue tools', () => {
       expect(scoped.text).toContain('Next: arcgis_docs_read({"ref":"https://');
     });
 
+    // Regression: a table of contents is enumerated from Esri's site like search hits are,
+    // but ended without a Source line, as if it were registry data.
+    it('attributes a table of contents, unlike the list and the profile', async () => {
+      const toc = await call(TOOLS.listProducts, { product: 'js-maps-sdk', section: 'guide' });
+      expect(toc.text.split('\n').at(-1)).toMatch(
+        /^Source: Esri documentation at the refs above \(retrieved 2026-10-13\)\. Copyright \(c\) Esri/,
+      );
+      expect(toc.text.split('\n').at(-2)).toMatch(/^Next: arcgis_docs_list_products\(/);
+      for (const args of [{}, { product: 'js-maps-sdk' }]) {
+        expect((await call(TOOLS.listProducts, args)).text).not.toContain('Source:');
+      }
+    });
+
+    it("does not attribute a table of contents of this project's own briefs or an empty one", async () => {
+      const tocOf = suite.harness.services.catalog.toc.bind(suite.harness.services.catalog);
+      suite.harness.services.catalog.toc = async (...args) => {
+        const toc = await tocOf(...args);
+        return { ...toc, entries: toc.entries.map((entry) => ({ ...entry, license: 'project' })) };
+      };
+      const briefs = await call(TOOLS.listProducts, { product: 'js-maps-sdk', section: 'briefs' });
+      expect(briefs.text).not.toContain('Source:');
+      suite.harness.services.catalog.toc = async () => ({ entries: [], total: 0 });
+      const empty = await call(TOOLS.listProducts, { product: 'js-maps-sdk', section: 'guide' });
+      expect(empty.text).toContain('Note: This source has no table of contents yet');
+      expect(empty.text).not.toContain('Source:');
+      suite.harness.services.catalog.toc = tocOf;
+    });
+
     it('renders an unknown product as an error with the nearest ids', async () => {
       const outcome = await call(TOOLS.listProducts, { product: 'js-maps-sdx' });
       expect(outcome.isError).toBe(true);

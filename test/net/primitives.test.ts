@@ -264,6 +264,14 @@ describe('createRateLimiter: waits end at the deadline and on cancellation', () 
     expect(sleeping.map((sleep) => sleep.ms)).toEqual([60_000]);
     controller.abort();
     expect(await waiting).toBeUndefined();
+
+    // The cancelled caller sent nothing, so its turn is free again: the next request waits
+    // one interval after the first one, not two.
+    const next = limiter.acquire('hub', slow);
+    await tick();
+    expect(sleeping.map((sleep) => sleep.ms)).toEqual([60_000, 60_000]);
+    sleeping[1]?.wake();
+    expect(await next).toBeDefined();
   });
 
   it('does not hold a global slot while it waits for the rate token of a slow host', async () => {

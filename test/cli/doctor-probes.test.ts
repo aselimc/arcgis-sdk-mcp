@@ -39,7 +39,8 @@ describe('runDoctor: probes', () => {
       'github',
       'hosts',
     ]);
-    expect(progress).toEqual(['probing 1 sources', 'ok widgets-sdk/guide']);
+    expect(report.probed).toBe('floor-sources');
+    expect(progress).toEqual(['probing 1 floor sources (one per product)', 'ok widgets-sdk/guide']);
   });
 
   it('includes help products with --tier all', async () => {

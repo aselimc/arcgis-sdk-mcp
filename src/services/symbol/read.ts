@@ -1,10 +1,13 @@
 /**
  * Reads the page of a resolved symbol and walks the content ladder (design section 6.6)
  * when a source cannot answer: the same symbol in another source, the declared fallbacks of
- * its source, and finally a link-only page built from the catalogue record. It never throws.
+ * its source, and finally a link-only page built from the catalogue record. It throws only
+ * for a version the caller named that does not exist (`VERSION_UNAVAILABLE`).
  */
 import { bindSource, defaultSymbolRead } from '../../core/adapter-helpers.js';
-import { isMcpDocError } from '../../core/errors.js';
+import { formatCall } from '../../core/budget.js';
+import { McpDocError, isMcpDocError } from '../../core/errors.js';
+import { TOOLS } from '../../core/names.js';
 import type { AdapterRegistry, CallOptions, Ctx } from '../../core/ports.js';
 import type { CatalogRecord, DocPage, SourceDef, SymbolDetail } from '../../core/types.js';
 import { linkOnlyPage } from '../doc/display.js';
@@ -81,6 +84,17 @@ export function createSymbolReader(ctx: Ctx, adapters: AdapterRegistry): SymbolR
           return { ...page, notices: [...page.notices, notice] };
         } catch (error) {
           if (isMcpDocError(error)) {
+            // A version the caller asked for and no package has is the caller's to correct. The
+            // ladder below is for upstream trouble: a link-only page labelled with the current
+            // version would read as an answer.
+            if (error.code === 'VERSION_UNAVAILABLE' && target.explicit) {
+              throw new McpDocError(error.code, error.message, {
+                ...error.details,
+                next:
+                  error.details?.next ??
+                  formatCall(TOOLS.getVersions, { product: target.product.id }),
+              });
+            }
             reason = `${error.code}: ${error.message}`;
           } else {
             ctx.logger.error('symbol read failed unexpectedly', { ref: attempt.record.ref, error });

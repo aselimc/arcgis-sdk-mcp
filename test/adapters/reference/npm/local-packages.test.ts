@@ -1,5 +1,5 @@
-import { writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdirSync, renameSync, symlinkSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   findLocalPackage,
@@ -106,5 +106,60 @@ describe('reading installed files', () => {
   it('lists nothing for a directory that cannot be read', async () => {
     const pkg = await installed();
     expect(await listLocalFiles({ ...pkg, dir: join(pkg.dir, 'missing') }, '.d.ts')).toEqual([]);
+  });
+
+  // SECURITY.md: a path that reads outside the project or cache directories is in scope.
+  describe('links', () => {
+    /** A directory next to the project, which no package may read from. */
+    function outsideOf(pkgDir: string): string {
+      const outside = join(dirname(dirname(dirname(dirname(pkgDir)))), 'outside');
+      mkdirSync(outside, { recursive: true });
+      writeFileSync(join(outside, 'Leak.d.ts'), 'export declare const SECRET: "not yours";');
+      writeFileSync(join(outside, 'id_key'), 'not a real key');
+      return outside;
+    }
+
+    it('neither lists nor reads through a linked directory that leaves the package', async () => {
+      const pkg = await installed();
+      // A junction needs no privilege on Windows and is a symbolic link everywhere else.
+      symlinkSync(outsideOf(pkg.dir), join(pkg.dir, 'linked'), 'junction');
+
+      expect(await listLocalFiles(pkg, '.d.ts')).toEqual(['Gadget.d.ts', 'layers/PanelLayer.d.ts']);
+      expect(await readLocalFile(pkg, 'linked/Leak.d.ts', 1000)).toBeUndefined();
+      expect(await readLocalFile(pkg, 'linked/id_key', 1000)).toBeUndefined();
+    });
+
+    it('does not read a linked file that leaves the package', async ({ skip }) => {
+      const pkg = await installed();
+      try {
+        symlinkSync(join(outsideOf(pkg.dir), 'id_key'), join(pkg.dir, 'Stolen.d.ts'), 'file');
+      } catch {
+        // Windows lets only privileged accounts create file links; the junction test covers it.
+        skip();
+      }
+      expect(await listLocalFiles(pkg, '.d.ts')).toEqual(['Gadget.d.ts', 'layers/PanelLayer.d.ts']);
+      expect(await readLocalFile(pkg, 'Stolen.d.ts', 1000)).toBeUndefined();
+    });
+
+    it('reads a package whose own directory is a link, as pnpm and workspaces install it', async () => {
+      const pkg = await installed();
+      const store = join(dirname(dirname(dirname(dirname(pkg.dir)))), 'store', 'widget-core');
+      mkdirSync(dirname(store), { recursive: true });
+      renameSync(pkg.dir, store);
+      symlinkSync(store, pkg.dir, 'junction');
+
+      expect(await listLocalFiles(pkg, '.d.ts')).toEqual(['Gadget.d.ts', 'layers/PanelLayer.d.ts']);
+      expect(await readLocalFile(pkg, 'Gadget.d.ts', 1000)).toBe(files['Gadget.d.ts']);
+    });
+
+    it('follows a link that stays inside the package when reading, without listing it twice', async () => {
+      const pkg = await installed();
+      symlinkSync(join(pkg.dir, 'layers'), join(pkg.dir, 'alias'), 'junction');
+
+      expect(await listLocalFiles(pkg, '.d.ts')).toEqual(['Gadget.d.ts', 'layers/PanelLayer.d.ts']);
+      expect(await readLocalFile(pkg, 'alias/PanelLayer.js', 1000)).toBe(
+        files['layers/PanelLayer.js'],
+      );
+    });
   });
 });

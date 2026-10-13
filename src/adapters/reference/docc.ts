@@ -13,15 +13,15 @@ import {
   assertLive,
   budgetOf,
   indexRequest,
+  isIndexCanary,
   oneLine,
   probeSource,
-  symbolRecord,
   renderMeta,
   renderOptionsOf,
   siteIndexEnabled,
+  symbolRecord,
   symbolTarget,
   unusableIndex,
-  isIndexCanary,
 } from '../kit/index.js';
 
 /** One node of the navigator tree. Group markers have no `path`. */

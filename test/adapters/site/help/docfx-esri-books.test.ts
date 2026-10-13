@@ -160,7 +160,7 @@ describe('docfx-esri: help books', () => {
     replaceResponses(ctx, helpCassette(), { [`${HELP_ROOT}toc.json`]: { json: { items: [] } } });
     expect(await docfxEsriAdapter.enumerate!(ctx, src)).toHaveLength(4);
     expect(ctx.logger.messages('warn')).toEqual([
-      'The root table of contents is unavailable; enumerating without it',
+      'The root table of contents is unavailable; continuing without it',
     ]);
   });
 

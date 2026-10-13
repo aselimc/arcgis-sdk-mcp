@@ -19,10 +19,11 @@ import { readSitemap, sitemapRecords } from './sitemap.js';
 import {
   assertLive,
   budgetOf,
-  tolerate,
+  fragmentOf,
   probeSource,
   readHtmlPage,
   recordOf,
+  tolerate,
 } from '../kit/index.js';
 
 type AstroSource = BoundSource<'astro'>;
@@ -295,16 +296,6 @@ function read(ctx: Ctx, src: AstroSource, target: ReadTarget): Promise<DocPage> 
   return readHtmlPage(ctx, src, target, { kind: kindOf(src, target) });
 }
 
-/** The decoded anchor of a ref; empty when it has none. */
-function anchorOf(url: URL): string {
-  const raw = url.hash.slice(1);
-  try {
-    return decodeURIComponent(raw);
-  } catch {
-    return raw;
-  }
-}
-
 /**
  * `astro`: sitemap, sample index page and MiniSearch `storedFields` for the catalogue; HTML
  * pages for content. A symbol is read from its page with the record's anchor as the member
@@ -318,7 +309,8 @@ export const astroAdapter: SourceAdapter<'astro'> = {
 
   symbol(ctx, src, record, detail) {
     const url = new URL(record.ref);
-    const member = anchorOf(url) || (record.parent === undefined ? '' : (record.symbol ?? ''));
+    const member =
+      (fragmentOf(url) ?? '') || (record.parent === undefined ? '' : (record.symbol ?? ''));
     return read(ctx, src, {
       url,
       detail,

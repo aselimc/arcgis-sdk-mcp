@@ -49,12 +49,60 @@ export function withSearch(error: McpDocError, url: string, product?: string): M
   });
 }
 
+function segmentsOf(url: string): string[] {
+  try {
+    return new URL(url).pathname.split('/').filter((segment) => segment !== '');
+  } catch {
+    return [];
+  }
+}
+
+/** True when two URLs are the same page but for a trailing slash or the case of the host. */
+function samePage(a: string, b: string): boolean {
+  const key = (url: string): string => url.replace(/\/+$/, '').toLowerCase();
+  return a === b || key(a) === key(b);
+}
+
+/**
+ * True when a redirect led from a page to a page higher up that does not carry its name:
+ * `/javascript/3/jsapi/featurelayer-amd.html` to `/javascript/latest/`. Sites retire pages
+ * this way instead of answering 404, and the entry page is not the document asked for. A
+ * move (`/old-name/` to `/new-name/`, or to a deeper path) keeps or adds depth.
+ */
+export function leftForEntryPage(requested: string, landed: string): boolean {
+  const from = segmentsOf(requested);
+  const to = segmentsOf(landed);
+  if (to.length >= from.length) return false;
+  const slug = (from.at(-1) ?? '').replace(/\.[a-z0-9]+$/i, '').toLowerCase();
+  return slug === '' || !to.some((segment) => segment.toLowerCase().includes(slug));
+}
+
+/** `DOC_NOT_FOUND` for a page that only redirects to an entry page. */
+function movedAway(ctx: Ctx, requested: string, landed: string): McpDocError {
+  let product: string | undefined;
+  try {
+    product = ctx.registry.ownerOf(new URL(landed))?.product.id;
+  } catch {
+    product = undefined;
+  }
+  return new McpDocError('DOC_NOT_FOUND', `${requested} no longer exists`, {
+    why: `It redirects to ${landed}, an entry page that is not this document`,
+    url: requested,
+    next: searchFromUrl(requested, product),
+  });
+}
+
 /** Reads pages outside the registry. */
 export interface UnownedReader {
+  /**
+   * @param reroute reads the page a redirect led to through the source that owns it;
+   *   `undefined` when no source does.
+   */
   generic(
     route: Extract<Route, { kind: 'generic' }>,
     call: CallOptions,
     options: ReadOptions,
+    reroute?: (url: string) => Promise<DocPage | undefined>,
   ): Promise<DocPage>;
   github(
     route: Extract<Route, { kind: 'github' }>,
@@ -85,25 +133,45 @@ export function createUnownedReader(ctx: Ctx, titleOf: (url: string) => string):
   };
 
   return {
-    generic(route, call, options) {
+    generic(route, call, options, reroute) {
       const meta = {
         url: route.url.href,
         kind: 'guide',
         license: 'esri-website-terms',
       } as const satisfies RenderMeta;
       return guarded(meta, async () => {
+        const requested = route.url.href.replace(/#.*$/, '');
         const res = await ctx.http.get({
-          url: route.url.href.replace(/#.*$/, ''),
+          url: requested,
           expect: 'html',
           budget: call.budget,
           ...(call.signal === undefined ? {} : { signal: call.signal }),
         });
-        return ctx.render.render(
+        const landed = res.finalUrl.replace(/#.*$/, '');
+        if (samePage(requested, landed)) {
+          return ctx.render.render(
+            'html',
+            { html: res.text },
+            { ...meta, res },
+            renderOptions(options),
+          );
+        }
+        // The page that answered is another one. What is returned must be cited as that
+        // page, and a redirect to an entry page is the site's way of saying "gone".
+        if (leftForEntryPage(requested, landed)) throw movedAway(ctx, requested, landed);
+        const target = `${landed}${route.url.hash}`;
+        const from = [...new Set([requested, ...res.aliasChain])].filter((hop) => hop !== landed);
+        const owned = await reroute?.(target);
+        if (owned !== undefined) {
+          return { ...owned, redirectedFrom: [...from, ...owned.redirectedFrom] };
+        }
+        const page = ctx.render.render(
           'html',
           { html: res.text },
-          { ...meta, res },
+          { ...meta, url: target, res },
           renderOptions(options),
         );
+        return { ...page, redirectedFrom: from };
       });
     },
 

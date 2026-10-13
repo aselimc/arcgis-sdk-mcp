@@ -5,6 +5,8 @@ import {
   openapiAdapter,
 } from '../../../../src/adapters/site/openapi.js';
 import { bindSource } from '../../../../src/core/adapter-helpers.js';
+import { newBudget } from '../../../../src/core/async.js';
+import { McpDocError } from '../../../../src/core/errors.js';
 import type { RendererInputs } from '../../../../src/core/ports.js';
 import type { CatalogRecord } from '../../../../src/core/types.js';
 import { makeLine, makeProduct, makeSource } from '../../../support/builders.js';
@@ -152,8 +154,36 @@ describe('openapi: enumerate', () => {
     expect(records.filter((record) => record.ref.startsWith(FEED))).toEqual([]);
     expect(records).toHaveLength(11);
     expect(ctx.logger.messages('warn')).toEqual([
-      `OpenAPI document ${FEED} is unavailable; enumerating without it`,
+      `OpenAPI document ${FEED} is unavailable; continuing without it`,
     ]);
+  });
+
+  // A host paced at one request a minute cannot serve five documents inside one index build.
+  // The gateway then declines the next request although the budget is not spent; the two
+  // documents read so far must not be stored as the whole catalogue.
+  it('fails rather than list part of the documents when the gateway did not send a request', async () => {
+    const ctx = ctxOf();
+    const budget = newBudget(8, 120_000, ctx.clock);
+    const get = ctx.http.get.bind(ctx.http);
+    ctx.http.get = (request) => {
+      if (request.url !== FEED) return get(request);
+      return Promise.reject(
+        new McpDocError('UPSTREAM_UNAVAILABLE', 'The request to hub.arcgis.com was not sent', {
+          why: 'Requests are spaced out, and the next one may only start after the deadline',
+          url: FEED,
+          retryable: true,
+          ...({ declined: 'pacing' } as object),
+        }),
+      );
+    };
+    const src = bindSource(product, api, makeLine(), undefined, budget);
+
+    await expect(openapiAdapter.enumerate!(ctx, src)).rejects.toMatchObject({
+      code: 'UPSTREAM_UNAVAILABLE',
+      details: { url: FEED, declined: 'pacing' },
+    });
+    expect(budget.used).toBeLessThan(budget.maxRequests);
+    expect(ctx.logger.messages('warn')).toEqual([]);
   });
 
   it('answers LINK_ONLY on a link-only line', async () => {

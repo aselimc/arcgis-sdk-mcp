@@ -100,7 +100,7 @@ describe('pkgdown: enumerate', () => {
       WIDGETNEW,
     ]);
     expect(ctx.logger.messages('warn')).toEqual([
-      'The package site widgetnew is unavailable; enumerating without it',
+      'The package site widgetnew is unavailable; continuing without it',
     ]);
   });
 

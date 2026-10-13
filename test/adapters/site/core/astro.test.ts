@@ -226,7 +226,7 @@ describe('astro: enumerate a guide', () => {
     const records = await astroAdapter.enumerate!(ctx, boundGuide());
     expect(records).toHaveLength(8);
     expect(ctx.logger.messages('warn')).toEqual([
-      'Search index sample-code-wpf-search.json is unavailable; enumerating without it',
+      'Search index sample-code-wpf-search.json is unavailable; continuing without it',
     ]);
   });
 

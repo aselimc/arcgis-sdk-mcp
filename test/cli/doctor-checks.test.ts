@@ -138,9 +138,21 @@ describe('formatDoctorReport', () => {
     const text = formatDoctorReport(await runDoctor(container, { tier: 'all' }, deps));
     expect(text).toContain('[ok]   config: arcgis-sdk-mcp 0.0.0-test, Node 22.15.0, stdio mode');
     expect(text).toContain('       project directory: /project');
-    expect(text).toContain('Sources probed: 2 ok, 0 failed, 0 skipped');
+    expect(text).toContain(
+      '\nFloor sources probed (one per product; --product <id> probes every source of one): 2 ok, 0 failed, 0 skipped\n',
+    );
     expect(text).toContain('[ok]   widgets-sdk/guide (gatsby, floor, 40 records, 12 ms)');
     expect(text.endsWith('Result: ok\n')).toBe(true);
+  });
+
+  // Regression: a default run printed "Sources probed", which read as every source of every
+  // product although only one source per product is selected.
+  it('says whether it probed the floor sources or every source of one product', async () => {
+    const { container, deps } = setup();
+    const one = await runDoctor(container, { tier: 'developer', product: 'widgets-sdk' }, deps);
+    expect(one.probed).toBe('product-sources');
+    expect(formatDoctorReport(one)).toContain('\nSources probed: 2 ok, 0 failed, 0 skipped\n');
+    expect(formatDoctorReport(one)).not.toContain('Floor sources probed');
   });
 
   it('prints the reason and URL of a failed probe and names the failed floors', async () => {

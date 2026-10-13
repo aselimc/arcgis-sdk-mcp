@@ -14,9 +14,11 @@ import type {
   RenderMeta,
 } from '../../core/ports.js';
 import type { DocPage, SourceDef } from '../../core/types.js';
+import { parseGithubUrl } from '../../core/url.js';
 import type { IndexInternals } from '../index/types.js';
 import { linkOnlyPage } from './display.js';
-import type { OwnedRoute, Route } from './router.js';
+import { isCommitRef, verifyCommit } from './github-ref.js';
+import { routeRef, type OwnedRoute, type Route } from './router.js';
 import {
   createUnownedReader,
   isUpstreamFailure,
@@ -131,8 +133,36 @@ export function createPageReader(
     );
   };
 
+  /**
+   * Refuses a GitHub commit that is not known to be the repository owner's own. A ref this
+   * server put into a catalogue record itself needs no check.
+   */
+  const vetCommit = async (url: URL, call: CallOptions): Promise<void> => {
+    const location = parseGithubUrl(url.href);
+    if (location === undefined || !isCommitRef(location)) return;
+    if (index.record(url.href) !== undefined) return;
+    await verifyCommit(ctx, url, location, call);
+  };
+
+  /** The page a redirect led to, read through the source that owns it; `undefined` when none does. */
+  const reroute = async (
+    url: string,
+    call: CallOptions,
+    options: ReadOptions,
+  ): Promise<DocPage | undefined> => {
+    let route: Route;
+    try {
+      route = routeRef(ctx, adapters, url, call.budget);
+    } catch {
+      // The target cannot be read as a page of its own; it is shown as what was fetched.
+      return undefined;
+    }
+    return route.kind === 'owned' ? readOwned(route, call, options) : undefined;
+  };
+
   return {
     async read(route, call, options = {}) {
+      if (route.kind === 'owned' || route.kind === 'github') await vetCommit(route.url, call);
       switch (route.kind) {
         case 'brief': {
           const meta: RenderMeta = {
@@ -152,7 +182,7 @@ export function createPageReader(
         case 'github':
           return unowned.github(route, call, options);
         case 'generic':
-          return unowned.generic(route, call, options);
+          return unowned.generic(route, call, options, (url) => reroute(url, call, options));
       }
     },
   };

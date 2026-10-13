@@ -277,7 +277,7 @@ describe('docfx-esri: tool reference', () => {
     ctx.http.fail(SITEMAP, 503);
     expect(await docfxEsriAdapter.enumerate!(ctx, boundTools())).toHaveLength(12);
     expect(ctx.logger.messages('warn')).toEqual([
-      `Sitemap ${SITEMAP} is unavailable; enumerating without it`,
+      `Sitemap ${SITEMAP} is unavailable; continuing without it`,
     ]);
   });
 

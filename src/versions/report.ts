@@ -6,8 +6,9 @@
 import { budgetExhausted } from '../core/async.js';
 import { isMcpDocError } from '../core/errors.js';
 import type { CallOptions, Ctx, VersionReport } from '../core/ports.js';
-import type { Product, VersionFact, VersionLine, WorkspaceSdk } from '../core/types.js';
+import type { Product, VersionFact, VersionLine } from '../core/types.js';
 import { isPrerelease } from '../core/version-key.js';
+import type { DetectedSdk } from '../workspace/index.js';
 import { readCompatibility } from './compatibility.js';
 import { deprecationNotices } from './deprecations.js';
 import { mergeFacts } from './merge.js';
@@ -69,18 +70,59 @@ function factsOfLine(facts: VersionFact[], line: VersionLine | undefined): Versi
   return facts.filter((fact) => fact.role === 'lifecycle' || belongsToLine(fact.value, line));
 }
 
-function statusNotices(ctx: Ctx, product: Product): string[] {
+const sentence = (text: string): string => {
+  const trimmed = text.trim().replace(/[.;]+$/, '');
+  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1)}.`;
+};
+
+/**
+ * Where the product stands, from its life cycle dates when they are known. The registry
+ * status is a word written on some day; a retirement date says whether that day has come,
+ * so "retired" is never printed next to a retirement that is still ahead.
+ */
+function lifecycleSentence(
+  product: Product,
+  facts: readonly VersionFact[],
+  today: string,
+): string | undefined {
+  const phase = (tag: string): string | undefined =>
+    facts.find((fact) => fact.role === 'lifecycle' && fact.tag === tag)?.value;
+  const passed = (date: string | undefined): boolean =>
+    date !== undefined && date <= today.slice(0, date.length);
+  const retirement = phase('retirement');
+  if (retirement === undefined) return undefined;
+  if (passed(retirement)) return `${product.name} was retired on ${retirement}`;
+  const mature = passed(phase('mature')) ? 'is in mature support and ' : '';
+  return `${product.name} ${mature}retires on ${retirement}`;
+}
+
+/**
+ * One notice for a product that is not active: its standing, the registry's note, and the
+ * successor. A note that states the status itself ("Retired 2025-02-01") is not preceded by
+ * a second statement of it.
+ */
+function statusNotices(ctx: Ctx, product: Product, facts: readonly VersionFact[]): string[] {
   if (product.status === 'active') return [];
-  const successor =
-    product.successor === undefined
-      ? undefined
-      : (ctx.registry.get(product.successor)?.name ?? product.successor);
-  const parts = [
-    `${product.name} is ${product.status}`,
-    ...(product.statusNote === undefined ? [] : [product.statusNote]),
-    ...(successor === undefined ? [] : [`successor: ${successor} (${product.successor})`]),
-  ];
-  return [`${parts.join('; ')}.`];
+  const today = new Date(ctx.clock.now()).toISOString().slice(0, 10);
+  const note = product.statusNote?.trim();
+  const dated = lifecycleSentence(product, facts, today);
+  const noteStatesStatus =
+    note !== undefined && new RegExp(`\\b${product.status}\\b`, 'i').test(note);
+  const parts: string[] = [];
+  if (dated !== undefined) parts.push(sentence(dated));
+  else if (!noteStatesStatus) parts.push(sentence(`${product.name} is ${product.status}`));
+  if (note !== undefined) {
+    parts.push(parts.length === 0 ? sentence(`${product.name}: ${note}`) : sentence(note));
+  }
+  if (product.successor !== undefined) {
+    const name = ctx.registry.get(product.successor)?.name;
+    parts.push(
+      name === undefined
+        ? `Successor: ${product.successor}.`
+        : `Successor: ${name} (${product.successor}).`,
+    );
+  }
+  return [parts.join(' ')];
 }
 
 function lineNotices(product: Product, line: VersionLine | undefined): string[] {
@@ -191,22 +233,38 @@ export async function gatherProduct(
       if (!isMcpDocError(error)) throw error;
       // Notices are an extra: a missing Knowledge Base sitemap must not fail the report.
       deprecationsFailed = true;
-      return [] as string[];
+      return { lines: [] as string[], complete: false };
     }),
   ]);
 
+  // A product without a version oracle whose own column a matrix has (the web map and web
+  // scene specifications in the JavaScript SDK matrix) is documented at that version.
+  const fromMatrix: VersionFact[] =
+    merged.documented === undefined && compatibility.own !== undefined
+      ? [
+          {
+            role: 'documented',
+            value: compatibility.own.version,
+            oracle: 'page-regex',
+            url: compatibility.own.source,
+          },
+        ]
+      : [];
+  const facts = [...fromMatrix, ...merged.facts];
+  const current = merged.current ?? fromMatrix[0]?.value;
+
   const notices = [
-    ...statusNotices(ctx, product),
+    ...statusNotices(ctx, product, facts),
     ...resolved.notices,
     ...lineNotices(product, line),
-    ...(version === undefined ? [] : requestedNotices(version, merged.current, merged.facts)),
+    ...(version === undefined ? [] : requestedNotices(version, current, facts)),
     ...merged.notices,
-    ...(merged.current === undefined && product.oracles.length > 0
+    ...(current === undefined && product.oracles.length > 0
       ? [failureNotice(product, outcomes, releaseNotes.refs[0]?.ref)]
       : []),
     ...compatibility.notices,
     ...releaseNotes.notices,
-    ...deprecations,
+    ...deprecations.lines,
   ];
   const skipped = new Set<string>(outcomes.flatMap((outcome) => outcome.skipped ?? []));
   if (!ctx.policy.enabled('website')) skipped.add('website');
@@ -216,8 +274,8 @@ export async function gatherProduct(
 
   const transient = outcomes.some((outcome) => outcome.error?.details?.retryable === true);
   return {
-    facts: merged.facts,
-    ...(merged.current === undefined ? {} : { current: merged.current }),
+    facts,
+    ...(current === undefined ? {} : { current }),
     compatibility: compatibility.rows,
     releaseNotes: releaseNotes.refs,
     notices,
@@ -226,8 +284,10 @@ export async function gatherProduct(
     complete:
       !transient &&
       !deprecationsFailed &&
+      deprecations.complete &&
       compatibility.notices.length === 0 &&
-      releaseNotes.notices.length === 0 &&
+      // A notice about a version that has no page is an answer; an unreadable listing is not.
+      releaseNotes.complete &&
       !budgetExhausted(call.budget, ctx.clock),
   };
 }
@@ -235,19 +295,27 @@ export async function gatherProduct(
 /** The project's entry for a product: a package with a stated version first, the primary package before others. */
 export function projectSdk(
   product: Product,
-  sdks: readonly WorkspaceSdk[],
-): WorkspaceSdk | undefined {
+  sdks: readonly DetectedSdk[],
+): DetectedSdk | undefined {
   const own = sdks.filter((sdk) => sdk.product === product.id);
   return own.find((sdk) => sdk.version !== '') ?? own[0];
 }
 
-/** The notice that relates the project's version to the current one. */
-function projectNotice(sdk: WorkspaceSdk, current: string | undefined): string[] {
+/**
+ * The notice that relates the project's version to the current one. A range is reported as
+ * a range: its lowest version is what lookups assume, not what is installed.
+ */
+function projectNotice(sdk: DetectedSdk, current: string | undefined): string[] {
   if (sdk.version === '') {
     return [`The project uses ${sdk.package} (${sdk.file}) without stating a version.`];
   }
   const order = current === undefined ? undefined : compareAtSharedPrecision(sdk.version, current);
   if (order === undefined || order === 0 || current === undefined) return [];
+  if (sdk.range !== undefined && order < 0) {
+    return [
+      `The project declares ${sdk.package} ${sdk.range} (${sdk.file}): a range, and no lock file states the installed version. It is at least ${sdk.version} and may be as new as the current ${current}. Documentation lookups assume ${sdk.version}; pass "version" when another one is installed.`,
+    ];
+  }
   return order < 0
     ? [
         `The project uses ${sdk.package} ${sdk.version} (${sdk.file}); the current version is ${current}. Read documentation for ${sdk.version}, not for the current version.`,
@@ -261,10 +329,20 @@ function projectNotice(sdk: WorkspaceSdk, current: string | undefined): string[]
 export function toProductReport(
   product: Product,
   gathered: GatheredProduct,
-  sdks: readonly WorkspaceSdk[],
+  sdks: readonly DetectedSdk[],
   projectWarnings: readonly string[],
 ): ProductReport {
-  const project = projectSdk(product, sdks);
+  const found = projectSdk(product, sdks);
+  // What the manifest states, as it states it: `^5.0.4` is not the installed version 5.0.4.
+  const project =
+    found === undefined
+      ? undefined
+      : {
+          product: found.product,
+          package: found.package,
+          version: found.range ?? found.version,
+          file: found.file,
+        };
   return {
     product,
     facts: gathered.facts,
@@ -273,7 +351,7 @@ export function toProductReport(
     releaseNotes: gathered.releaseNotes,
     notices: [
       ...gathered.notices,
-      ...(project === undefined ? [] : projectNotice(project, gathered.current)),
+      ...(found === undefined ? [] : projectNotice(found, gathered.current)),
       ...projectWarnings,
     ],
     mismatches: gathered.mismatches,

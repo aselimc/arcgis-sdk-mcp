@@ -8,9 +8,12 @@ import { estimateTokens } from '../core/budget.js';
 import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js';
 import { pageProvenance } from '../core/provenance.js';
 import type { DocPage, DocSection, HtmlFamily, MemberEntry } from '../core/types.js';
+import { slugify } from '../core/url.js';
 import { resolveFamily } from './detect-family.js';
 import { measureMarkdown } from './diagnostics.js';
+import { squash } from './dom.js';
 import { PROFILES } from './families/registry.js';
+import { MAX_OPEN_TAGS, openTagDepth, shapeProblem } from './limits.js';
 import { runProfile, type ProfileResult } from './pipeline.js';
 import { fence, type Converted } from './turndown.js';
 
@@ -49,6 +52,45 @@ function driftReason(
   return undefined;
 }
 
+/**
+ * The page returned for a document that is not converted (see `limits.ts`): its title, one
+ * sentence saying why, and the link. `degraded.level` is `link-only`.
+ */
+function linkOnlyPage(
+  title: string,
+  problem: string,
+  meta: RenderMeta,
+  family: HtmlFamily,
+  started: number,
+): DocPage {
+  const reason = `The page was not converted: ${problem}.`;
+  const markdown = `# ${title}\n\n${reason} Open it in a browser: ${meta.url}`;
+  return {
+    ...pageProvenance(meta),
+    title,
+    sections: [{ id: slugify(title), level: 1, title, markdown, tokens: estimateTokens(markdown) }],
+    degraded: { level: 'link-only', reason },
+    diagnostics: {
+      family,
+      renderer: 'html',
+      fences: 0,
+      fencesWithLanguage: 0,
+      tablesByStrategy: {},
+      unknownIslands: [],
+      leftoverHtmlTags: 0,
+      redirectHops: meta.res?.aliasChain.length ?? 0,
+      ms: Math.round(performance.now() - started),
+    },
+    notices: [],
+  };
+}
+
+/** What a reader has to know about the code blocks the page shows collapsed. */
+function collapsedNotice(count: number, url: string): string {
+  const blocks = count === 1 ? '1 code block is' : `${count} code blocks are`;
+  return `${blocks} collapsed on the source page and cut off here: only the first lines are in its HTML. Each ends with a line that says so; the full text is at ${url}.`;
+}
+
 /** Converts one HTML document. `convert` is the Turndown converter of this extractor. */
 export function extractPage(
   convert: (html: string) => Converted,
@@ -58,7 +100,18 @@ export function extractPage(
 ): DocPage {
   const started = performance.now();
   const { html } = input;
+  const hinted = input.familyHint ?? 'generic';
+  if (openTagDepth(html) > MAX_OPEN_TAGS) {
+    const title = squash(/<title[^>]*>([^<]{1,300})/i.exec(html)?.[1] ?? '') || meta.url;
+    const problem = `its markup opens more than ${MAX_OPEN_TAGS} elements inside each other`;
+    return linkOnlyPage(title, problem, meta, hinted, started);
+  }
   const $ = load(html);
+  const problem = shapeProblem($);
+  if (problem !== undefined) {
+    const title = squash($('title').first().text()) || meta.url;
+    return linkOnlyPage(title, problem, meta, hinted, started);
+  }
   const detected = resolveFamily($, html, input.familyHint);
   let family = detected;
   let degraded: DocPage['degraded'];
@@ -125,6 +178,9 @@ export function extractPage(
       redirectHops: meta.res?.aliasChain.length ?? 0,
       ms: Math.round(performance.now() - started),
     },
-    notices: [],
+    notices:
+      result.counters.collapsedCode === 0
+        ? []
+        : [collapsedNotice(result.counters.collapsedCode, meta.url)],
   };
 }

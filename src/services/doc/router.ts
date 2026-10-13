@@ -12,6 +12,7 @@ import type { AdapterRegistry, Ctx, RequestBudget, SourceAdapter } from '../../c
 import { nearest } from '../../core/text-distance.js';
 import type { Product, SourceDef, VersionLine } from '../../core/types.js';
 import { githubBlobToRaw, parseGithubUrl, splitRef, type GithubLocation } from '../../core/url.js';
+import { refusedGithubRef } from './github-ref.js';
 
 /** A curated brief as the registry holds it. */
 export type Brief = ReturnType<Ctx['registry']['briefs']>[number];
@@ -65,18 +66,54 @@ function fetchedUrl(url: URL): URL {
   return new URL(githubBlobToRaw(url.href) ?? `https://api.github.com/repos/${location.repo}`);
 }
 
+/** The MCP resource form of a brief, which hosts list next to the tools. */
+const BRIEF_RESOURCE = /^arcgis-docs:\/\/brief\/(.+)$/i;
+const PRODUCT_RESOURCE = /^arcgis-docs:\/\/product\/([^/#?]+)/i;
+
+/**
+ * A ref in the spelling the rest of the service reads. The URI under which this server
+ * lists a brief as a resource (`arcgis-docs://brief/<slug>`) is the brief `brief:<slug>`:
+ * an agent that copies it from the resource list means that document.
+ */
+export function normalizeRef(ref: string): string {
+  const resource = BRIEF_RESOURCE.exec(ref.trim());
+  return resource === null ? ref : `brief:${resource[1] ?? ''}`;
+}
+
+/** A GitHub page that is not a file, wiki page or repository: an issue, a pull request, a commit. */
+function unreadableGithubPage(ctx: Ctx, url: URL): McpDocError {
+  const [owner = '', name = ''] = url.pathname.split('/').filter((segment) => segment !== '');
+  // The owner is the policy's decision; its refusal names the owners that are read.
+  if (owner !== '' && name !== '') {
+    ctx.policy.check(new URL(`https://api.github.com/repos/${owner}/${name}`));
+  }
+  return new McpDocError('HOST_NOT_ALLOWED', `${url.href} is not a readable GitHub page`, {
+    why: 'Of a repository, only files (github.com/<owner>/<repo>/blob/<branch or tag>/<path>), wiki pages (/wiki/<page>) and the repository root are read; issues, pull requests and commit pages are not',
+    url: url.href,
+    host: url.host,
+    ...(owner === '' || name === ''
+      ? {}
+      : { next: formatCall(TOOLS.read, { ref: `https://github.com/${owner}/${name}` }) }),
+  });
+}
+
 function briefRoute(ctx: Ctx, slug: string, fragment: string | undefined): Route {
   const briefs = ctx.registry.briefs();
   const brief = briefs.find((candidate) => candidate.slug.toLowerCase() === slug);
   if (brief === undefined) {
+    // The set is small and fixed, so all of it is listed, most similar first: a guess such
+    // as "brief:index" has no near neighbour, and then the list is the only way on.
+    const slugs = briefs.map((candidate) => candidate.slug);
+    const near = nearest(slug, slugs, slugs.length);
+    const ordered = [...near, ...slugs.filter((candidate) => !near.includes(candidate))];
+    const [first] = near;
     throw new McpDocError('DOC_NOT_FOUND', `There is no brief "${slug}"`, {
       why: 'Briefs are a fixed set of curated notes shipped with this server',
-      candidates: nearest(
-        slug,
-        briefs.map((candidate) => candidate.slug),
-        5,
-      ).map((candidate) => `brief:${candidate}`),
-      next: formatCall(TOOLS.search, { query: humanizeSlug(slug) || slug }),
+      candidates: ordered.map((candidate) => `brief:${candidate}`),
+      next:
+        first === undefined
+          ? formatCall(TOOLS.search, { query: humanizeSlug(slug) || slug })
+          : formatCall(TOOLS.read, { ref: `brief:${first}` }),
     });
   }
   // A brief belongs to the product whose `brief` source lists it, when there is one.
@@ -115,11 +152,24 @@ export function routeRef(
   ref: string,
   budget?: RequestBudget,
 ): Route {
-  const { url, fragment, brief } = splitRef(ref);
+  const profile = PRODUCT_RESOURCE.exec(ref.trim())?.[1];
+  if (profile !== undefined) {
+    throw new McpDocError('DOC_NOT_FOUND', `"${ref}" is a resource, not a document`, {
+      why: 'A product profile is read with arcgis_docs_list_products',
+      next: formatCall(TOOLS.listProducts, { product: profile }),
+    });
+  }
+  const { url, fragment, brief } = splitRef(normalizeRef(ref));
   if (brief !== undefined) return briefRoute(ctx, brief, fragment);
   if (url === undefined)
     throw new McpDocError('DOC_NOT_FOUND', `"${ref}" is not a documentation ref`);
   const part = fragment === undefined ? {} : { fragment };
+
+  const refused = refusedGithubRef(url);
+  if (refused !== undefined) throw refused;
+  if (url.hostname === 'github.com' && parseGithubUrl(url.href) === undefined) {
+    throw unreadableGithubPage(ctx, url);
+  }
 
   let hostDisabled: McpDocError | undefined;
   try {

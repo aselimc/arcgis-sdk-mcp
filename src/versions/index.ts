@@ -2,15 +2,17 @@
  * The version service (design sections 3.3 and 4.8): `report` backs
  * `arcgis_docs_get_versions`, `label` supplies the version printed on every other result.
  *
- * Reports are cached for six hours per product, line, requested version and capability set.
- * The user's project is joined in afterwards, so a changed manifest shows at once.
+ * What the oracles say is cached for six hours per product, requested version and
+ * capability set. The user's project is joined in afterwards from one scan that is reused
+ * for a minute (`createWorkspaceScanner`): the detected SDK and the retired-package warnings
+ * of a report come from the same walk, and a changed manifest shows within that minute.
  */
 import { budgetExhausted, newBudget, singleFlight } from '../core/async.js';
 import type { CreateVersionService } from '../core/factories.js';
 import type { CallOptions, Ctx, VersionReport } from '../core/ports.js';
 import type { OracleSpec, Product, VersionFact, VersionLine } from '../core/types.js';
-import { deadPackageWarning, type DeadPackageHit } from '../workspace/dead-packages.js';
-import { scanWorkspace } from '../workspace/index.js';
+import { deadPackageWarning } from '../workspace/dead-packages.js';
+import { createWorkspaceScanner } from '../workspace/index.js';
 import { mergeFacts } from './merge.js';
 import { ORACLES } from './oracles/index.js';
 import { gatherProduct, toProductReport, type GatheredProduct } from './report.js';
@@ -20,8 +22,6 @@ import { belongsToLine, lineNumbers, truncateVersion } from './version-text.js';
 export const VERSION_REPORT_TTL_MS = 6 * 60 * 60 * 1000;
 /** How long "no label could be read" is remembered before the oracles are asked again. */
 const MISSING_LABEL_TTL_MS = 60 * 60 * 1000;
-/** How long the project's retired-package scan is reused. */
-const PROJECT_SCAN_TTL_MS = 60 * 1000;
 /** `label` runs outside any tool call's budget, so it gets a small one of its own. */
 const LABEL_REQUESTS = 2;
 const LABEL_DEADLINE_MS = 4000;
@@ -44,6 +44,26 @@ function capabilityKey(ctx: Ctx): string {
     .join('+');
 }
 
+/**
+ * The cache key of a gathered report. "No version" and a version are different words
+ * (`current`, `v=5.1`), so no request can be answered with the report of another. The
+ * prefix names the layout of the key: entries written under an older layout, where an empty
+ * version and no version shared a key, are never read again.
+ */
+function reportKey(ctx: Ctx, product: Product, version: string | undefined): string {
+  const asked = version === undefined ? 'current' : `v=${version}`;
+  return `report2/${product.id}/${asked}/${capabilityKey(ctx)}`;
+}
+
+/**
+ * The version an agent asked about. Hosts and models send `""` for an optional argument
+ * they do not use, so a blank value means "not given", not "the version named nothing".
+ */
+function askedVersion(version: string | undefined): string | undefined {
+  const trimmed = version?.trim();
+  return trimmed === undefined || trimmed === '' ? undefined : trimmed;
+}
+
 /** Oracles in the order `label` tries them: live documented sources, then registries, then static values. */
 function labelOrder(product: Product): OracleSpec[] {
   const rank = (spec: OracleSpec): number => {
@@ -57,28 +77,20 @@ function labelOrder(product: Product): OracleSpec[] {
 export const createVersionService: CreateVersionService = (ctx) => {
   const labels = new Map<string, CachedLabel>();
   const labelFlights = singleFlight<string, string | undefined>();
-  let projectScan: { at: number; dead: DeadPackageHit[] } | undefined;
-
-  /** Retired packages in the project; the scan itself is empty in HTTP mode or with `workspace` off. */
-  const deadPackages = async (): Promise<DeadPackageHit[]> => {
-    if (projectScan !== undefined && ctx.clock.now() - projectScan.at < PROJECT_SCAN_TTL_MS) {
-      return projectScan.dead;
-    }
-    const scan = await scanWorkspace({
-      config: ctx.config,
-      registry: ctx.registry,
-      logger: ctx.logger,
-    });
-    projectScan = { at: ctx.clock.now(), dead: scan.dead };
-    return scan.dead;
-  };
+  /** The project as of at most a minute ago; empty in HTTP mode or with `workspace` off. */
+  const scanProject = createWorkspaceScanner({
+    config: ctx.config,
+    registry: ctx.registry,
+    logger: ctx.logger,
+    clock: ctx.clock,
+  });
 
   const gather = async (
     product: Product,
     version: string | undefined,
     call: CallOptions,
   ): Promise<CachedReport> => {
-    const key = `report/${product.id}/${version ?? ''}/${capabilityKey(ctx)}`;
+    const key = reportKey(ctx, product, version);
     const cached = await ctx.cache.getDerived<CachedReport>('versions', key);
     if (cached !== undefined && ctx.clock.now() - cached.at < VERSION_REPORT_TTL_MS) return cached;
     const fresh = {
@@ -112,10 +124,10 @@ export const createVersionService: CreateVersionService = (ctx) => {
 
   return {
     async report(req, call): Promise<VersionReport> {
-      const sdks = await ctx.workspace();
+      const { sdks, dead } = await scanProject();
       const notes: string[] = [];
       let products: Product[];
-      let version = req.version;
+      let version = askedVersion(req.version);
       if (req.product !== undefined) {
         products = [ctx.registry.resolve(req.product).product];
       } else {
@@ -134,7 +146,6 @@ export const createVersionService: CreateVersionService = (ctx) => {
         }
       }
 
-      const dead = await deadPackages();
       const entries: VersionReport['products'] = [];
       let oldest = ctx.clock.now();
       for (const product of products) {

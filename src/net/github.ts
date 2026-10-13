@@ -3,12 +3,16 @@
  * `raw.githubusercontent.com`. The unauthenticated API quota is 60 requests per hour, so
  * repository metadata is remembered for 7 days, a tree costs one request per day, and a spent
  * quota is reported as `RATE_LIMITED_GITHUB` with the reset time instead of a bare 403.
+ *
+ * The quota is enforced where every request passes: once the API has reported it as used up
+ * (or asked for a pause with `Retry-After`), the gateway answers further API requests itself
+ * until the time GitHub named, and this client only words that answer.
  */
 import { McpDocError, isMcpDocError } from '../core/errors.js';
 import type { CreateGithubClient } from '../core/factories.js';
 import type { GithubCallOptions, GithubClient, HttpRequest, HttpResponse } from '../core/ports.js';
 import type { LicenseTier } from '../core/types.js';
-import { notFound } from './errors.js';
+import { declinedBy, notFound } from './errors.js';
 import { classifyLicenseText, classifySpdx } from './github-license.js';
 import { rateLimitOf } from './rate-limit-info.js';
 
@@ -107,12 +111,13 @@ export function createGithubClient(deps: GithubDeps): GithubClient {
    * the agent to set a token for a failure that has nothing to do with quota would be a guess.
    */
   function translate(error: unknown, url: string): unknown {
-    if (!isMcpDocError(error)) return error;
+    // A request the gateway gave up on itself (cancelled, out of budget) is not GitHub's doing.
+    if (!isMcpDocError(error) || declinedBy(error) !== undefined) return error;
     const quota = knownQuota();
     const spent = quota.remaining === 0 || quota.pausedUntil !== undefined;
     // A refusal, an open breaker or spent retries while the quota is known to be gone: one cause.
-    const byQuota = error.code === 'UPSTREAM_BLOCKED' || error.code === 'UPSTREAM_UNAVAILABLE';
-    return byQuota && spent ? rateLimited(url) : error;
+    const byHost = error.code === 'UPSTREAM_BLOCKED' || error.code === 'UPSTREAM_UNAVAILABLE';
+    return byHost && spent ? rateLimited(url) : error;
   }
 
   async function api<J>(

@@ -1,18 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { bindSource } from '../../../../src/core/adapter-helpers.js';
-import { newBudget } from '../../../../src/core/async.js';
-import { McpDocError, isMcpDocError } from '../../../../src/core/errors.js';
+import { isMcpDocError } from '../../../../src/core/errors.js';
 import {
   docTemplate,
+  entryRenderOptions,
   fillTemplate,
-  fragmentOf,
   matchTemplate,
   probeDeclared,
-  renderOptionsOf,
   selectorOf,
   shapeError,
-  summaryOf,
-  tolerate,
 } from '../../../../src/adapters/reference/npm/shared.js';
 import { makeLine } from '../../../support/builders.js';
 import { distTags, npmCtx, productOf, typingsSource } from './helpers.js';
@@ -77,32 +73,8 @@ describe('documentation URL templates', () => {
   });
 });
 
-describe('summaryOf', () => {
-  it('takes the first sentence of the first paragraph on one line', () => {
-    expect(summaryOf('Shows gadgets\nin a panel. Use it beside a map.\n\nMore.')).toBe(
-      'Shows gadgets in a panel.',
-    );
-    expect(summaryOf('No full stop')).toBe('No full stop');
-  });
-
-  it('caps the length and ignores non-text', () => {
-    const long = summaryOf(`${'word '.repeat(80)}end.`, 40);
-    expect(long).toHaveLength(40);
-    expect(long?.endsWith('…')).toBe(true);
-    expect(summaryOf(undefined)).toBeUndefined();
-    expect(summaryOf('   ')).toBeUndefined();
-    expect(summaryOf(42)).toBeUndefined();
-  });
-});
-
 describe('selectors', () => {
   const url = new URL('https://developers.arcgis.com/widgets/x/#event-ready');
-
-  it('reads the decoded fragment', () => {
-    expect(fragmentOf(url)).toBe('event-ready');
-    expect(fragmentOf(new URL('https://developers.arcgis.com/widgets/x/#%24row'))).toBe('$row');
-    expect(fragmentOf(new URL('https://developers.arcgis.com/widgets/x/#'))).toBeUndefined();
-  });
 
   it('selects the member a fragment names unless the caller selected something', () => {
     expect(selectorOf({ url })).toEqual({ member: 'event-ready' });
@@ -114,9 +86,9 @@ describe('selectors', () => {
 
   it('builds renderer options only when there is something to ask for', () => {
     expect(
-      renderOptionsOf({ url: new URL('https://developers.arcgis.com/widgets/x/') }),
+      entryRenderOptions({ url: new URL('https://developers.arcgis.com/widgets/x/') }),
     ).toBeUndefined();
-    expect(renderOptionsOf({ url, detail: 'signature', focusedCode: true })).toEqual({
+    expect(entryRenderOptions({ url, detail: 'signature', focusedCode: true })).toEqual({
       select: { member: 'event-ready' },
       detail: 'signature',
       focusedCode: true,
@@ -129,23 +101,6 @@ describe('failure classification', () => {
     const error = shapeError('https://cdn.jsdelivr.net/npm/x', 'a file listing');
     expect(error.code).toBe('UPSTREAM_UNAVAILABLE');
     expect(error.details).toMatchObject({ host: 'cdn.jsdelivr.net', retryable: false });
-  });
-
-  it('logs and returns an upstream failure', () => {
-    const ctx = npmCtx();
-    const failure = new McpDocError('DOC_NOT_FOUND', 'gone', { url: 'https://example.org/x' });
-    expect(tolerate(ctx, bound(), failure, 'The listing')).toBe(failure);
-    expect(ctx.logger.entries.at(-1)).toMatchObject({ level: 'warn' });
-  });
-
-  it('rethrows defects and failures caused by a spent budget', () => {
-    const ctx = npmCtx();
-    expect(() => tolerate(ctx, bound(), new TypeError('bug'), 'The listing')).toThrow(
-      expect.objectContaining({ code: 'INTERNAL' }),
-    );
-    const spent = { ...bound(), budget: newBudget(0, 1000, ctx.clock) };
-    const failure = new McpDocError('UPSTREAM_UNAVAILABLE', 'request budget');
-    expect(() => tolerate(ctx, spent, failure, 'The listing')).toThrow(failure);
   });
 });
 

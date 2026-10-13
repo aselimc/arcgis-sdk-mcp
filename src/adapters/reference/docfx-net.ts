@@ -10,15 +10,15 @@ import type { BoundSource, Ctx, SourceAdapter } from '../../core/ports.js';
 import type { CatalogRecord } from '../../core/types.js';
 import {
   assertLive,
-  tolerate,
   indexRequest,
+  isIndexCanary,
   probeSource,
   readHtmlPage,
-  symbolRecord,
   siteIndexEnabled,
+  symbolRecord,
   symbolTarget,
+  tolerate,
   unusableIndex,
-  isIndexCanary,
 } from '../kit/index.js';
 import { parseXrefmap, type XrefEntry } from './xrefmap.js';
 

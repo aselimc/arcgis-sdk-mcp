@@ -1,5 +1,5 @@
 import type { Cheerio, CheerioAPI } from 'cheerio';
-import type { Element } from 'domhandler';
+import type { AnyNode, Element } from 'domhandler';
 import { isElement, replaceWithPre, tagged } from '../dom.js';
 import type { Pass } from '../types.js';
 
@@ -48,13 +48,8 @@ function renderedCode($: CheerioAPI, block: Cheerio<Element>): string {
     .join('\n');
 }
 
-/**
- * The name of a block that is one of several variants of a code switcher (the files of a
- * sample, the languages of a snippet): the `label` of its `data-codeblock` JSON. A block
- * that stands alone has nothing to be told apart from and gets no label.
- */
-function variantLabel(wrapper: Cheerio<Element>): string {
-  if (wrapper.length === 0 || wrapper.siblings('[data-codeblock]').length === 0) return '';
+/** The `label` of a `div[data-codeblock]` (its attribute holds JSON); empty when it has none. */
+export function codeblockLabel(wrapper: Cheerio<AnyNode>): string {
   try {
     const data: unknown = JSON.parse(wrapper.attr('data-codeblock') ?? '');
     const label = typeof data === 'object' && data !== null && 'label' in data ? data.label : '';
@@ -62,6 +57,16 @@ function variantLabel(wrapper: Cheerio<Element>): string {
   } catch {
     return '';
   }
+}
+
+/**
+ * The name of a block that is one of several variants of a code switcher (the files of a
+ * sample, the languages of a snippet): the `label` of its `data-codeblock` JSON. A block
+ * that stands alone has nothing to be told apart from and gets no label.
+ */
+function variantLabel(wrapper: Cheerio<AnyNode>): string {
+  if (wrapper.length === 0 || wrapper.siblings('[data-codeblock]').length === 0) return '';
+  return codeblockLabel(wrapper);
 }
 
 /**
@@ -77,7 +82,7 @@ function variantLabel(wrapper: Cheerio<Element>): string {
  */
 export const fixExpressiveCode: Pass = ($, env) => {
   // Read before any block is replaced: a replaced variant no longer counts as a sibling.
-  const labels = new Map<Element, string>();
+  const labels = new Map<AnyNode, string>();
   $('div[data-codeblock]').each((_, el) => void labels.set(el, variantLabel($(el))));
 
   $('div.expressive-code').each((_, el) => {

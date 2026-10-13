@@ -33,10 +33,10 @@ import { readSitemap } from './sitemap.js';
 import {
   assertLive,
   budgetOf,
-  tolerate,
   probeSource,
   readHtmlPage,
   recordOf,
+  tolerate,
 } from '../kit/index.js';
 
 type LegacySource = BoundSource<'legacy-help'>;

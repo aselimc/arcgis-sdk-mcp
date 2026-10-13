@@ -228,7 +228,7 @@ describe('legacy-help: enumerate', () => {
     const records = await legacyHelpAdapter.enumerate!(ctx, bound());
     expect(records).toHaveLength(7);
     expect(ctx.logger.messages('warn')).toContain(
-      `Book ${START} is unavailable; enumerating without it`,
+      `Book ${START} is unavailable; continuing without it`,
     );
   });
 

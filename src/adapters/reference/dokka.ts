@@ -9,14 +9,14 @@ import type { CatalogRecord } from '../../core/types.js';
 import {
   assertLive,
   indexRequest,
+  isIndexCanary,
   oneLine,
   probeSource,
   readHtmlPage,
-  symbolRecord,
   siteIndexEnabled,
+  symbolRecord,
   symbolTarget,
   unusableIndex,
-  isIndexCanary,
 } from '../kit/index.js';
 
 /** One entry of `pages.json`: `name` is the declaration, `description` the qualified name. */

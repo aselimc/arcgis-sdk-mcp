@@ -32,9 +32,14 @@ export function formatDoctorReport(report: DoctorReport): string {
 
   const count = (status: ProbeOutcome['status']): number =>
     report.probes.filter((probe) => probe.status === status).length;
+  // The default run checks one source per product, not all of them; the heading says so.
+  const heading =
+    report.probed === 'floor-sources'
+      ? 'Floor sources probed (one per product; --product <id> probes every source of one)'
+      : 'Sources probed';
   lines.push(
     '',
-    `Sources probed: ${count('ok')} ok, ${count('fail')} failed, ${count('skip')} skipped`,
+    `${heading}: ${count('ok')} ok, ${count('fail')} failed, ${count('skip')} skipped`,
     ...report.probes.map(probeLine),
     '',
   );

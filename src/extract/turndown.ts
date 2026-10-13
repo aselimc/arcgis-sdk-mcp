@@ -36,9 +36,33 @@ interface RuleNode {
 
 const asRuleNode = (node: unknown): RuleNode => node as RuleNode;
 
-/** A fenced block whose fence is one backtick longer than the longest run inside the code. */
+/** Position of every item of a list, read once per list. */
+const itemPositions = new WeakMap<RuleNode, Map<unknown, number>>();
+
+/**
+ * Position of an item among the items of its list. Only `li` children count: a browser does
+ * not number a stray block between two items, so the item after it must not skip a number.
+ */
+function itemIndex(list: RuleNode, item: unknown): number {
+  let positions = itemPositions.get(list);
+  if (positions === undefined) {
+    positions = new Map();
+    for (const child of Array.from(list.children)) {
+      if (asRuleNode(child).nodeName === 'LI') positions.set(child, positions.size);
+    }
+    itemPositions.set(list, positions);
+  }
+  return positions.get(item) ?? 0;
+}
+
+/**
+ * A fenced block whose fence is one backtick longer than the longest run inside the code. A
+ * byte order mark that the page embedded with the file's text is dropped: pasted code must
+ * start with its first real character.
+ */
 export function fence(code: string, language: string): string {
   const text = code
+    .replace(/^\ufeff/, '')
     .replace(/\u00a0/g, ' ')
     .replace(/\r\n?/g, '\n')
     .replace(/[ \t]+$/gm, '')
@@ -46,6 +70,24 @@ export function fence(code: string, language: string): string {
   const longest = Math.max(2, ...(text.match(/`+/g) ?? []).map((run) => run.length));
   const marker = '`'.repeat(longest + 1);
   return `${marker}${language}\n${text}\n${marker}`;
+}
+
+/**
+ * A link target as Markdown writes it. Parentheses that pair up are part of a destination as
+ * they are, and DocC member URLs are full of them (`.../tojson()/`, `init(datasource:)`):
+ * Turndown's backslash escapes are valid Markdown too, but a URL copied out of the text with
+ * them (`tojson\(\)`) is no longer the URL. Only an unpaired parenthesis, which would end the
+ * destination early, is percent-encoded; so are spaces.
+ */
+export function linkDestination(href: string): string {
+  let depth = 0;
+  for (const char of href) {
+    if (char === '(') depth += 1;
+    else if (char === ')') depth -= 1;
+    if (depth < 0) break;
+  }
+  const paired = depth === 0 ? href : href.replace(/\(/g, '%28').replace(/\)/g, '%29');
+  return paired.replace(/ /g, '%20');
 }
 
 /**
@@ -73,6 +115,16 @@ export function createMarkdownConverter(): (html: string) => Converted {
     },
   });
 
+  // Added before `dropEmptyLinks`: the rule added last is asked first.
+  service.addRule('plainDestinationLink', {
+    filter: (node) => {
+      const link = asRuleNode(node);
+      return link.nodeName === 'A' && (link.getAttribute('href') ?? '') !== '';
+    },
+    replacement: (content, node) =>
+      `[${content}](${linkDestination(asRuleNode(node).getAttribute('href') ?? '')})`,
+  });
+
   service.addRule('dropEmptyLinks', {
     filter: (node) => {
       const link = asRuleNode(node);
@@ -95,8 +147,7 @@ export function createMarkdownConverter(): (html: string) => Converted {
       let marker = '- ';
       if (list?.nodeName === 'OL') {
         const start = Number(list.getAttribute('start') ?? '1');
-        const index = Array.prototype.indexOf.call(list.children, node);
-        marker = String((Number.isFinite(start) ? start : 1) + index) + '. ';
+        marker = String((Number.isFinite(start) ? start : 1) + itemIndex(list, node)) + '. ';
       }
       const body = content
         .replace(/^\n+/, '')
