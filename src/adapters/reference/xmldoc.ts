@@ -111,6 +111,37 @@ function summaryOf(block: string): string | undefined {
  */
 const NOT_API = /^XamlGeneratedNamespace(?:\.|$)|\._[^.]*$/;
 
+/**
+ * Share of its search score a record keeps when it is documented but not what a caller is
+ * looking for (the index floors the effect of a boost at one half). Such records stay in the
+ * catalogue, because an `Internal` namespace is not a reliable sign and some of them are
+ * what an add-in has to use; they only rank behind the public twin that carries the same
+ * name and text, and a tie between the two can be broken in favour of the other.
+ */
+const SUPPORT_BOOST = 0.1;
+
+/** `ArcGIS.Desktop.Internal.Editing.MapTool`: a type or member of an `Internal` namespace. */
+const INTERNAL_NAMESPACE = /(?:^|\.)Internal\./;
+
+/**
+ * Comments the tools write, not people: the class of a `.resx` file with one property per
+ * localised string, and the code-behind of a XAML file. Their text matches every search for
+ * the words of a label ("insert", "button", "ribbon") without documenting anything.
+ */
+const GENERATED_COMMENT =
+  /^(?:A strongly-typed resource class\b|Looks up a localized (?:string|resource)\b|Returns the cached ResourceManager instance\b|Overrides the current thread's CurrentUICulture\b|Interaction logic for \S+\.xaml\b|InitializeComponent\b)/i;
+
+/** What a comment says of an entry that is public only for the product's own assemblies. */
+const NOT_FOR_CALLERS = /\bnot (?:intended )?for public use\b|\b(?:for )?internal use only\b/i;
+
+/** The boost of a record, when it should rank behind the API a caller is meant to use. */
+function boostOf(path: string, summary: string | undefined): number | undefined {
+  const support =
+    INTERNAL_NAMESPACE.test(path) ||
+    (summary !== undefined && (GENERATED_COMMENT.test(summary) || NOT_FOR_CALLERS.test(summary)));
+  return support ? SUPPORT_BOOST : undefined;
+}
+
 /** A member of the published API: not marked `<exclude/>` and not private by convention. */
 function published(id: string, block: string): boolean {
   return !NOT_API.test(idPath(id)) && !/<exclude\s*\/?>/.test(block);
@@ -120,7 +151,8 @@ function published(id: string, block: string): boolean {
  * Catalogue records of one documentation file: types, and their methods, properties,
  * fields and events as members. Members marked `<exclude/>` are hidden from the published
  * reference and are dropped, as are generated helpers and underscore-named members; static
- * constructors and malformed ids are skipped.
+ * constructors and malformed ids are skipped. Entries of `Internal` namespaces and entries
+ * with a tool-written comment are kept with a low `boost` ({@link SUPPORT_BOOST}).
  *
  * @param fileUrl the github.com blob URL of the file; a record's ref is this URL plus the id.
  */
@@ -147,6 +179,7 @@ export function xmldocRecords(src: BoundSource, fileUrl: string, xml: string): C
     const constructor = last === '#ctor';
     const symbol = constructor ? ownerName : withoutArity(last.slice(last.lastIndexOf('#') + 1));
     const parameters = parameterList(id);
+    const description = summaryOf(block);
     records.set(
       target.href,
       symbolRecord(
@@ -163,7 +196,8 @@ export function xmldocRecords(src: BoundSource, fileUrl: string, xml: string): C
               : KINDS[prefix],
           parent,
           breadcrumb: [parent ?? container],
-          description: summaryOf(block),
+          description,
+          boost: boostOf(path, description),
           locator: { memberId: id },
         },
       ),

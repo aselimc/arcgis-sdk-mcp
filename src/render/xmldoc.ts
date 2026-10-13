@@ -297,11 +297,18 @@ export function renderXmldoc(
   });
   const assembly = /<assembly>\s*<name>([^<]+)<\/name>/.exec(input.xml)?.[1]?.trim();
   const namespace = typeName.split('.').slice(0, -1).join('.');
+  const title = typeName.split('.').at(-1) ?? typeName;
+  // The header names what the page shows: a member read is not headed "Type".
+  const kind = id.prefix === 'T' ? undefined : (toMember(wanted)?.kind ?? GROUPS[id.prefix].kind);
+  const identity =
+    kind === undefined
+      ? '_Type_'
+      : `_${kind.charAt(0).toUpperCase()}${kind.slice(1)}_ of ${inlineCode(title)}`;
 
   const type: ApiType = {
-    title: typeName.split('.').at(-1) ?? typeName,
+    title,
     header: [
-      '_Type_',
+      identity,
       namespace === '' ? undefined : `namespace ${inlineCode(namespace)}`,
       assembly === undefined ? undefined : `assembly ${inlineCode(assembly)}`,
     ]

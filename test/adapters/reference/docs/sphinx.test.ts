@@ -6,7 +6,13 @@ import {
 } from '../../../../src/adapters/reference/objects-inv.js';
 import { sphinxAdapter, sphinxRecords } from '../../../../src/adapters/reference/sphinx.js';
 import { bindSource } from '../../../../src/core/adapter-helpers.js';
-import { makeLine, makeProduct, makeSource } from '../../../support/builders.js';
+import {
+  makeDocPage,
+  makeLine,
+  makeProduct,
+  makeRecord,
+  makeSource,
+} from '../../../support/builders.js';
 import type { Cassette } from '../../../support/fake-http.js';
 import { readFixture } from '../../../support/fixtures.js';
 import { makeCtx, type TestCtx } from '../../../support/make-ctx.js';
@@ -285,6 +291,84 @@ describe('sphinx: read, symbol and probe', () => {
     expect(rendererOf(ctx).calls[0]).toMatchObject({
       input: { anchor: 'widgets.Widget.size' },
       opts: { select: { member: 'widgets.Widget.size' }, detail: 'full' },
+    });
+  });
+
+  // Regression: on a line whose index has classes without their members, a member is asked
+  // for on the page of its type by its bare name. The page documents a whole module, so the
+  // first `query` on it was returned under whatever class had been asked for, and the
+  // `Source:` line cited `#query`, which is no anchor of the page.
+  describe('a member the index does not list', () => {
+    const MODULE = `${BASE}widgets.features.toc.html`;
+    const object = (id: string): string => `<dt class="sig sig-object py" id="${id}">${id}</dt>`;
+    const html = [
+      '<html><body><div role="main"><h1>widgets.features</h1>',
+      `<dl class="py class">${object('widgets.features.Layer')}<dd>`,
+      `<dl class="py method">${object('widgets.features.Layer.query')}<dd>Queries a layer.</dd></dl>`,
+      '</dd></dl>',
+      `<dl class="py class">${object('widgets.features.Table')}<dd>`,
+      `<dl class="py method">${object('widgets.features.Table.query')}<dd>Queries a table.</dd></dl>`,
+      '</dd></dl>',
+      `<dl class="py class">${object('widgets.features.Collection')}<dd>No methods.</dd></dl>`,
+      '</div></body></html>',
+    ].join('');
+    /** The record the symbol service makes for `Type.member` when the type lists no members. */
+    const asked = (type: string, member: string) =>
+      makeRecord({
+        ref: `${MODULE}#${member}`,
+        kind: 'api',
+        title: member,
+        symbol: member,
+        qualified: `widgets.features.${type}.${member}`,
+        parent: `widgets.features.${type}`,
+        symbolKind: 'member',
+      });
+    const ctxWith = (): TestCtx => {
+      const ctx = ctxOf();
+      ctx.http.on(MODULE, { body: html });
+      return ctx;
+    };
+
+    it('reads the member of the type that was asked for, at its real anchor', async () => {
+      const ctx = ctxWith();
+      const page = await sphinxAdapter.symbol!(ctx, bound(), asked('Table', 'query'), 'full');
+
+      expect(rendererOf(ctx).calls[0]).toMatchObject({
+        input: { anchor: 'widgets.features.Table.query' },
+        meta: { url: `${MODULE}#widgets.features.Table.query` },
+        opts: { select: { member: 'widgets.features.Table.query' }, detail: 'full' },
+      });
+      expect(page.ref).toBe(`${MODULE}#widgets.features.Table.query`);
+    });
+
+    it('reads the type when it does not declare the member, so that its own members answer', async () => {
+      const ctx = ctxWith();
+      const page = await sphinxAdapter.symbol!(ctx, bound(), asked('Collection', 'query'), 'full');
+
+      const call = rendererOf(ctx).calls[0];
+      expect(call?.input).toMatchObject({ anchor: 'widgets.features.Collection' });
+      // No selector: a bare `query` would pick the method of another class.
+      expect(call?.opts).toEqual({ detail: 'full' });
+      expect(page.ref).toBe(`${MODULE}#widgets.features.Collection`);
+    });
+
+    it('lists only the members of the type when the page anchors neither', async () => {
+      const ctx = ctxWith();
+      rendererOf(ctx).when('sphinx', (rendered) => ({
+        ...makeDocPage({ url: rendered.meta.url }),
+        members: [
+          { id: 'widgets.features.Layer.query', name: 'query', kind: 'method' },
+          { id: 'widgets.features.Gone.reset', name: 'reset', kind: 'method' },
+        ],
+      }));
+      const page = await sphinxAdapter.symbol!(ctx, bound(), asked('Gone', 'query'), 'full');
+
+      expect(rendererOf(ctx).calls[0]?.input).toEqual({ html });
+      expect(rendererOf(ctx).calls[0]?.opts).toEqual({ detail: 'full' });
+      expect(page.members).toEqual([
+        { id: 'widgets.features.Gone.reset', name: 'reset', kind: 'method' },
+      ]);
+      expect(page.ref).toBe(MODULE);
     });
   });
 

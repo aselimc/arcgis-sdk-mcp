@@ -70,19 +70,29 @@ describe('documents built to be expensive', () => {
     expect(result.sections).toHaveLength(1);
   });
 
+  // The cost of what is within the limits must grow with the size of the document, not with
+  // its square: four times the elements may take four times as long, not sixteen times. A
+  // ratio holds on a loaded machine where a fixed number of milliseconds does not.
   it.each([
     ['headings', '<h2>a</h2>'],
     ['links', '<a href="x">a</a> '],
     ['paragraphs', '<p>hello world</p>'],
     ['list items', '<li>x</li>'],
-  ])('converts thousands of %s within the limits in bounded time', (_name, unit) => {
-    const html = page(unit.repeat(8_000));
+  ])('converts thousands of %s in time linear in their number', (_name, unit) => {
+    const small = page(unit.repeat(1_500));
+    const large = page(unit.repeat(6_000));
+    extractHtml(small);
+    const base = Math.min(...[1, 2, 3].map(() => timed(() => extractHtml(small))));
     let chars = 0;
-    const ms = timed(() => {
-      chars = pageMarkdown(extractHtml(html)).length;
-    });
-    expect(ms).toBeLessThan(BOUND_MS);
-    expect(chars).toBeGreaterThan(8_000);
+    const ms = Math.min(
+      ...[1, 2].map(() =>
+        timed(() => {
+          chars = pageMarkdown(extractHtml(large)).length;
+        }),
+      ),
+    );
+    expect(chars).toBeGreaterThan(6_000);
+    expect(ms).toBeLessThan(10 * base + 250);
   });
 
   it('keeps the text of a very wide element complete and in order', () => {

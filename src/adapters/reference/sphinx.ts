@@ -10,6 +10,8 @@ import type { CatalogRecord, DocPage } from '../../core/types.js';
 import {
   assertLive,
   budgetOf,
+  escapeRegExp,
+  fragmentOf,
   indexRequest,
   isIndexCanary,
   probeSource,
@@ -114,23 +116,90 @@ async function searchIndex(ctx: Ctx, src: BoundSource, url: string): Promise<Sph
   return index;
 }
 
-async function read(ctx: Ctx, src: BoundSource, target: ReadTarget): Promise<DocPage> {
+/**
+ * What a read of a page names on it: the object whose anchor is the fragment of the URL.
+ * `owner` narrows the member list of a page that is rendered whole (see {@link memberOf}).
+ */
+interface Wanted {
+  target: ReadTarget;
+  owner?: string;
+}
+
+/** True when the page has an element with this id: Sphinx anchors an object by its full name. */
+function hasAnchor(html: string, id: string): boolean {
+  return new RegExp(`\\bid=["']${escapeRegExp(id)}["']`).test(html);
+}
+
+/**
+ * The read of a member that the catalogue does not list. The index of some releases has
+ * classes without their members; a member is then asked for on the page of its type, by
+ * its bare name (`...#to_featurelayer`). That name is not an anchor of the page, and a page
+ * documents a whole module: `query` is a method of several classes on it. The member is
+ * therefore addressed by its full name, which is its anchor:
+ *
+ * - the page has `<type>.<member>`: that object is read and cited;
+ * - it has only the type (the member is inherited, or does not exist): the type is read, and
+ *   its member list says what the type declares;
+ * - it has neither: the page is read whole, with only the members that belong to the type,
+ *   so that a same-named member of another class cannot be taken for the one asked for.
+ */
+function memberOf(html: string, target: ReadTarget, type: string, member: string): Wanted {
+  const { select: _bareName, ...rest } = target;
+  const at = (anchor: string): URL => {
+    const url = new URL(target.url.href);
+    url.hash = anchor;
+    return url;
+  };
+  if (hasAnchor(html, member)) {
+    return { target: { ...rest, url: at(member), select: { member } } };
+  }
+  if (hasAnchor(html, type)) return { target: { ...rest, url: at(type) } };
+  return { target: { ...rest, url: at('') }, owner: type };
+}
+
+/**
+ * Fetches a page and renders the object the target names. `address` may replace the target
+ * once the page is known (a member that is asked for by a name the page does not anchor).
+ */
+async function read(
+  ctx: Ctx,
+  src: BoundSource,
+  target: ReadTarget,
+  address: (html: string) => Wanted = () => ({ target }),
+): Promise<DocPage> {
   assertLive(src, target.url.href);
   const requested = target.url.href.replace(/#.*$/, '');
   const res = await ctx.http.get({ url: requested, expect: 'html', ttl: 'page', ...budgetOf(src) });
   const landed = res.finalUrl === res.url ? requested : res.finalUrl.replace(/#.*$/, '');
-  let anchor = target.url.hash.slice(1);
-  try {
-    anchor = decodeURIComponent(anchor);
-  } catch {
-    // A malformed escape is matched as written.
-  }
-  return ctx.render.render(
+  const wanted = address(res.text);
+  const anchor = fragmentOf(wanted.target.url);
+  const page = ctx.render.render(
     'sphinx',
-    { html: res.text, ...(anchor === '' ? {} : { anchor }) },
-    renderMeta(src, target, `${landed}${target.url.hash}`, res),
-    renderOptionsOf(target),
+    { html: res.text, ...(anchor === undefined ? {} : { anchor }) },
+    renderMeta(src, wanted.target, `${landed}${wanted.target.url.hash}`, res),
+    renderOptionsOf(wanted.target),
   );
+  const { owner } = wanted;
+  if (owner === undefined || page.members === undefined) return page;
+  return { ...page, members: page.members.filter((entry) => entry.id.startsWith(`${owner}.`)) };
+}
+
+/**
+ * Reads the page of a symbol record. A member the index lists carries its anchor in its ref;
+ * any other member is looked for under its full name ({@link memberOf}).
+ */
+function symbol(
+  ctx: Ctx,
+  src: BoundSource,
+  record: CatalogRecord,
+  detail: ReadTarget['detail'],
+): Promise<DocPage> {
+  const target = symbolTarget(record, detail);
+  const { parent, qualified } = record;
+  if (parent === undefined || qualified === undefined || fragmentOf(target.url) === qualified) {
+    return read(ctx, src, target);
+  }
+  return read(ctx, src, target, (html) => memberOf(html, target, parent, qualified));
 }
 
 /**
@@ -166,8 +235,8 @@ export const sphinxAdapter: SourceAdapter<'sphinx'> = {
     return records;
   },
 
-  read,
-  symbol: (ctx, src, record, detail) => read(ctx, src, symbolTarget(record, detail)),
+  read: (ctx, src, target) => read(ctx, src, target),
+  symbol,
   probe: (ctx, src) =>
     /\.inv(?:[?#]|$)/.test(src.source.probe.url)
       ? probeSource(ctx, src, {

@@ -197,6 +197,82 @@ describe('xmldoc: enumerate', () => {
     expect(records).toHaveLength(12);
   });
 
+  // Regression: a third of the Pro SDK index is `ArcGIS.*.Internal.*` and resource strings.
+  // With the same text as the public API they filled the first results, and the central
+  // class of the SDK tied with its internal twin of the same name.
+  describe('entries a caller is not looking for', () => {
+    const member = (id: string, summary: string): string =>
+      `<member name="${id}"><summary>${summary}</summary></member>`;
+    const xml = [
+      '<doc><assembly><name>Widgets.Desktop</name></assembly><members>',
+      member('T:Widgets.Desktop.Mapping.WidgetTool', 'A tool that sketches on a map.'),
+      member('P:Widgets.Desktop.Mapping.WidgetTool.IsSketchTool', 'Whether the tool sketches.'),
+      member('T:Widgets.Desktop.Internal.Editing.WidgetTool', 'A tool that sketches on a map.'),
+      member(
+        'P:Widgets.Desktop.Internal.Editing.WidgetTool.IsSketchTool',
+        'Whether the tool sketches.',
+      ),
+      member(
+        'T:Widgets.Desktop.Editing.TableRes',
+        'A strongly-typed resource class, for looking up localized strings, etc.',
+      ),
+      member(
+        'P:Widgets.Desktop.Editing.TableRes.InsertRowsOperationName',
+        'Looks up a localized string similar to Insert Rows.',
+      ),
+      member(
+        'P:Widgets.Desktop.Editing.TableRes.ResourceManager',
+        'Returns the cached ResourceManager instance used by this class.',
+      ),
+      member(
+        'T:Widgets.Desktop.Editing.TableInsertRowsControl',
+        'Interaction logic for TableInsertRowsControl.xaml',
+      ),
+      member(
+        'T:Widgets.Desktop.Framework.ToggleButtonBase',
+        'This class is not for public use and is used internally by the system.',
+      ),
+      member(
+        'T:Widgets.Desktop.Framework.InternalsVisible',
+        'Explains which internals are visible to tests.',
+      ),
+      member('T:Widgets.Desktop.Framework.Button', 'A button of the ribbon.'),
+      '</members></doc>',
+    ].join('\n');
+    const boosts = (): Record<string, number | undefined> =>
+      Object.fromEntries(
+        xmldocRecords(bound(), DESKTOP_URL, xml).map((record) => [
+          record.qualified ?? '',
+          record.boost,
+        ]),
+      );
+
+    it('keeps them in the catalogue, behind the public API', () => {
+      expect(boosts()).toEqual({
+        'Widgets.Desktop.Mapping.WidgetTool': undefined,
+        'Widgets.Desktop.Mapping.WidgetTool.IsSketchTool': undefined,
+        'Widgets.Desktop.Internal.Editing.WidgetTool': 0.1,
+        'Widgets.Desktop.Internal.Editing.WidgetTool.IsSketchTool': 0.1,
+        'Widgets.Desktop.Editing.TableRes': 0.1,
+        'Widgets.Desktop.Editing.TableRes.InsertRowsOperationName': 0.1,
+        'Widgets.Desktop.Editing.TableRes.ResourceManager': 0.1,
+        'Widgets.Desktop.Editing.TableInsertRowsControl': 0.1,
+        'Widgets.Desktop.Framework.ToggleButtonBase': 0.1,
+        // A name that merely starts with "Internal" is not a namespace.
+        'Widgets.Desktop.Framework.InternalsVisible': undefined,
+        'Widgets.Desktop.Framework.Button': undefined,
+      });
+    });
+
+    it('leaves the published API of the fixture files without a boost', () => {
+      const records = [
+        ...xmldocRecords(bound(), CORE_URL, CORE),
+        ...xmldocRecords(bound(), DESKTOP_URL, DESKTOP),
+      ];
+      expect(records.filter((record) => record.boost !== undefined)).toEqual([]);
+    });
+  });
+
   it('uses a configured ref without asking for the default branch and caches a tag for good', async () => {
     const pinned = makeSource(
       'xmldoc',
