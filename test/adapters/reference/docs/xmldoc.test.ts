@@ -129,15 +129,15 @@ describe('xmldoc: enumerate', () => {
     ).toEqual([
       ['Widget', 'type', null],
       ['Widget.Widget(Int32)', 'constructor', 'Widgets.Core.Widget'],
-      ['Widget.ResizeAsync(Int32,IEnumerable{Part})', 'method', 'Widgets.Core.Widget'],
+      ['Widget.ResizeAsync(Int32, IEnumerable<Part>)', 'method', 'Widgets.Core.Widget'],
       ['Widget.Size', 'property', 'Widgets.Core.Widget'],
       ['Widget.Resized', 'event', 'Widgets.Core.Widget'],
       ['Widget.Shape', 'type', 'Widgets.Core.Widget'],
       ['Shape.Round', 'field', 'Widgets.Core.Widget.Shape'],
       ['Part', 'type', null],
-      ['Part.op_Addition(Part,Part)', 'operator', 'Widgets.Core.Part'],
+      ['Part.op_Addition(Part, Part)', 'operator', 'Widgets.Core.Part'],
       ['WidgetList', 'type', null],
-      ['WidgetList.Add(`0)', 'method', 'Widgets.Core.WidgetList'],
+      ['WidgetList.Add(T)', 'method', 'Widgets.Core.WidgetList'],
       ['WidgetList.Dispose', 'method', 'Widgets.Core.WidgetList'],
       ['WidgetPane', 'type', null],
       ['WidgetPane.Show(Widget)', 'method', 'Widgets.Desktop.WidgetPane'],
@@ -171,11 +171,11 @@ describe('xmldoc: enumerate', () => {
       symbol: 'Widget',
       qualified: 'Widgets.Core.Widget.Widget',
     });
-    expect(byTitle.get('Widget.ResizeAsync(Int32,IEnumerable{Part})')).toMatchObject({
+    expect(byTitle.get('Widget.ResizeAsync(Int32, IEnumerable<Part>)')).toMatchObject({
       symbol: 'ResizeAsync',
       description: 'Resizes the widget & repaints its parts.',
     });
-    expect(byTitle.get('WidgetList.Add(`0)')).toMatchObject({
+    expect(byTitle.get('WidgetList.Add(T)')).toMatchObject({
       ref: `${CORE_URL}#M:Widgets.Core.WidgetList%601.Add(%600)`,
       qualified: 'Widgets.Core.WidgetList.Add',
       locator: { memberId: 'M:Widgets.Core.WidgetList`1.Add(`0)' },

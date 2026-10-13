@@ -69,6 +69,10 @@ function guide(
       base: `/${slug}/{prefix}`,
       sitemap: 'sitemap-0.xml',
       searchIndexes: [GUIDE_INDEX, ...(hasOwnSampleIndex ? [] : [SAMPLE_INDEX]), ...extraIndexes],
+      // The sitemaps also list redirect stubs: the `.htm` addresses of the ArcGIS Runtime
+      // documentation (745 of them for .NET) and a `-heading/` page per navigation group.
+      // Each is a meta refresh to a page that is listed anyway.
+      exclude: ['\\.htm$', '-heading/$'],
       classify: [
         ['^tutorials/', 'tutorial'],
         ['^sample-code/', 'sample'],

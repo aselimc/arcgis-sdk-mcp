@@ -55,40 +55,25 @@ describe('release-notes patterns', () => {
     ]);
   });
 
-  it('finds the JavaScript release pages, which are named by the version alone after 4.10', () => {
+  // Regression: the dotted pages (`/4.34/`, `/release-notes/4.9/`) were listed as release
+  // notes. They are redirect stubs, most of them to the notes of the current release, and
+  // 5.0, which has a `v5-0` page only, was missing.
+  it('finds the JavaScript release pages at v<major>-<minor>/ and none of the dotted stubs', () => {
     const config = createRegistry().get('js-maps-sdk')?.releaseNotes;
     const filter = new RegExp(config?.sitemapFilter ?? '^$');
     const urls = [
       `${D}/javascript/latest/release-notes/`,
       `${D}/javascript/latest/release-notes/4.9/`,
-      `${D}/javascript/latest/release-notes/4.10/`,
-      `${D}/javascript/latest/4.33/`,
-      `${D}/javascript/latest/4.34/`,
-      `${D}/javascript/latest/references/core/views/2d/`,
-      `${D}/javascript/latest/breaking-changes/`,
-    ].filter((url) => filter.test(url));
-    expect(pagesByPattern(urls, new RegExp(config?.pattern ?? '^$'))).toEqual([
-      { version: '4.34', url: `${D}/javascript/latest/4.34/` },
-      { version: '4.33', url: `${D}/javascript/latest/4.33/` },
-      { version: '4.10', url: `${D}/javascript/latest/release-notes/4.10/` },
-      { version: '4.9', url: `${D}/javascript/latest/release-notes/4.9/` },
-    ]);
-  });
-
-  it('prefers the v<major>-<minor> JavaScript page over its dotted redirect stub and finds 5.0', () => {
-    const config = createRegistry().get('js-maps-sdk')?.releaseNotes;
-    const filter = new RegExp(config?.sitemapFilter ?? '^$');
-    const urls = [
       `${D}/javascript/latest/4.24/`,
       `${D}/javascript/latest/4.34/`,
       `${D}/javascript/latest/v4-34/`,
       `${D}/javascript/latest/v5-0/`,
       `${D}/javascript/latest/vector-tiles-v2-0/`,
+      `${D}/javascript/latest/references/core/views/2d/`,
     ].filter((url) => filter.test(url));
     expect(pagesByPattern(urls, new RegExp(config?.pattern ?? '^$'))).toEqual([
       { version: '5.0', url: `${D}/javascript/latest/v5-0/` },
       { version: '4.34', url: `${D}/javascript/latest/v4-34/` },
-      { version: '4.24', url: `${D}/javascript/latest/4.24/` },
     ]);
   });
 

@@ -191,10 +191,14 @@ function toMember(slice: Slice): ApiMember | undefined {
     .children('typeparam')
     .toArray()
     .map((element) => $(element).attr('name') ?? '');
+  // A comment without `<typeparam>` leaves them unnamed. C# then reads best with the
+  // conventional `T` (or `T1`, `T2`, ... for several): `M0` is not a name anyone writes.
+  const arity = Number(/``(\d+)$/.exec(id.qualified)?.[1] ?? 1);
   const named = (text: string): string =>
-    text.replace(/\bM(\d+)\b/g, (placeholder, index: string) => {
+    text.replace(/\bM(\d+)\b/g, (_placeholder, index: string) => {
       const name = generics[Number(index)];
-      return name === undefined || name === '' ? placeholder : name;
+      if (name !== undefined && name !== '') return name;
+      return arity === 1 ? 'T' : `T${Number(index) + 1}`;
     });
   const params: ApiParam[] = $(root)
     .children('param')

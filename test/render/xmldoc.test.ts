@@ -224,6 +224,27 @@ describe('renderXmldoc: overloads', () => {
     expect(page.members?.find((member) => member.id === GENERIC)?.name).toBe('Run<TResult>');
   });
 
+  // Regression: the Pro SDK comments name no type parameters, and its generic methods were
+  // printed with the placeholders of the documentation id (`Run<M0>(Func<M0>)`).
+  it('names unnamed type parameters T, or T1 and T2 when there are several', () => {
+    const unnamed = `<doc><assembly><name>Example.Queue</name></assembly><members>
+      <member name="M:Example.Queue.Dock.Run\`\`1(System.Func{\`\`0})"><summary>Runs a job.</summary></member>
+      <member name="M:Example.Queue.Dock.Pair\`\`2(\`\`0,\`\`1)"><summary>Pairs two.</summary></member>
+    </members></doc>`;
+    const one = renderXmldoc(
+      { xml: unnamed, memberId: 'M:Example.Queue.Dock.Run``1(System.Func{``0})' },
+      meta,
+      { detail: 'signature' },
+    );
+    expect(one.sections[0]?.markdown).toContain('### `Run<T>`\n\n```csharp\nDock.Run<T>(Func<T>)\n```');
+    const two = renderXmldoc(
+      { xml: unnamed, memberId: 'M:Example.Queue.Dock.Pair``2(``0,``1)' },
+      meta,
+      { detail: 'signature' },
+    );
+    expect(two.sections[0]?.markdown).toContain('Dock.Pair<T1, T2>(T1, T2)');
+  });
+
   it('shows a member that is not a method alone', () => {
     const page = renderXmldoc({ xml: doc, memberId: 'P:Example.Queue.Dock.Run' }, meta);
     expect(sectionIds(page)).toEqual(['P:Example.Queue.Dock.Run']);

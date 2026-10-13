@@ -74,6 +74,24 @@ function withoutArity(name: string): string {
   return name.replace(/`+\d+/g, '');
 }
 
+/**
+ * The parameter list of an id as C# spells it, for a record title:
+ * ``Func{``0},System.Int32`` gives `Func<T>, Int32`. Namespaces go, braces become angle
+ * brackets and a generic parameter reference becomes `T` (`T1`, `T2`, ... when the list
+ * refers to more than the first).
+ */
+function parameterList(id: string): string | undefined {
+  const raw = /\((.*)\)/s.exec(id)?.[1];
+  if (raw === undefined) return undefined;
+  const several = /`+[1-9]/.test(raw);
+  return raw
+    .replace(/(?:[A-Za-z_]\w*\.)+/g, '')
+    .replace(/`+(\d+)/g, (_marker, index: string) => (several ? `T${Number(index) + 1}` : 'T'))
+    .replace(/\{/g, '<')
+    .replace(/\}/g, '>')
+    .replace(/,/g, ', ');
+}
+
 /** The first lines of a `<summary>`, with `cref` links reduced to the name they point at. */
 function summaryOf(block: string): string | undefined {
   const summary = /<summary>([\s\S]*?)<\/summary>/.exec(block)?.[1];
@@ -128,7 +146,7 @@ export function xmldocRecords(src: BoundSource, fileUrl: string, xml: string): C
     const ownerName = parent?.split('.').at(-1) ?? '';
     const constructor = last === '#ctor';
     const symbol = constructor ? ownerName : withoutArity(last.slice(last.lastIndexOf('#') + 1));
-    const parameters = /\((.*)\)/s.exec(id)?.[1]?.replace(/(?:[A-Za-z_]\w*\.)+/g, '');
+    const parameters = parameterList(id);
     records.set(
       target.href,
       recordOf(
