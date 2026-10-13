@@ -25,6 +25,12 @@ const STOP_WORDS = new Set(['arcgis', 'esri', 'sdk', 'sdks', 'maps', 'api', 'for
 
 const EMPTY_CELL = /^(?:|n\/a|na|-|—|none)$/i;
 
+/**
+ * Headers of columns that describe the row's own release ("Date released", "Release date")
+ * rather than a product it pairs with. The release date is reported by the version oracles.
+ */
+const OWN_FACT_COLUMN = /\b(?:date|released)\b/i;
+
 const words = (text: string): string[] =>
   text
     .toLowerCase()
@@ -95,9 +101,11 @@ function matrixRows(
     if (!isTarget && !unreleased) continue;
     targetSeen ||= isTarget;
     cells.forEach((cell, column) => {
+      const header = table.header[column];
       if (column === subject || EMPTY_CELL.test(cell)) return;
+      if (header !== undefined && OWN_FACT_COLUMN.test(header)) return;
       rows.push({
-        with: table.header[column] ?? `${about.name} column ${column + 1}`,
+        with: header ?? `${about.name} column ${column + 1}`,
         // The target row speaks for the reported version; any other row names its own.
         value: isTarget ? cell : `${cell} (with ${subjectHeader} ${own})`,
         unreleased,

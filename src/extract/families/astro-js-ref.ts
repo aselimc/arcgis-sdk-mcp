@@ -3,7 +3,7 @@ import type { AnyNode, Element } from 'domhandler';
 import { headingLevel, ID_ATTR, replaceWithPre, squash, tagged } from '../dom.js';
 import { HEADINGS, stampOutline } from '../outline.js';
 import type { FamilyProfile, PageView, Pass } from '../types.js';
-import { dropCodePenStrips } from './astro.js';
+import { dropAstroChrome } from './astro.js';
 import { CARD, indexTable, NESTED_ATTR, readCard, toMember, type Card } from './js-ref-cards.js';
 import { themeRoot, themeTitle } from './shared.js';
 
@@ -79,7 +79,7 @@ function rewriteCards($: CheerioAPI): void {
 }
 
 const prepare: Pass = ($, env) => {
-  dropCodePenStrips($, env);
+  dropAstroChrome($, env);
   indexMemberSections($);
   if (env.overview) $(CARD).remove();
   else rewriteCards($);

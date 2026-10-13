@@ -2,7 +2,7 @@ import { normalizeLanguage } from '../dom.js';
 import { stampOutline } from '../outline.js';
 import type { FamilyProfile, PageView } from '../types.js';
 import type { SourceFile } from '../../core/types.js';
-import { dropCodePenStrips } from './astro.js';
+import { dropAstroChrome } from './astro.js';
 import { themeRoot, themeTitle } from './shared.js';
 
 /** File name for a source block that has no caption. */
@@ -51,5 +51,5 @@ export const astroSample: FamilyProfile = {
   title: themeTitle,
   outline: (page) => stampOutline(page),
   files: sourceFiles,
-  prepare: dropCodePenStrips,
+  prepare: dropAstroChrome,
 };

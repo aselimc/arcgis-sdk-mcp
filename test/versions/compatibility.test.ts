@@ -83,15 +83,9 @@ describe('rowsFromTable', () => {
   it('reports the row of the current version and flags rows above it as unreleased', () => {
     const rows = rowsFromTable(matrix!, { ...about, target: '5.1', current: '5.1' });
     expect(rows).toEqual([
-      // 5.2 is listed ahead of its release; its empty Enterprise cell is skipped.
-      {
-        with: 'Released',
-        value: 'October 2026 (with JS SDK 5.2.*)',
-        unreleased: true,
-        source: MATRIX_URL,
-      },
+      // 5.2 is listed ahead of its release; its empty Enterprise cell is skipped. The
+      // "Released" column is a fact about the row itself, not a pairing, and is left out.
       { with: 'Calcite', value: '5.2.* (with JS SDK 5.2.*)', unreleased: true, source: MATRIX_URL },
-      { with: 'Released', value: 'June 2026', unreleased: false, source: MATRIX_URL },
       { with: 'Enterprise', value: '12.2', unreleased: false, source: MATRIX_URL },
       { with: 'Calcite', value: '5.1.*', unreleased: false, source: MATRIX_URL },
     ]);
@@ -100,7 +94,6 @@ describe('rowsFromTable', () => {
   it('reports the row of a requested older version', () => {
     const rows = rowsFromTable(matrix!, { ...about, target: '4.33.2', current: '5.1' });
     expect(rows.filter((row) => !row.unreleased)).toEqual([
-      { with: 'Released', value: 'June 2025', unreleased: false, source: MATRIX_URL },
       { with: 'Enterprise', value: '12.0', unreleased: false, source: MATRIX_URL },
       { with: 'Calcite', value: '3.2.1', unreleased: false, source: MATRIX_URL },
     ]);
@@ -109,7 +102,7 @@ describe('rowsFromTable', () => {
   it('falls back to the first row when no version is known', () => {
     const rows = rowsFromTable(matrix!, about);
     expect(rows.every((row) => !row.unreleased)).toBe(true);
-    expect(rows[0]?.value).toBe('October 2026');
+    expect(rows[0]).toMatchObject({ with: 'Calcite', value: '5.2.*' });
   });
 
   it('reads a name / version list for the packages that matter', () => {
@@ -135,7 +128,6 @@ describe('readCompatibility', () => {
     });
     expect(notices).toEqual([]);
     expect(rows.filter((row) => !row.unreleased).map((row) => [row.with, row.value])).toEqual([
-      ['Released', 'June 2026'],
       ['Enterprise', '12.2'],
       ['Calcite', '5.1.*'],
     ]);

@@ -110,7 +110,6 @@ describe('version report: content', () => {
       source: `${D}/javascript/latest/version-matrix/`,
     });
     expect(entry.compatibility.filter((row) => row.unreleased).map((row) => row.value)).toEqual([
-      'October 2026 (with JS SDK 5.2.*)',
       '5.2.* (with JS SDK 5.2.*)',
     ]);
     expect(entry.releaseNotes).toEqual([

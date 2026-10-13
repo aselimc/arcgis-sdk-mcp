@@ -306,7 +306,12 @@ const jsMapsSdk: Product = {
   sources: jsSources,
   oracles: [npmDistTags('@arcgis/core'), banner(JS)],
   compatibility: [{ name: 'Version matrix', url: `${D}${JS}version-matrix/` }],
-  releaseNotes: { current: `${D}${JS}release-notes/`, sitemapFilter: '/release-notes/' },
+  releaseNotes: {
+    current: `${D}${JS}release-notes/`,
+    // 4.0 to 4.10 live under release-notes/; later releases have a page named by the version alone.
+    sitemapFilter: `${JS}(?:release-notes/)?\\d+\\.\\d+/$`,
+    pattern: `${JS}(?:release-notes/)?(\\d+\\.\\d+)/$`,
+  },
   startHere: [
     { title: 'Get started', ref: `${D}${JS}get-started/` },
     { title: 'Tutorials', ref: `${D}${JS}tutorials/` },

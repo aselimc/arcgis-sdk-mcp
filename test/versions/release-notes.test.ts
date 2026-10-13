@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createRegistry } from '../../src/registry/index.js';
 import {
   expandReleaseNotesPattern,
   isTemplatePattern,
@@ -51,6 +52,26 @@ describe('release-notes patterns', () => {
     expect(pages).toEqual([
       { version: '2.4.4', url: `${D}/python/latest/guide/release-notes-244/` },
       { version: '2.4.3', url: `${D}/python/latest/guide/release-notes-243/` },
+    ]);
+  });
+
+  it('finds the JavaScript release pages, which are named by the version alone after 4.10', () => {
+    const config = createRegistry().get('js-maps-sdk')?.releaseNotes;
+    const filter = new RegExp(config?.sitemapFilter ?? '^$');
+    const urls = [
+      `${D}/javascript/latest/release-notes/`,
+      `${D}/javascript/latest/release-notes/4.9/`,
+      `${D}/javascript/latest/release-notes/4.10/`,
+      `${D}/javascript/latest/4.33/`,
+      `${D}/javascript/latest/4.34/`,
+      `${D}/javascript/latest/references/core/views/2d/`,
+      `${D}/javascript/latest/breaking-changes/`,
+    ].filter((url) => filter.test(url));
+    expect(pagesByPattern(urls, new RegExp(config?.pattern ?? '^$'))).toEqual([
+      { version: '4.34', url: `${D}/javascript/latest/4.34/` },
+      { version: '4.33', url: `${D}/javascript/latest/4.33/` },
+      { version: '4.10', url: `${D}/javascript/latest/release-notes/4.10/` },
+      { version: '4.9', url: `${D}/javascript/latest/release-notes/4.9/` },
     ]);
   });
 
