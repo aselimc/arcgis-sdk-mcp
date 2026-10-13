@@ -20,7 +20,7 @@ import type {
 import type { CatalogRecord, DocPage, Product, VersionLine } from '../../core/types.js';
 import type { IndexInternals } from '../index/types.js';
 import { indexNotes } from '../notes.js';
-import { resolveScope } from '../scope.js';
+import { projectLine, resolveScope } from '../scope.js';
 import { plainText } from '../search/excerpt.js';
 import { SYNONYMS } from '../search/synonyms.js';
 import {
@@ -40,6 +40,9 @@ export const MAX_METADATA_FETCHES = 10;
 
 /** Text-ranked candidates considered before narrowing. */
 const CANDIDATE_DEPTH = 100;
+
+/** Sources searched for sample records when a product has no sample source of its own. */
+const MAX_FALLBACK_SOURCES = 4;
 
 /** Smallest budget given to the code of the top hit. */
 const MIN_CODE_TOKENS = 200;
@@ -126,7 +129,14 @@ export function createSampleService(
 
   return {
     async find(req: SamplesRequest, call: CallOptions): Promise<SamplesResponse> {
-      const scope = await resolveScope(ctx, { product: req.product, query: req.query, max: 1 });
+      // A sample search takes one product: of those the query or the project suggests, the
+      // first that has samples at all.
+      const scope = await resolveScope(ctx, {
+        product: req.product,
+        query: req.query,
+        max: 1,
+        eligible: (candidate) => candidate.sources.some((source) => source.kinds.includes('sample')),
+      });
       const [resolution] = scope.resolutions;
       if (resolution === undefined) {
         throw new McpDocError(
@@ -139,33 +149,60 @@ export function createSampleService(
         );
       }
       const { product } = resolution;
-      const line = ctx.registry.line(product);
+      const notes: string[] = [];
+
+      const dedicated = (
+        resolution.source === undefined
+          ? product.sources.filter((source) => source.kinds.includes('sample'))
+          : [resolution.source]
+      ).map((source) => source.id);
+      // A product without a sample source may still publish samples among its guide pages
+      // (Esri Leaflet): its first sources are then searched for records of kind sample.
+      const sourceIds =
+        dedicated.length > 0
+          ? dedicated
+          : product.sources.slice(0, MAX_FALLBACK_SOURCES).map((source) => source.id);
+
+      // The project's version line when it has samples of its own; a caller on 200.x is not
+      // served the samples of 300.x without being told.
+      const own = projectLine(ctx, product, scope.workspace);
+      const current = ctx.registry.line(product);
+      const onLine = (candidate: VersionLine): boolean =>
+        product.sources.some(
+          (source) =>
+            sourceIds.includes(source.id) &&
+            (source.lines === undefined || source.lines.includes(candidate.id)),
+        );
+      const pinned = own.pinned && onLine(own.line);
+      const line = pinned ? own.line : current;
+      if (pinned) {
+        notes.push(
+          `The project uses ${product.id} ${own.version ?? ''}: samples of the ${line.label} line are listed.`,
+        );
+      } else if (own.version !== undefined && (own.pinned || own.unreadable)) {
+        notes.push(
+          `The project uses ${product.id} ${own.version}, but these samples are for the current release (${current.label}); APIs they use may not exist in ${own.version}.`,
+        );
+      }
       const platform = req.platform?.trim() === '' ? undefined : req.platform?.trim();
       const responseScope: SamplesResponse['scope'] = {
         product: product.id,
         line: line.id,
         ...(platform === undefined ? {} : { platform }),
       };
-      const notes: string[] = [];
 
-      const sourceIds = (
-        resolution.source === undefined
-          ? product.sources.filter((source) => source.kinds.includes('sample'))
-          : [resolution.source]
-      ).map((source) => source.id);
-      if (sourceIds.length === 0) {
+      const states = await index.ensure(product, sourceIds, line, call);
+      let samples = index
+        .samples(product.id, line.id)
+        .filter((record) => sourceIds.includes(record.source));
+      if (dedicated.length === 0 && samples.length === 0) {
         notes.push(
           `${product.id} has no sample source. Tutorials and guides are found with ${formatCall(TOOLS.search, { query: req.query, product: product.id })}.`,
         );
         return { scope: responseScope, total: 0, hits: [], notes };
       }
-
-      const states = await index.ensure(product, sourceIds, line, call);
       notes.push(...indexNotes(states, (p, s) => index.reason(p, s)));
 
-      let samples = index
-        .samples(product.id, line.id)
-        .filter((record) => sourceIds.includes(record.source));
       if (platform !== undefined) {
         const fitting = samples.filter((record) => matchesPlatform(record, platform));
         if (fitting.length === 0 && samples.length > 0) {
@@ -181,9 +218,12 @@ export function createSampleService(
       const byRef = new Map(samples.map((record) => [record.ref, record]));
 
       const api = parseApi(req.usesApi);
+      // The task alone ranks. The API is a filter that is checked against each sample's
+      // metadata and code below: adding its name to the query ranked samples by whether
+      // their title mentions it, which a sample that simply uses the class never does.
       const ranked = index
         .query({
-          text: api === undefined ? req.query : `${req.query} ${api.full}`,
+          text: req.query,
           products: [product.id],
           sources: sourceIds,
           line: line.id,
@@ -197,20 +237,17 @@ export function createSampleService(
 
       let candidates = ranked;
       if (api !== undefined) {
-        // Samples that name the API come first, then the rest of the text matches; samples
-        // that name it without matching the task are still worth confirming.
-        const naming = samples.filter((record) => mentionsApi(record, api));
-        const namingRefs = new Set(naming.map((record) => record.ref));
+        // Samples that name the API without matching the task are still worth checking,
+        // after the ones the query found.
         const rankedRefs = new Set(ranked.map((record) => record.ref));
         candidates = [
-          ...ranked.filter((record) => namingRefs.has(record.ref)),
-          ...naming.filter((record) => !rankedRefs.has(record.ref)),
-          ...ranked.filter((record) => !namingRefs.has(record.ref)),
+          ...ranked,
+          ...samples.filter((record) => mentionsApi(record, api) && !rankedRefs.has(record.ref)),
         ];
       }
 
       // A sample published on the site and in the repository is one sample, listed once.
-      candidates = mergeSampleTwins(candidates);
+      candidates = mergeSampleTwins(candidates, samples);
 
       const failures: string[] = [];
       const pages = new Map<string, DocPage>();
@@ -230,24 +267,48 @@ export function createSampleService(
       if (api === undefined) {
         hits = candidates.map((record) => toHit(record, pages.get(record.ref), undefined, false));
       } else {
-        const confirmed = candidates.filter((record) => {
+        /** What the metadata and main file of a sample say about the API. */
+        const verdict = (record: CatalogRecord): 'confirmed' | 'refuted' | 'unknown' => {
           const page = pages.get(record.ref);
-          return page !== undefined && confirmsApi(page, api);
-        });
-        const confirmedRefs = new Set(confirmed.map((record) => record.ref));
-        const unconfirmed = candidates.filter(
-          (record) => !confirmedRefs.has(record.ref) && mentionsApi(record, api),
-        );
+          if (page === undefined) return 'unknown';
+          if (confirmsApi(page, api)) return 'confirmed';
+          const evidence = (page.relevantApis?.length ?? 0) > 0 || page.files?.[0] !== undefined;
+          return evidence ? 'refuted' : 'unknown';
+        };
+        const confirmed = candidates.filter((record) => verdict(record) === 'confirmed');
+        // A sample that was not checked (beyond the first ten, or unreadable) is kept and
+        // marked as unverified: leaving it out dropped the best match for the task whenever
+        // ten samples that merely name the API in their title came before it. One whose
+        // metadata and code were read and do not name the API is left out.
+        const open = candidates.filter((record) => verdict(record) === 'unknown');
+        // Among those not confirmed, the ones whose own text names the API go first.
+        const unconfirmed = [
+          ...open.filter((record) => mentionsApi(record, api)),
+          ...open.filter((record) => !mentionsApi(record, api)),
+        ];
         hits = [
           ...confirmed.map((record) => toHit(record, pages.get(record.ref), api, true)),
           ...unconfirmed.map((record) => toHit(record, pages.get(record.ref), api, false)),
         ];
         if (hits.length === 0) {
+          // A sample can use an API without naming it (`featureReduction: { type: "cluster" }`
+          // for FeatureReductionCluster), so the way back to the unfiltered list is given.
+          const unfiltered = formatCall(TOOLS.findSamples, {
+            query: req.query,
+            product: product.id,
+            platform,
+          });
           notes.push(
-            `No sample of ${product.id} was found that uses ${api.full}; not verified beyond the top ${inspect} candidates.`,
+            `No sample of ${product.id} was found that uses ${api.full}: the metadata and main file of the top ${inspect} matches do not name it. A sample may still use it indirectly; the same search without "uses_api" is ${unfiltered}.`,
           );
         } else if (confirmed.length === 0) {
-          notes.push(`No sample was confirmed to use ${api.full}; the hits only mention it.`);
+          notes.push(
+            `No sample was confirmed to use ${api.full}: the hits match the query or mention the API, and their use of it is not verified.`,
+          );
+        } else if (unconfirmed.length > 0) {
+          notes.push(
+            `${confirmed.length} sample(s) are confirmed to use ${api.full} and listed first; the others were not checked (only the top ${inspect} candidates are).`,
+          );
         }
       }
 

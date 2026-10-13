@@ -77,6 +77,8 @@ export class Importer {
   /** Product id -> version -> access, for the numbered lines its legacy sources need. */
   private readonly versions = new Map<string, Map<string, 'live' | 'link-only'>>();
   private readonly usedMeta = new Set<string>();
+  /** Tombstones whose own pages are gone: `finish` links them to their related products. */
+  private readonly unreachableTombstones = new Set<string>();
 
   constructor(
     private readonly source: SourceFile,
@@ -249,7 +251,22 @@ export class Importer {
   private tombstone(entry: Entry): void {
     const id = this.mapped(this.rules.tombstones, entry, 'tombstones');
     const base = this.base(id, entry);
-    const root = entry.base_url.replace('<version>', entry.other_versions_on_host[0] ?? 'latest');
+    // The one link a tombstone offers must answer. Where the research found the old root
+    // gone it names a page that is there (`landing_url`), or the help has moved to the
+    // related products, whose pages `finish` links instead.
+    const root =
+      entry.landing_url ??
+      entry.base_url.replace('<version>', entry.other_versions_on_host[0] ?? 'latest');
+    // A root that redirects to a notice on another site still tells a reader what happened;
+    // one that ends in an error on the documentation host itself tells nothing.
+    const endsOnHost = (entry.root_redirect ?? '').startsWith(`https://${entry.host}/`);
+    if (
+      entry.landing_url === undefined &&
+      endsOnHost &&
+      (entry.root_final_status ?? 200) >= 400
+    ) {
+      this.unreachableTombstones.add(id);
+    }
     const notice = entry.root_redirect ?? '';
     this.products.set(id, {
       ...base,
@@ -373,6 +390,23 @@ export class Importer {
     this.record(entry, 'pro-legacy-lines', `${productId}/legacy`);
   }
 
+  /** Points a tombstone whose own pages are gone at the help of the products that replaced it. */
+  private linkToRelated(id: string): void {
+    const product = this.products.get(id);
+    if (product === undefined) return;
+    const heirs = product.related
+      .map((related) => this.products.get(related))
+      .filter((heir): heir is Product => heir !== undefined);
+    const [first] = heirs;
+    if (first === undefined) {
+      throw new Error(
+        `${id}: its root no longer answers; the research entry needs landing_url, or rules.products.${id}.related a generated product`,
+      );
+    }
+    product.homepage = first.homepage;
+    product.startHere = heirs.map((heir) => ({ title: `${heir.name} help`, ref: heir.homepage }));
+  }
+
   /** Gives products with legacy sources their numbered lines and pins other sources to `latest`. */
   finish(): HelpRegistry {
     for (const [productId, versions] of this.versions) {
@@ -390,6 +424,7 @@ export class Importer {
         source.lines === undefined ? { ...source, lines: [LATEST_LINE.id] } : source,
       );
     }
+    for (const id of this.unreachableTombstones) this.linkToRelated(id);
     const registry: HelpRegistry = {
       products: [...this.products.values()].map(inDeclarationOrder),
       developerSources: this.developerSources,

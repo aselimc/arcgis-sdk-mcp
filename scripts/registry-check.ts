@@ -19,6 +19,7 @@ import { expandTemplate, sourceBaseUrls } from '../src/core/source-urls.js';
 import type { AdapterType, Capability, HostPolicy, Product } from '../src/core/types.js';
 import { parseGithubUrl } from '../src/core/url.js';
 import { GITHUB_OWNERS } from '../src/registry/hosts.js';
+import { URL_OPTION_KEYS } from '../src/registry/oracle-options.js';
 import { plainKey } from '../src/registry/resolve.js';
 import { briefSchema, hostPolicySchema, validateProducts } from '../src/registry/schema.js';
 
@@ -96,7 +97,8 @@ function urlsOf(product: Product): Array<[where: string, url: string]> {
     found.push(['releaseNotes.current', product.releaseNotes.current]);
   }
   for (const oracle of product.oracles) {
-    for (const key of ['url', 'sitemap'] as const) {
+    // The schema admits no other option keys, so these are all the addresses an oracle has.
+    for (const key of URL_OPTION_KEYS) {
       const value = oracle.options[key];
       if (value !== undefined) found.push([`oracle ${oracle.type}`, value]);
     }

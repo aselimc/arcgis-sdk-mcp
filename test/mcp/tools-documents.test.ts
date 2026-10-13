@@ -267,13 +267,20 @@ describe('document tools', () => {
       );
       expect(outcome.text.match(/^- /gm)).toHaveLength(1);
 
+      // On a page without an anchor the twin is told from a neighbour by its simple name.
       suite.harness.services.symbols.lookup = async (req, options) => {
         const response = await lookup(req, options);
-        return { ...response, alternates: [{ ...response.record, qualified: 'other.Name' }] };
+        return {
+          ...response,
+          alternates: [
+            { ...response.record, qualified: 'other.FeatureLayer' },
+            { ...response.record, symbol: 'Neighbour', qualified: 'layers.Neighbour' },
+          ],
+        };
       };
-      expect((await call(TOOLS.lookupSymbol, { symbol: 'FeatureLayer' })).text).not.toContain(
-        'Other matches',
-      );
+      const unanchored = await call(TOOLS.lookupSymbol, { symbol: 'FeatureLayer' });
+      expect(unanchored.text).toContain('Other matches:\n- {"symbol":"layers.Neighbour",');
+      expect(unanchored.text).not.toContain('other.FeatureLayer');
       suite.harness.services.symbols.lookup = lookup;
     });
 

@@ -33,8 +33,9 @@ export interface SymbolFields {
 
 /**
  * What tool pages said about their own Python names, keyed by the page path relative to the
- * tool reference (`analysis/buffer.html`). `null` marks a page that turned out to document
- * no Python call. `aliases` maps a toolbox directory to the alias its pages use.
+ * tool reference (`analysis/buffer.html`). `null` marks a page that turned out to be a topic:
+ * it has neither a Python call nor parameters. `aliases` maps a toolbox directory to the
+ * alias its pages use.
  */
 export interface VerifiedNames {
   aliases: Record<string, string>;
@@ -282,17 +283,35 @@ export function arcpySymbol(entry: TocEntry, path: string): SymbolFields | undef
   return { symbol: entry.title, qualified: `${module}.${entry.title}`, symbolKind };
 }
 
+const QUALIFIED_CALL = /\barcpy\.([A-Za-z0-9_]+)\.([A-Za-z_][A-Za-z0-9_]*)\s*\\?\(/g;
+
+/**
+ * A line that is nothing but a call written without its module: `Slope(in_raster, {z_factor})`.
+ * The tools of the Spatial Analyst and Image Analyst toolboxes are documented this way,
+ * because they are used as `from arcpy.sa import *`. A name starts with a capital, which
+ * tells a tool from `print(x)` in a sample; nested parentheses do not occur in a syntax line.
+ */
+const BARE_SYNTAX_LINE = /(?:^|>)[ \t]*([A-Z][A-Za-z0-9_]*)\\?\(([^()\n<]*)\\?\)[ \t]*(?:$|<)/m;
+
 /**
  * The Python call a tool page documents, read from its text (HTML or converted Markdown).
  *
- * The syntax line comes before the code samples, so the first `arcpy.<alias>.<Name>(` names
- * the tool. Its alias is taken from the most frequent spelling that is a valid Python
- * identifier, because the syntax line of a few pages shows a display alias that is not
- * (`arcpy.3d.Viewshed2`) while their samples use the real one (`arcpy.ddd.Viewshed2`).
+ * The syntax line comes before the code samples, so the first call on the page names the
+ * tool: `arcpy.<alias>.<Name>(`, or a line that is only `<Name>(...)` where the page writes
+ * the call without its module. Whichever of the two comes first counts: a sample further
+ * down may well call another tool by its full name.
+ *
+ * The alias is taken from the most frequent spelling that is a valid Python identifier,
+ * because the syntax line of a few pages shows a display alias that is not
+ * (`arcpy.3d.Viewshed2`) while their samples use the real one (`arcpy.ddd.Viewshed2`). A
+ * page that never writes the module has no alias here; the caller knows the toolbox.
  */
 export function pythonSignature(page: string): { name: string; alias?: string } | undefined {
-  const calls = [...page.matchAll(/\barcpy\.([A-Za-z0-9_]+)\.([A-Za-z_][A-Za-z0-9_]*)\s*\\?\(/g)];
-  const name = calls[0]?.[2];
+  const calls = [...page.matchAll(QUALIFIED_CALL)];
+  const bare = BARE_SYNTAX_LINE.exec(page);
+  const first = calls[0];
+  const name =
+    bare !== null && (first === undefined || bare.index < first.index) ? bare[1] : first?.[2];
   if (name === undefined) return undefined;
   const counts = new Map<string, number>();
   for (const [, alias, called] of calls) {

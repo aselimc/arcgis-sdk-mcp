@@ -684,8 +684,8 @@ function gameEngine(spec: {
     sources: [
       {
         id: 'guide',
-        title: 'Guide, samples and API reference',
-        kinds: ['guide', 'sample', 'api', 'release-notes'],
+        title: 'Guide, tutorials, samples and API reference',
+        kinds: ['guide', 'tutorial', 'sample', 'api', 'release-notes'],
         adapter: 'gatsby',
         config: { base: `/${spec.slug}/`, ...spec.options },
         capability: 'website',
@@ -759,17 +759,28 @@ const unreal = gameEngine({
 
 const MIGRATION_PAGE = 'reference/migrate-from-100-x-to-200-x/';
 
+/** `[site slug, platform]` of every Maps SDK that publishes a 100.x migration guide. */
+const RUNTIME_MIGRATION_GUIDES: ReadonlyArray<readonly [slug: string, label: string]> = [
+  ['swift', 'Swift (iOS)'],
+  ['kotlin', 'Kotlin (Android)'],
+  ['net', '.NET'],
+  ['qt', 'Qt'],
+];
+
 const runtime100: Product = {
   id: 'runtime-100',
   name: 'ArcGIS Runtime SDKs 100.x',
   aliases: ['arcgis runtime', 'runtime sdk', 'arcgis-runtime', 'runtime 100', 'arcgis runtime sdk'],
   category: 'native',
   tier: 'developer',
-  status: 'retired',
-  statusNote: 'Retires 2027-09-01; documentation is on an archive host that is linked, not fetched',
-  successor: 'kotlin-maps-sdk',
+  // Not retired yet: the life-cycle dates below say when. There is no single successor (a
+  // .NET developer is not helped by the Kotlin migration guide), so the note names one per
+  // platform and `successor` stays unset.
+  status: 'deprecated',
+  statusNote:
+    'Successors by platform: swift-maps-sdk (iOS), kotlin-maps-sdk (Android), dotnet-maps-sdk, qt-maps-sdk, java-maps-sdk. The 100.x documentation is on an archive host that is linked, not fetched',
   summary:
-    'Tombstone for ArcGIS Runtime SDKs 100.x (Android, iOS, .NET, Qt, Java). Points to the migration guides of the Maps SDKs.',
+    'ArcGIS Runtime SDKs 100.x (Android, iOS, .NET, Qt, Java), in mature support. Points to the migration guides of the Maps SDKs.',
   keywords: ['runtime', '100.x', '100.15', 'legacy', 'migration', 'migrate', 'retired'],
   languages: [],
   homepage: 'https://archive.developers.arcgis.com/',
@@ -783,12 +794,7 @@ const runtime100: Product = {
       kinds: ['guide'],
       adapter: 'static',
       config: {
-        entries: [
-          ['kotlin', 'Kotlin (Android)'],
-          ['swift', 'Swift (iOS)'],
-          ['net', '.NET'],
-          ['qt', 'Qt'],
-        ].map(([slug, label]) => ({
+        entries: RUNTIME_MIGRATION_GUIDES.map(([slug, label]) => ({
           url: `${D}/${slug}/${MIGRATION_PAGE}`,
           title: `Migrate from 100.x to 200.x: ${label}`,
           kind: 'guide' as const,
@@ -811,10 +817,10 @@ const runtime100: Product = {
       provides: ['documented', 'lifecycle'],
     },
   ],
-  startHere: [
-    { title: 'Migrate to Kotlin', ref: `${D}/kotlin/${MIGRATION_PAGE}` },
-    { title: 'Migrate to Swift', ref: `${D}/swift/${MIGRATION_PAGE}` },
-  ],
+  startHere: RUNTIME_MIGRATION_GUIDES.map(([slug, label]) => ({
+    title: `Migrate to ${label}`,
+    ref: `${D}/${slug}/${MIGRATION_PAGE}`,
+  })),
   pitfalls: [
     '100.x documentation is on archive.developers.arcgis.com, which this server links to but never reads.',
     'Android moves to the Kotlin SDK, iOS to the Swift SDK; .NET and Qt keep their SDK and change major version.',

@@ -210,7 +210,8 @@ const handle: ToolHandler<typeof Input> = async (args, call, container) => {
       status: statusLine([
         `Search "${response.query}"`,
         scopeText(response.scope, args.product),
-        `line: ${response.scope.line}`,
+        // A search over no product has no version line to state.
+        response.scope.line === '' ? undefined : `line: ${response.scope.line}`,
         response.scope.kind === undefined ? undefined : `kind: ${response.scope.kind}`,
         `mode: ${response.mode === 'local' ? 'local index (site search off)' : 'local index + Esri site search'}`,
         results.length === 0

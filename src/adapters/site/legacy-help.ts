@@ -29,6 +29,7 @@ import {
   treePages,
   type TreePage,
 } from './legacy-treedata.js';
+import { selectPythonMember, withPythonMembers } from './python-members.js';
 import { readSitemap } from './sitemap.js';
 import {
   assertLive,
@@ -303,8 +304,11 @@ export const legacyHelpAdapter: SourceAdapter<'legacy-help'> = {
     );
   },
 
-  read(ctx, src, target) {
-    return readHtmlPage(ctx, src, target, { kind: pageKind(src) });
+  async read(ctx, src, target) {
+    const page = await readHtmlPage(ctx, src, target, { kind: pageKind(src) });
+    // The ArcPy reference of an earlier release is in this layout; any other page has no
+    // property rows or method lines and comes back as it is.
+    return selectPythonMember(withPythonMembers(page), target.select);
   },
 
   probe(ctx, src): Promise<ProbeResult> {

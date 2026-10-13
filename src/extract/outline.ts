@@ -6,7 +6,7 @@
 import type { CheerioAPI } from 'cheerio';
 import type { Element } from 'domhandler';
 import { slugify } from '../core/url.js';
-import { headingLevel, ID_ATTR, squash } from './dom.js';
+import { findIn, headingLevel, ID_ATTR, squash } from './dom.js';
 import { IdAllocator } from './id-allocator.js';
 import type { OutlineNode, PageView } from './types.js';
 
@@ -53,7 +53,7 @@ export function stampOutline(page: PageView, ...rules: OutlineRule[]): OutlineNo
   const ids = new IdAllocator();
   ids.reserve(slugify(page.title));
   const nodes: OutlineNode[] = [];
-  root.find(active.map((rule) => rule.selector).join(', ')).each((_, el) => {
+  findIn($, root, active.map((rule) => rule.selector).join(', ')).each((_, el) => {
     const rule = active.find((candidate) => $(el).is(candidate.selector));
     if (rule === undefined) return;
     const level = rule.level?.(el, $) ?? headingLevel(el);

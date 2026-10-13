@@ -1,6 +1,6 @@
 import type { Cheerio, CheerioAPI } from 'cheerio';
 import type { AnyNode, Element } from 'domhandler';
-import { isElement, squash } from '../dom.js';
+import { findIn, isElement, squash } from '../dom.js';
 import { stampOutline } from '../outline.js';
 import { COMMON_REMOVE } from '../passes/remove-common.js';
 import type { FamilyProfile } from '../types.js';
@@ -15,9 +15,9 @@ const CHROME = `${COMMON_REMOVE}, footer`;
 
 /** Length of an element's text without the text of page chrome inside it. */
 function contentLength($: CheerioAPI, el: AnyNode): number {
-  const chrome = $(el)
-    .find(CHROME)
-    .filter((_, inner) => $(inner).parent().closest(CHROME).length === 0);
+  const chrome = findIn($, $(el), CHROME).filter(
+    (_, inner) => $(inner).parent().closest(CHROME).length === 0,
+  );
   return squash($(el).text()).length - squash(chrome.text()).length;
 }
 

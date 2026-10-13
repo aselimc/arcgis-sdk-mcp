@@ -28,6 +28,7 @@ import {
   type TocEntry,
   type VerifiedNames,
 } from './docfx-esri-toc.js';
+import { selectPythonMember, withPythonMembers } from './python-members.js';
 import { readSitemap, sitemapRecords } from './sitemap.js';
 import {
   assertLive,
@@ -97,10 +98,15 @@ async function tocFiles(ctx: Ctx, src: DocfxSource): Promise<TocFile[]> {
   return books.map((book) => ({ url: new URL(book.toc, rootUrl).href, lead: [book.title] }));
 }
 
-/** Cache key of the names tool pages reported for themselves (namespace `symbols`). */
+/**
+ * Cache key of the names tool pages reported for themselves (namespace `symbols`). The
+ * version is part of the key so that verdicts of an earlier reading rule are left behind:
+ * `v2` no longer takes a page with an unqualified syntax line for a topic, which `v1`
+ * stored as "no Python call" and thereby dropped the tool from the next catalogue.
+ */
 function verifiedKey(src: DocfxSource): string {
   const { slug, scope = '' } = src.source.config;
-  return `docfx-esri/tool-names/${slug}/${scope}${src.line.id}`;
+  return `docfx-esri/tool-names/v2/${slug}/${scope}${src.line.id}`;
 }
 
 async function loadVerified(ctx: Ctx, src: DocfxSource): Promise<VerifiedNames> {
@@ -166,6 +172,11 @@ function toLatest(loc: string, src: DocfxSource): string {
   return loc.replace(numbered, src.url());
 }
 
+/** True when a page has the parameter or syntax section every tool page has and no topic does. */
+function documentsParameters(page: DocPage): boolean {
+  return page.sections.some((section) => /^(?:parameters|syntax)(?:-\d+)?$/.test(section.id));
+}
+
 /**
  * Remembers what a tool page says its Python call is, so that the next enumeration lists the
  * tool under that name (design risk R5), and tells the reader when the catalogue had it wrong.
@@ -189,6 +200,9 @@ async function verifyToolName(
   const listed = target.record?.symbolKind === 'tool' ? target.record.qualified : undefined;
   // A sliced page may simply not include the syntax line, so only a whole page can say "no call".
   if (signature === undefined && (listed === undefined || target.select !== undefined)) return page;
+  // "No call" is the verdict that takes a page out of the symbol index, so it needs more
+  // than a syntax line this reader does not understand: a page with parameters is a tool.
+  if (signature === undefined && documentsParameters(page)) return page;
 
   const verified = await loadVerified(ctx, src);
   const qualified =
@@ -214,7 +228,9 @@ async function verifyToolName(
  *
  * With `symbols: 'toc'` the table-of-contents entries of the Python references become symbol
  * records: geoprocessing tools when `gpParameters` is set, ArcPy classes and functions
- * otherwise. Symbols are pages of their own, never members, so they carry no `parent`.
+ * otherwise. Symbols are pages of their own, never members, so they carry no `parent`; the
+ * properties and methods of a class are found on its page when it is read
+ * (`python-members.ts`).
  */
 export const docfxEsriAdapter: SourceAdapter<'docfx-esri'> = {
   type: 'docfx-esri',
@@ -283,7 +299,12 @@ export const docfxEsriAdapter: SourceAdapter<'docfx-esri'> = {
   async read(ctx, src, target) {
     const kind = target.record?.kind ?? src.source.kinds[0] ?? 'help';
     const page = await readHtmlPage(ctx, src, target, { kind });
-    if (src.source.config.gpParameters !== true) return page;
+    const { symbols, gpParameters } = src.source.config;
+    // A class of the Python reference: its properties and methods are its members.
+    if (symbols === 'toc' && gpParameters !== true) {
+      return selectPythonMember(withPythonMembers(page), target.select);
+    }
+    if (gpParameters !== true) return page;
     try {
       return await verifyToolName(ctx, src, target, page);
     } catch (error) {

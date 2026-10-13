@@ -79,15 +79,28 @@ export function matchesPlatform(record: CatalogRecord, platform: string): boolea
   const wanted = platform.trim().toLowerCase();
   if (wanted === '') return true;
   if (record.platform?.toLowerCase() === wanted) return true;
-  if (record.platform !== undefined)
-    return record.platform
-      .toLowerCase()
+  if (
+    record.platform
+      ?.toLowerCase()
       .split(/[\s,/]+/)
-      .includes(wanted);
-  // Repositories keep one directory per platform: `.../MAUI/...`, `.../wpf/...`.
-  return new RegExp(`[/_.-]${wanted.replace(/[\\^$*+?.()|[\]{}]/g, '\\$&')}(?:[/_.-]|$)`, 'i').test(
-    record.ref,
-  );
+      .includes(wanted) === true
+  ) {
+    return true;
+  }
+  // Repositories keep one directory per platform: `.../MAUI/...`, `.../wpf/...`,
+  // `.../dot net/...`. The path is asked even when the record names a platform: a repository
+  // that holds samples in two languages is often labelled with one of them as a whole.
+  const squashed = (text: string): string => text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+  let segments: string[];
+  try {
+    segments = decodeURIComponent(new URL(record.ref).pathname).split('/');
+  } catch {
+    segments = record.ref.split('/');
+  }
+  const key = squashed(wanted);
+  // A directory may also carry the platform as one part of its name: `Maui.Samples`.
+  const names = segments.flatMap((segment) => [segment, ...segment.split(/[_.-]/)]);
+  return key !== '' && names.some((name) => squashed(name) === key);
 }
 
 /** True when a sample record points into a GitHub repository rather than at a site page. */
@@ -108,10 +121,22 @@ const samePlatform = (a: CatalogRecord, b: CatalogRecord): boolean =>
  * repository copy is kept (Apache-2.0, with metadata and source files) at the better of the
  * two ranks, and takes the description and location from the site page when it has none.
  * Samples are twins when their titles agree and their platforms do not differ.
+ *
+ * @param universe every sample of the search, ranked or not. A twin is looked for among
+ *   all of them: the site page carries the description that matched the query, the
+ *   repository record often only a title, so the two rarely match the same words. Without
+ *   this the same sample was a code-less site page for one wording and a repository sample
+ *   for another.
  */
-export function mergeSampleTwins(ranked: readonly CatalogRecord[]): CatalogRecord[] {
+export function mergeSampleTwins(
+  ranked: readonly CatalogRecord[],
+  universe: readonly CatalogRecord[] = ranked,
+): CatalogRecord[] {
   const groups = new Map<string, { site: CatalogRecord[]; github: CatalogRecord[] }>();
-  for (const record of ranked) {
+  const grouped = new Set<string>();
+  for (const record of [...ranked, ...universe]) {
+    if (grouped.has(record.ref)) continue;
+    grouped.add(record.ref);
     const key = titleKey(record);
     const group = groups.get(key) ?? { site: [], github: [] };
     (isGithubSample(record) ? group.github : group.site).push(record);

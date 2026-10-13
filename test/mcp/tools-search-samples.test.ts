@@ -207,14 +207,18 @@ describe('search and sample tools', () => {
       it('offers a short ranked product list when no product was searched at all', async () => {
         suite.harness.services.search.search = async (req) => ({
           query: req.query,
-          scope: { products: [], line: 'latest', resolvedFrom: 'none' },
+          // What the search service reports when no product matched: no line either.
+          scope: { products: [], line: '', resolvedFrom: 'none' },
           mode: 'local',
           total: 0,
           hits: [],
           notes: [],
         });
         const outcome = await call(TOOLS.search, { query: 'zzz yyy', kind: 'api' });
-        expect(outcome.text.split('\n')[0]).toContain('| products: none | line: latest |');
+        // Regression: the status line read "products: none, resolved from "none" | line:  |".
+        expect(outcome.text.split('\n')[0]).toBe(
+          'Search "zzz yyy" | products: none | mode: local index (site search off) | 0 hits',
+        );
         expect(nextOf(outcome.text)).toBe(
           'Next: arcgis_docs_list_products({"query":"zzz yyy","limit":8})',
         );

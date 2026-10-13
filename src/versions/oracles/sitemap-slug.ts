@@ -4,7 +4,7 @@
  * `2026-07-21`).
  *
  * Options:
- * - `sitemap` (also `url`): default `sitemap-0.xml` next to the product's home page.
+ * - `sitemap`: default `sitemap-0.xml` next to the product's home page.
  * - `filter`: URL regex; default the product's `releaseNotes.sitemapFilter`, else
  *   `release-notes|whats-new|what-s-new|changelogs`.
  * - `slug`: `compact` when the slug runs the digits together (`244` = 2.4.4).
@@ -22,7 +22,7 @@ import { defineOracle, option, resolveUrl } from './kit.js';
 
 /** The slug style a spec asks for. */
 export function slugStyle(spec: OracleSpec): SlugStyle {
-  return option(spec, 'slug', 'style') === 'compact' ? 'compact' : 'auto';
+  return option(spec, 'slug') === 'compact' ? 'compact' : 'auto';
 }
 
 /** The URL filter of a spec, falling back to the product's release-notes filter and the general one. */
@@ -41,7 +41,7 @@ export const sitemapSlugOracle = defineOracle(
   'sitemap-slug',
   'website',
   async (ctx, product, spec, run) => {
-    const configured = option(spec, 'sitemap', 'url');
+    const configured = option(spec, 'sitemap');
     const urls =
       configured === undefined
         ? await readProductSitemap(ctx, product, run.line, run.call)

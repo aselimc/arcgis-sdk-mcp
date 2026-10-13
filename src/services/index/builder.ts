@@ -53,8 +53,8 @@ function clean(
 }
 
 /**
- * Enumerates a source through its adapter. The adapter gets a fresh budget of at most its
- * own `maxEnumerateRequests`; whatever it throws becomes a failed outcome with a reason.
+ * Enumerates a source through its adapter. The adapter gets a fresh budget of its own
+ * `maxEnumerateRequests`; whatever it throws becomes a failed outcome with a reason.
  */
 export async function enumerateSource(
   ctx: Ctx,
@@ -68,8 +68,11 @@ export async function enumerateSource(
   try {
     const adapter = adapters.get(source.adapter);
     if (adapter.enumerate === undefined) return { ok: true, records: [] };
+    // The adapter declares the hard budget of its enumeration (`maxEnumerateRequests`),
+    // sized for its largest source. A second, lower cap on top of it made the first build
+    // of such a source fail by design: 16 help books at three requests each against 30.
     budget = newBudget(
-      Math.min(limits.requestsPerIndexBuild, adapter.maxEnumerateRequests),
+      adapter.maxEnumerateRequests,
       limits.indexBuildDeadlineMs * BACKGROUND_DEADLINE_FACTOR,
       ctx.clock,
     );
@@ -92,7 +95,7 @@ export async function enumerateSource(
     return {
       ok: false,
       reason: spent
-        ? `request budget of the index build spent; ${describe(error)}`
+        ? `the request budget of the index build (${budget?.maxRequests ?? 0} requests) was spent before the source was listed; ${describe(error)}`
         : describe(error),
       disabled: isMcpDocError(error) && error.code === 'SOURCE_DISABLED',
     };

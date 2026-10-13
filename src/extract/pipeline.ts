@@ -20,7 +20,7 @@ import type { RenderMeta, RenderOptions, SectionSelector } from '../core/ports.j
 import { sectionSubtree } from '../core/sections.js';
 import type { DocSection, MemberEntry, SourceFile } from '../core/types.js';
 import { buildSections, stripHeadingMarks } from './build-sections.js';
-import { isElement, squash, tagged, WORK_ROOT, workRoot } from './dom.js';
+import { isElement, moveInto, squash, tagged, WORK_ROOT, workRoot } from './dom.js';
 import { absolutize } from './passes/absolutize.js';
 import { fixAsides } from './passes/fix-asides.js';
 import { fixCodeLinks } from './passes/fix-code-links.js';
@@ -138,11 +138,14 @@ function chunkWideElements($: CheerioAPI): void {
   for (const el of wide) {
     if (!isElement(el)) continue;
     const children = [...el.children];
+    const groups: AnyNode[] = [];
     for (let start = 0; start < children.length; start += WIDE) {
-      const group = $('<div></div>');
-      $(el).append(group);
-      group.append(children.slice(start, start + WIDE));
+      const group = $('<div></div>').get(0);
+      if (!isElement(group)) return;
+      moveInto(group, children.slice(start, start + WIDE));
+      groups.push(group);
     }
+    moveInto(el, groups);
   }
 }
 
@@ -154,7 +157,8 @@ function convertNodes(
   convert: (html: string) => Converted,
 ): Converted {
   const $ = load(`<${WORK_ROOT}></${WORK_ROOT}>`, null, false);
-  workRoot($).append(nodes);
+  const holder = workRoot($).get(0);
+  if (isElement(holder)) moveInto(holder, nodes);
   for (const step of steps) step?.($, env);
   chunkWideElements($);
   const converted = convert(workRoot($).html() ?? '');

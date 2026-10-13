@@ -4,10 +4,10 @@
  * pattern covers the first release-notes heading or the first row of a release table.
  *
  * Options:
- * - `url` (also `page`, `path`): the page; default the product's home page for the line.
- *   Line variables such as `{prefix}` are substituted. A `.json` URL is read as JSON text.
- * - `pattern` (also `regex`): a regular expression; default the banner patterns.
- * - `match` (also `on`): `text` (tags removed, whitespace collapsed) or `html` (the raw
+ * - `url`: the page; default the product's home page for the line. Line variables such as
+ *   `{prefix}` are substituted. A `.json` URL is read as JSON text.
+ * - `pattern`: a regular expression; default the banner patterns.
+ * - `match`: `text` (tags removed, whitespace collapsed) or `html` (the raw
  *   markup). Default for a custom pattern: `html` when it contains `<`, else the text first
  *   and the markup as a second try. The banner patterns always read the text.
  * - `format`: how the version is built from the capture groups (`$1.$2` turns
@@ -83,7 +83,7 @@ function subjects(
   isHtml: boolean,
 ): string[] {
   if (!isHtml) return [body];
-  const mode = option(spec, 'match', 'on') ?? (pattern?.includes('<') === true ? 'html' : 'auto');
+  const mode = option(spec, 'match') ?? (pattern?.includes('<') === true ? 'html' : 'auto');
   if (mode === 'html') return [body];
   const text = visibleText(body);
   return mode === 'text' || pattern === undefined ? [text] : [text, body];
@@ -103,7 +103,7 @@ export const pageRegexOracle = defineOracle(
       ...requestOptions(run),
     });
 
-    const custom = option(spec, 'pattern', 'regex');
+    const custom = option(spec, 'pattern');
     const compiled = custom === undefined ? undefined : compilePattern(custom);
     // An unusable registry pattern must not silently turn into the banner patterns.
     if (custom !== undefined && compiled === undefined) return [];

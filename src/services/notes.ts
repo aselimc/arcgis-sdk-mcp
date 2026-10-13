@@ -64,7 +64,10 @@ export function scopeNote(origin: ScopeOrigin, products: readonly string[]): str
     case 'workspace':
       return `Scope: ${list} (detected in the project). Pass "product" to use another.`;
     case 'query':
-      return `Scope: ${list} (named by the query). Pass "product" to use another.`;
+      // A product named by a phrase is searched together with the project's and the likely ones.
+      return products.length > 1
+        ? `Scope: ${list} (the query names ${products[0] ?? ''}; the others are the project's or the most likely products). Pass "product" to narrow it.`
+        : `Scope: ${list} (named by the query). Pass "product" to use another.`;
     case 'router':
       return `Scope: ${list} (most likely products for this query). Pass "product" to narrow or change it.`;
     case 'argument':

@@ -22,7 +22,7 @@ export const docesriSitemapOracle = defineOracle(
   'docesri-sitemap',
   'website',
   async (ctx, product, spec, run) => {
-    const slug = option(spec, 'slug', 'product') ?? sourceSlug(product);
+    const slug = option(spec, 'slug') ?? sourceSlug(product);
     if (slug === undefined) return [];
     const url = `https://doc.esri.com/${slug}/sitemap.xml`;
     const res = await ctx.http.get({ url, expect: 'xml', ttl: 'volatile', ...requestOptions(run) });

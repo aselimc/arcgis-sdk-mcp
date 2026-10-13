@@ -1,7 +1,10 @@
 /**
- * What every oracle shares: the run options the version service passes down, option lookup
- * with the accepted spellings, the capability gate, and the rule that an oracle without an
- * answer returns `[]` instead of throwing.
+ * What every oracle shares: the run options the version service passes down, option lookup,
+ * the capability gate, and the rule that an oracle without an answer returns `[]` instead
+ * of throwing.
+ *
+ * An option has one name, listed in `ORACLE_OPTION_KEYS` (`src/registry/oracle-options.ts`),
+ * which the registry schema enforces: there are no alternative spellings to keep in step.
  */
 import { isMcpDocError, type McpDocError } from '../../core/errors.js';
 import { DEVELOPERS_ORIGIN } from '../../core/names.js';
@@ -16,6 +19,7 @@ import type {
   VersionFact,
   VersionLine,
 } from '../../core/types.js';
+import type { OracleOptionKey } from '../../registry/oracle-options.js';
 
 /** Per-run context of an oracle; everything is optional so the port's three-argument call works. */
 export interface OracleRun {
@@ -120,13 +124,10 @@ export function defineOracle(
   };
 }
 
-/** The first option present under any of the accepted keys, trimmed; empty values count as absent. */
-export function option(spec: OracleSpec, ...keys: string[]): string | undefined {
-  for (const key of keys) {
-    const value = spec.options[key]?.trim();
-    if (value !== undefined && value !== '') return value;
-  }
-  return undefined;
+/** The option of a spec under its one key, trimmed; an empty value counts as absent. */
+export function option(spec: OracleSpec, key: OracleOptionKey): string | undefined {
+  const value = spec.options[key]?.trim();
+  return value === undefined || value === '' ? undefined : value;
 }
 
 /** Budget and signal of the run, shaped for `HttpRequest` and `GithubCallOptions`. */
@@ -137,13 +138,17 @@ export function requestOptions(run: OracleRun): { budget?: RequestBudget; signal
   };
 }
 
-/** The package an oracle asks a registry about: the `package` option, else the product's primary (or only) package there. */
+/**
+ * The package an oracle asks a registry about: the option that names it (`package`; NuGet
+ * calls it `id`), else the product's primary (or only) package there.
+ */
 export function packageOption(
   product: Product,
   spec: OracleSpec,
   registry: PackageRef['registry'],
+  key: 'package' | 'id' = 'package',
 ): string | undefined {
-  const named = option(spec, 'package', 'pkg', 'id', 'name');
+  const named = option(spec, key);
   if (named !== undefined) return named;
   const candidates = product.packages.filter((ref) => ref.registry === registry);
   return (candidates.find((ref) => ref.primary === true) ?? candidates[0])?.name;
@@ -193,13 +198,13 @@ export function lineUrl(
   return `${lineHome}${url.slice(home.length)}`;
 }
 
-/** The URL option of a spec (`url`, `page` or `path`) for the line; `undefined` when not set. */
+/** The `url` option of a spec for the line; `undefined` when not set. */
 export function urlOption(
   spec: OracleSpec,
   product: Product,
   line: VersionLine | undefined,
 ): string | undefined {
-  const value = option(spec, 'url', 'page', 'path');
+  const value = option(spec, 'url');
   return value === undefined ? undefined : lineUrl(value, product, line);
 }
 

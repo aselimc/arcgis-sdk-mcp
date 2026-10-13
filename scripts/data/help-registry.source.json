@@ -5714,6 +5714,8 @@
    "name": "ArcGIS GeoAnalytics Server (legacy versions)",
    "host": "enterprise.arcgis.com",
    "base_url": "https://enterprise.arcgis.com/en/geoanalytics/<version>/",
+   "landing_url": "https://enterprise.arcgis.com/en/geoanalytics/",
+   "landing_note": "the numbered roots (/11.3/) answer 403; the component page answers 200, checked 2026-10-14",
    "url_slug": "geoanalytics",
    "search": {
     "site": "enterprise_arcgis",

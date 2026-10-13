@@ -5,6 +5,7 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import * as z from 'zod/v4';
 import { formatCall } from '../../core/budget.js';
 import { TOOLS } from '../../core/names.js';
+import { blankTolerant } from '../blank-args.js';
 import { productShortlist } from '../shortlist.js';
 import { GROUND_RULES, userMessage } from './message.js';
 
@@ -56,7 +57,7 @@ export function registerAppKickoffPrompt(server: McpServer): void {
       title: 'Plan a new ArcGIS app',
       description:
         'Plans an ArcGIS app from current documentation: versions, product profile, two samples, verified API symbols and a file plan with cited refs.',
-      argsSchema: Args,
+      argsSchema: blankTolerant(Args),
     },
     (args) => userMessage(`Plan an ArcGIS app: ${args.goal}`, appKickoffMessage(args)),
   );

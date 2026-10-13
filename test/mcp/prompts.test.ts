@@ -111,7 +111,7 @@ describe('prompts', () => {
     // Regression: a product without release-notes pages (it publishes migration guides)
     // left the step with a search that finds nothing and a release ref that cannot be read.
     expect(text).toContain(
-      'If that finds nothing, the product publishes its changes as guides (a migration guide, an upgrade guide, a "what\'s new" page): find them with arcgis_docs_search({"query":"migration upgrade what\'s new 5.1","product":"js-maps-sdk"}).',
+      'If that finds nothing, the product publishes its changes as guides (a migration guide, an upgrade guide, a "what\'s new" page): find them with arcgis_docs_search({"query":"migration upgrade what\'s new 5.1","product":"js-maps-sdk","kind":"guide"}).',
     );
     expect(text).toContain('is cited by its URL and not read.');
     expect(text).toContain('Search the project (grep)');
@@ -148,6 +148,18 @@ describe('prompts', () => {
         client.getPrompt({ name: AGENTIC_APP_DESIGN_PROMPT, arguments: { runtime: 'other' } }),
       ).rejects.toThrow(/runtime/);
     });
+  });
+
+  // A host that renders a form for the prompt sends "" for a field left empty; that used to
+  // become `Product: ` and `{"product":""}` in the scripted calls.
+  it('treats a blank optional argument as not given and trims the others', async () => {
+    const kickoff = await get(APP_KICKOFF_PROMPT, { goal: ' offline field app ', product: ' ' });
+    expect(kickoff).toBe(await get(APP_KICKOFF_PROMPT, { goal: 'offline field app' }));
+    expect(kickoff).toContain('Product: not chosen yet.');
+
+    const instructions = await get(PROJECT_INSTRUCTIONS_PROMPT, { product: '', target: '' });
+    expect(instructions).toBe(await get(PROJECT_INSTRUCTIONS_PROMPT, {}));
+    expect(instructions).toContain('Create or update `AGENTS.md`');
   });
 
   describe(PROJECT_INSTRUCTIONS_PROMPT, () => {

@@ -63,13 +63,25 @@ const MAX_ALTERNATES = 3;
 
 /**
  * Where a ref points, for comparison: its page and its fragment without regard to case.
- * Two sources of one product (the website reference and the package manifest) index the
- * same entity under different names but document it at the same place.
  */
 function placeKey(ref: string): string {
   const hash = ref.indexOf('#');
   const fragment = hash === -1 ? '' : ref.slice(hash + 1).toLowerCase();
   return `${pageKey(ref)}#${fragment}`;
+}
+
+/**
+ * True when `candidate` is the answer under another name. Two sources of one product (the
+ * website reference and the package manifest) index the same entity under different
+ * qualified names but document it at the same place. An anchor identifies one entity; a
+ * page without one can hold several, so there the simple names have to agree as well.
+ */
+function sameEntity(answer: CatalogRecord, candidate: CatalogRecord): boolean {
+  if (placeKey(candidate.ref) !== placeKey(answer.ref)) return false;
+  return (
+    answer.ref.includes('#') ||
+    (candidate.symbol ?? candidate.title) === (answer.symbol ?? answer.title)
+  );
 }
 
 /** What the caller's request fixed, which every follow-up lookup has to repeat. */
@@ -83,19 +95,19 @@ interface LookupScope {
 /**
  * The other candidates as copyable lookup arguments with their refs.
  *
- * A candidate documented at the place of the answer is the answer under another name and
- * is left out. A candidate with the name of the answer itself (another declaration of that
- * name: an overload on a page of its own, the same function for another type of argument)
- * cannot be asked for by name again, so it is listed as the ref to read. The others repeat
- * the scope of the request: without the version a follow-up would silently answer from the
- * current release, and without the source it could find a namesake in another one.
+ * A candidate that is the answer under another name is left out. A candidate with the name
+ * of the answer itself (another declaration of that name: an overload on a page of its own,
+ * the same function for another type of argument) cannot be asked for by name again, so it
+ * is listed as the ref to read. The others repeat the scope of the request: without the
+ * version a follow-up would silently answer from the current release, and without the
+ * source it could find a namesake in another one.
  */
 function alternates(
   answer: CatalogRecord,
   records: readonly CatalogRecord[],
   scope: LookupScope,
 ): string {
-  const others = records.filter((record) => placeKey(record.ref) !== placeKey(answer.ref));
+  const others = records.filter((record) => !sameEntity(answer, record));
   if (others.length === 0) return '';
   const lines = others.slice(0, MAX_ALTERNATES).map((record) => {
     const kind = record.symbolKind === undefined ? '' : ` (${record.symbolKind})`;

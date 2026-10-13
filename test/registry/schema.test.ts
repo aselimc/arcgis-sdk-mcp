@@ -161,6 +161,23 @@ describe('productSchema', () => {
     expect(issues.some((issue) => issue.startsWith(expected))).toBe(true);
   });
 
+  // Regression: oracle options were an unchecked string map, so a misspelt key was ignored
+  // and the oracle fell back to its default without a word.
+  it('rejects an oracle option the oracle type does not read, and names the ones it does', () => {
+    const oracle = (type: string, options: Record<string, string>) =>
+      issuesOf({ ...makeProduct(), oracles: [{ type, options, provides: ['documented'] }] });
+    expect(oracle('npm-dist-tags', { package: '@esri/widgets', tags: 'latest' })).toEqual([]);
+    expect(oracle('nuget-flat', { id: 'esri.widgets' })).toEqual([]);
+    expect(oracle('npm-dist-tags', { pkg: '@esri/widgets' })).toEqual([
+      'oracles.0.options.pkg: oracle npm-dist-tags has no option "pkg" (it reads package, tags)',
+    ]);
+    // A key of another oracle type is as wrong as a typo.
+    expect(oracle('nuget-flat', { package: 'esri.widgets' })).toEqual([
+      'oracles.0.options.package: oracle nuget-flat has no option "package" (it reads id)',
+    ]);
+    expect(oracle('page-regex', { page: 'https://developers.arcgis.com/x/' })).toHaveLength(1);
+  });
+
   it('rejects unknown keys and names the product', () => {
     const issues = validateProducts([{ ...makeProduct(), colour: 'blue' }, null]);
     expect(issues.map((issue) => issue.product)).toEqual(['widgets-sdk', '#1']);

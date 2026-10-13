@@ -6,6 +6,7 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import * as z from 'zod/v4';
 import { formatCall } from '../../core/budget.js';
 import { BRIEF_PREFIX, TOOLS } from '../../core/names.js';
+import { blankTolerant } from '../blank-args.js';
 import { GROUND_RULES, userMessage } from './message.js';
 
 /** Name of the prompt. */
@@ -100,7 +101,7 @@ export function registerAgenticAppDesignPrompt(server: McpServer): void {
       title: 'Design an agentic ArcGIS app',
       description:
         'Loads the curated AI briefs for the chosen runtime and asks for a design that states authentication, organisation prerequisites and beta risks.',
-      argsSchema: Args,
+      argsSchema: blankTolerant(Args),
     },
     (args) =>
       userMessage(`Agentic ArcGIS app design (${args.runtime})`, agenticAppDesignMessage(args)),

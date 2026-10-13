@@ -148,7 +148,28 @@ export function createCatalogService(ctx: Ctx, index: IndexInternals): CatalogSe
           next: formatCall(TOOLS.listProducts, { product: product.id }),
         });
       }
-      const line = ctx.registry.line(product);
+      // A source that exists only for older version lines (the help of earlier releases) is
+      // listed on the newest line it has; on the current line it has no pages at all, and
+      // its table of contents stayed empty whatever the caller did.
+      const current = ctx.registry.line(product);
+      const own = source.lines;
+      const line =
+        own === undefined || own.includes(current.id)
+          ? current
+          : (product.lines.find((candidate) => own.includes(candidate.id)) ?? current);
+      const { capability } = source;
+      if (capability !== undefined && !ctx.policy.enabled(capability)) {
+        // An empty list would read as "nothing there yet"; the source is switched off.
+        throw new McpDocError(
+          'SOURCE_DISABLED',
+          `${product.name}: ${source.title} is switched off`,
+          {
+            why: `Its table of contents needs capability "${capability}"`,
+            next: `Set ARCGIS_DOCS_SOURCES=+${capability}`,
+            capability,
+          },
+        );
+      }
       await index.ensure(product, [source.id], line, call);
       // Pages under the same ancestors are listed together, in catalogue order; a stable
       // sort keeps that order inside a group, and so across the pages of a paged listing.

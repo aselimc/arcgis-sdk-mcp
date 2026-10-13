@@ -108,7 +108,8 @@ const aiAgents: Product = {
     { title: 'MCP for ArcGIS Location Services', ref: MCP_DOCS },
     {
       title: 'Agentic apps (Maps SDK for JavaScript)',
-      ref: `${D}/javascript/latest/agentic-apps/`,
+      // The section has no index page: its first page is the entry.
+      ref: `${D}/javascript/latest/agentic-apps/ai-introduction/`,
     },
     {
       title: 'AI-assisted development (Maps SDK for JavaScript)',

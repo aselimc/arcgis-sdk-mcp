@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { docfxEsriAdapter } from '../../../../src/adapters/site/docfx-esri.js';
 import { bindSource } from '../../../../src/core/adapter-helpers.js';
 import { newBudget } from '../../../../src/core/async.js';
-import { makeLine } from '../../../support/builders.js';
-import { makeCtx } from '../../../support/make-ctx.js';
-import { describeSiteAdapterContract, replaceResponses } from '../contract.js';
+import { makeDocPage, makeLine, makeRecord } from '../../../support/builders.js';
+import { makeCtx, type TestCtx } from '../../../support/make-ctx.js';
+import { describeSiteAdapterContract, rendererOf, replaceResponses } from '../contract.js';
 import {
   BEVEL,
   EXPLORER,
@@ -258,6 +258,90 @@ describe('docfx-esri: tool reference', () => {
     expect(ctx.logger.messages('warn')).toEqual([
       'The Python name of a tool page could not be recorded',
     ]);
+  });
+
+  // Regression: the tools of a toolbox that is used as `from arcpy.<alias> import *` write
+  // their call without the module. Such a page was taken for a topic: a lookup printed "it
+  // documents no Python call" above the call, stored that verdict, and the next catalogue
+  // no longer had the tool.
+  describe('a tool page that writes its call without the module', () => {
+    const TILT = `${TOOLS}surface-analyst/tilt.html`;
+    const record = makeRecord({
+      ref: TILT,
+      product: 'widgets-pro',
+      source: 'tools',
+      kind: 'api',
+      title: 'Tilt',
+      symbol: 'Tilt',
+      qualified: 'arcpy.surfaceanalyst.Tilt',
+      symbolKind: 'tool',
+    });
+    const tiltPage = (call: string): string =>
+      [
+        '# Tilt (Surface Analyst Tools)',
+        '',
+        '## Summary',
+        '',
+        'Finds the tilt of each cell of a widget surface.',
+        '',
+        '## Parameters',
+        '',
+        ...(call === '' ? [] : ['```python', call, '```', '']),
+        '**`in_surface`** — _Raster Layer_, required',
+        '',
+        '## Code sample',
+        '',
+        '```python',
+        'from arcpy.surfaceanalyst import *',
+        'out = Tilt("heights", 0.3)',
+        'arcpy.management.CountWidgets(out)',
+        '```',
+      ].join('\n');
+    /** A context whose renderer answers the page with the given Markdown as its conversion. */
+    const ctxWith = (markdown: string): TestCtx => {
+      const ctx = proCtx();
+      ctx.http.on(TILT, { body: '<main><h1>Tilt</h1></main>' });
+      rendererOf(ctx).when('html', (rendered) =>
+        makeDocPage({ markdown, url: rendered.meta.url, kind: rendered.meta.kind }),
+      );
+      return ctx;
+    };
+
+    it('takes the unqualified syntax line for the call, in the toolbox of the page', async () => {
+      const ctx = ctxWith(tiltPage('Tilt(in_surface, {z_factor})'));
+      const page = await docfxEsriAdapter.read(ctx, boundTools(), { url: new URL(TILT), record });
+
+      expect(page.notices).toEqual([]);
+      // What was learnt is the tool's own name, never "this page is not a tool".
+      const stored = await ctx.cache.getDerived<{ names: Record<string, string | null> }>(
+        'symbols',
+        'docfx-esri/tool-names/v2/widgets-pro/tool-reference/latest',
+      );
+      expect(stored?.names).toEqual({ 'surface-analyst/tilt.html': 'arcpy.surfaceanalyst.Tilt' });
+    });
+
+    it('never drops a page with parameters from the index, whatever its syntax line looks like', async () => {
+      const ctx = ctxWith(tiltPage('').replace('arcpy.management.CountWidgets(out)', 'print(out)'));
+      const page = await docfxEsriAdapter.read(ctx, boundTools(), { url: new URL(TILT), record });
+
+      expect(page.notices).toEqual([]);
+      expect(ctx.cache.writes.derived).toBe(0);
+    });
+
+    it('leaves the verdicts of the earlier rule behind', async () => {
+      const ctx = proCtx();
+      // What a lookup of such a tool had stored before: the page "documents no Python call".
+      await ctx.cache.putDerived(
+        'symbols',
+        'docfx-esri/tool-names/widgets-pro/tool-reference/latest',
+        {
+          aliases: {},
+          names: { 'shaping/bevel-2.html': null },
+        },
+      );
+      const records = await docfxEsriAdapter.enumerate!(ctx, boundTools());
+      expect(byRef(records, BEVEL)).toMatchObject({ symbolKind: 'tool', kind: 'api' });
+    });
   });
 
   it('falls back to the sitemap with slug titles while site-index is off', async () => {

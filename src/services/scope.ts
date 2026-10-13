@@ -10,7 +10,7 @@
  */
 import type { Ctx, ProductResolution } from '../core/ports.js';
 import { isSymbolShaped } from '../core/tokenize.js';
-import type { Product, WorkspaceSdk } from '../core/types.js';
+import type { Product, VersionLine, WorkspaceSdk } from '../core/types.js';
 
 /** How the scope was chosen; reported to the agent so it can correct a wrong guess. */
 export type ScopeOrigin = 'argument' | 'workspace' | 'query' | 'router' | 'none';
@@ -199,4 +199,42 @@ export async function resolveScope(
     (eligible === undefined ? undefined : build(eligible)) ??
     build(() => true) ?? { resolutions: [], origin: 'none', workspace, fallbacks: [] }
   );
+}
+
+/** The version line a call reads for a product when the caller named no version. */
+export interface ProjectLine {
+  line: VersionLine;
+  /** The version found in the project, when there is one. */
+  version?: string;
+  /** True when `line` is the project's line and not the current one. */
+  pinned: boolean;
+  /** True when the project's line exists but its pages are never fetched (link-only). */
+  unreadable: boolean;
+}
+
+/**
+ * The line to read for a product of the project. A project on 200.x is answered from the
+ * 200.x documentation, as a symbol lookup always was: results of the current line describe
+ * types that do not exist in the version the agent writes code for. A line whose pages are
+ * not fetched (an older JavaScript release) cannot be searched; the current line answers
+ * then, and the caller is told which version the results describe.
+ */
+export function projectLine(
+  ctx: Ctx,
+  product: Product,
+  workspace: readonly WorkspaceSdk[],
+): ProjectLine {
+  const current = ctx.registry.line(product);
+  const version = workspace.find((sdk) => sdk.product === product.id)?.version;
+  if (version === undefined) return { line: current, pinned: false, unreadable: false };
+  let own: VersionLine;
+  try {
+    own = ctx.registry.line(product, version);
+  } catch {
+    // A version that fits no line says nothing about which documentation to read.
+    return { line: current, version, pinned: false, unreadable: false };
+  }
+  if (own.current) return { line: own, version, pinned: false, unreadable: false };
+  if (own.access === 'link-only') return { line: current, version, pinned: false, unreadable: true };
+  return { line: own, version, pinned: true, unreadable: false };
 }

@@ -8192,7 +8192,7 @@ export const helpProducts: readonly Product[] = [
       "office"
     ],
     "languages": [],
-    "homepage": "https://doc.arcgis.com/en/microsoft-365/latest/",
+    "homepage": "https://doc.arcgis.com/en/excel/latest/get-started/",
     "packages": [],
     "repos": [],
     "lines": [
@@ -8208,8 +8208,20 @@ export const helpProducts: readonly Product[] = [
     "oracles": [],
     "startHere": [
       {
-        "title": "ArcGIS for Microsoft 365 help (retired)",
-        "ref": "https://doc.arcgis.com/en/microsoft-365/latest/"
+        "title": "ArcGIS for Excel help",
+        "ref": "https://doc.arcgis.com/en/excel/latest/get-started/"
+      },
+      {
+        "title": "ArcGIS for Power BI help",
+        "ref": "https://doc.arcgis.com/en/power-bi/latest/get-started/"
+      },
+      {
+        "title": "ArcGIS for SharePoint help",
+        "ref": "https://doc.arcgis.com/en/sharepoint/latest/get-started/"
+      },
+      {
+        "title": "ArcGIS for Teams help",
+        "ref": "https://doc.arcgis.com/en/teams/latest/get-started/"
       }
     ],
     "pitfalls": [],
@@ -8358,7 +8370,7 @@ export const helpProducts: readonly Product[] = [
       "server role"
     ],
     "languages": [],
-    "homepage": "https://enterprise.arcgis.com/en/geoanalytics/11.3/",
+    "homepage": "https://enterprise.arcgis.com/en/geoanalytics/",
     "packages": [],
     "repos": [],
     "lines": [
@@ -8375,7 +8387,7 @@ export const helpProducts: readonly Product[] = [
     "startHere": [
       {
         "title": "ArcGIS GeoAnalytics Server help (retired)",
-        "ref": "https://enterprise.arcgis.com/en/geoanalytics/11.3/"
+        "ref": "https://enterprise.arcgis.com/en/geoanalytics/"
       }
     ],
     "pitfalls": [],

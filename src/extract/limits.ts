@@ -18,7 +18,7 @@ import type { AnyNode } from 'domhandler';
 /** Deepest nesting converted. */
 export const MAX_DEPTH = 256;
 /** Most children of one element. */
-export const MAX_CHILDREN = 10_000;
+export const MAX_CHILDREN = 16_000;
 /** Most nodes (elements, text, comments) in the document. */
 export const MAX_NODES = 300_000;
 /**

@@ -179,8 +179,14 @@ export function createUnitManager(
     const expected = source.probe.minRecords ?? 0;
     const previousCount =
       previous !== undefined && previous.origin !== 'seed' ? previous.records.length : 0;
-    // Swap rule: a rebuilt index must not be much smaller than the one it replaces.
-    const required = previousCount === 0 ? 1 : Math.max(expected, Math.ceil(previousCount / 2));
+    // Swap rule: a rebuilt index must not be much smaller than the one it replaces. The
+    // registry's expected size raises the bar, but never above what the previous index held:
+    // a rebuild as large as the index it replaces is the same source answering as before,
+    // and refusing it left that index unrefreshed until it expired.
+    const required =
+      previousCount === 0
+        ? 1
+        : Math.min(previousCount, Math.max(expected, Math.ceil(previousCount / 2)));
     if (records.length < required) {
       const reason =
         previousCount === 0

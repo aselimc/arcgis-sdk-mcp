@@ -181,7 +181,10 @@ const pythonApi: Product = {
             ['^guide/release-notes', 'release-notes'],
           ],
         },
-        { title: 'Guide and sample notebooks', kinds: ['guide', 'sample', 'release-notes'] },
+        {
+          title: 'Guide, tutorials and sample notebooks',
+          kinds: ['guide', 'tutorial', 'sample', 'release-notes'],
+        },
       ),
       probe: { url: `${D}${PY}sitemap-0.xml`, expect: 'xml', minRecords: 240, family: 'gatsby' },
     },
@@ -410,7 +413,12 @@ const geoanalyticsEngine: Product = {
   ],
   lines: [LATEST],
   sources: [
-    gatsbyGuide('/geoanalytics/', 313, { exclude: ['^api-reference/'] }),
+    gatsbyGuide(
+      '/geoanalytics/',
+      313,
+      { exclude: ['^api-reference/'] },
+      { title: 'Guide and tutorials', kinds: ['guide', 'tutorial', 'release-notes'] },
+    ),
     sphinxApi('/geoanalytics/api-reference/'),
     notebooks('Esri/geoanalytics-engine-samples', 'Sample notebooks'),
   ],
@@ -465,7 +473,12 @@ const geoanalyticsFabric: Product = {
   ],
   lines: [LATEST],
   sources: [
-    gatsbyGuide('/geoanalytics-fabric/', 236, { exclude: ['^api-reference/'] }),
+    gatsbyGuide(
+      '/geoanalytics-fabric/',
+      236,
+      { exclude: ['^api-reference/'] },
+      { title: 'Guide and tutorials', kinds: ['guide', 'tutorial', 'release-notes'] },
+    ),
     sphinxApi('/geoanalytics-fabric/api-reference/'),
     notebooks('Esri/geoanalytics-fabric-samples', 'Sample notebooks'),
   ],
@@ -531,7 +544,7 @@ const rArcgis: Product = {
   ],
   lines: [LATEST],
   sources: [
-    gatsbyGuide('/r-bridge/', 263),
+    gatsbyGuide('/r-bridge/', 263, {}, { kinds: ['guide', 'release-notes'] }),
     {
       id: 'packages',
       title: 'Package reference sites',

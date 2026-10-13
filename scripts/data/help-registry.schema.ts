@@ -35,6 +35,13 @@ export const EntrySchema = z.object({
   /** The version whose book list was verified, on hosts without a `latest` alias. */
   books_sampled_at: z.string().optional(),
   root_redirect: z.string().nullish(),
+  /** HTTP status the root answered with after redirects; 403 and 404 mean it is gone. */
+  root_final_status: z.number().int().optional(),
+  /**
+   * A page that was verified to answer and stands for a retired product whose `base_url` no
+   * longer does: the one link a tombstone offers must work.
+   */
+  landing_url: z.string().startsWith('https://').optional(),
 });
 
 /** The research file. */

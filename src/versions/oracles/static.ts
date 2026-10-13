@@ -5,7 +5,7 @@
  * version ladder (design section 6.6).
  *
  * Options:
- * - `version` (also `value`): default the first version number in the product's
+ * - `version`: default the first version number in the product's
  *   `statusNote` ("Final release 200.6").
  * - `ga`, `mature`, `retirement`: ISO dates of the life-cycle phases, when the registry
  *   author verified them on Esri's life-cycle page.
@@ -20,7 +20,7 @@ export const staticOracle = defineOracle('static', undefined, (_ctx, product, sp
   const url = resolveUrl(option(spec, 'url') ?? product.homepage, run.line);
   const facts: VersionFact[] = [];
   const value =
-    option(spec, 'version', 'value') ?? /\d+(?:\.\d+)+/.exec(product.statusNote ?? '')?.[0];
+    option(spec, 'version') ?? /\d+(?:\.\d+)+/.exec(product.statusNote ?? '')?.[0];
   if (value !== undefined) facts.push({ role: 'documented', value, oracle: 'static', url });
   for (const tag of ['ga', 'mature', 'retirement'] as const) {
     const date = parseDate(option(spec, tag));

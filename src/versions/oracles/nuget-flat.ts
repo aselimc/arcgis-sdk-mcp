@@ -3,7 +3,7 @@
  * "latest" marker, so the general-availability signal is "highest version that is not a
  * pre-release"; it has no dates either.
  *
- * Options: `id` or `package` (default: the product's primary NuGet package).
+ * Options: `id` (default: the product's primary NuGet package).
  */
 import { isPrerelease, maxVersion } from '../../core/version-key.js';
 import type { VersionFact } from '../../core/types.js';
@@ -15,7 +15,7 @@ export const nugetFlatOracle = defineOracle(
   'nuget-flat',
   'registries',
   async (ctx, product, spec, run) => {
-    const name = packageOption(product, spec, 'nuget');
+    const name = packageOption(product, spec, 'nuget', 'id');
     if (name === undefined) return [];
     // The flat container addresses packages by their lower-cased id.
     const url = `https://api.nuget.org/v3-flatcontainer/${name.toLowerCase()}/index.json`;

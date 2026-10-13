@@ -318,6 +318,47 @@ describe('pythonSignature', () => {
     expect(pythonSignature('arcpy.first.Clip(a) arcpy.second.Clip(a)')?.alias).toBe('first');
   });
 
+  // Regression: Spatial Analyst tools are documented as `Slope(in_raster, ...)`.
+  it('reads a syntax line that is written without the module', () => {
+    const markdown = [
+      '```python',
+      'Tilt(in_surface, {output_measurement}, {z_factor})',
+      '```',
+      '',
+      '## Code sample',
+      '',
+      'out = Tilt("heights", "DEGREE")',
+      'arcpy.management.CountWidgets(out)',
+    ].join('\n');
+    expect(pythonSignature(markdown)).toEqual({ name: 'Tilt' });
+    expect(pythonSignature('<p><code>Tilt(in_surface, {z_factor})</code></p>')).toEqual({
+      name: 'Tilt',
+    });
+    // A sample that spells the module out gives the alias.
+    expect(pythonSignature(`${markdown}\narcpy.sa.Tilt("heights")\narcpy.sa.Tilt("b")`)).toEqual({
+      name: 'Tilt',
+      alias: 'sa',
+    });
+  });
+
+  it('takes whichever form of the call comes first', () => {
+    expect(pythonSignature('arcpy.analysis.Buffer(a, b)\n\nNear(x)')).toEqual({
+      name: 'Buffer',
+      alias: 'analysis',
+    });
+  });
+
+  it('does not take prose, a title or a statement of a sample for a syntax line', () => {
+    const page = [
+      '# Tilt (Surface Analyst Tools)',
+      'print(result)',
+      'out = Tilt("heights")',
+      'Use Tilt(x) with care.',
+      '- Con(IsNull(a), 0, a)',
+    ].join('\n');
+    expect(pythonSignature(page)).toBeUndefined();
+  });
+
   it('reports a name without an alias when no spelling is valid, and nothing without a call', () => {
     expect(pythonSignature('arcpy.3d.Viewshed2(in_raster)')).toEqual({ name: 'Viewshed2' });
     expect(

@@ -90,7 +90,7 @@ function releasedNewestFirst(groups: readonly LifecycleGroup[], clock: Clock): L
 export const plcOracle = defineOracle('plc', 'lifecycle-api', async (ctx, product, spec, run) => {
   const category = option(spec, 'category');
   if (category === undefined) return [];
-  const productName = option(spec, 'productName', 'product') ?? product.name;
+  const productName = option(spec, 'productName') ?? product.name;
   const platform = option(spec, 'platform');
   const query = new URLSearchParams({ locale: 'en-us', category, productName });
   if (platform !== undefined) query.set('platform', platform);

@@ -13,6 +13,7 @@ import { toMcpDocError } from '../../core/errors.js';
 import { DEVELOPERS_ORIGIN, TOOL_ORDER, TOOLS } from '../../core/names.js';
 import type { CallOptions } from '../../core/ports.js';
 import type { Product } from '../../core/types.js';
+import { blankTolerant } from '../blank-args.js';
 import type { McpContainer } from '../container.js';
 import { userMessage } from './message.js';
 
@@ -206,7 +207,7 @@ export function registerProjectInstructionsPrompt(
       title: 'Write ArcGIS project instructions for coding agents',
       description:
         "Drafts the ArcGIS section of CLAUDE.md, AGENTS.md, Copilot or Cursor instructions. For the JavaScript SDK it starts from Esri's own template, fetched live and quoted with its source.",
-      argsSchema: Args,
+      argsSchema: blankTolerant(Args),
     },
     async (args, request) => {
       const { config, clock } = container.ctx;

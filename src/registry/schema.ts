@@ -19,6 +19,7 @@ import {
   type OracleType,
   type Product,
 } from '../core/types.js';
+import { ORACLE_OPTION_KEYS, unknownOptionKeys } from './oracle-options.js';
 
 /** Kebab-case identifier: product ids, source ids. */
 const id = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'must be kebab-case');
@@ -309,13 +310,24 @@ export const productSchema: z.ZodType<Product> = z.strictObject({
   lines: z.array(versionLineSchema).min(1),
   sources: z.array(sourceDefSchema),
   oracles: z.array(
-    z.strictObject({
-      type: z.enum(ORACLE_TYPES),
-      options: z.record(z.string(), z.string()),
-      provides: z
-        .array(z.enum(['documented', 'installable', 'released', 'prerelease', 'lifecycle']))
-        .min(1),
-    }),
+    z
+      .strictObject({
+        type: z.enum(ORACLE_TYPES),
+        options: z.record(z.string(), z.string()),
+        provides: z
+          .array(z.enum(['documented', 'installable', 'released', 'prerelease', 'lifecycle']))
+          .min(1),
+      })
+      // The options are a string map, so a misspelt key would pass and be ignored silently.
+      .superRefine((oracle, context) => {
+        for (const key of unknownOptionKeys(oracle.type, oracle.options)) {
+          context.addIssue({
+            code: 'custom',
+            path: ['options', key],
+            message: `oracle ${oracle.type} has no option "${key}" (it reads ${ORACLE_OPTION_KEYS[oracle.type].join(', ')})`,
+          });
+        }
+      }),
   ),
   compatibility: z
     .array(z.strictObject({ name: z.string().min(1), url: httpsUrl }))

@@ -21,7 +21,7 @@ export const githubReleaseOracle = defineOracle(
   'github-release',
   'github',
   async (ctx, product, spec, run) => {
-    const repo = option(spec, 'repo', 'repository') ?? defaultRepo(product);
+    const repo = option(spec, 'repo') ?? defaultRepo(product);
     if (repo === undefined) return [];
     const release = await ctx.github.latestRelease(repo, requestOptions(run));
     if (release === undefined) return [];

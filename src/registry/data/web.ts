@@ -384,7 +384,16 @@ const calcite: Product = {
   workspaceSignals: [npmSignal('@esri/calcite-components')],
   lines: [LATEST],
   sources: [
-    gatsbySite('guide', '/calcite-design-system/', 180, { seedPage: '/calcite-design-system/' }),
+    gatsbySite(
+      'guide',
+      '/calcite-design-system/',
+      180,
+      { seedPage: '/calcite-design-system/' },
+      {
+        title: 'Guide, tutorials and sample code',
+        kinds: ['guide', 'tutorial', 'sample', 'release-notes'],
+      },
+    ),
     {
       id: 'components',
       title: 'Component API (Custom Elements Manifest)',
@@ -457,7 +466,7 @@ const arcade: Product = {
   ],
   lines: [LATEST],
   sources: [
-    gatsbySite('guide', '/arcade/', 89),
+    gatsbySite('guide', '/arcade/', 89, {}, { kinds: ['guide', 'release-notes'] }),
     {
       id: 'functions',
       title: 'Function reference',
@@ -582,7 +591,10 @@ const restJs: Product = {
       '/arcgis-rest-js/',
       609,
       { symbols: 'typedoc' },
-      { title: 'Guide and API reference', kinds: ['guide', 'api'] },
+      {
+        title: 'Guide, tutorials and API reference',
+        kinds: ['guide', 'tutorial', 'api', 'release-notes'],
+      },
     ),
     markdownRepo('samples', 'Samples', 'Esri/arcgis-rest-js-samples'),
   ],
@@ -647,7 +659,10 @@ const experienceBuilder: Product = {
       '/experience-builder/',
       578,
       { symbols: 'typedoc' },
-      { title: 'Guide and jimu API reference', kinds: ['guide', 'api'] },
+      {
+        title: 'Guide, sample code and jimu API reference',
+        kinds: ['guide', 'tutorial', 'sample', 'api', 'release-notes'],
+      },
     ),
     markdownRepo(
       'resources',
@@ -681,11 +696,16 @@ const experienceBuilder: Product = {
     { title: 'Experience Builder developer edition', ref: `${D}/experience-builder/` },
     { title: "What's new", ref: `${D}/experience-builder/guide/whats-new/` },
     { title: 'Release versions', ref: `${D}/experience-builder/guide/release-versions/` },
+    {
+      title: 'jimu-ui component Storybook (a web app: open it in a browser)',
+      ref: `${D}/experience-builder/storybook/`,
+    },
   ],
   pitfalls: [
     'Each developer edition release is tied to one JavaScript SDK, Calcite, Node and React version; see release versions.',
     'jimu-* packages are not on npm: they resolve only inside the developer edition client folder.',
     'A widget built with a newer developer edition may not load in an older ArcGIS Enterprise.',
+    'jimu-ui components (Button, Select ...) are documented only in the Storybook, a web app this server cannot read; lookups cover jimu-core, jimu-arcgis and the other packages.',
   ],
   related: ['js-maps-sdk', 'calcite', 'experience-builder-help'],
   licenseTier: 'esri-website-terms',
@@ -702,10 +722,21 @@ function mappingLibrary(spec: {
   pages: number;
   options?: GatsbyOptions;
   npmPackage?: string;
+  /** Esri-published plug-in packages with versions of their own (`esri-leaflet-vector`). */
+  plugins?: string[];
   repo?: { repo: string; defaultBranch: string };
   releaseNotes?: string;
+  /** True when the site has a samples section. */
+  samples?: boolean;
 }): Product {
   const hasApi = spec.options?.symbolsFromSlug !== undefined;
+  const sections = [
+    'Guide',
+    'tutorials',
+    ...(spec.samples === true ? ['samples'] : []),
+    ...(hasApi ? ['API reference'] : []),
+  ];
+  const packages = spec.npmPackage === undefined ? [] : [spec.npmPackage, ...(spec.plugins ?? [])];
   return {
     id: spec.id,
     name: spec.name,
@@ -717,7 +748,7 @@ function mappingLibrary(spec: {
     keywords: [spec.library.toLowerCase(), 'open source', 'basemap', 'vector tiles', 'tutorial'],
     languages: ['javascript'],
     homepage: `${D}${spec.base}`,
-    packages: spec.npmPackage === undefined ? [] : [npm(spec.npmPackage, 'apache-2.0', true)],
+    packages: packages.map((name, index) => npm(name, 'apache-2.0', index === 0)),
     repos:
       spec.repo === undefined
         ? []
@@ -730,10 +761,20 @@ function mappingLibrary(spec: {
         spec.base,
         spec.pages,
         spec.options,
-        hasApi ? { title: 'Guide and API reference', kinds: ['guide', 'tutorial', 'api'] } : {},
+        {
+          title: `${sections.slice(0, -1).join(', ')} and ${sections.at(-1) ?? ''}`,
+          kinds: [
+            'guide',
+            'tutorial',
+            ...(spec.samples === true ? (['sample'] as const) : []),
+            ...(hasApi ? (['api'] as const) : []),
+            ...(spec.releaseNotes === undefined ? [] : (['release-notes'] as const)),
+          ],
+        },
       ),
     ],
-    oracles: spec.npmPackage === undefined ? [] : [npmDistTags(spec.npmPackage)],
+    // A plug-in has its own version numbers; each one is asked about separately.
+    oracles: packages.map((name) => npmDistTags(name)),
     ...(spec.releaseNotes === undefined
       ? {}
       : { releaseNotes: { current: `${D}${spec.releaseNotes}` } }),
@@ -758,7 +799,11 @@ const esriLeaflet = mappingLibrary({
   pages: 151,
   options: { symbolsFromSlug: API_PAGE_SLUG },
   npmPackage: 'esri-leaflet',
+  // Vector basemaps and geocoding, which most samples use, live in plug-ins. Unscoped
+  // packages are listed by name in the host table: see ESRI_UNSCOPED_NPM_PACKAGES.
+  plugins: ['esri-leaflet-vector', 'esri-leaflet-geocoder'],
   repo: { repo: 'Esri/esri-leaflet', defaultBranch: 'master' },
+  samples: true,
 });
 
 const maplibreArcgis = mappingLibrary({

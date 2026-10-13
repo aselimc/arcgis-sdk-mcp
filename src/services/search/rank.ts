@@ -83,3 +83,51 @@ export function dedupe(hits: readonly SearchHit[]): SearchHit[] {
     return true;
   });
 }
+
+/**
+ * Keeps the best section of each page. The body index returns sections, and rank fusion
+ * gives the fourth section of one tutorial the weight of the fourth-best page, so a single
+ * page that was read before took four of the first eight places of a result.
+ */
+export function bestSectionPerPage(hits: readonly SearchHit[]): SearchHit[] {
+  const seen = new Set<string>();
+  return hits.filter((hit) => {
+    const page = hit.ref.replace(/#.*$/, '');
+    if (seen.has(page)) return false;
+    seen.add(page);
+    return true;
+  });
+}
+
+/** Members of one name listed for a query in plain words, before the rest is left out. */
+export const MAX_SAME_NAME = 2;
+
+/**
+ * Leaves out hits that repeat one above them. Two overloads of a member on pages of their
+ * own are one line twice (same title, same place); they are collapsed for every query. For
+ * a query in plain words, a member name shared by many types (`highlightIds`, `x`) is
+ * listed at most {@link MAX_SAME_NAME} times: more of them tell the agent nothing new and
+ * push the guides off the page. A query that is itself a name keeps every owner.
+ */
+export function collapseRepeats(hits: readonly SearchHit[], plainWords: boolean): SearchHit[] {
+  const lines = new Set<string>();
+  const names = new Map<string, number>();
+  return hits.filter((hit) => {
+    if (hit.kind !== 'api' || hit.symbolKind === undefined) return true;
+    const line = [
+      hit.product,
+      hit.source,
+      hit.line,
+      hit.title,
+      hit.symbolKind,
+      hit.breadcrumb ?? '',
+    ].join('\n');
+    if (lines.has(line)) return false;
+    lines.add(line);
+    if (!plainWords) return true;
+    const name = `${hit.product}\n${hit.title.toLowerCase()}\n${hit.symbolKind}`;
+    const count = (names.get(name) ?? 0) + 1;
+    names.set(name, count);
+    return count <= MAX_SAME_NAME;
+  });
+}

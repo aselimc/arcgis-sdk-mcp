@@ -3,7 +3,7 @@
  * cheerio (htmlparser2/parse5) tree; none of them touches anything outside the node given.
  */
 import type { Cheerio, CheerioAPI } from 'cheerio';
-import type { AnyNode, Element } from 'domhandler';
+import type { AnyNode, ChildNode, Element, ParentNode } from 'domhandler';
 
 /** Attribute carrying the fence language of a normalised `<pre>`. */
 export const LANG_ATTR = 'data-md-lang';
@@ -106,6 +106,55 @@ export function refineLanguage(language: string, code: string): string {
     if (!JSON_START.test(body) && JAVASCRIPT_START.test(body)) return 'js';
   }
   return language;
+}
+
+/** Makes `children` the children of `parent`, in this order. */
+function setChildren(parent: ParentNode, children: ChildNode[]): void {
+  parent.children = children;
+  children.forEach((child, index) => {
+    child.parent = parent;
+    child.prev = children[index - 1] ?? null;
+    child.next = children[index + 1] ?? null;
+  });
+}
+
+/**
+ * Appends `nodes` to `target`, taking each out of the parent it had. The same as cheerio's
+ * `append`, in time linear in the number of nodes: `append` looks every node up in its old
+ * parent's child list, which is quadratic when thousands of siblings move at once.
+ */
+export function moveInto(target: ParentNode, nodes: readonly AnyNode[]): void {
+  const moving = new Set<AnyNode>(nodes);
+  const former = new Set<ParentNode>();
+  for (const node of nodes) if (node.parent !== null && node.parent !== target) former.add(node.parent);
+  for (const parent of former) {
+    setChildren(
+      parent,
+      parent.children.filter((child) => !moving.has(child)),
+    );
+  }
+  const kept = target.children.filter((child) => !moving.has(child));
+  // A document is never passed here: `nodes` are the children of an element.
+  setChildren(target, [...kept, ...(nodes as readonly ChildNode[])]);
+}
+
+/**
+ * The elements below `scope` that match `selector`, in document order. The same as
+ * `scope.find(selector)`, but the search starts at the document: `find` hands every child of
+ * the scope to the selector engine, which deduplicates that list with a quadratic scan, so
+ * one `find` on an element with twenty thousand children takes a quarter of a second.
+ */
+export function findIn(
+  $: CheerioAPI,
+  scope: Cheerio<AnyNode>,
+  selector: string,
+): Cheerio<Element> {
+  const top = scope.get(0);
+  const inside = (el: AnyNode): boolean => {
+    for (let node = el.parent; node !== null; node = node.parent) if (node === top) return true;
+    return false;
+  };
+  return $(selector).filter((_, el): el is Element => isElement(el) && inside(el));
 }
 
 /** Replaces each element with its own children. */

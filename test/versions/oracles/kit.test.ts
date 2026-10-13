@@ -111,14 +111,31 @@ describe('defineOracle', () => {
 });
 
 describe('option helpers', () => {
-  it('reads the first key that is set and ignores blank values', () => {
-    const options = spec('page-regex', { url: '  ', page: ' /x/ ' });
-    expect(option(options, 'url', 'page')).toBe('/x/');
-    expect(option(options, 'missing')).toBeUndefined();
+  it('reads an option under its one key, trimmed, and takes a blank value as absent', () => {
+    const options = spec('page-regex', { url: ' /x/ ', pattern: '  ' });
+    expect(option(options, 'url')).toBe('/x/');
+    expect(option(options, 'pattern')).toBeUndefined();
+    expect(option(options, 'format')).toBeUndefined();
+  });
+
+  // Regression: readers accepted lists of alternative spellings (`pkg`, `name`, `page`,
+  // `regex` ...) that no registry entry used and no lint knew about.
+  it('knows no alternative spellings of a key', () => {
+    expect(urlOption(spec('page-regex', { page: `${D}/net/` }), dotnetProduct, LINE_300)).toBe(
+      undefined,
+    );
+    expect(packageOption(jsProduct, spec('npm-dist-tags', { pkg: 'x', name: 'y' }), 'npm')).toBe(
+      '@arcgis/core',
+    );
   });
 
   it('picks the package from the option, then the primary package of that registry', () => {
     expect(packageOption(jsProduct, spec('npm-dist-tags', { package: 'x' }), 'npm')).toBe('x');
+    // NuGet calls the package name an id, and so does the registry.
+    expect(packageOption(dotnetProduct, spec('nuget-flat', { id: 'x' }), 'nuget', 'id')).toBe('x');
+    expect(packageOption(dotnetProduct, spec('nuget-flat'), 'nuget', 'id')).toBe(
+      'Esri.ArcGISRuntime',
+    );
     expect(packageOption(jsProduct, spec('npm-dist-tags'), 'npm')).toBe('@arcgis/core');
     expect(packageOption(jsProduct, spec('pypi'), 'pypi')).toBeUndefined();
   });

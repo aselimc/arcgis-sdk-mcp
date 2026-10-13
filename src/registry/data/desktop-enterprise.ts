@@ -261,7 +261,7 @@ const enterpriseSdk: Product = {
     {
       id: 'guide',
       title: 'Guide and .NET API reference',
-      kinds: ['guide', 'api'],
+      kinds: ['guide', 'api', 'release-notes'],
       adapter: 'gatsby',
       config: {
         base: '/enterprise-sdk/',
@@ -310,8 +310,14 @@ const enterpriseSdk: Product = {
       provides: ['documented', 'released'],
     },
   ],
-  // One page per version and language (`whats-new-12-1-net`), so there is no single template.
-  releaseNotes: { sitemapFilter: '/whats-new-' },
+  // A release has a page per audience and none for all of them: server object extensions
+  // and interceptors in .NET and Java (each with a page of API changes) and custom data
+  // feeds. The second capture group names the audience; every page of a release is listed,
+  // the extensions first, since they are what the SDK is installed for.
+  releaseNotes: {
+    sitemapFilter: '/whats-new-',
+    pattern: '/whats-new-(?:api-)?(\\d+(?:-\\d+)+)-(net|java|cdf)/$',
+  },
   startHere: [{ title: 'ArcGIS Enterprise SDK', ref: `${D}/enterprise-sdk/` }],
   pitfalls: [
     'Extensions are built against one Enterprise version; the what-is-new pages are per version and per language.',

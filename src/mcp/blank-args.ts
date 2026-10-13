@@ -4,7 +4,8 @@
  * to handle that for each argument, and they did so differently: an empty `product` was an
  * unknown product in one tool and no product in another, an empty `cursor` was an expired
  * cursor, an empty `version` selected another source. The arguments are therefore
- * normalised once, before validation, for all tools.
+ * normalised once, before validation, for all tools, and in the same way for the prompts,
+ * whose arguments a host collects in a form that sends `""` for a field left empty.
  */
 import * as z from 'zod/v4';
 
