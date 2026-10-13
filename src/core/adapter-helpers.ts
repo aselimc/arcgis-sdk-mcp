@@ -13,6 +13,7 @@ import type {
   UrlFilter,
   VersionLine,
 } from './types.js';
+import { parseGithubUrl } from './url.js';
 
 /**
  * Substitutes `{name}` placeholders from a version line: its `vars`, plus `{line}` for the
@@ -120,8 +121,12 @@ export function sourceRootUrl(source: SourceDef, line: VersionLine, fallback = '
  *
  * Differences from {@link sourceRootUrl}: `docfx-esri` narrows to `scope` or to each of
  * `sections`; `legacy-help` narrows to each book; `sitemap`, `static`, `openapi` and
- * `pkgdown` return one prefix per sitemap directory, entry, spec or package; `brief` owns
- * no URLs. Filters (`include` / `exclude`) are not applied here.
+ * `pkgdown` return one prefix per sitemap directory, entry, spec or package; `brief` and
+ * `npm-dts` own no URLs. Filters (`include` / `exclude`) are applied by {@link ownedPrefix}.
+ *
+ * `npm-dts` owns nothing because its `docUrl` is the HTML reference its records point to:
+ * that page is read through the site source (design decision 7), and the typings are
+ * reached by record (a lookup with a version) or as a declared fallback.
  */
 export function sourceBaseUrls(source: SourceDef, line: VersionLine): string[] {
   const def = source as AnySourceDef;
@@ -152,6 +157,7 @@ export function sourceBaseUrls(source: SourceDef, line: VersionLine): string[] {
     case 'pkgdown':
       return under(def.config.packages);
     case 'brief':
+    case 'npm-dts':
       return [];
     default:
       return root === '' ? [] : [root];
@@ -160,6 +166,42 @@ export function sourceBaseUrls(source: SourceDef, line: VersionLine): string[] {
 
 function unique(values: string[]): string[] {
   return [...new Set(values)];
+}
+
+/**
+ * The prefix by which a source owns a URL on one version line, or `undefined` when it does
+ * not own it. The registry's `ownerOf` picks the longest result over all sources and lines.
+ *
+ * - `github-repo` and `xmldoc`: any file, directory or wiki URL of the repository, on
+ *   github.com or raw.githubusercontent.com (owner and name compared without case);
+ * - every other adapter: the longest of {@link sourceBaseUrls} the URL starts with, provided
+ *   the rest of the path passes the source's `include` / `exclude` filter (`astro`, `gatsby`
+ *   and `sitemap` configs carry one).
+ *
+ * The fragment is ignored.
+ */
+export function ownedPrefix(
+  source: SourceDef,
+  line: VersionLine,
+  url: URL | string,
+): string | undefined {
+  const def = source as AnySourceDef;
+  const target = (typeof url === 'string' ? url : url.href).replace(/#.*$/, '');
+  if (def.adapter === 'github-repo' || def.adapter === 'xmldoc') {
+    const repo = parseGithubUrl(target)?.repo.toLowerCase();
+    return repo === def.config.repo.toLowerCase() ? sourceRootUrl(def, line) : undefined;
+  }
+  const filter =
+    def.adapter === 'astro' || def.adapter === 'gatsby' || def.adapter === 'sitemap'
+      ? def.config
+      : undefined;
+  let best: string | undefined;
+  for (const base of sourceBaseUrls(def, line)) {
+    if (!target.startsWith(base) || base.length <= (best?.length ?? 0)) continue;
+    if (filter !== undefined && !matchUrlFilter(target.slice(base.length), filter)) continue;
+    best = base;
+  }
+  return best;
 }
 
 /**

@@ -11,10 +11,10 @@ Import them directly from the file that defines them (there is no barrel).
 | `fixtures.ts`         | `fixturePath`, `readFixture`, `readJsonFixture`, `hasFixture`, `loadCassette`: loaders relative to `test/fixtures`                                                                                   |
 | `memory-cache.ts`     | `MemoryCache`: in-memory `Cache` that stores values as JSON, like the disk cache                                                                                                                     |
 | `fake-clock.ts`       | `FakeClock` (`advance`, `set`) and the constants `SECOND`, `MINUTE`, `HOUR`, `DAY`                                                                                                                   |
-| `fake-github.ts`      | `FakeGithub`: in-memory `GithubClient` with repositories, refs, wiki pages, releases and quota exhaustion                                                                                            |
+| `fake-github.ts`      | `FakeGithub`: in-memory `GithubClient` with repositories, refs, wiki pages, releases, quota exhaustion and `outage()`; counts calls against `opts.budget`                                            |
 | `fake-policy.ts`      | `fakePolicy(options)`: `SourcePolicy` with optional host table (allow-list, link-only, capability switch)                                                                                            |
-| `fake-registry.ts`    | `fakeRegistry({ products, hosts, briefs })`: plain `Registry` over test products                                                                                                                     |
-| `fake-render.ts`      | `FakeRenderer`: `Renderer` that records calls and returns simple or canned pages                                                                                                                     |
+| `fake-registry.ts`    | `fakeRegistry({ products, hosts, briefs })`: plain `Registry` over test products; `ownerOf` uses `ownedPrefix` from `src/core`                                                                       |
+| `fake-render.ts`      | `FakeRenderer`: `Renderer` that records calls and returns simple or canned pages; provenance fields come from `pageProvenance`, as in the real renderers                                             |
 | `fake-adapter.ts`     | `FakeAdapter`: scriptable `SourceAdapter` (`failOn`, `block`, call log); `fakeAdapterRegistry`                                                                                                       |
 | `fake-logger.ts`      | `FakeLogger`: collects log entries                                                                                                                                                                   |
 | `builders.ts`         | `makeConfig`, `makeProduct`, `makeSource`, `makeLine`, `makeRecord`, `makeHit`, `makeHost`, `makeResponse`, `makeDocPage`                                                                            |
@@ -72,6 +72,11 @@ A cassette is a JSON file under the owning package's fixture directory:
 - `bodyFile` is read relative to the cassette file. `json` is a shorthand for a JSON body.
 - Several interactions for the same URL are served in order; the last one repeats.
 - A recorded status other than 200 behaves like the fault of the same number.
+- Faults: HTTP statuses, `'timeout'`, `'network'`, `'html'` (catch-all page), `'truncated'`,
+  `'empty'` and `'oversized'`; a request with an explicit `maxBytes` smaller than the body fails
+  like `'oversized'`.
+- A request with `encoding: 'base64'` (binary files such as a Sphinx `objects.inv`) gets the
+  recorded body back unchanged: record it base64-encoded.
 - Bodies are written by hand, or are Apache-2.0 files under `test/fixtures/oss`. Recorded Esri
   pages are never committed.
 

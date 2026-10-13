@@ -1,10 +1,9 @@
-import { sourceBaseUrls } from '../../src/core/adapter-helpers.js';
+import { ownedPrefix } from '../../src/core/adapter-helpers.js';
 import { McpDocError } from '../../src/core/errors.js';
 import type { ProductResolution, Registry } from '../../src/core/ports.js';
 import { nearest } from '../../src/core/text-distance.js';
 import { tokenize } from '../../src/core/tokenize.js';
 import type { AnySourceDef, HostPolicy, Product, VersionLine } from '../../src/core/types.js';
-import { parseGithubUrl } from '../../src/core/url.js';
 import { makeProduct } from './builders.js';
 
 /** A curated brief as `Registry.briefs()` returns it. */
@@ -25,8 +24,9 @@ export interface FakeRegistryOptions {
  *   matching, so a typo is `UNKNOWN_PRODUCT` with the nearest ids;
  * - `route`: products ranked by the share of query terms found in their id, name, aliases
  *   and keywords (tiers `developer` and `help` only);
- * - `ownerOf`: longest prefix over `sourceBaseUrls` for every source and line, plus
- *   repository URLs for `github-repo` and `xmldoc` sources;
+ * - `ownerOf`: the longest `ownedPrefix` over every source and line (base URLs narrowed by
+ *   the source's filter; repository URLs for `github-repo` and `xmldoc`), first source and
+ *   current line winning ties, as the contract states;
  * - `line`: the current line, or the line whose id or label equals the version.
  *
  * The real resolution, routing and ownership rules are WP2's and have their own tests.
@@ -100,30 +100,18 @@ export function fakeRegistry(options: FakeRegistryOptions = {}): Registry {
     },
 
     ownerOf(url) {
-      const target = url.href.split('#')[0] ?? url.href;
-      const repo = parseGithubUrl(target)?.repo.toLowerCase();
       let best:
         { product: Product; source: AnySourceDef; line: VersionLine; length: number } | undefined;
       for (const product of products) {
+        // The current line goes first, so that it wins when two lines share a prefix.
+        const ordered = [...product.lines].sort((a, b) => Number(b.current) - Number(a.current));
         for (const source of product.sources) {
-          const lines = product.lines.filter(
-            (line) => source.lines === undefined || source.lines.includes(line.id),
-          );
-          for (const line of lines) {
-            const bases = sourceBaseUrls(source, line);
-            if (
-              repo !== undefined &&
-              (source.adapter === 'github-repo' || source.adapter === 'xmldoc') &&
-              source.config.repo.toLowerCase() === repo
-            ) {
-              bases.push(target);
-            }
-            for (const base of bases) {
-              if (!target.startsWith(base)) continue;
-              // Equal prefixes keep the first source and prefer the current line.
-              if (best === undefined || base.length > best.length) {
-                best = { product, source, line, length: base.length };
-              }
+          for (const line of ordered) {
+            if (source.lines !== undefined && !source.lines.includes(line.id)) continue;
+            const length = ownedPrefix(source, line, url)?.length;
+            // Equal prefixes keep the first source.
+            if (length !== undefined && (best === undefined || length > best.length)) {
+              best = { product, source, line, length };
             }
           }
         }

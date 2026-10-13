@@ -21,6 +21,9 @@ export const RESOURCE_SCHEME = 'arcgis-docs';
 /** Prefix of a curated-brief ref: `brief:<slug>`. */
 export const BRIEF_PREFIX = 'brief:';
 
+/** Joins the ancestor titles of a breadcrumb: `Guide > Layers > Feature layers`. */
+export const BREADCRUMB_SEPARATOR = ' > ';
+
 /** Host that paths starting with `/` in the registry belong to. */
 export const DEVELOPERS_ORIGIN = 'https://developers.arcgis.com';
 

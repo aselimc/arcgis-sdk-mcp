@@ -29,8 +29,22 @@ export interface Clock {
 /** One upstream request. Only https URLs on allow-listed hosts are ever fetched. */
 export interface HttpRequest {
   url: string;
-  /** Validated: status, content type and a parse sniff. */
+  /**
+   * The shape the body must have; a 200 response of another shape is a miss (`DOC_NOT_FOUND`),
+   * which is how catch-all hosts answer a missing index file.
+   *
+   * - `html`: markup;
+   * - `json`: starts with `{` or `[` (parsing is the job of `getJson`);
+   * - `xml`: starts with `<` and is not an HTML document;
+   * - `text`, `yaml`: anything that is not an HTML document (Markdown, `.d.ts`, `.js` index
+   *   files, `xrefmap.yml`, `objects.inv`).
+   */
   expect: 'html' | 'json' | 'xml' | 'text' | 'yaml';
+  /**
+   * `base64` for binary bodies (Sphinx `objects.inv`): `HttpResponse.text` then holds the
+   * raw bytes base64-encoded, with no charset decoding or BOM removal. Default `utf8`.
+   */
+  encoding?: 'utf8' | 'base64';
   /** Default from the host table and the URL class. */
   ttl?: T.TtlClass;
   /** Default 8 MB for pages, 32 MB for index files. */
@@ -52,7 +66,7 @@ export interface HttpResponse {
   finalUrl: string;
   status: number;
   contentType: string;
-  /** Decoded body with any byte-order mark removed. */
+  /** Decoded body with any byte-order mark removed; base64 when the request asked for it. */
   text: string;
   etag?: string;
   lastModified?: string;
@@ -67,10 +81,26 @@ export interface HttpResponse {
 export interface HttpClient {
   /**
    * Policy check, single-flight, cache, limiter, fetch, redirect and meta-refresh following,
-   * validation, stale-if-error. Throws `McpDocError`.
+   * validation, stale-if-error. Rejects only with `McpDocError`, always with `details.url` and
+   * `details.host`:
+   *
+   * | Outcome | Code |
+   * |---|---|
+   * | host not on the allow-list, link-only host, capability off | `HOST_NOT_ALLOWED`, `LINK_ONLY`, `SOURCE_DISABLED` |
+   * | offline mode and nothing cached | `OFFLINE_MISS` |
+   * | 404, 410, soft 404, body of another shape than `expect` | `DOC_NOT_FOUND` |
+   * | 403, 429 | `UPSTREAM_BLOCKED` (`retryable: false`) |
+   * | 5xx, network error or timeout after the retries; open breaker; request budget or deadline spent | the stale copy (`cache: 'stale'`) when one exists, else `UPSTREAM_UNAVAILABLE` (`retryable: true`) |
+   * | body larger than `maxBytes` | `UPSTREAM_UNAVAILABLE` (`retryable: false`) |
+   *
+   * A caller that must tell a spent budget from a failing host checks `budgetExhausted`
+   * (`async.ts`) on the budget it passed.
    */
   get(req: HttpRequest): Promise<HttpResponse>;
-  /** `get` with `expect: 'json'` and a parsed body. */
+  /**
+   * `get` with `expect: 'json'` and a parsed body. A body that passes the shape check but
+   * does not parse (a truncated download) is `UPSTREAM_UNAVAILABLE` (`retryable: true`).
+   */
   getJson<J = unknown>(req: Omit<HttpRequest, 'expect'>): Promise<{ data: J; res: HttpResponse }>;
   /** Circuit-breaker state per contacted host, for the status resource and `doctor`. */
   hostStates(): Array<{
@@ -91,18 +121,46 @@ export interface RequestBudget {
   deadline: number;
 }
 
-/** GitHub access through the HTTP client: metadata from the API, content from the raw host. */
+/**
+ * Per-call options of the {@link GithubClient} methods, forwarded to the HTTP client so that
+ * GitHub requests count against the same budget as every other request of a tool call.
+ */
+export interface GithubCallOptions {
+  budget?: RequestBudget;
+  signal?: AbortSignal;
+  /**
+   * `raw` only: `immutable` when `ref` is a release tag or commit SHA the caller pinned.
+   * Default `volatile` (a branch can move).
+   */
+  ttl?: T.TtlClass;
+}
+
+/**
+ * GitHub access through the HTTP client: metadata from the API, content from the raw host.
+ * Every method rejects like `HttpClient.get`; the API-backed ones (`repoMeta`, `tree`,
+ * `latestRelease`) also with `RATE_LIMITED_GITHUB` when the quota is spent.
+ */
 export interface GithubClient {
   /** Cached 7 days. */
   repoMeta(
     repo: string,
+    opts?: GithubCallOptions,
   ): Promise<{ defaultBranch: string; license: T.LicenseTier; archived: boolean }>;
-  /** One API call, cached 24 hours. */
-  tree(repo: string, ref: string): Promise<Array<{ path: string; size?: number }>>;
-  /** A file from `raw.githubusercontent.com`. */
-  raw(repo: string, ref: string, path: string): Promise<HttpResponse>;
-  wikiRaw(repo: string, page: string): Promise<HttpResponse>;
-  latestRelease(repo: string): Promise<{ tag: string; publishedAt: string } | undefined>;
+  /** Every file of the repository at `ref`. One API call, cached 24 hours. */
+  tree(
+    repo: string,
+    ref: string,
+    opts?: GithubCallOptions,
+  ): Promise<Array<{ path: string; size?: number }>>;
+  /** A file from `raw.githubusercontent.com`. `DOC_NOT_FOUND` when the ref or path is unknown. */
+  raw(repo: string, ref: string, path: string, opts?: GithubCallOptions): Promise<HttpResponse>;
+  /** A wiki page as Markdown; `page` is the page name with or without `.md`. */
+  wikiRaw(repo: string, page: string, opts?: GithubCallOptions): Promise<HttpResponse>;
+  /** The latest non-prerelease release; `undefined` when the repository has none. */
+  latestRelease(
+    repo: string,
+    opts?: GithubCallOptions,
+  ): Promise<{ tag: string; publishedAt: string } | undefined>;
   quota(): { authenticated: boolean; remaining?: number; resetAt?: string };
 }
 
@@ -158,6 +216,10 @@ export interface SourcePolicy {
   /**
    * Throws `HOST_NOT_ALLOWED`, `LINK_ONLY` or `SOURCE_DISABLED`. Called for the initial URL
    * and every redirect or meta-refresh hop.
+   *
+   * Check the URL that will be requested: `github.com` is a ref format, not a fetched host, so
+   * a GitHub ref is checked as its `raw.githubusercontent.com` URL (`githubBlobToRaw`) or,
+   * for a repository or directory, as `https://api.github.com/repos/<owner>/<name>`.
    */
   check(url: URL, method?: 'GET' | 'POST'): { host: T.HostPolicy; capability: T.Capability };
   summary(): {
@@ -189,14 +251,25 @@ export interface Registry {
   /** Product ids a free-text or symbol-shaped query most likely refers to (max n, tier developer/help only). */
   route(query: string, n?: number): Array<{ product: string; confidence: number }>;
   /**
-   * Longest-prefix match of a URL against source base URLs and repos. The base URLs of a
-   * source are defined by `sourceBaseUrls` (`adapter-helpers.ts`).
+   * Longest-prefix match of an https URL against source base URLs and repos, over every
+   * version line a source exists for. What a source owns is defined once, by `ownedPrefix`
+   * (`adapter-helpers.ts`): its base URLs, narrowed by its `include` / `exclude` filter.
+   * Equal prefixes resolve to the earlier source and prefer the current line.
+   * `raw.githubusercontent.com` URLs resolve like their github.com form. `brief:` refs are
+   * not URLs of a source: the doc service reads them from `briefs()`.
+   *
+   * A finer claim inside one product (a structured twin, a directory of a shared repository)
+   * is the adapter's `owns`, which the doc service asks after this lookup.
    */
   ownerOf(
     url: URL,
   ): { product: T.Product; source: T.AnySourceDef; line: T.VersionLine } | undefined;
   hosts(): readonly T.HostPolicy[];
-  /** The line for a version or line id; the current line when omitted. Throws `VERSION_UNAVAILABLE`. */
+  /**
+   * The current line when `version` is omitted; otherwise the line `version` names by id
+   * (`v200`) or label, or belongs to as a version number (`200.8`, `4.33`). Throws
+   * `VERSION_UNAVAILABLE` with the line ids as candidates when there is none.
+   */
   line(product: T.Product, version?: string): T.VersionLine;
   /** Curated briefs, embedded at build time; no disk I/O. */
   briefs(): Array<{
@@ -210,7 +283,19 @@ export interface Registry {
 
 // ---- Extraction and rendering (WP3 implements 'html'; WP4 the rest and the dispatcher) --------
 
-/** Which part of a document to return. `member` is a member name or id on an API page. */
+/**
+ * Which part of a document to convert, so that a heavy page is sliced before it is cleaned.
+ *
+ * `section` is a section id as it appears in the outline; `member` is a member name or id on
+ * an API page. Renderers and adapters match exactly (the forgiving resolution order of
+ * `arcgis_docs_read` belongs to the doc service):
+ *
+ * - found: the page's `sections` hold only that section and its descendants, or the one
+ *   member's section; `title`, `header` and `members` still describe the whole page;
+ * - not found: the whole page is returned, unsliced. A selector never makes a read fail;
+ *   the doc service resolves the request against the full outline and raises
+ *   `SECTION_NOT_FOUND` itself.
+ */
 export interface SectionSelector {
   section?: string;
   member?: string;
@@ -219,6 +304,13 @@ export interface SectionSelector {
 /** Options common to every renderer. */
 export interface RenderOptions {
   select?: SectionSelector;
+  /**
+   * How much of a symbol to return. Renderers that know the structure apply it: `signature`
+   * is the declaration and a one-line summary; `summary` adds description, parameters,
+   * returns, since / deprecated and one example, or for a type its member index; `full` is
+   * everything. A renderer that cannot tell these apart returns the selected part unchanged
+   * and the symbol service's token budget does the trimming. Default `full`.
+   */
   detail?: T.SymbolDetail;
   /** Astro tutorials: keep only the lines each step adds. */
   focusedCode?: boolean;
@@ -237,6 +329,15 @@ export interface RenderMeta {
   license: T.LicenseTier;
   /** The response the input came from; supplies `retrievedAt`, `cache` and `redirectedFrom`. */
   res?: HttpResponse;
+  /**
+   * ISO timestamp for content that did not come through the HTTP client (files in the
+   * project's `node_modules`, bundled briefs). Wins over `res.fetchedAt`.
+   */
+  retrievedAt?: string;
+  /** Tier `esri-ma`: the npm package the content was read from, for the `Source:` line. */
+  packageName?: string;
+  /** Tier `cc-by-nd`: the name of the specification, for the `Source:` line. */
+  specName?: string;
 }
 
 /** Input shape per renderer kind. */
@@ -267,7 +368,12 @@ export interface RendererInputs {
   arcade: { item: unknown; profile?: boolean };
 }
 
-/** Converts fetched content of any supported shape into a `DocPage`. */
+/**
+ * Converts fetched content of any supported shape into a `DocPage`. Pure and synchronous.
+ * The provenance fields of the page (`ref`, `url`, `license`, `attribution`, `retrievedAt`,
+ * `cache`, `redirectedFrom`, ...) come from `pageProvenance(meta)` (`provenance.ts`) in every
+ * renderer, so they mean the same thing whatever produced the page.
+ */
 export interface Renderer {
   render<K extends keyof RendererInputs>(
     kind: K,
@@ -309,7 +415,12 @@ export interface BoundSource<A extends T.AdapterType = T.AdapterType> {
   product: T.Product;
   source: T.SourceDef<A>;
   line: T.VersionLine;
-  /** Exact version when pinned (npm adapters, GitHub tags). */
+  /**
+   * The version the caller asked for or detected in the workspace, as written (`4.33`,
+   * `200.8.0`). Adapters that address versions themselves (npm packages, GitHub tags) resolve
+   * it to an exact one and state that in `DocPage.version`; the others ignore it. Absent: the
+   * current version of `line`.
+   */
   version?: string;
   /** The source's primary base URL with line variables substituted, joined with `path`. */
   url(path?: string): string;
@@ -341,11 +452,21 @@ export interface SourceAdapter<A extends T.AdapterType = T.AdapterType> {
   readonly type: A;
   /** Hard request budget for `enumerate()`; the index builder aborts beyond it. */
   readonly maxEnumerateRequests: number;
-  /** Catalogue records (pages, samples, symbols) for one source and line. Index files only; never page bodies in bulk. */
+  /**
+   * Catalogue records (pages, samples, symbols) for one source and line. Index files only;
+   * never page bodies in bulk. Site-published index files (search and symbol indexes, nav /
+   * TOC / manifest JSON, xrefmaps, inventories) are requested only while
+   * `ctx.policy.enabled('site-index')`; without it the adapter answers from the next rung
+   * (the sitemap with slug-derived titles) or returns `[]`.
+   */
   enumerate?(ctx: Ctx, src: BoundSource<A>): Promise<T.CatalogRecord[]>;
   /** True when this source owns the URL beyond the registry's base-prefix match (structured twins, repo blob URLs). */
   owns?(url: URL, src: BoundSource<A>): boolean;
-  /** Fetch one document and convert it. Must honour `target.select` by slicing before cleaning on heavy pages. */
+  /**
+   * Fetch one document and convert it. Must honour `target.select` by slicing before cleaning
+   * on heavy pages, with the semantics of {@link SectionSelector} (no match: the whole page).
+   * Requests carry `src.budget`. Rejects only with `McpDocError`.
+   */
   read(ctx: Ctx, src: BoundSource<A>, target: ReadTarget): Promise<T.DocPage>;
   /** Render one symbol record (type or member). Default: `defaultSymbolRead` in `adapter-helpers.ts`. */
   symbol?(

@@ -142,6 +142,32 @@ describe('fakeRegistry', () => {
     expect(owner('https://developers.arcgis.com/elsewhere/')).toBeUndefined();
   });
 
+  it('tells sources on one base apart by their filters and never routes a page to typings', () => {
+    const base = '/gizmos/latest/';
+    const gizmos = makeProduct({
+      id: 'gizmos-sdk',
+      name: 'Gizmos SDK',
+      aliases: [],
+      sources: [
+        makeSource('astro', { base, exclude: ['^references/', '^sample-code/'] }),
+        makeSource('astro', { base, include: ['^sample-code/'] }, { id: 'samples', floor: false }),
+        makeSource('astro', { base, include: ['^references/'] }, { id: 'core', floor: false }),
+        makeSource(
+          'npm-dts',
+          { package: '@example/gizmos', docUrl: `${base}references/core/{path}/` },
+          { id: 'typings', floor: false, capability: 'package-cdn' },
+        ),
+      ],
+    });
+    const owner = (path: string) =>
+      fakeRegistry({ products: [gizmos] }).ownerOf(
+        new URL(`https://developers.arcgis.com${base}${path}`),
+      )?.source.id;
+    expect(owner('get-started/')).toBe('guide');
+    expect(owner('sample-code/intro/')).toBe('samples');
+    expect(owner('references/core/Gizmo/#spin')).toBe('core');
+  });
+
   it('returns the current line by default and a named line by id or label', () => {
     expect(registry.line(widgets).id).toBe('latest');
     expect(registry.line(widgets, 'v1').id).toBe('v1');

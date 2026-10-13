@@ -50,6 +50,17 @@ export const LICENSE_TIERS = [
 /**
  * A class of upstream source that can be switched on or off as a unit (design section 6.3).
  * The first seven are on in preset `standard`; `site-search` and `lifecycle-api` are opt-in.
+ *
+ * Two places enforce a capability:
+ *
+ * - the gateway, per host: `SourcePolicy.check` refuses a URL whose host needs a capability
+ *   that is off ({@link HostPolicy.capability});
+ * - the caller, per kind of file: `site-index` shares its hosts with `website`, so only the
+ *   adapter knows that a request is for a site-published index file (search and symbol
+ *   indexes, nav / TOC / manifest JSON, xrefmaps, inventories). Adapters ask
+ *   `ctx.policy.enabled('site-index')` before requesting one. Sitemaps are read under the
+ *   source's own capability: they are the rung below the index files, which is what keeps a
+ *   source enumerable with `-site-index` (slug-derived titles).
  */
 export type Capability =
   | 'website'
@@ -194,6 +205,12 @@ export interface VersionLine {
   label: string;
   /** Exactly one line per product is current. */
   current: boolean;
+  /**
+   * `link-only`: the pages of this line are never fetched (an archive host, or gone), so its
+   * sources with capability `website` or `site-index` answer `LINK_ONLY` with the URL. Sources
+   * that address versions themselves (npm packages, GitHub tags) still work on such a line and
+   * are bound with the requested version (`BoundSource.version`).
+   */
   access: 'live' | 'link-only';
   /** Substituted into source URL templates, for example `{ prefix: 'v200/' }`. */
   vars: Record<string, string>;
@@ -413,7 +430,11 @@ export interface SourceDef<T extends AdapterType = AdapterType> {
   kinds: DocKind[];
   adapter: T;
   config: AdapterConfigMap[T];
-  /** Absent means no network (bundled briefs). */
+  /**
+   * The capability needed to read this source's documents; when it is off the whole source is
+   * disabled (`SOURCE_DISABLED`, `enabled: false` in the product profile). Absent means no
+   * network (bundled briefs).
+   */
   capability?: Capability;
   license?: LicenseTier;
   /** Invariant INV-1: exactly one floor source per product. */
@@ -460,7 +481,11 @@ export interface OracleSpec {
 /** Access rules and quirks of one upstream host (design section 4.7). */
 export interface HostPolicy {
   host: string;
-  /** `null` marks a link-only host, which is never fetched. */
+  /**
+   * The capability every request to this host needs; `null` marks a link-only host, which is
+   * never fetched. A documentation host that also serves index files is `website`
+   * (see {@link Capability} for how `site-index` is enforced).
+   */
   capability: Capability | null;
   /** Regular expressions over the path; absent means the whole host. */
   allowPaths?: string[];
@@ -497,6 +522,11 @@ export interface CatalogRecord {
   symbolKind?: string;
   /** Qualified name of the owning type. Present exactly when the record is a member. */
   parent?: string;
+  /**
+   * Titles of the ancestors in the source's navigation, outermost first, joined with
+   * `BREADCRUMB_SEPARATOR` (`names.ts`); the record's own title is not part of it. The number
+   * of ancestors is the entry's depth in a table of contents.
+   */
   breadcrumb?: string;
   description?: string;
   headings?: string[];
@@ -532,6 +562,7 @@ export interface DocSection {
 
 /** One member of an API type, as listed on its page. */
 export interface MemberEntry {
+  /** The member's anchor on the page. A section documenting the member has this id. */
   id: string;
   name: string;
   kind: string;
@@ -574,14 +605,24 @@ export interface DocPage {
   line?: string;
   version?: string;
   kind: DocKind;
+  /** Ancestor titles joined with `BREADCRUMB_SEPARATOR`, as on {@link CatalogRecord}. */
   breadcrumb?: string;
   /** Metadata block always shown first (REST `dl.grid`, GP tool signature, import lines). */
   header?: string;
-  /** In document order; `sections[0]` is the lead. */
+  /**
+   * In document order; `sections[0]` is the lead. Only the selected part when the page was
+   * read with a selector that matched (`SectionSelector` in `ports.ts`).
+   */
   sections: DocSection[];
-  /** API pages. */
+  /**
+   * API pages: every member of the type, also when `sections` hold a slice. A member that is
+   * documented on the page is the section whose id equals its `MemberEntry.id`.
+   */
   members?: MemberEntry[];
-  /** Samples. */
+  /**
+   * Samples: the source files, main file first. Their text is not repeated in `sections`
+   * (which hold the description), so the doc service decides how much code a view shows.
+   */
   files?: SourceFile[];
   relevantApis?: string[];
   license: LicenseTier;
@@ -608,6 +649,7 @@ export interface SearchHit {
   line: string;
   kind: DocKind;
   version?: string;
+  /** As on {@link CatalogRecord}. */
   breadcrumb?: string;
   excerpt?: string;
   symbolKind?: string;
@@ -616,15 +658,27 @@ export interface SearchHit {
   license: LicenseTier;
 }
 
-/** One version statement produced by an oracle. */
+/**
+ * One version statement produced by an oracle. What the fields hold depends on `role`:
+ *
+ * | Role | `value` | `date` | `tag` | `registry`, `package` |
+ * |---|---|---|---|---|
+ * | `documented` | version the documentation describes | its release date | | |
+ * | `installable` | version a package manager serves | publication date | dist-tag or release tag (`latest`, `lts-v4.x`, `v300.1.0`) | where and what to install |
+ * | `prerelease` | pre-release version | publication date | dist-tag (`next`, `beta`) | as above |
+ * | `lifecycle` | ISO date of the phase | the same date | phase: `ga`, `mature` or `retirement` | |
+ */
 export interface VersionFact {
   role: 'documented' | 'installable' | 'prerelease' | 'lifecycle';
   value: string;
+  /** ISO date (`YYYY-MM-DD`). */
   date?: string;
   tag?: string;
+  /** A `PackageRef.registry` value, or `github` for a release. */
   registry?: string;
   package?: string;
   oracle: OracleType;
+  /** The URL the fact was read from; shown as its source. */
   url: string;
 }
 

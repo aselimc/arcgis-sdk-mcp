@@ -1,8 +1,7 @@
-import { attribution } from '../../src/core/attribution.js';
 import type { RenderMeta, RenderOptions, Renderer, RendererInputs } from '../../src/core/ports.js';
+import { pageProvenance } from '../../src/core/provenance.js';
 import { sectionsFromMarkdown } from '../../src/core/sections.js';
 import type { DocPage, HtmlFamily } from '../../src/core/types.js';
-import { FAKE_NOW_ISO } from './builders.js';
 
 /** One `render` call seen by the fake. */
 export interface RenderCall {
@@ -22,8 +21,9 @@ type Handler = (call: RenderCall) => DocPage;
  * - every other kind becomes one section naming the kind, so a test can tell that the
  *   adapter chose the intended renderer.
  *
- * Page metadata (`url`, `product`, `kind`, `license`, cache state, redirects) is copied from
- * `meta` exactly as the real renderers do. Use `returns()` or `when()` for canned pages, and
+ * Page metadata (`ref`, `product`, `kind`, `license`, attribution, cache state, redirects)
+ * comes from `pageProvenance(meta)`, the function the real renderers use. `select` and
+ * `detail` are recorded, not applied. Use `returns()` or `when()` for canned pages, and
  * `calls` to assert what the adapter passed in.
  */
 export class FakeRenderer implements Renderer {
@@ -82,23 +82,10 @@ export class FakeRenderer implements Renderer {
     } else markdown = `# Rendered by ${kind}`;
 
     const sections = sectionsFromMarkdown(markdown);
-    const retrievedAt = meta.res?.fetchedAt ?? FAKE_NOW_ISO;
-    const cache = meta.res?.cache ?? 'miss';
     return {
-      ref: meta.url,
-      url: meta.url,
+      ...pageProvenance(meta),
       title: sections[0]?.title ?? '',
-      ...(meta.product === undefined ? {} : { product: meta.product }),
-      ...(meta.source === undefined ? {} : { source: meta.source }),
-      ...(meta.line === undefined ? {} : { line: meta.line }),
-      ...(meta.version === undefined ? {} : { version: meta.version }),
-      kind: meta.kind,
       sections,
-      license: meta.license,
-      attribution: attribution(meta.license, { url: meta.url, retrievedAt, cache }),
-      retrievedAt,
-      cache,
-      redirectedFrom: meta.res?.aliasChain ?? [],
       diagnostics: {
         family: kind === 'html' ? this.family : 'structured',
         renderer: kind,

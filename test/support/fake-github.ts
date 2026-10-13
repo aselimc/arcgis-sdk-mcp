@@ -1,5 +1,6 @@
+import { consumeBudget } from '../../src/core/async.js';
 import { McpDocError } from '../../src/core/errors.js';
-import type { Clock, GithubClient, HttpResponse } from '../../src/core/ports.js';
+import type { Clock, GithubCallOptions, GithubClient, HttpResponse } from '../../src/core/ports.js';
 import type { LicenseTier } from '../../src/core/types.js';
 import { FakeClock } from './fake-clock.js';
 
@@ -29,6 +30,8 @@ export interface GithubCall {
  * An in-memory {@link GithubClient}. Unknown repositories, refs and paths answer
  * `DOC_NOT_FOUND`; `exhaustQuota()` makes the API-backed methods (`repoMeta`, `tree`,
  * `latestRelease`) answer `RATE_LIMITED_GITHUB` while raw content keeps working, as on GitHub.
+ * Every call takes one request from `opts.budget` (the fake has no cache) and answers
+ * `UPSTREAM_UNAVAILABLE` once that budget is spent, like the HTTP client.
  */
 export class FakeGithub implements GithubClient {
   readonly calls: GithubCall[] = [];
@@ -38,6 +41,7 @@ export class FakeGithub implements GithubClient {
   private authenticated = false;
   private remaining: number | undefined = 60;
   private resetAt: string | undefined;
+  private down = false;
 
   constructor(repos: Record<string, FakeRepo> = {}, clock: Clock = new FakeClock()) {
     this.clock = clock;
@@ -65,6 +69,12 @@ export class FakeGithub implements GithubClient {
     return this;
   }
 
+  /** Makes every call reject with `UPSTREAM_UNAVAILABLE` (or work again), as when GitHub is down. */
+  outage(down = true): this {
+    this.down = down;
+    return this;
+  }
+
   /** Number of calls, optionally of one method. */
   count(method?: GithubCall['method']): number {
     return this.calls.filter((call) => method === undefined || call.method === method).length;
@@ -72,8 +82,10 @@ export class FakeGithub implements GithubClient {
 
   async repoMeta(
     repo: string,
+    opts?: GithubCallOptions,
   ): Promise<{ defaultBranch: string; license: LicenseTier; archived: boolean }> {
     this.calls.push({ method: 'repoMeta', repo });
+    this.spendBudget(opts);
     this.spendQuota(repo);
     const found = this.repo(repo);
     return {
@@ -83,8 +95,13 @@ export class FakeGithub implements GithubClient {
     };
   }
 
-  async tree(repo: string, ref: string): Promise<Array<{ path: string; size?: number }>> {
+  async tree(
+    repo: string,
+    ref: string,
+    opts?: GithubCallOptions,
+  ): Promise<Array<{ path: string; size?: number }>> {
     this.calls.push({ method: 'tree', repo, ref });
+    this.spendBudget(opts);
     this.spendQuota(repo);
     return Object.entries(this.filesAt(repo, ref)).map(([path, text]) => ({
       path,
@@ -92,24 +109,35 @@ export class FakeGithub implements GithubClient {
     }));
   }
 
-  async raw(repo: string, ref: string, path: string): Promise<HttpResponse> {
+  async raw(
+    repo: string,
+    ref: string,
+    path: string,
+    opts?: GithubCallOptions,
+  ): Promise<HttpResponse> {
     this.calls.push({ method: 'raw', repo, ref, path });
+    this.spendBudget(opts);
     const text = this.filesAt(repo, ref)[path];
     const url = `https://raw.githubusercontent.com/${repo}/${ref}/${path}`;
     if (text === undefined) throw notFound(url);
     return this.response(url, text);
   }
 
-  async wikiRaw(repo: string, page: string): Promise<HttpResponse> {
+  async wikiRaw(repo: string, page: string, opts?: GithubCallOptions): Promise<HttpResponse> {
     this.calls.push({ method: 'wikiRaw', repo, path: page });
+    this.spendBudget(opts);
     const text = this.repo(repo).wiki?.[page.replace(/\.md$/i, '')];
     const url = `https://raw.githubusercontent.com/wiki/${repo}/${page.replace(/\.md$/i, '')}.md`;
     if (text === undefined) throw notFound(url);
     return this.response(url, text);
   }
 
-  async latestRelease(repo: string): Promise<{ tag: string; publishedAt: string } | undefined> {
+  async latestRelease(
+    repo: string,
+    opts?: GithubCallOptions,
+  ): Promise<{ tag: string; publishedAt: string } | undefined> {
     this.calls.push({ method: 'latestRelease', repo });
+    this.spendBudget(opts);
     this.spendQuota(repo);
     return this.repo(repo).release;
   }
@@ -133,6 +161,24 @@ export class FakeGithub implements GithubClient {
     const atRef = files[ref] ?? files['*'];
     if (atRef === undefined) throw notFound(`https://github.com/${repo}/tree/${ref}`);
     return atRef;
+  }
+
+  /** The gateway steps that come before any GitHub answer: request budget, then reachability. */
+  private spendBudget(opts: GithubCallOptions | undefined): void {
+    if (opts?.budget !== undefined && !consumeBudget(opts.budget, this.clock)) {
+      throw new McpDocError(
+        'UPSTREAM_UNAVAILABLE',
+        'Request budget exhausted before GitHub could be contacted',
+        { why: 'request budget', host: 'api.github.com', retryable: true },
+      );
+    }
+    if (this.down) {
+      throw new McpDocError('UPSTREAM_UNAVAILABLE', 'GitHub is not responding', {
+        why: 'HTTP 503',
+        host: 'api.github.com',
+        retryable: true,
+      });
+    }
   }
 
   private spendQuota(repo: string): void {

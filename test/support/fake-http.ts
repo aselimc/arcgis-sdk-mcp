@@ -29,8 +29,10 @@ export type { Cassette, Fault, Interaction, RecordedResponse, SeenRequest } from
  * A replay {@link HttpClient}: answers from recorded interactions, fails loudly on anything
  * unrecorded, and can inject the failures of the real gateway. No network, no timers.
  *
- * Like the real client it validates the body against `expect`, counts every non-cached
- * request against `req.budget`, and throws only `McpDocError` for upstream conditions.
+ * Like the real client it validates the body against `expect`, enforces an explicit
+ * `maxBytes`, counts every non-cached request against `req.budget`, and throws only
+ * `McpDocError` for upstream conditions. For `encoding: 'base64'` record the body already
+ * base64-encoded; it is returned as written.
  */
 export class FakeHttp implements HttpClient {
   /** Every request, in order, including failed and unrecorded ones. */
@@ -121,6 +123,7 @@ export class FakeHttp implements HttpClient {
       method,
       url,
       expect: req.expect,
+      ...(req.encoding === 'base64' ? { encoding: req.encoding } : {}),
       ...(req.body === undefined ? {} : { body: req.body }),
       ...(req.headers === undefined ? {} : { headers: req.headers }),
     });
@@ -247,6 +250,8 @@ export class FakeHttp implements HttpClient {
         );
       case 'empty':
         return this.respond(req, url, { ...recorded, body: '', json: undefined }, 'miss');
+      case 'oversized':
+        throw tooLarge(url, host);
       default: {
         const reason = typeof fault === 'number' ? `HTTP ${fault}` : fault;
         this.breakers.set(host, {
@@ -273,6 +278,9 @@ export class FakeHttp implements HttpClient {
   ): HttpResponse {
     const raw = recorded.body ?? (recorded.json === undefined ? '' : JSON.stringify(recorded.json));
     const text = raw.replace(/^\uFEFF/, '');
+    if (req.maxBytes !== undefined && Buffer.byteLength(text, 'utf8') > req.maxBytes) {
+      throw tooLarge(url, hostOf(url));
+    }
     if (!bodyMatches(req.expect, text)) {
       // HTML where JSON or XML was expected is how catch-all hosts answer a missing file.
       throw new McpDocError('DOC_NOT_FOUND', `${url} did not return ${req.expect}`, {
@@ -294,4 +302,14 @@ export class FakeHttp implements HttpClient {
       aliasChain: recorded.aliasChain ?? [],
     };
   }
+}
+
+/** The gateway's answer to a body over the size cap: no retry would make it smaller. */
+function tooLarge(url: string, host: string): McpDocError {
+  return new McpDocError('UPSTREAM_UNAVAILABLE', `${host} sent a response over the size limit`, {
+    why: 'The body exceeds the size cap for this kind of file',
+    url,
+    host,
+    retryable: false,
+  });
 }

@@ -45,9 +45,16 @@ export const ERROR_CODES = [
 export interface ErrorDetails {
   /** One sentence explaining the cause, without a trailing period. */
   why?: string;
-  /** The exact recovery: a complete tool call or setting, without the `Next:` prefix. */
+  /**
+   * The exact recovery: one complete tool call (`formatCall`) or setting, without the `Next:`
+   * prefix and without repeating `candidates`, which the MCP layer lists after it.
+   */
   next?: string;
-  /** Nearest ids, names, section ids or `{symbol, product}` pairs, most likely first. */
+  /**
+   * Nearest product ids, symbol names, section ids or version lines, most likely first. For
+   * `AMBIGUOUS_SYMBOL` each entry is the JSON text of one `{ "symbol", "product" }` pair,
+   * ready to be passed to `arcgis_docs_lookup_symbol`.
+   */
   candidates?: string[];
   url?: string;
   host?: string;

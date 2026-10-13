@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { budgetExhausted, newBudget } from '../../src/core/async.js';
 import { isMcpDocError, type ErrorCode } from '../../src/core/errors.js';
 import { makeDocPage, makeHost, makeResponse } from './builders.js';
+import { FakeClock } from './fake-clock.js';
 import { FakeGithub } from './fake-github.js';
 import { fakePolicy, permissiveHost } from './fake-policy.js';
 import { FakeRenderer } from './fake-render.js';
@@ -82,6 +84,43 @@ describe('FakeGithub', () => {
     expect(gh.quota().remaining).toBe(4999);
     expect(gh.restoreQuota({ remaining: 3 }).quota().remaining).toBe(3);
     expect(new FakeGithub().addRepo('Esri/x', {}).restoreQuota().quota().remaining).toBe(60);
+  });
+
+  it('counts every call against the request budget it is given', async () => {
+    const clock = new FakeClock();
+    const gh = new FakeGithub(
+      { 'Esri/example': { files: { '*': { 'README.md': '# Hi' } } } },
+      clock,
+    );
+    const budget = newBudget(3, 25_000, clock);
+    await gh.repoMeta('Esri/example', { budget });
+    await gh.tree('Esri/example', 'main', { budget });
+    await gh.raw('Esri/example', 'main', 'README.md', { budget, ttl: 'immutable' });
+    expect(budget.used).toBe(3);
+
+    expect(await codeOf(() => gh.raw('Esri/example', 'main', 'README.md', { budget }))).toBe(
+      'UPSTREAM_UNAVAILABLE',
+    );
+    expect(await codeOf(() => gh.wikiRaw('Esri/example', 'Home', { budget }))).toBe(
+      'UPSTREAM_UNAVAILABLE',
+    );
+    expect(await codeOf(() => gh.latestRelease('Esri/example', { budget }))).toBe(
+      'UPSTREAM_UNAVAILABLE',
+    );
+    expect(budgetExhausted(budget, clock)).toBe(true);
+    // Without a budget the same call still works.
+    expect((await gh.raw('Esri/example', 'main', 'README.md')).text).toBe('# Hi');
+  });
+
+  it('fails every call during an outage and recovers afterwards', async () => {
+    const gh = github().outage();
+    expect(await codeOf(() => gh.repoMeta('Esri/example'))).toBe('UPSTREAM_UNAVAILABLE');
+    expect(await codeOf(() => gh.raw('Esri/example', 'master', 'README.md'))).toBe(
+      'UPSTREAM_UNAVAILABLE',
+    );
+    expect(gh.count()).toBe(2);
+    gh.outage(false);
+    expect((await gh.raw('Esri/example', 'master', 'README.md')).text).toBe('# Example');
   });
 });
 

@@ -19,6 +19,7 @@ import type { CacheState } from '../../src/core/types.js';
  * | `'html'` | an HTML catch-all page instead of the recording: `DOC_NOT_FOUND` unless HTML was expected |
  * | `'truncated'` | the first half of the recorded body |
  * | `'empty'` | an empty body |
+ * | `'oversized'` | `UPSTREAM_UNAVAILABLE`, not retryable: the body exceeded the size cap |
  */
 export type Fault =
   | 304
@@ -35,7 +36,8 @@ export type Fault =
   | 'network'
   | 'html'
   | 'truncated'
-  | 'empty';
+  | 'empty'
+  | 'oversized';
 
 /** A recorded response. `json` is a shorthand for a JSON `body`. */
 export interface RecordedResponse {
@@ -84,6 +86,8 @@ export interface SeenRequest {
   method: 'GET' | 'POST';
   url: string;
   expect: HttpRequest['expect'];
+  /** Present when the request asked for a base64 body. */
+  encoding?: 'base64';
   body?: string;
   headers?: Record<string, string>;
 }

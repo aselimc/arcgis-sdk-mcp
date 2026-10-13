@@ -30,12 +30,17 @@ export interface AdapterContractCase<A extends AdapterType> {
   readRef?: string;
 }
 
+/** Upstream requests an adapter issued: through the HTTP client and the GitHub client. */
+function requests(ctx: TestCtx): number {
+  return ctx.http.count() + ctx.github.count();
+}
+
 /**
  * Registers the contract every source adapter must meet (design section 9, WP5 and WP6):
  *
  * - `enumerate()` returns absolute, de-duplicated refs with a valid kind, bound to the
- *   product, source and line it was called for, within `maxEnumerateRequests`, without
- *   touching anything outside the cassette;
+ *   product, source and line it was called for, within `maxEnumerateRequests` (HTTP and
+ *   GitHub calls together), without touching anything outside the cassette;
  * - `probe()` uses at most two requests;
  * - `read()` returns a page with sections and the attribution line of its licence tier;
  * - when every upstream request fails, nothing but `McpDocError` crosses the adapter boundary.
@@ -68,7 +73,7 @@ export function describeAdapterContract<A extends AdapterType>(
       const records = await c.adapter.enumerate(ctx, src);
 
       expect(ctx.http.unrecorded).toEqual([]);
-      expect(ctx.http.count()).toBeLessThanOrEqual(c.adapter.maxEnumerateRequests);
+      expect(requests(ctx)).toBeLessThanOrEqual(c.adapter.maxEnumerateRequests);
       expect(records.length).toBeGreaterThanOrEqual(c.minRecords ?? 1);
 
       const refs = records.map((record) => record.ref);
@@ -98,7 +103,7 @@ export function describeAdapterContract<A extends AdapterType>(
       const ctx = c.ctx();
       const result = await c.adapter.probe(ctx, bound(c));
       expect(ctx.http.unrecorded).toEqual([]);
-      expect(ctx.http.count()).toBeLessThanOrEqual(2);
+      expect(requests(ctx)).toBeLessThanOrEqual(2);
       expect(result.ok).toBe(true);
       expect(result.ms).toBeGreaterThanOrEqual(0);
     });
@@ -118,6 +123,7 @@ export function describeAdapterContract<A extends AdapterType>(
       const c = makeCase();
       const ctx = c.ctx();
       ctx.http.fail(/.*/, 503);
+      ctx.github.outage();
       const src = bound(c);
       const attempts: Array<Promise<unknown>> = [c.adapter.probe(ctx, src)];
       if (c.adapter.enumerate !== undefined) attempts.push(c.adapter.enumerate(ctx, src));
