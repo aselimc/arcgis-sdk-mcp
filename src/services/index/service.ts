@@ -34,7 +34,8 @@ async function runPool(tasks: Array<() => Promise<void>>, width: number): Promis
 export function createIndexService(ctx: Ctx, adapters: AdapterRegistry): IndexInternals {
   const health = createHealthTracker(ctx.clock);
   const bodies = createBodyIndex(ctx);
-  const { units, ensureUnit } = createUnitManager(ctx, adapters, health);
+  const manager = createUnitManager(ctx, adapters, health);
+  const { units } = manager;
   const running = new Set<Promise<void>>();
 
   return {
@@ -51,7 +52,7 @@ export function createIndexService(ctx: Ctx, adapters: AdapterRegistry): IndexIn
       const settled = new Map<string, IndexState>();
       const tasks = sources.map((source) => async (): Promise<void> => {
         try {
-          settled.set(source.id, await ensureUnit(product, source, line));
+          settled.set(source.id, await manager.ensureUnit(product, source, line));
         } catch (error) {
           ctx.logger.error('index build crashed', {
             product: product.id,

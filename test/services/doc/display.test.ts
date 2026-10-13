@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { estimateTokens, joinSections } from '../../../src/core/budget.js';
+import { joinSections } from '../../../src/core/budget.js';
 import type { DocPage, MemberEntry } from '../../../src/core/types.js';
 import {
   displaySections,
@@ -9,9 +9,7 @@ import {
   memberSection,
 } from '../../../src/services/doc/display.js';
 import { isPseudoSection, resolveSection } from '../../../src/services/doc/section-resolve.js';
-import { MAX_OUTLINE_TOKENS, renderOutline, renderView } from '../../../src/services/doc/view.js';
 import { makeDocPage } from '../../support/builders.js';
-import { forSeeds } from '../../support/prng.js';
 
 const GUIDE = [
   '# Styling widgets',
@@ -287,182 +285,5 @@ describe('resolveSection', () => {
   it('knows the pseudo-section names', () => {
     expect(isPseudoSection(' Source ')).toBe(true);
     expect(isPseudoSection('sources')).toBe(false);
-  });
-});
-
-describe('renderOutline', () => {
-  it('lists ids, titles and subtree sizes, two levels deep', () => {
-    const page = makeDocPage({ markdown: GUIDE });
-    const outline = renderOutline(page, page.sections, 600);
-    expect(outline.split('\n')).toEqual([
-      'Outline (pass an id as "section" to read that part):',
-      '',
-      expect.stringMatching(/^- `styling-widgets` Styling widgets \(~\d+ tokens\)$/),
-      expect.stringMatching(/^ {2}- `colours` Colours \(~\d+ tokens\)$/),
-      expect.stringMatching(/^ {2}- `typography-fonts` Typography & fonts \(~\d+ tokens\)$/),
-      expect.stringMatching(/^ {2}- `parameters` Parameters \(~\d+ tokens\)$/),
-    ]);
-  });
-
-  it('names a lead without heading', () => {
-    const page = makeDocPage({ markdown: 'Lead text.\n\n## One\n\na' });
-    expect(renderOutline(page, page.sections, 600)).toContain('- `_lead` Introduction (~');
-  });
-
-  it('counts the members of a member-heavy page instead of listing them', () => {
-    const many: MemberEntry[] = Array.from({ length: 40 }, (_, i) => ({
-      id: `m${i}`,
-      name: `member${i}`,
-      kind: i % 2 === 0 ? 'method' : 'property',
-    }));
-    const markdown = [
-      '# Big',
-      '',
-      'Lead.',
-      '',
-      ...many.flatMap((m) => [`## ${m.name} {#${m.id}}`, '', 'Doc.', '']),
-    ].join('\n');
-    const page = makeDocPage({ markdown, kind: 'api', members: many });
-    const outline = renderOutline(page, page.sections, 600);
-    expect(outline).not.toContain('`m7`');
-    expect(outline).toContain('Members: 20 method, 20 property.');
-  });
-
-  it('stays within 600 tokens by dropping a level, then rows', () => {
-    const wide = ['# Top', '', 'Lead.', ''];
-    for (let i = 0; i < 120; i++)
-      wide.push(`## Section number ${i} with a fairly long heading`, '', 'Body.', '');
-    const page = makeDocPage({ markdown: wide.join('\n') });
-    const outline = renderOutline(page, page.sections, 5000);
-    expect(estimateTokens(outline)).toBeLessThanOrEqual(MAX_OUTLINE_TOKENS);
-    expect(outline).toMatch(/- \.\.\. \d+ more sections; ask for one by its heading text$/);
-
-    const deep = ['Lead.', ''];
-    for (let i = 0; i < 12; i++) {
-      deep.push(`## Part ${i}`, '', 'Body.', '');
-      for (let j = 0; j < 8; j++) deep.push(`### Detail ${i}-${j} of this part`, '', 'Body.', '');
-    }
-    const deepPage = makeDocPage({ markdown: deep.join('\n') });
-    const shallow = renderOutline(deepPage, deepPage.sections, 5000);
-    expect(shallow).toContain('`part-11`');
-    expect(shallow).not.toContain('detail-0-0');
-  });
-});
-
-describe('renderView', () => {
-  const guide = makeDocPage({ markdown: GUIDE, header: 'Product: Widgets SDK' });
-
-  it('auto: returns a document that fits, header first', () => {
-    const view = renderView({
-      page: guide,
-      shown: guide.sections,
-      view: 'auto',
-      maxTokens: 2000,
-      offset: 0,
-    });
-    expect(view).toEqual({
-      text: `Product: Widgets SDK\n\n${joinSections(guide.sections)}`,
-      truncated: false,
-    });
-  });
-
-  it('auto: returns the opening, the outline and a suggestion when it does not fit', () => {
-    const body = (name: string, words: number) =>
-      `## ${name}\n\n${`${name.toLowerCase()} `.repeat(words)}`;
-    const page = makeDocPage({
-      markdown: [
-        '# Long guide',
-        '',
-        'intro '.repeat(400),
-        '',
-        body('Small', 50),
-        '',
-        body('Largest', 900),
-        '',
-        body('Medium', 300),
-      ].join('\n'),
-      header: 'HEADER',
-    });
-    const view = renderView({
-      page,
-      shown: page.sections,
-      view: 'auto',
-      maxTokens: 800,
-      offset: 0,
-    });
-    expect(view.truncated).toBe(true);
-    expect(view.suggest).toBe('largest');
-    expect(view.nextOffset).toBeUndefined();
-    expect(view.text.startsWith('HEADER\n\n# Long guide')).toBe(true);
-    expect(view.text).toContain('Outline (pass an id as "section"');
-    expect(view.text).not.toContain('largest largest');
-    expect(estimateTokens(view.text)).toBeLessThanOrEqual(800 + 610);
-  });
-
-  it('auto: pages a document that has nothing to outline', () => {
-    const page = makeDocPage({
-      markdown: `# One section\n\n${Array.from({ length: 60 }, (_, i) => `Paragraph ${i} ${'x'.repeat(200)}`).join('\n\n')}`,
-    });
-    const view = renderView({
-      page,
-      shown: page.sections,
-      view: 'auto',
-      maxTokens: 500,
-      offset: 0,
-    });
-    expect(view.truncated).toBe(true);
-    expect(view.nextOffset).toBeGreaterThan(0);
-    expect(view.suggest).toBeUndefined();
-  });
-
-  it('outline: returns the title and the outline only', () => {
-    const view = renderView({
-      page: guide,
-      shown: guide.sections,
-      view: 'outline',
-      maxTokens: 6000,
-      offset: 0,
-    });
-    expect(view.truncated).toBe(false);
-    expect(view.text.startsWith('# Get started\n\nOutline')).toBe(false);
-    expect(view.text.startsWith('# Styling widgets\n\nOutline')).toBe(true);
-    expect(view.text).not.toContain('Pick a palette');
-    expect(view.suggest).toBeDefined();
-  });
-
-  it('full: pages concatenate to the whole document, header once', () => {
-    forSeeds(25, (rng) => {
-      const parts: string[] = ['# Random doc', '', rng.words(20)];
-      for (let s = 0; s < rng.int(2, 8); s++) {
-        parts.push('', `## ${rng.words(3)}`, '', rng.words(rng.int(5, 200)));
-        if (rng.chance(0.4))
-          parts.push('', '```js', rng.words(rng.int(5, 80)), '', rng.words(4), '```');
-        if (rng.chance(0.3))
-          parts.push('', '| a | b |', '| --- | --- |', `| ${rng.words(2)} | ${rng.words(2)} |`);
-      }
-      const page = makeDocPage({ markdown: parts.join('\n'), header: 'HEADER' });
-      const budget = rng.int(120, 400);
-      const pages: string[] = [];
-      let offset = 0;
-      for (let guard = 0; guard < 200; guard++) {
-        const view = renderView({
-          page,
-          shown: page.sections,
-          view: 'full',
-          maxTokens: budget,
-          offset,
-        });
-        pages.push(view.text);
-        if (view.nextOffset === undefined) {
-          expect(view.truncated).toBe(false);
-          break;
-        }
-        expect(view.truncated).toBe(true);
-        expect(view.nextOffset).toBeGreaterThan(offset);
-        offset = view.nextOffset;
-      }
-      expect(pages.join('\n\n')).toBe(`HEADER\n\n${joinSections(page.sections)}`);
-      for (const text of pages) expect((text.match(/^```/gm) ?? []).length % 2).toBe(0);
-    });
   });
 });

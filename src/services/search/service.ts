@@ -4,25 +4,21 @@
  * and (when enabled) site search, fuse them by rank, apply the multipliers, de-duplicate
  * and page. Zero hits is a normal result that explains itself.
  */
-import { DeadlineExceededError, withDeadline } from '../../core/async.js';
 import { formatCall } from '../../core/budget.js';
 import { decodeCursor, encodeCursor } from '../../core/cursor.js';
 import { isMcpDocError, McpDocError } from '../../core/errors.js';
 import { shortHash } from '../../core/hash.js';
 import { TOOLS } from '../../core/names.js';
 import type {
-  CallOptions,
   Ctx,
   IndexState,
   SearchProvider,
-  SearchRequest,
   SearchResponse,
   SearchService,
   VersionService,
 } from '../../core/ports.js';
 import { rrf } from '../../core/rrf.js';
-import type { Product, SearchHit, VersionLine } from '../../core/types.js';
-import { hitFromRecord, kindMatches } from '../index/query.js';
+import type { SearchHit } from '../../core/types.js';
 import type { IndexInternals } from '../index/types.js';
 import { anySearchable, indexNotes, scopeNote } from '../notes.js';
 import { resolveScope } from '../scope.js';
@@ -30,30 +26,21 @@ import { classifyQuery } from './classify.js';
 import { coveredBySiteSearch } from './esearch/provider.js';
 import { excerptOf } from './excerpt.js';
 import { dedupe, rerank } from './rank.js';
+import {
+  SECONDARY_DEPTH,
+  createSiteRetriever,
+  productCards,
+  symbolHits,
+  type SearchTarget,
+} from './retrievers.js';
 import { SYNONYMS } from './synonyms.js';
 import { zeroHitNotes } from './zero-hits.js';
 
 /** Most products a search without a `product` argument covers. */
 const MAX_ROUTED_PRODUCTS = 3;
 
-/** Candidates taken from each retriever before fusion. */
+/** Candidates taken from the catalogue index before fusion. */
 const CANDIDATE_DEPTH = 100;
-
-/** Body-index and site-search candidates per query. */
-const SECONDARY_DEPTH = 20;
-
-/** How long a search waits for site search before answering without it. */
-export const SITE_SOFT_DEADLINE_MS = 2500;
-
-/** Late site-search answers kept for the next identical call. */
-const MAX_LATE_RESULTS = 50;
-
-/** One product of the scope with the line being searched. */
-interface Target {
-  product: Product;
-  line: VersionLine;
-  sources?: string[];
-}
 
 /** Collaborators of the search service. */
 export interface SearchDeps {
@@ -61,99 +48,16 @@ export interface SearchDeps {
   index: IndexInternals;
   versions: VersionService;
   provider: SearchProvider;
-  /** Overrides {@link SITE_SOFT_DEADLINE_MS}; tests use a few milliseconds. */
+  /** Overrides the soft deadline of site search; tests use a few milliseconds. */
   siteSoftDeadlineMs?: number;
 }
 
 /** Creates the search service. */
 export function createSearchService(deps: SearchDeps): SearchService {
-  const { ctx, index, versions, provider } = deps;
-  const softDeadline = deps.siteSoftDeadlineMs ?? SITE_SOFT_DEADLINE_MS;
-  /** Site-search answers that arrived after the soft deadline, by query key. */
-  const late = new Map<string, SearchHit[]>();
+  const { ctx, index, versions } = deps;
+  const site = createSiteRetriever(ctx, deps.provider, deps.siteSoftDeadlineMs);
 
-  const remember = (key: string, hits: SearchHit[]): void => {
-    late.set(key, hits);
-    const oldest = late.keys().next();
-    if (late.size > MAX_LATE_RESULTS && oldest.done !== true) late.delete(oldest.value);
-  };
-
-  /** Site-search hits within the soft deadline; a slower answer is kept for the next call. */
-  const siteHits = async (
-    key: string,
-    req: SearchRequest,
-    targets: Target[],
-    call: CallOptions,
-    notes: string[],
-  ): Promise<SearchHit[]> => {
-    const cached = late.get(key);
-    if (cached !== undefined) return cached;
-    const pending = provider
-      .search(
-        {
-          text: req.query,
-          products: targets.map((target) => target.product),
-          line: req.version ?? targets[0]?.line.id ?? '',
-          limit: SECONDARY_DEPTH,
-        },
-        call,
-      )
-      .catch((error: unknown) => {
-        ctx.logger.warn('site search failed', { error });
-        return [] as SearchHit[];
-      });
-    try {
-      return await withDeadline(pending, softDeadline);
-    } catch (error) {
-      if (!(error instanceof DeadlineExceededError)) throw error;
-      void pending.then((hits) => {
-        remember(key, hits);
-      });
-      notes.push(
-        'Site search did not answer in time; its results are included when this call is repeated.',
-      );
-      return [];
-    }
-  };
-
-  const symbolHits = (
-    names: readonly string[],
-    targets: Target[],
-    req: SearchRequest,
-  ): SearchHit[] => {
-    for (const name of names) {
-      const records = targets
-        .flatMap((target) => index.symbols(target.product.id, target.line.id).exact(name))
-        .filter((record) => kindMatches(record, req.kind));
-      if (records.length > 0) {
-        return records
-          .slice(0, SECONDARY_DEPTH)
-          .map((record, position) => hitFromRecord(record, 'symbol', 1 / (position + 1)));
-      }
-    }
-    return [];
-  };
-
-  /** Entry links of the products: the last rung of the search ladder. */
-  const productCards = (targets: Target[]): SearchHit[] =>
-    targets.flatMap(({ product, line }) =>
-      [{ title: product.name, ref: product.homepage }, ...product.startHere].map(
-        (entry, position): SearchHit => ({
-          ref: entry.ref,
-          title: entry.title,
-          product: product.id,
-          source: product.sources.find((source) => source.floor === true)?.id ?? '',
-          line: line.id,
-          kind: product.tier === 'help' ? 'help' : 'guide',
-          excerpt: product.summary,
-          match: 'title',
-          score: 1 / (position + 1),
-          license: product.licenseTier,
-        }),
-      ),
-    );
-
-  const labelled = async (hits: SearchHit[], targets: Target[]): Promise<SearchHit[]> => {
+  const labelled = async (hits: SearchHit[], targets: SearchTarget[]): Promise<SearchHit[]> => {
     const labels = new Map<string, string | undefined>();
     for (const { product, line } of targets) {
       try {
@@ -184,7 +88,7 @@ export function createSearchService(deps: SearchDeps): SearchService {
       const notes: string[] = [];
       const versionGiven = req.version !== undefined;
 
-      const targets: Target[] = [];
+      const targets: SearchTarget[] = [];
       let lineError: McpDocError | undefined;
       for (const resolution of scope.resolutions) {
         try {
@@ -273,7 +177,7 @@ export function createSearchService(deps: SearchDeps): SearchService {
         synonyms: SYNONYMS,
       });
       const lists: SearchHit[][] = [
-        query.shape === 'symbol' ? symbolHits(query.names, targets, req) : [],
+        query.shape === 'symbol' ? symbolHits(index, query.names, targets, req.kind) : [],
         catalogue.hits.filter(inScope),
         index
           .queryBodies({
@@ -283,7 +187,7 @@ export function createSearchService(deps: SearchDeps): SearchService {
             limit: SECONDARY_DEPTH,
           })
           .filter(inScope),
-        siteEnabled ? (await siteHits(key, req, targets, call, notes)).filter(inScope) : [],
+        siteEnabled ? (await site.hits(key, req, targets, call, notes)).filter(inScope) : [],
       ];
 
       const workspace = new Set(scope.workspace.map((sdk) => sdk.product));
