@@ -92,8 +92,12 @@ function lifecycleSentence(
   const retirement = phase('retirement');
   if (retirement === undefined) return undefined;
   if (passed(retirement)) return `${product.name} was retired on ${retirement}`;
-  const mature = passed(phase('mature')) ? 'is in mature support and ' : '';
-  return `${product.name} ${mature}retires on ${retirement}`;
+  const standing = passed(phase('mature'))
+    ? 'is in mature support and '
+    : product.status === 'deprecated'
+      ? 'is deprecated and '
+      : '';
+  return `${product.name} ${standing}retires on ${retirement}`;
 }
 
 /**
@@ -238,9 +242,10 @@ export async function gatherProduct(
   ]);
 
   // A product without a version oracle whose own column a matrix has (the web map and web
-  // scene specifications in the JavaScript SDK matrix) is documented at that version.
+  // scene specifications in the JavaScript SDK matrix) is documented at that version. It is
+  // not a fallback for oracles that failed: those end at "unknown", as the ladder says.
   const fromMatrix: VersionFact[] =
-    merged.documented === undefined && compatibility.own !== undefined
+    product.oracles.length === 0 && compatibility.own !== undefined
       ? [
           {
             role: 'documented',

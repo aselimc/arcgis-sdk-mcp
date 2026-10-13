@@ -9,11 +9,13 @@
  *   line can be newer than it (arcgis-rest-js).
  *
  * A tag in that list is reported as `installable`. A tag whose version or name marks a
- * build ahead of a release (`next`, `rc`, `5.2.0-next.145`) is reported as `prerelease`.
+ * build ahead of a release (`next`, `rc`, `5.2.0-next.145`) is reported as `prerelease`,
+ * but only while it is ahead: a tag nobody moved since (`rc: 2.0.0-rc.2` next to
+ * `latest: 5.1.2`) is a leftover, and reporting it would read as an upcoming release.
  * Any other tag is not a version statement about the product and is left out.
  */
 import { matchesAnyGlob } from '../../core/glob.js';
-import { isPrerelease } from '../../core/version-key.js';
+import { compareVersions, isPrerelease, maxVersion } from '../../core/version-key.js';
 import type { VersionFact } from '../../core/types.js';
 import { asRecord, asText, defineOracle, option, packageOption, requestOptions } from './kit.js';
 
@@ -56,7 +58,18 @@ export const npmDistTagsOracle = defineOracle(
         url,
       });
     }
+    // A pre-release of a version that is already released (or older) announces nothing.
+    // `compareVersions` puts `5.1.2-rc.1` before `5.1.2`, so the comparison is strict.
+    const released = maxVersion(
+      facts.filter((fact) => fact.role === 'installable').map((fact) => fact.value),
+    );
+    const current = facts.filter(
+      (fact) =>
+        fact.role !== 'prerelease' ||
+        released === undefined ||
+        compareVersions(fact.value, released) > 0,
+    );
     // `latest` leads so that it is the first evidence a reader sees.
-    return facts.sort((a, b) => Number(b.tag === 'latest') - Number(a.tag === 'latest'));
+    return current.sort((a, b) => Number(b.tag === 'latest') - Number(a.tag === 'latest'));
   },
 );

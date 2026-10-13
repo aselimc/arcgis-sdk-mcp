@@ -78,9 +78,19 @@ export interface BodyQuery {
   limit: number;
 }
 
+/** The answer of a catalogue query. */
+export interface CatalogResult {
+  /** The requested page of matching records, best first. */
+  hits: SearchHit[];
+  /** Records that match at least half of the query's words: what "matches" can honestly mean. */
+  total: number;
+  /** Of those, the records that match every word. 0 means every hit is a partial match. */
+  complete: number;
+}
+
 /** What the services of this package may ask of the index beyond the public port. */
 export interface IndexInternals extends IndexService {
-  query(q: CatalogQuery): { hits: SearchHit[]; total: number };
+  query(q: CatalogQuery): CatalogResult;
   /** Sections of pages already read whose text matches, best first. */
   queryBodies(q: BodyQuery): SearchHit[];
   /** Persists body indexes changed by `addBody`. Never rejects. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { githubRepoAdapter } from '../../../../src/adapters/reference/github/adapter.js';
-import { parseSidebar, rankDirectories } from '../../../../src/adapters/reference/github/wiki.js';
+import { parseSidebar } from '../../../../src/adapters/reference/github/wiki.js';
 import type { RendererInputs } from '../../../../src/core/ports.js';
 import { makeRecord } from '../../../support/builders.js';
 import { bound, githubCtx, githubProduct, wikiPages, type GithubConfig } from './support.js';
@@ -74,51 +74,6 @@ describe('parseSidebar', () => {
       { page: 'Three', title: 'Linked heading', trail: [] },
       { page: 'Four', title: 'Four', trail: [] },
       { page: 'Five', title: 'Bold link', trail: [] },
-    ]);
-  });
-});
-
-describe('rankDirectories', () => {
-  const directories = [
-    'Reference/',
-    'Features/MapAuthoring/**',
-    '/Features/Editing',
-    'Features/Framework',
-    '',
-  ];
-
-  it('prefers the directory whose words occur in the page name', () => {
-    expect(rankDirectories(directories, 'ProConcepts-Map-Authoring')[0]).toBe(
-      'Features/MapAuthoring',
-    );
-    expect(rankDirectories(directories, 'ProConcepts-Editing')[0]).toBe('Features/Editing');
-  });
-
-  it('uses the sidebar group when the page name says nothing', () => {
-    expect(rankDirectories(directories, 'FAQ', 'Reference')[0]).toBe('Reference');
-    expect(rankDirectories(directories, 'ProGuide-Ribbon', 'Framework > Customization')[0]).toBe(
-      'Features/Framework',
-    );
-  });
-
-  // Regression: the sidebar group "Layout" did not lead to the directory "Layouts", nor
-  // "Networks" to "UtilityNetwork".
-  it('takes a singular and its plural for the same word', () => {
-    const more = [...directories, 'Features/Layouts', 'Features/UtilityNetwork'];
-    expect(rankDirectories(more, 'ProConcepts-Reports', 'Layout')[0]).toBe('Features/Layouts');
-    expect(rankDirectories(more, 'ProSnippets-Tracing', 'Networks')[0]).toBe(
-      'Features/UtilityNetwork',
-    );
-    // A short word is not a stem: "Map" does not match "MapAuthoring" through "maps".
-    expect(rankDirectories(['A/Go', 'B/Gone'], 'Page', 'Gone')[0]).toBe('B/Gone');
-  });
-
-  it('keeps the registry order between equal candidates and drops empty entries', () => {
-    expect(rankDirectories(directories, 'Unrelated')).toEqual([
-      'Reference',
-      'Features/MapAuthoring',
-      'Features/Editing',
-      'Features/Framework',
     ]);
   });
 });
@@ -253,13 +208,151 @@ describe('wiki preset', () => {
     expect(ctx.github.count('wikiRaw')).toBe(3);
   });
 
-  it('tries at most three directories', async () => {
+  it('tries the best directory and two more for a page nothing is known about', async () => {
     const { ctx, src } = setup({ include: ['A', 'B', 'C', 'D', 'E'] });
-    await expect(
-      githubRepoAdapter.read(ctx, src, { url: new URL(`${WIKI}/Nowhere`) }),
-    ).rejects.toMatchObject({ code: 'DOC_NOT_FOUND' });
+    const failure = githubRepoAdapter.read(ctx, src, { url: new URL(`${WIKI}/Nowhere`) });
+    await expect(failure).rejects.toMatchObject({ code: 'DOC_NOT_FOUND' });
+    // The failure says how the page can still be opened.
+    await expect(failure).rejects.toMatchObject({
+      details: { why: expect.stringContaining(`${WIKI}/Nowhere`) as unknown },
+    });
     // The page by name, the sidebar (to learn its group), then three directories.
     expect(ctx.github.count('wikiRaw')).toBe(5);
+  });
+
+  describe('pages kept below a feature directory', () => {
+    // The layout of a wiki that sorts its pages twice: by feature, and inside a feature by
+    // sidebar subgroup or by kind of page. Links in the sidebar name none of these directories.
+    const sidebar = [
+      '### Framework',
+      '',
+      '* [ProConcepts: Framework](ProConcepts-Framework)',
+      '* [ProSnippets: Framework](ProSnippets-Framework)',
+      '',
+      '&nbsp;&nbsp;&nbsp;&nbsp;**Customization**',
+      '',
+      '* [ProGuide: Buttons](ProGuide-Buttons)',
+      '',
+      '&nbsp;&nbsp;&nbsp;&nbsp;**Styling**',
+      '',
+      '* [ProGuide: Style Guide](proguide-style-guide)',
+      '',
+      '### Content',
+      '',
+      '* [ProSnippets: Content](ProSnippets-content)',
+    ].join('\n');
+    const nested: Record<string, string> = {
+      Home: '# Desktop SDK',
+      _Sidebar: sidebar,
+      'Features/Framework/ProConcepts-Framework': '# Framework',
+      'Features/Framework/ProSnippet/ProSnippets-Framework': '# Framework snippets',
+      'Features/Framework/Customization/ProGuide-Buttons': '# Buttons',
+      'Features/Framework/Styling/ProGuide-Style-Guide': '# Style guide',
+      'Features/Content/ProSnippet/ProSnippets-Content': '# Content snippets',
+    };
+    const include = ['Features/Framework', 'Features/Editing', 'Features/Content', 'Reference'];
+    const requested = (ctx: ReturnType<typeof setup>['ctx']): string[] =>
+      ctx.github.calls.filter((call) => call.method === 'wikiRaw').map((call) => call.path ?? '');
+
+    // Regression: every page the index lists must be readable. These were DOC_NOT_FOUND,
+    // because only the feature directory itself was tried.
+    it('reads every page its own index lists', async () => {
+      const { ctx, src } = setup({ include }, nested);
+      const records = (await githubRepoAdapter.enumerate?.(ctx, src)) ?? [];
+      expect(records.map((record) => record.locator?.page)).toEqual([
+        'Home',
+        'ProConcepts-Framework',
+        'ProSnippets-Framework',
+        'ProGuide-Buttons',
+        'proguide-style-guide',
+        'ProSnippets-content',
+      ]);
+      for (const record of records) {
+        const page = await githubRepoAdapter.read(ctx, src, { url: new URL(record.ref), record });
+        expect(page.ref, record.ref).toBe(record.ref);
+      }
+    });
+
+    it('finds a page in the directory of its sidebar subgroup', async () => {
+      const { ctx, src } = setup({ include }, nested);
+      await githubRepoAdapter.read(ctx, src, {
+        url: new URL(`${WIKI}/ProGuide-Buttons`),
+        record: makeRecord({ kind: 'guide', breadcrumb: 'Framework > Customization' }),
+      });
+      expect(requested(ctx)).toEqual([
+        'ProGuide-Buttons',
+        'Features/Framework/ProGuide-Buttons',
+        'Features/Framework/Customization/ProGuide-Buttons',
+      ]);
+    });
+
+    it('finds a snippets page in the directory of its kind, also when read by URL', async () => {
+      const { ctx, src } = setup({ include }, nested);
+      const page = await githubRepoAdapter.read(ctx, src, {
+        url: new URL(`${WIKI}/ProSnippets-Framework`),
+      });
+      expect(page.title).toBe('Framework snippets');
+      expect(requested(ctx)).toEqual([
+        'ProSnippets-Framework',
+        '_Sidebar',
+        'Features/Framework/ProSnippets-Framework',
+        'Features/Framework/ProSnippet/ProSnippets-Framework',
+      ]);
+
+      // The path is remembered: the next read asks for it first.
+      await githubRepoAdapter.read(ctx, src, { url: new URL(`${WIKI}/ProSnippets-Framework`) });
+      expect(requested(ctx).at(-1)).toBe('Features/Framework/ProSnippet/ProSnippets-Framework');
+      expect(requested(ctx)).toHaveLength(5);
+    });
+
+    it('goes straight to a nested directory the registry lists', async () => {
+      const { ctx, src } = setup({ include: [...include, 'Features/*/ProSnippet'] }, nested);
+      await githubRepoAdapter.read(ctx, src, {
+        url: new URL(`${WIKI}/ProSnippets-Framework`),
+        record: makeRecord({ kind: 'guide', breadcrumb: 'Framework' }),
+      });
+      expect(requested(ctx)).toEqual([
+        'ProSnippets-Framework',
+        'Features/Framework/ProSnippet/ProSnippets-Framework',
+      ]);
+    });
+
+    it('finds a page whose link is written in another letter case than its file', async () => {
+      const { ctx, src } = setup({ include }, nested);
+      const styled = await githubRepoAdapter.read(ctx, src, {
+        url: new URL(`${WIKI}/proguide-style-guide`),
+      });
+      expect(styled.title).toBe('Style guide');
+      // The public ref stays the address the wiki links the page by.
+      expect(styled.ref).toBe(`${WIKI}/proguide-style-guide`);
+
+      const snippets = await githubRepoAdapter.read(ctx, src, {
+        url: new URL(`${WIKI}/ProSnippets-content`),
+        record: makeRecord({
+          kind: 'guide',
+          title: 'ProSnippets: Content',
+          breadcrumb: 'Content',
+        }),
+      });
+      expect(snippets.title).toBe('Content snippets');
+      expect(requested(ctx).at(-1)).toBe('Features/Content/ProSnippet/ProSnippets-Content');
+    });
+
+    it('stops after eight paths', async () => {
+      const { ctx, src } = setup({ include }, nested);
+      await expect(
+        githubRepoAdapter.read(ctx, src, {
+          url: new URL(`${WIKI}/ProSnippets-missing`),
+          record: makeRecord({
+            kind: 'guide',
+            title: 'ProSnippets: Missing',
+            breadcrumb: 'Framework > Customization',
+          }),
+        }),
+      ).rejects.toMatchObject({ code: 'DOC_NOT_FOUND' });
+      // The page by name and eight of the ten places it could be in.
+      expect(requested(ctx)).toHaveLength(9);
+    });
   });
 
   // Regression: a page opened by its URL comes without its catalogue record, so its sidebar

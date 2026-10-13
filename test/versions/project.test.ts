@@ -33,6 +33,8 @@ describe('version report: retired packages in the project', () => {
     );
     expect(report.products[0]?.notices.at(-1)).toBe(LOADER_WARNING);
     expect(report.notes).toEqual([]);
+    // The loader is not the SDK: its version is no statement about the project's SDK version.
+    expect(report.products[0]?.project).toBeUndefined();
   });
 
   it('warns in the report notes when that product is not part of the report', async () => {

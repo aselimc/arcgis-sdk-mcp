@@ -1,7 +1,7 @@
 import { escapeHtml, squash, tagged } from '../dom.js';
 import { stampOutline } from '../outline.js';
 import type { FamilyProfile, Pass } from '../types.js';
-import { themeRoot, themeTitle } from './shared.js';
+import { dropLandingChrome, themeRoot, themeTitle } from './shared.js';
 
 /** The strips of "View in CodePen" links under code blocks are interface, not content. */
 const dropCodePenStrips: Pass = ($) => {
@@ -64,6 +64,7 @@ const linkButtonRows: Pass = ($) => {
 export const dropAstroChrome: Pass = ($, env) => {
   dropCodePenStrips($, env);
   dropPager($, env);
+  dropLandingChrome($, env);
   linkButtonRows($, env);
 };
 

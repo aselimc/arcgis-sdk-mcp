@@ -1,7 +1,7 @@
 import { escapeHtml, squash, tagged } from '../dom.js';
 import { stampOutline } from '../outline.js';
 import type { FamilyProfile, Pass } from '../types.js';
-import { themeRoot, themeTitle } from './shared.js';
+import { dropLandingChrome, themeRoot, themeTitle } from './shared.js';
 
 const ARROW = ' \u2192 ';
 
@@ -27,6 +27,23 @@ const inheritanceChains: Pass = ($) => {
 };
 
 /**
+ * Member tables of the converted ArcObjects references open every row with an icon for the
+ * kind of member (`bitmaps/Method.gif`). As an image it is a URL per row that says nothing;
+ * its alternative text ("Method", "Property") is the content.
+ */
+const kindIcons: Pass = ($) => {
+  $('td > img[src*="/bitmaps/"]').each((_, icon) => {
+    $(icon).replaceWith(escapeHtml(squash($(icon).attr('alt') ?? '')));
+  });
+};
+
+const prepare: Pass = ($, env) => {
+  dropLandingChrome($, env);
+  inheritanceChains($, env);
+  kindIcons($, env);
+};
+
+/**
  * Gatsby MDX guides on developers.arcgis.com (Arcade, the Python guide, Calcite,
  * `/documentation`). Same shell as the Astro sites; code blocks are react-syntax-highlighter
  * blocks, handled by the shared `fixGatsbyCode` pass, and illustration cards by the shared
@@ -38,5 +55,5 @@ export const gatsby: FamilyProfile = {
   root: themeRoot,
   title: themeTitle,
   outline: (page) => stampOutline(page),
-  prepare: inheritanceChains,
+  prepare,
 };

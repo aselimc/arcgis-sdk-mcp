@@ -18,8 +18,8 @@ import { mergeChunks } from './paging.js';
 /** Upper bound of an outline whose size the caller did not choose. */
 export const MAX_OUTLINE_TOKENS = 600;
 
-/** Ids named on the line that stands for the rows an outline had no room for. */
-const MAX_COMPACT_IDS = 80;
+/** Share of an outline's budget kept for the bare ids of the rows it has no room for. */
+const ID_SHARE = 1 / 3;
 
 /** Share of the budget the opening of a large document may take in `auto`. */
 const LEAD_SHARE = 0.25;
@@ -122,18 +122,27 @@ export function renderOutline(
   if (estimateTokens(text()) > budget) {
     const all = rows;
     const ids = all.map((line) => /`([^`]+)`/.exec(line)?.[1] ?? '');
+    const whole = 'pass max_tokens with view "outline" for all of them';
+    const more = (kept: number, named: readonly string[]): string => {
+      const dropped = all.length - kept;
+      if (named.length === 0) return `- ... ${dropped} more sections; ${whole}`;
+      const list = named.map((id) => `\`${id}\``).join(', ');
+      const unnamed = dropped - named.length;
+      return `- ... ${dropped} more sections: ${list}${unnamed > 0 ? ` and ${unnamed} more; ${whole}` : ''}`;
+    };
+    // Full rows first, with a share of the budget kept for the ids of the rows that go.
+    const reserve = Math.floor(budget * ID_SHARE);
     let kept = all.length;
     do {
       kept -= 1;
-      const dropped = ids.slice(kept).filter((id) => id !== '');
-      const named = dropped
-        .slice(0, MAX_COMPACT_IDS)
-        .map((id) => `\`${id}\``)
-        .join(', ');
-      const unnamed = dropped.length - Math.min(dropped.length, MAX_COMPACT_IDS);
-      const rest = unnamed > 0 ? ` and ${unnamed} more` : '';
-      rows = [...all.slice(0, kept), `- ... ${all.length - kept} more sections: ${named}${rest}`];
-    } while (kept > 1 && estimateTokens(text()) > budget);
+      rows = [...all.slice(0, kept), more(kept, [])];
+    } while (kept > 1 && estimateTokens(text()) > budget - reserve);
+    let named = ids.slice(kept).filter((id) => id !== '');
+    for (;;) {
+      rows = [...all.slice(0, kept), more(kept, named)];
+      if (named.length === 0 || estimateTokens(text()) <= budget) break;
+      named = named.slice(0, Math.floor(named.length * 0.8));
+    }
   }
   return text();
 }

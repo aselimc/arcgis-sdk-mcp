@@ -15,7 +15,10 @@ import type { LicenseTier } from '../core/types.js';
 export type Attribution =
   /** One document: the line its adapter built with `core/attribution.ts`. */
   | { kind: 'page'; line: string }
-  /** A list of refs from several documents (search hits, samples, version facts). */
+  /**
+   * A list of refs from several documents: search hits, samples, version facts, the table
+   * of contents of a source.
+   */
   | { kind: 'listing'; licenses: readonly LicenseTier[]; retrievedOn: string }
   /** This project's own data. */
   | { kind: 'project' };

@@ -118,10 +118,16 @@ export interface TableReading {
 function matrixRows(table: TextTable, subject: number, about: CompatibilityContext): TableReading {
   const subjectHeader = table.header[subject] ?? about.product.name;
   const dateColumn = table.header.findIndex((header) => OWN_FACT_COLUMN.test(header));
-  /** A row dated later than the report describes a release that is still ahead. */
+  /**
+   * A row dated later than the report describes a release that is still ahead. A date that
+   * names only a month does not say whether the release has happened within that month, so
+   * the current month counts as ahead: a version is never called released on a guess.
+   */
   const dated = (cells: string[]): boolean => {
     const date = dateColumn < 0 ? undefined : parseDate(cells[dateColumn]);
-    return date !== undefined && about.today !== undefined && date > about.today.slice(0, date.length);
+    if (date === undefined || about.today === undefined) return false;
+    const today = about.today.slice(0, date.length);
+    return date.length < about.today.length ? date >= today : date > today;
   };
   const pairs = (column: number): boolean => {
     const header = table.header[column];

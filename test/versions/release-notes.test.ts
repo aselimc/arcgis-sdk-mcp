@@ -159,16 +159,114 @@ describe('locateReleaseNotes', () => {
     expect(refs.map((ref) => ref.version)).toEqual(['2.4.4', '2.4.3', '1.0.0']);
   });
 
-  it('builds the page of a requested version from a template without any request', async () => {
-    const ctx = makeCtx({ config: { capabilities: new Set(['registries'] as const) } });
-    const product = makeProduct({
-      releaseNotes: { pattern: `${D}/arcgis-urban-api/release-notes/{version}/` },
+  // Regression: a URL built from a template was listed as a release-notes ref whatever the
+  // version, and led the list, so the tool's next call was a guaranteed 404.
+  describe('a requested version that no listing confirms', () => {
+    const TEMPLATE = `${D}/widgets/guide/{major}.{minor}/whats-new/`;
+    const CURRENT = `${D}/widgets/guide/whats-new/`;
+    const offline = () => makeCtx({ config: { capabilities: new Set(['registries'] as const) } });
+
+    it('lists the built page behind the current one, marked unverified', async () => {
+      const ctx = offline();
+      const product = makeProduct({ releaseNotes: { current: CURRENT, pattern: TEMPLATE } });
+      const located = await locateReleaseNotes(ctx, product, { version: '1.15', current: '1.20' });
+      expect(located).toEqual({
+        refs: [
+          { version: '1.20', ref: CURRENT },
+          { version: '1.15 (unverified)', ref: `${D}/widgets/guide/1.15/whats-new/` },
+        ],
+        notices: [],
+        complete: true,
+      });
+      expect(ctx.http.count()).toBe(0);
     });
-    const { refs } = await locateReleaseNotes(ctx, product, { version: '2026-07-21' });
-    expect(refs).toEqual([
-      { version: '2026-07-21', ref: `${D}/arcgis-urban-api/release-notes/2026-07-21/` },
+
+    it('builds nothing for a version ahead of the current one', async () => {
+      const product = makeProduct({ releaseNotes: { current: CURRENT, pattern: TEMPLATE } });
+      const located = await locateReleaseNotes(offline(), product, {
+        version: '9.9',
+        current: '1.20',
+      });
+      expect(located.refs).toEqual([{ version: '1.20', ref: CURRENT }]);
+      expect(located.notices).toEqual([
+        '9.9 is ahead of the current version: it has no release notes yet.',
+      ]);
+    });
+
+    it('says the address in words when there is no verified ref to lead the list', async () => {
+      const product = makeProduct({
+        releaseNotes: { pattern: `${D}/arcgis-urban-api/release-notes/{version}/` },
+      });
+      const located = await locateReleaseNotes(offline(), product, { version: '2026-07-21' });
+      expect(located.refs).toEqual([]);
+      expect(located.notices).toEqual([
+        `The release notes of 2026-07-21 would be at ${D}/arcgis-urban-api/release-notes/2026-07-21/; that address is built from a pattern and was not checked.`,
+      ]);
+    });
+
+    it('builds nothing when the sitemap lists the versions and does not have this one', async () => {
+      const ctx = sites();
+      const product: typeof dotnetProduct = {
+        ...dotnetProduct,
+        releaseNotes: {
+          current: `${D}/net/release-notes/`,
+          pattern: `${D}/net/{prefix}release-notes/release-notes-for-{major}-{minor}/`,
+          sitemapFilter: '/release-notes/',
+        },
+      };
+      const located = await locateReleaseNotes(ctx, product, {
+        version: '100.15',
+        current: '300.1',
+        call: makeCall(ctx),
+      });
+      expect(located.refs.map((ref) => ref.ref)).not.toContain(
+        `${D}/net/release-notes/release-notes-for-100-15/`,
+      );
+      expect(located.refs[0]).toEqual({ version: '300.1', ref: `${D}/net/release-notes/` });
+      expect(located.notices).toEqual([
+        'No release-notes page is listed for 100.15; the refs are the pages that exist.',
+      ]);
+      // An answer about a version without a page is final: the report may be remembered.
+      expect(located.complete).toBe(true);
+    });
+
+    it.each(['', '   ', 'latest'])('ignores %j: it names no version', async (version) => {
+      const product = makeProduct({
+        releaseNotes: { current: CURRENT, pattern: `${D}/widgets/guide/release-notes-{compact}/` },
+      });
+      const located = await locateReleaseNotes(offline(), product, { version });
+      expect(located).toEqual({
+        refs: [{ version: 'current', ref: CURRENT }],
+        notices: [],
+        complete: true,
+      });
+    });
+  });
+
+  it('lists every variant of a release when the pattern names variants', async () => {
+    const guide = `${D}/enterprise-widgets/guide`;
+    const pages = pagesByPattern(
+      [
+        `${guide}/feeds/whats-new-12-1-cdf/`,
+        `${guide}/feeds/whats-new-12-0-cdf/`,
+        `${guide}/net/whats-new-12-0-net/`,
+        `${guide}/net/whats-new-12-1-net/`,
+        `${guide}/net/whats-new-api-12-1-net/`,
+        `${guide}/java/whats-new-10-9-1-java/`,
+        `${guide}/java/whats-new-12-1-java/`,
+      ],
+      /\/whats-new-(?:api-)?(\d+(?:-\d+)+)-(net|java|cdf)\/$/,
+    );
+    // Newest release first; inside a release the order the pattern names the variants in.
+    expect(pages.map((page) => `${page.version} ${page.variant} ${page.url.slice(guide.length)}`)).toEqual([
+      '12.1 net /net/whats-new-12-1-net/',
+      '12.1 net /net/whats-new-api-12-1-net/',
+      '12.1 java /java/whats-new-12-1-java/',
+      '12.1 cdf /feeds/whats-new-12-1-cdf/',
+      '12.0 net /net/whats-new-12-0-net/',
+      '12.0 cdf /feeds/whats-new-12-0-cdf/',
+      '10.9.1 java /java/whats-new-10-9-1-java/',
     ]);
-    expect(ctx.http.count()).toBe(0);
   });
 
   it('labels the current page "current" when no version is known, without listing anything', async () => {
@@ -186,12 +284,17 @@ describe('locateReleaseNotes', () => {
     expect(notices).toEqual([
       'Per-version release notes could not be listed (UPSTREAM_UNAVAILABLE).',
     ]);
+    // The listing may answer next time: this result is not final.
+    expect((await locateReleaseNotes(ctx, dotnetProduct, { current: '300.1' })).complete).toBe(
+      false,
+    );
   });
 
   it('returns nothing for a product without release-notes configuration', async () => {
     expect(await locateReleaseNotes(makeCtx(), makeProduct(), {})).toEqual({
       refs: [],
       notices: [],
+      complete: true,
     });
   });
 });

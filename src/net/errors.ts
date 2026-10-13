@@ -77,6 +77,10 @@ export type Declined = 'budget' | 'pacing' | 'cancelled';
  * failed", which the code and `retryable` cannot: both are a retryable
  * `UPSTREAM_UNAVAILABLE`. A caller that drops a failed input and carries on must not do so
  * for a declined request, or it presents part of a source as the whole.
+ *
+ * The field travels in `McpDocError.details` like every other detail, so it survives
+ * `located()` and is readable outside this package (the adapters check it before they
+ * continue without an input).
  */
 export interface GatewayErrorDetails extends ErrorDetails {
   declined?: Declined;

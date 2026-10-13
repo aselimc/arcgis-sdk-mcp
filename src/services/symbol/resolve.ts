@@ -162,6 +162,9 @@ const OWNER_SCAN = 64;
 /** Shortest owner or hint that may match the other as a prefix or suffix. */
 const MIN_AFFIX_LENGTH = 4;
 
+/** Distance of a qualifier that names the record's owner but not the path it lives on. */
+const SAME_OWNER = 0.5;
+
 /** Distance of a qualifier that fits the record's owner only loosely (`esriConfig` for `config`). */
 const LOOSE_QUALIFIER = 1;
 
@@ -199,7 +202,8 @@ function isSubsequence(written: readonly string[], segments: readonly string[]):
 /**
  * How far the qualifier a caller wrote is from where a record lives: 0 when every written
  * part is part of the record's path in order (`arcgis.gis.Folder.add` for
- * `arcgis.gis._impl._content_manager.Folder.add`), the edit distance of a misspelt owner,
+ * `arcgis.gis._impl._content_manager.Folder.add`), {@link SAME_OWNER} when only the owner
+ * is the same, the edit distance of a misspelt owner,
  * {@link LOOSE_QUALIFIER} when the written owner contains or abbreviates the real one
  * (`esriConfig.apiKey`, `gis.content.add` for `ContentManager.add`), else
  * {@link WRONG_QUALIFIER}. A record that says nothing about where it lives is not affected.
@@ -213,6 +217,9 @@ function qualifierDistance(written: readonly string[], record: CatalogRecord): n
   const owner = segments.at(-1);
   if (owner === undefined) return 0;
   if (isSubsequence(written, segments)) return 0;
+  // The owner as written, reached by another path than the record's (`layers/TideLayer`
+  // for `pkg/TideLayer`): still that type, behind one whose whole path fits.
+  if (hint === owner) return SAME_OWNER;
   const typo = levenshtein(hint, owner, MAX_SYMBOL_DISTANCE);
   if (typo <= MAX_SYMBOL_DISTANCE) return Math.max(LOOSE_QUALIFIER, typo);
   if (hint.length >= MIN_AFFIX_LENGTH && owner.length >= MIN_AFFIX_LENGTH) {
@@ -336,7 +343,8 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
         const distance = qualifierDistance(written, record);
         // A qualifier that fits is an exact reading; one that does not makes the match a guess
         // that the answer has to own up to.
-        const step = distance === 0 ? directStep(record, simple, false) : 'case-insensitive';
+        const fits = distance < LOOSE_QUALIFIER;
+        const step = fits ? directStep(record, simple, false) : 'case-insensitive';
         add(scope, record, step, distance);
       }
     }

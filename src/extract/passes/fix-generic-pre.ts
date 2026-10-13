@@ -1,4 +1,4 @@
-import { LANG_ATTR, normalizeLanguage } from '../dom.js';
+import { LANG_ATTR, normalizeLanguage, refineLanguage } from '../dom.js';
 import type { Pass } from '../types.js';
 
 /** `lang-csharp`, `language-python`, `brush: js`, `highlight-json`. */
@@ -24,7 +24,7 @@ export const fixGenericPre: Pass = ($, env) => {
       code.attr('data-language') ??
       PREFIXED.exec(classes)?.[1] ??
       BARE.exec(classes)?.[1];
-    const language = normalizeLanguage(declared);
+    const language = refineLanguage(normalizeLanguage(declared), pre.text());
     pre.attr(LANG_ATTR, language === '' ? env.defaultLanguage : language);
   });
 };

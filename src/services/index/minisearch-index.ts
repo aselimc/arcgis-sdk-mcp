@@ -1,6 +1,13 @@
 /**
- * The catalogue search engine: MiniSearch over `CatalogRecord` with the fields, boosts and
- * matching rules of design section 6.4. One instance per (product, source, line).
+ * The catalogue search engine: MiniSearch over `CatalogRecord` with the fields and matching
+ * rules of design section 6.4. One instance per (product, source, line).
+ *
+ * The boosts differ from the first design in one respect. An API record carries its name
+ * three times (`symbol`, `title`, `qualified`), a guide page once (`title`), so one shared
+ * word scored 140 on a member against 50 on the tutorial that answers the question. The
+ * title is therefore the one strong name field; `symbol` and `qualified` add a little for
+ * the parts of a name that the title does not hold. Exact API names do not depend on this:
+ * the search service looks them up in the symbol table before it asks this index.
  */
 import MiniSearch, { type Query, type SearchOptions } from 'minisearch';
 import { tokenize } from '../../core/tokenize.js';
@@ -13,13 +20,13 @@ import type { QueryTerm } from './query-terms.js';
  */
 export type MatchMode = 'and' | 'or' | 'fuzzy';
 
-/** Indexed fields with their boosts, most significant first. */
+/** Indexed fields with their boosts. */
 const FIELD_BOOSTS = {
-  symbol: 60,
   title: 50,
-  qualified: 30,
   headings: 30,
   keywords: 20,
+  qualified: 15,
+  symbol: 10,
   description: 10,
   breadcrumb: 5,
 } as const;
@@ -27,6 +34,17 @@ const FIELD_BOOSTS = {
 type Field = keyof typeof FIELD_BOOSTS;
 
 const FIELDS = Object.keys(FIELD_BOOSTS) as Field[];
+
+/** Fields in the order in which a hit is labelled: a name before text that mentions it. */
+const LABEL_ORDER: readonly Field[] = [
+  'symbol',
+  'title',
+  'qualified',
+  'headings',
+  'keywords',
+  'description',
+  'breadcrumb',
+];
 
 /** The `match` label reported for a hit whose best matching field is the key. */
 const MATCH_LABEL: Record<Field, SearchHit['match']> = {
@@ -56,6 +74,21 @@ export function documentBoost(boost: number | undefined): number {
   return BOOST_FLOOR + (1 - BOOST_FLOOR) * Math.min(boost, BOOST_CEILING);
 }
 
+/** True when a term is among `words` as itself, as all of its parts, or as a synonym. */
+function has(term: QueryTerm, words: ReadonlySet<string>): boolean {
+  return (
+    words.has(term.whole) ||
+    (term.parts.length > 1 && term.parts.every((part) => words.has(part))) ||
+    term.synonyms.some((phrase) => phrase.every((word) => words.has(word)))
+  );
+}
+
+/** The share of a query's words among `words`, 0 to 1; 1 for a query without words. */
+export function share(terms: readonly QueryTerm[], words: ReadonlySet<string>): number {
+  if (terms.length === 0) return 1;
+  return terms.filter((term) => has(term, words)).length / terms.length;
+}
+
 /**
  * The share of a query's words a record matches, as a score multiplier. When not every word
  * has to match (modes `or` and `fuzzy`), field boosts alone would rank a record that has one
@@ -65,28 +98,63 @@ export function documentBoost(boost: number | undefined): number {
  * @param matched the query words MiniSearch reports as matched for the record.
  */
 export function coverage(terms: readonly QueryTerm[], matched: ReadonlySet<string>): number {
-  if (terms.length === 0) return 1;
-  const covered = terms.filter(
-    (term) =>
-      matched.has(term.whole) ||
-      (term.parts.length > 1 && term.parts.every((part) => matched.has(part))) ||
-      term.synonyms.some((phrase) => phrase.every((word) => matched.has(word))),
-  ).length;
-  return (covered / terms.length) ** 2;
+  return share(terms, matched) ** 2;
+}
+
+/** Weight of the title bonus: a title that holds every query word triples the score. */
+const TITLE_BONUS = 2;
+
+/**
+ * The multiplier for the share of the query that a record's title holds. A page whose title
+ * is most of the query ("Add a feature layer" for "add a feature layer to a map") is the
+ * page that was asked for, whatever else mentions the same words more often.
+ */
+export function titleBonus(titleShare: number): number {
+  return 1 + TITLE_BONUS * titleShare * titleShare;
+}
+
+/** A namespace segment that marks implementation detail, not public API. */
+const INTERNAL_SEGMENT = /(?:^|[.#/:])_?internal(?:[.#/:]|$)/i;
+
+/**
+ * The last entry of a breadcrumb under which DocC lists what a type takes over from a
+ * protocol: "View Implementations", "Equatable Implementations".
+ */
+const DEFAULT_IMPLEMENTATIONS = /(?:^|>)\s*[^>]*\bImplementations\s*$/;
+
+/** Weight of a record that is boilerplate or implementation detail. */
+const BOILERPLATE_WEIGHT = 0.25;
+
+/**
+ * The multiplier for records that are in a reference without being what it documents:
+ * members of `Internal` namespaces, and the members every type inherits from a framework
+ * protocol (each SwiftUI view modifier, once per view type of the SDK). They stay findable
+ * by their exact name, which goes through the symbol table.
+ */
+export function boilerplateWeight(record: CatalogRecord): number {
+  const internal = INTERNAL_SEGMENT.test(record.qualified ?? '');
+  const inherited = DEFAULT_IMPLEMENTATIONS.test(record.breadcrumb ?? '');
+  return internal || inherited ? BOILERPLATE_WEIGHT : 1;
 }
 
 /** Terms shorter than this are matched exactly or by prefix only. */
 const FUZZY_MIN_LENGTH = 5;
+
+/** Fewest query words from which a record must match more than one of them, or one in its title. */
+const MIN_TERMS_FOR_FLOOR = 3;
 
 /** One matching record of a catalogue index. */
 export interface IndexMatch {
   record: CatalogRecord;
   score: number;
   match: SearchHit['match'];
+  /** Share of the query's words the record matches, 0 to 1. */
+  covered: number;
 }
 
 /** A searchable catalogue index. */
 export interface CatalogIndex {
+  /** Matching records, best first. */
   search(
     terms: readonly QueryTerm[],
     mode: MatchMode,
@@ -159,13 +227,19 @@ export function buildCatalogIndex(records: readonly CatalogRecord[]): CatalogInd
       for (const result of results) {
         const record = records[result.id as number];
         if (record === undefined) continue;
-        const matched = new Set(Object.values(result.match).flat());
-        const best = FIELDS.find((field) => matched.has(field)) ?? 'description';
-        // In mode `and` every word matched, so the factor is 1 and the order is MiniSearch's.
-        const score = result.score * coverage(terms, new Set(result.queryTerms));
-        matches.push({ record, score, match: MATCH_LABEL[best] });
+        const covered = share(terms, new Set(result.queryTerms));
+        const inTitle = share(terms, new Set(tokenize(record.title)));
+        // One word of several, matched by prefix or spelling somewhere outside the title,
+        // is an accident (`thing` in `DirectionsString`), not a partial answer.
+        const single = covered <= 1 / terms.length;
+        if (terms.length >= MIN_TERMS_FOR_FLOOR && single && inTitle === 0) continue;
+        const fields = new Set(Object.values(result.match).flat());
+        const best = LABEL_ORDER.find((field) => fields.has(field)) ?? 'description';
+        const score =
+          result.score * covered ** 2 * titleBonus(inTitle) * boilerplateWeight(record);
+        matches.push({ record, score, match: MATCH_LABEL[best], covered });
       }
-      return mode === 'and' ? matches : matches.sort((a, b) => b.score - a.score);
+      return matches.sort((a, b) => b.score - a.score);
     },
   };
 }

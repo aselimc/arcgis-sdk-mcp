@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { newBudget } from '../../src/core/async.js';
-import type { Capability, Product, WorkspaceSdk } from '../../src/core/types.js';
+import type { Capability, Product } from '../../src/core/types.js';
 import { createVersionService } from '../../src/versions/index.js';
 import { REGISTRIES } from './cassettes-registries.js';
 import { SITES } from './cassettes-sites.js';
@@ -15,12 +15,24 @@ import {
 import { HOUR, MINUTE } from '../support/fake-clock.js';
 import { FakeGithub } from '../support/fake-github.js';
 import { makeCall, makeCtx, type TestCtx } from '../support/make-ctx.js';
+import { useProjects } from '../workspace/project.js';
 
 const D = 'https://developers.arcgis.com';
+const KB = 'https://support.esri.com/en-us/knowledge-base';
 const PRODUCTS = [jsProduct, pythonProduct, restJsProduct, dotnetProduct, javaProduct];
 
+const project = useProjects();
+const packageJson = (dependencies: Record<string, string>): Record<string, string> => ({
+  'package.json': JSON.stringify({ dependencies }),
+});
+
 function setup(
-  options: { workspace?: WorkspaceSdk[]; capabilities?: Capability[]; products?: Product[] } = {},
+  options: {
+    /** Manifests of the user's project; the service reads them from disk. */
+    files?: Record<string, string>;
+    capabilities?: Capability[];
+    products?: Product[];
+  } = {},
 ): TestCtx {
   return makeCtx({
     cassette: { interactions: [...REGISTRIES.interactions, ...SITES.interactions] },
@@ -28,10 +40,12 @@ function setup(
     github: new FakeGithub({
       'Esri/arcgis-python-api': { release: { tag: 'v2.4.4', publishedAt: '2026-09-22T18:04:00Z' } },
     }),
-    ...(options.workspace === undefined ? {} : { workspace: options.workspace }),
-    ...(options.capabilities === undefined
-      ? {}
-      : { config: { capabilities: new Set(options.capabilities) } }),
+    config: {
+      ...(options.files === undefined ? {} : { projectDir: project(options.files) }),
+      ...(options.capabilities === undefined
+        ? {}
+        : { capabilities: new Set(options.capabilities) }),
+    },
   });
 }
 
@@ -87,13 +101,7 @@ describe('version report: the two cases of the design', () => {
 
 describe('version report: content', () => {
   it('joins facts, compatibility, release notes, deprecations and the project version', async () => {
-    const project = {
-      product: 'js-maps-sdk',
-      package: '@arcgis/core',
-      version: '4.33.1',
-      file: 'package.json',
-    };
-    const ctx = setup({ workspace: [project] });
+    const ctx = setup({ files: packageJson({ '@arcgis/core': '4.33.1' }) });
     const { entry } = await reportOne(ctx, '@arcgis/core');
     expect(entry.facts.map((fact) => `${fact.role} ${fact.value}`)).toEqual([
       'documented 5.1',
@@ -102,7 +110,12 @@ describe('version report: content', () => {
       'prerelease 6.0.0-next.6',
     ]);
     expect(entry.mismatches).toEqual([]);
-    expect(entry.project).toEqual(project);
+    expect(entry.project).toEqual({
+      product: 'js-maps-sdk',
+      package: '@arcgis/core',
+      version: '4.33.1',
+      file: 'package.json',
+    });
     expect(entry.compatibility).toContainEqual({
       with: 'Enterprise',
       value: '12.2',
@@ -116,7 +129,7 @@ describe('version report: content', () => {
       { version: '5.1', ref: `${D}/javascript/latest/release-notes/` },
     ]);
     expect(entry.notices).toEqual([
-      'Deprecation: Widgets in arcgis maps sdk for javascript (https://support.esri.com/en-us/knowledge-base/deprecation-widgets-in-arcgis-maps-sdk-for-javascript-000040437)',
+      `Deprecation notice (Esri Knowledge Base): "Widgets in ArcGIS Maps SDK for JavaScript & their component replacements" (${KB}/deprecation-widgets-in-arcgis-maps-sdk-for-javascript-000040437)`,
       'The project uses @arcgis/core 4.33.1 (package.json); the current version is 5.1. Read documentation for 4.33.1, not for the current version.',
     ]);
   });
@@ -167,11 +180,93 @@ describe('version report: content', () => {
     const ctx = setup();
     const { entry } = await reportOne(ctx, 'java');
     expect(entry.notices.slice(0, 2)).toEqual([
-      'ArcGIS Maps SDK for Java is deprecated; Final release 200.6; successor: ArcGIS Maps SDK for .NET (dotnet-maps-sdk).',
+      'ArcGIS Maps SDK for Java is deprecated and retires on 2028-11-25. Final release 200.6. Successor: ArcGIS Maps SDK for .NET (dotnet-maps-sdk).',
       `Version 200.6 is a registry value as of ${javaProduct.verifiedOn}, not read live.`,
     ]);
     expect(entry.facts.filter((fact) => fact.role === 'lifecycle').map((fact) => fact.tag)).toEqual(
       ['ga', 'retirement'],
+    );
+  });
+
+  // Regression: "is retired; Retires 2027-09-01" next to a retirement date still ahead, and
+  // "is retired; Retired; build new apps ..." for a note that states the status itself.
+  describe('the standing of a product that is not active', () => {
+    const standing = async (overrides: Partial<Product>): Promise<string | undefined> => {
+      const product: Product = { ...javaProduct, id: 'old-sdk', name: 'Old SDK', ...overrides };
+      const { successor: _dropped, ...withoutSuccessor } = product;
+      const ctx = setup({
+        products: [...PRODUCTS, 'successor' in overrides ? product : withoutSuccessor],
+      });
+      return (await reportOne(ctx, 'old-sdk')).entry.notices[0];
+    };
+    const dates = (options: Record<string, string>): Product['oracles'] => [
+      { type: 'static', options, provides: ['lifecycle'] },
+    ];
+
+    it('is in mature support until the retirement date, whatever the registry status says', async () => {
+      expect(
+        await standing({
+          status: 'retired',
+          statusNote: 'Successors by platform: swift-maps-sdk, kotlin-maps-sdk',
+          oracles: dates({ mature: '2025-09-01', retirement: '2027-09-01' }),
+        }),
+      ).toBe(
+        'Old SDK is in mature support and retires on 2027-09-01. Successors by platform: swift-maps-sdk, kotlin-maps-sdk.',
+      );
+    });
+
+    it('was retired once the date has passed', async () => {
+      expect(
+        await standing({
+          status: 'retired',
+          statusNote: 'Its documentation is no longer hosted',
+          oracles: dates({ retirement: '2024-07-01' }),
+        }),
+      ).toBe('Old SDK was retired on 2024-07-01. Its documentation is no longer hosted.');
+    });
+
+    it('does not state the status twice when the note states it', async () => {
+      expect(
+        await standing({
+          status: 'retired',
+          statusNote: 'Retired; build new apps with the new builder.',
+          successor: 'dotnet-maps-sdk',
+          oracles: [],
+        }),
+      ).toBe(
+        'Old SDK: Retired; build new apps with the new builder. Successor: ArcGIS Maps SDK for .NET (dotnet-maps-sdk).',
+      );
+      expect(await standing({ status: 'beta', oracles: [] })).toBe(
+        'Old SDK is beta. Final release 200.6.',
+      );
+    });
+  });
+
+  // Regression: the web map specification said "unknown" for itself while the matrix it
+  // reads has a column with its version.
+  it('documents a product without oracles at the version a matrix states for it', async () => {
+    const spec: Product = {
+      ...jsProduct,
+      id: 'calcite-spec',
+      name: 'Calcite specification',
+      aliases: [],
+      packages: [],
+      oracles: [],
+    };
+    const { releaseNotes: _none, ...product } = spec;
+    const ctx = setup({ products: [...PRODUCTS, product] });
+    const { entry } = await reportOne(ctx, 'calcite-spec');
+    // The 5.2 row is dated this month: not yet called released.
+    expect(entry.facts).toEqual([
+      {
+        role: 'documented',
+        value: '5.1',
+        oracle: 'page-regex',
+        url: `${D}/javascript/latest/version-matrix/`,
+      },
+    ]);
+    expect(entry.compatibility).toContainEqual(
+      expect.objectContaining({ with: 'JS SDK', value: '5.1.*', unreleased: false }),
     );
   });
 
@@ -190,16 +285,14 @@ describe('version report: the project', () => {
     version: '5.1.20',
     file: 'package.json',
   };
-  const arcgis = {
-    product: 'python-api',
-    package: 'arcgis',
-    version: '',
-    file: 'requirements.txt',
-  };
+  const coreManifest = packageJson({ '@arcgis/core': '5.1.20' });
 
   it('reports every detected SDK when no product is named', async () => {
     const ctx = setup({
-      workspace: [core, { ...core, package: '@arcgis/map-components' }, arcgis],
+      files: {
+        ...packageJson({ '@arcgis/core': '5.1.20', '@arcgis/map-components': '5.1.20' }),
+        'requirements.txt': 'arcgis\n',
+      },
     });
     const call = makeCall(ctx, { budget: newBudget(20, MINUTE, ctx.clock) });
     const report = await createVersionService(ctx).report({}, call);
@@ -227,9 +320,103 @@ describe('version report: the project', () => {
   });
 
   it('applies a version to the single detected product', async () => {
-    const ctx = setup({ workspace: [core] });
+    const ctx = setup({ files: coreManifest });
     const report = await createVersionService(ctx).report({ version: '7.0' }, makeCall(ctx));
     expect(report.products[0]?.notices.join(' ')).toMatch(/7\.0 is newer than the current version/);
+  });
+
+  // Regression: the project version came from a scan made once per process, so after an
+  // upgrade the report kept the old version while its retired-package warnings were fresh.
+  it('sees an upgraded SDK within a minute, together with the rest of the manifest', async () => {
+    const ctx = setup({ files: packageJson({ '@arcgis/core': '4.33.0' }) });
+    const service = createVersionService(ctx);
+    const before = await service.report({ product: 'js-maps-sdk' }, makeCall(ctx));
+    expect(before.products[0]?.project?.version).toBe('4.33.0');
+
+    project.write(ctx.config.projectDir, packageJson({ '@arcgis/core': '5.1.4', 'esri-loader': '3.7.0' }));
+    ctx.clock.advance(2 * MINUTE);
+    const after = await service.report({ product: 'js-maps-sdk' }, makeCall(ctx));
+    expect(after.products[0]?.project?.version).toBe('5.1.4');
+    expect(after.products[0]?.notices.join(' ')).toContain('esri-loader@3.7.0');
+  });
+
+  // Regression: `^5.0.4` was reported as "the project uses 5.0.4 ... read documentation for
+  // 5.0.4", although a fresh install of that range resolves to the current release.
+  it('reports a range as a range, not as the installed version', async () => {
+    const ctx = setup({ files: packageJson({ '@arcgis/core': '^5.0.4' }) });
+    const { entry } = await reportOne(ctx, 'js-maps-sdk');
+    expect(entry.project).toEqual({ ...core, version: '^5.0.4' });
+    expect(entry.notices.at(-1)).toBe(
+      'The project declares @arcgis/core ^5.0.4 (package.json): a range, and no lock file states the installed version. It is at least 5.0.4 and may be as new as the current 5.1. Documentation lookups assume 5.0.4; pass "version" when another one is installed.',
+    );
+  });
+
+  it('takes the installed version from the lock file when there is one', async () => {
+    const ctx = setup({
+      files: {
+        ...packageJson({ '@arcgis/core': '^5.0.4' }),
+        'package-lock.json': JSON.stringify({
+          lockfileVersion: 3,
+          packages: { 'node_modules/@arcgis/core': { version: '5.1.27' } },
+        }),
+      },
+    });
+    const { entry } = await reportOne(ctx, 'js-maps-sdk');
+    expect(entry.project).toEqual({ ...core, version: '5.1.27', file: 'package-lock.json' });
+    expect(entry.notices.some((notice) => notice.startsWith('The project'))).toBe(false);
+  });
+});
+
+// Regression: `version: ""` (what hosts send for an unused optional argument) produced the
+// ref ".../release-notes-/" and stored it under the key of the report without a version.
+describe('version report: a blank version', () => {
+  const templated: Product = {
+    ...pythonProduct,
+    releaseNotes: {
+      pattern: `${D}/python/latest/guide/release-notes-{compact}/`,
+      sitemapFilter: '/guide/release-notes-\\d+/',
+    },
+  };
+  const refsOf = (report: Awaited<ReturnType<typeof reportOne>>['report']): string[] =>
+    report.products.flatMap((entry) => entry.releaseNotes.map((note) => note.ref));
+
+  it.each(['', '   '])('treats %j as no version', async (version) => {
+    const ctx = setup({ products: [templated] });
+    const service = createVersionService(ctx);
+    const blank = await service.report({ product: 'python-api', version }, makeCall(ctx));
+    const plain = await service.report({ product: 'python-api' }, makeCall(ctx));
+    for (const report of [blank, plain]) {
+      expect(refsOf(report)[0]).toBe(`${D}/python/latest/guide/release-notes-244/`);
+      expect(refsOf(report).join(' ')).not.toContain('release-notes-/');
+      expect(report.products[0]?.releaseNotes.map((note) => note.version)).not.toContain('');
+    }
+    expect(blank.products[0]?.notices).toEqual(plain.products[0]?.notices);
+  });
+
+  it('never answers one request with the cached report of another', async () => {
+    const ctx = setup({ products: [templated] });
+    const service = createVersionService(ctx);
+    const plain = await service.report({ product: 'python-api' }, makeCall(ctx));
+    const older = await service.report({ product: 'python-api', version: '2.4.3' }, makeCall(ctx));
+    expect(older.products[0]?.notices).toContain('2.4.3 is older than the current version 2.4.4.');
+    expect(plain.products[0]?.notices).not.toContain(
+      '2.4.3 is older than the current version 2.4.4.',
+    );
+    // In the opposite order, too: the report of 2.4.3 is not what a plain call gets.
+    const again = await service.report({ product: 'python-api' }, makeCall(ctx));
+    expect(again.products[0]?.notices).toEqual(plain.products[0]?.notices);
+  });
+
+  it('lists no page for a version the sitemap does not have, and says so', async () => {
+    const ctx = setup({ products: [templated] });
+    const { entry } = await reportOne(ctx, 'python-api', '9.9.9');
+    expect(entry.releaseNotes.map((note) => note.ref)).not.toContain(
+      `${D}/python/latest/guide/release-notes-999/`,
+    );
+    expect(entry.releaseNotes[0]?.ref).toBe(`${D}/python/latest/guide/release-notes-244/`);
+    expect(entry.notices).toContain(
+      'No release-notes page is listed for 9.9.9; the refs are the pages that exist.',
+    );
   });
 });
 

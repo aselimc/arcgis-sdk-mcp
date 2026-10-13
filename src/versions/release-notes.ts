@@ -214,7 +214,10 @@ export async function locateReleaseNotes(
   const wanted = isVersion(request.version) ? request.version.trim() : undefined;
   let unverified: ReleaseNotesRef | undefined;
   if (wanted !== undefined) {
-    const listed = pages.filter((page) => same(page.version, wanted));
+    // A coarse version (`v200`, `5`) agrees with several releases: it stands for the
+    // newest, and every page of that one release is listed.
+    const release = pages.find((page) => same(page.version, wanted))?.version;
+    const listed = pages.filter((page) => page.version === release);
     for (const page of listed) add(labelOf(page, wanted), page.url, page.version);
     if (listed.length === 0) {
       const template =

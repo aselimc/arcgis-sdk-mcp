@@ -130,6 +130,7 @@ export function unsearchedError(
   if (states.length === 0 || states.some(searched)) return undefined;
   if (states.some((state) => state.state === 'building')) return undefined;
   const products = targets.map((target) => target.product.id).join(', ');
+  const sources = states.map((state) => `${state.product}/${state.source}`).join(', ');
   const what = `"${req.symbol}" could not be looked up: no reference index of ${products} is available`;
 
   if (ctx.policy.summary().offline) {
@@ -149,7 +150,7 @@ export function unsearchedError(
   }
   if (states.every((state) => state.state === 'unavailable')) return undefined;
   return new McpDocError('UPSTREAM_UNAVAILABLE', what, {
-    why: 'Its reference sources could not be reached, so nothing was searched; this says nothing about whether the symbol exists',
+    why: `${sources} could not be reached, so nothing was searched; this says nothing about whether the symbol exists`,
     retryable: true,
   });
 }

@@ -3,25 +3,29 @@
  * it through its source's adapter and trims it to the requested detail. Once a record is
  * resolved the lookup no longer fails for an upstream problem (see `read.ts`).
  */
-import { formatCall } from '../../core/budget.js';
+import { formatCall, joinSections } from '../../core/budget.js';
 import { McpDocError } from '../../core/errors.js';
 import { TOOLS } from '../../core/names.js';
 import type {
   AdapterRegistry,
+  CallOptions,
   Ctx,
   IndexState,
   ProductResolution,
+  SymbolRequest,
   SymbolResponse,
   SymbolService,
 } from '../../core/ports.js';
 import { nearest } from '../../core/text-distance.js';
 import { normalizeSymbol } from '../../core/tokenize.js';
-import type { CatalogRecord, DocPage } from '../../core/types.js';
+import type { Capability, CatalogRecord, DocPage } from '../../core/types.js';
 import { pageKey } from '../../core/url.js';
+import { pagedSections, readCursor } from '../doc/paging.js';
+import { resolveSection } from '../doc/section-resolve.js';
 import { simpleName } from '../index/symbol-map.js';
 import type { IndexInternals } from '../index/types.js';
-import { resolveScope } from '../scope.js';
-import { symbolText } from './detail.js';
+import { resolveScope, type Scope } from '../scope.js';
+import { symbolText, type SymbolText } from './detail.js';
 import {
   MAX_INHERITED_CANDIDATES,
   baseTypes,
@@ -29,17 +33,58 @@ import {
   inheritedNotice,
   type BaseType,
 } from './inherited.js';
-import { MAX_NEAREST, nearestNames, notFoundError } from './not-found.js';
+import { MAX_NEAREST, nearestNames, notFoundError, unsearchedError } from './not-found.js';
 import { createSymbolReader } from './read.js';
-import { displayName, resolveSymbol, type Candidate, type SymbolScope } from './resolve.js';
+import {
+  MAX_ALTERNATES,
+  candidateOf,
+  displayName,
+  resolveSymbol,
+  type Candidate,
+  type SymbolScope,
+} from './resolve.js';
 import { VERSION_ADDRESSED, sourceRank, symbolSources, targetOf, type Target } from './target.js';
-import { isTypeNamed, memberCandidate, memberEntry, ownerName } from './type-member.js';
+import { namedByTitle, titledRecords } from './titled.js';
+import {
+  isTypeNamed,
+  memberCandidate,
+  memberEntry,
+  memberOnPage,
+  memberOwners,
+  ownerName,
+} from './type-member.js';
 
 /** Most products a lookup without a `product` argument covers. */
 const MAX_ROUTED_PRODUCTS = 3;
 
 /** Pages of base types read while looking for the declaration of an inherited member. */
 const MAX_BASE_PAGES = 4;
+
+/** Largest `max_tokens` a tool accepts; a follow-up call never asks for more. */
+const MAX_TOKENS = 20_000;
+
+/** One product of a lookup with everything that was prepared for it. */
+interface Prepared {
+  resolution: ProductResolution;
+  target: Target;
+  /** Said of every answer from this product: why another line than the project's is read. */
+  notices: string[];
+}
+
+/** What a member of a type page turned out to be. */
+type FromType =
+  | { winner: Candidate; page: DocPage; documented: boolean; inheritedFrom?: string }
+  | { names: string[] };
+
+function fragmentOf(ref: string): string | undefined {
+  const raw = ref.includes('#') ? ref.slice(ref.indexOf('#') + 1) : '';
+  if (raw === '') return undefined;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
 
 /** Creates the symbol service. */
 export function createSymbolService(
@@ -49,6 +94,66 @@ export function createSymbolService(
 ): SymbolService {
   const reader = createSymbolReader(ctx, adapters);
 
+  /** The capabilities a product's reference sources need that are switched off. */
+  const switchedOff = (target: Target, sources: readonly string[] | undefined): Capability[] => {
+    const off = new Set<Capability>();
+    for (const source of target.product.sources) {
+      if (sources !== undefined && !sources.includes(source.id)) continue;
+      const { capability } = source;
+      if (capability !== undefined && !ctx.policy.enabled(capability)) off.add(capability);
+    }
+    return [...off];
+  };
+
+  /**
+   * Loads the reference indexes of one product for the line the request is aimed at. When
+   * that line has no usable source (the typings of an older version with `package-cdn` off,
+   * next to a website that documents the current release only), a version the project
+   * merely happens to use gives way to the current line, with a notice; one the caller
+   * asked for is an error that names the capability.
+   */
+  const prepare = async (
+    resolution: ProductResolution,
+    scope: Scope,
+    req: SymbolRequest,
+    call: CallOptions,
+    states: IndexState[],
+  ): Promise<Prepared> => {
+    let target = targetOf(ctx, resolution.product, scope, req);
+    const sources = symbolSources(target.product, resolution.source);
+    let own = await index.ensure(target.product, sources, target.line, call);
+    const notices: string[] = [];
+    const unusable = own.length > 0 && own.every((state) => state.state === 'unavailable');
+    if (unusable && !target.line.current) {
+      const [capability] = switchedOff(target, sources);
+      const setting =
+        capability === undefined
+          ? ''
+          : ` (capability "${capability}" is switched off; set ARCGIS_DOCS_SOURCES=+${capability})`;
+      if (target.explicit) {
+        if (capability !== undefined) {
+          throw new McpDocError(
+            'SOURCE_DISABLED',
+            `Version ${target.version ?? ''} of ${target.product.name} cannot be looked up`,
+            {
+              why: `Its versioned reference needs capability "${capability}", which is switched off`,
+              next: `Set ARCGIS_DOCS_SOURCES=+${capability}`,
+              capability,
+            },
+          );
+        }
+      } else {
+        target = { ...target, line: ctx.registry.line(target.product), preferVersioned: false };
+        own = await index.ensure(target.product, sources, target.line, call);
+        notices.push(
+          `The reference of version ${target.version ?? ''} cannot be read in this configuration${setting}; this is the documentation of the current release.`,
+        );
+      }
+    }
+    states.push(...own);
+    return { resolution, target, notices };
+  };
+
   return {
     async lookup(req, call): Promise<SymbolResponse> {
       const scope = await resolveScope(ctx, {
@@ -56,51 +161,77 @@ export function createSymbolService(
         query: req.symbol,
         max: MAX_ROUTED_PRODUCTS,
       });
-      const targets = scope.resolutions.map((resolution) =>
-        targetOf(ctx, resolution.product, scope, req),
-      );
       const states: IndexState[] = [];
-      const scopes: SymbolScope[] = [];
-      for (const [position, target] of targets.entries()) {
-        const sources = symbolSources(target.product, scope.resolutions[position]?.source);
-        states.push(...(await index.ensure(target.product, sources, target.line, call)));
-        scopes.push({
+      const prepared: Prepared[] = [];
+      const extend = async (resolutions: readonly ProductResolution[]): Promise<void> => {
+        for (const resolution of resolutions) {
+          prepared.push(await prepare(resolution, scope, req, call, states));
+        }
+      };
+      const scopes = (): SymbolScope[] =>
+        prepared.map(({ target, resolution }, position) => ({
           product: target.product.id,
           productRank: position,
           symbols: index.symbols(target.product.id, target.line.id),
-          sourceRank: (record) => sourceRank(target, record.source),
-        });
-      }
+          sourceRank: (record) =>
+            // A scope the caller narrowed to one source has no order of sources.
+            resolution.source === undefined ? sourceRank(target, record.source) : 0,
+        }));
 
-      const resolution = resolveSymbol(req.symbol, scopes);
+      await extend(scope.resolutions);
+      let resolution = resolveSymbol(req.symbol, scopes());
+      const asked = prepared.length;
+      if (resolution.kind === 'none' && resolution.knownType === undefined) {
+        // Nothing in the project's SDKs or the first guess: the products next in line are
+        // asked before the name is reported missing.
+        await extend(scope.fallbacks);
+        if (prepared.length > asked) resolution = resolveSymbol(req.symbol, scopes());
+      }
+      const targets = prepared.map((entry) => entry.target);
       const memberName = normalizeSymbol(req.symbol).simple;
-      /** The target and resolution of the product a record belongs to. */
-      const placeOf = (product: string): { target: Target; resolved: ProductResolution } => {
-        const position = targets.findIndex((target) => target.product.id === product);
-        const target = targets[position];
-        const resolved = scope.resolutions[position];
-        if (target === undefined || resolved === undefined) {
+
+      /** What was prepared for the product a record belongs to. */
+      const placeOf = (product: string): Prepared => {
+        const place = prepared.find((entry) => entry.target.product.id === product);
+        if (place === undefined) {
           throw new McpDocError('INTERNAL', 'A resolved symbol has no product in scope');
         }
-        return { target, resolved };
+        return place;
       };
+
       /**
-       * Reads `member` out of the page of a type whose source lists no members. `undefined`
-       * when the page has no such member; `names` then holds the members it does have.
+       * Reads `member` out of the page of a type. A reference indexes a member once, under
+       * the type that declares it, and some sources index types only; the page of the type
+       * still documents the member, whether it is its own or inherited. Without the member,
+       * `names` holds what the page offers instead.
        */
-      const readFromType = async (
-        type: CatalogRecord,
-        member: string,
-      ): Promise<{ winner: Candidate; page: DocPage } | { names: string[] }> => {
+      const readFromType = async (type: CatalogRecord, member: string): Promise<FromType> => {
         const candidate = memberCandidate(type, member);
-        const page = await reader.read(placeOf(type.product).target, candidate, req.detail, call);
-        const entry = memberEntry(page, member);
+        const read = await reader.read(placeOf(type.product).target, candidate, req.detail, call);
+        // A page that could not be fetched is a placeholder titled with what was asked for.
+        const unread = read.degraded?.level === 'link-only';
+        const listed = unread ? undefined : memberEntry(read, member, type);
+        const entry = unread ? undefined : (listed ?? memberOnPage(read, member));
         if (entry === undefined) {
-          const known = (page.members ?? []).map((item) => item.name);
-          return { names: nearest(member, known, MAX_NEAREST) };
+          // The same name on other types of the page (a module page) is the likeliest slip.
+          const elsewhere = memberOwners(read, member);
+          const known = (read.members ?? []).map((item) => item.name);
+          const names =
+            elsewhere.length > 0
+              ? elsewhere
+              : nearest(member, known, MAX_NEAREST).map((name) => `${displayName(type)}.${name}`);
+          return { names: names.slice(0, MAX_NEAREST) };
         }
-        // The page spells the name; the caller may have differed in case.
-        return { winner: memberCandidate(type, entry.name), page };
+        // A member found in the text of the page joins its member list, so that the detail
+        // levels cut it out like any other.
+        const page = listed === undefined ? { ...read, members: [...(read.members ?? []), entry] } : read;
+        return {
+          // The page spells the name; the caller may have differed in case.
+          winner: memberCandidate(type, entry.name),
+          page,
+          documented: page.sections.some((section) => section.id === entry.id) || listed === undefined,
+          ...(entry.inheritedFrom === undefined ? {} : { inheritedFrom: entry.inheritedFrom }),
+        };
       };
 
       /**
@@ -126,18 +257,11 @@ export function createSymbolService(
         if (candidates.length === 0 || candidates.length > MAX_INHERITED_CANDIDATES) {
           return undefined;
         }
-        const typePage = await reader.read(
-          target,
-          { record: type, step: 'qualified', rank: [0, 0, 0, 0], twins: [] },
-          'full',
-          call,
-        );
+        const typePage = await reader.read(target, candidateOf(type, 'qualified'), 'full', call);
         const declared =
           declaredElsewhere(typePage, candidates) ??
           (await declaredOnBase(target, typePage, candidates));
-        return declared === undefined
-          ? undefined
-          : { record: declared, step: 'member', rank: [1, 0, 0, 0], twins: [] };
+        return declared === undefined ? undefined : candidateOf(declared, 'member');
       };
 
       /**
@@ -173,12 +297,7 @@ export function createSymbolService(
             const record = typeNamed(base.name).find((found) => pageKey(found.ref) === base.ref);
             if (record === undefined) continue;
             pagesRead += 1;
-            const page = await reader.read(
-              target,
-              { record, step: 'qualified', rank: [0, 0, 0, 0], twins: [] },
-              'full',
-              call,
-            );
+            const page = await reader.read(target, candidateOf(record, 'qualified'), 'full', call);
             above.push(...baseTypes(page));
           }
           level = above;
@@ -190,42 +309,60 @@ export function createSymbolService(
       let alternates: Candidate[] = [];
       let read: DocPage | undefined;
       let inherited: string | undefined;
-      if (resolution.kind === 'none') {
+      if (resolution.kind === 'none' && resolution.knownType !== undefined) {
         const { knownType } = resolution;
-        const listed =
-          knownType === undefined
-            ? []
-            : index
-                .symbols(knownType.product, placeOf(knownType.product).target.line.id)
-                .members(displayName(knownType));
-        // A source that lists types only (package typings) still documents their members.
-        const fromType =
-          knownType !== undefined && listed.length === 0
-            ? await readFromType(knownType, memberName)
-            : undefined;
-        if (fromType !== undefined && 'winner' in fromType) {
-          ({ winner, page: read } = fromType);
-        } else {
-          const declared =
-            knownType === undefined ? undefined : await readInherited(knownType, memberName);
-          if (declared === undefined || knownType === undefined) {
-            const names =
-              fromType !== undefined && knownType !== undefined && fromType.names.length > 0
-                ? fromType.names.map((name) => `${displayName(knownType)}.${name}`)
-                : nearestNames(index, req, targets, knownType);
-            throw notFoundError(req, targets, states, names, knownType);
-          }
+        // The page of the type first: it documents its own members and, in references that
+        // inline them (the JavaScript reference), the inherited ones as well.
+        const fromType = await readFromType(knownType, memberName);
+        const declared =
+          'winner' in fromType && fromType.documented
+            ? undefined
+            : await readInherited(knownType, memberName);
+        if (declared !== undefined) {
           winner = declared;
           inherited = inheritedNotice(
             displayName(knownType),
             simpleName(declared.record),
             declared.record.parent ?? ownerName(declared.record),
           );
+        } else if ('winner' in fromType) {
+          ({ winner, page: read } = fromType);
+          if (fromType.inheritedFrom !== undefined) {
+            inherited = `${displayName(knownType)} inherits ${simpleName(winner.record)} from ${fromType.inheritedFrom}.`;
+          }
+        } else {
+          const names =
+            fromType.names.length > 0
+              ? fromType.names
+              : nearestNames(index, req, targets, knownType);
+          throw notFoundError(req, targets, states, names, knownType);
         }
+      } else if (resolution.kind === 'none') {
+        // No symbol of that name: a reference page that is titled with it is the answer.
+        const [titled, ...others] = titledRecords(index, req.symbol, targets);
+        if (titled === undefined) {
+          throw (
+            unsearchedError(ctx, req, targets, states) ??
+            notFoundError(req, targets, states, nearestNames(index, req, targets, undefined), undefined)
+          );
+        }
+        winner = candidateOf(namedByTitle(titled.record), titled.exact ? 'simple' : 'case-insensitive');
+        alternates = others
+          .slice(0, MAX_ALTERNATES)
+          .map((other) => candidateOf(namedByTitle(other.record), 'case-insensitive'));
       } else if (resolution.kind === 'ambiguous') {
-        const pairs = resolution.candidates.map((candidate) => ({
-          symbol: displayName(candidate.record),
-          product: candidate.record.product,
+        // Candidates of several sources of one product cannot be told apart by a name both
+        // carry (`generateToken` of two REST services): the source is then part of the pair.
+        const sourcesOf = new Map<string, Set<string>>();
+        for (const { record } of resolution.candidates) {
+          sourcesOf.set(record.product, (sourcesOf.get(record.product) ?? new Set()).add(record.source));
+        }
+        const pairs = resolution.candidates.map(({ record }) => ({
+          symbol: displayName(record),
+          product:
+            (sourcesOf.get(record.product)?.size ?? 0) > 1
+              ? `${record.product}/${record.source}`
+              : record.product,
         }));
         throw new McpDocError(
           'AMBIGUOUS_SYMBOL',
@@ -238,22 +375,28 @@ export function createSymbolService(
         );
       } else {
         ({ winner, alternates } = resolution);
+        // A page titled with the name but indexed without a symbol is worth a mention.
+        const known = new Set([winner, ...alternates].map((candidate) => pageKey(candidate.record.ref)));
+        const titled = titledRecords(index, req.symbol, targets)
+          .filter(({ record }) => record.symbol === undefined && !known.has(pageKey(record.ref)))
+          .map(({ record }) => candidateOf(namedByTitle(record), 'case-insensitive'));
+        alternates = [...alternates, ...titled].slice(0, MAX_ALTERNATES);
       }
 
-      const { target, resolved } = placeOf(winner.record.product);
+      const { target, resolution: resolved, notices: targetNotices } = placeOf(winner.record.product);
       const versionedSource = (record: CatalogRecord): boolean => {
         const source = target.product.sources.find((candidate) => candidate.id === record.source);
         return source !== undefined && VERSION_ADDRESSED.has(source.adapter);
       };
-      const notices: string[] = [];
+      const notices: string[] = [...targetNotices];
       if (
         read === undefined &&
         target.preferVersioned &&
         winner.record.parent !== undefined &&
         !versionedSource(winner.record)
       ) {
-        // The member is indexed from the website, which documents the current release only;
-        // the version asked for is in the package typings, under the member's type.
+        // The member is indexed from the website; the version asked for may be in the package
+        // typings, under the member's type.
         const owner = ownerName(winner.record);
         const type = index
           .symbols(target.product.id, target.line.id)
@@ -263,7 +406,9 @@ export function createSymbolService(
           type === undefined ? undefined : await readFromType(type, simpleName(winner.record));
         if (fromType !== undefined && 'winner' in fromType) {
           ({ winner, page: read } = fromType);
-        } else if (target.version !== undefined) {
+        } else if (target.version !== undefined && target.line.current) {
+          // Only the website of the current line documents the current release. The reference
+          // of another line (`/v200/`) is that line's own and was read as asked.
           notices.push(
             `Version ${target.version} of this member could not be read from the package; this is the documentation of the current release.`,
           );
@@ -280,25 +425,80 @@ export function createSymbolService(
       if (winner.step === 'fuzzy' || winner.step === 'case-insensitive') {
         notices.push(`"${req.symbol}" was matched to ${name}.`);
       }
+      const first = scope.resolutions.map((entry) => entry.product.id);
+      if (scope.origin !== 'argument' && !first.includes(target.product.id)) {
+        notices.push(
+          `Not found in ${first.join(', ')}; this answer is from ${target.product.id}. Pass "product" to choose.`,
+        );
+      } else if (scope.origin === 'query' || scope.origin === 'router') {
+        notices.push(
+          `The product ${target.product.id} was inferred from the name; pass "product" to look in another.`,
+        );
+      }
       const page = { ...read, notices };
       index.addBody(page);
       await index.flush();
 
-      const { text, truncated } = symbolText(page, winner.record, req.detail, req.maxTokens);
+      const shaped = symbolText(page, winner.record, req.detail, req.maxTokens);
+
+      /**
+       * The read call that continues a text at the offset where the budget cut it, or
+       * `undefined` when a read of the page would not page over the same text: the page came
+       * from an adapter's own symbol method or from another source than the one that owns its
+       * URL, or the reader would show other sections.
+       */
+      const continuation = (text: SymbolText): string | undefined => {
+        if (text.cutOffset === undefined) return undefined;
+        const source = target.product.sources.find((candidate) => candidate.id === page.source);
+        if (source === undefined) return undefined;
+        let owner;
+        try {
+          if (adapters.get(source.adapter).symbol !== undefined) return undefined;
+          owner = ctx.registry.ownerOf(new URL(page.url));
+        } catch {
+          return undefined;
+        }
+        if (owner?.product.id !== target.product.id || owner.source.id !== source.id) {
+          return undefined;
+        }
+        const all = pagedSections(page, 'all');
+        const fragment = winner.record.parent === undefined ? undefined : fragmentOf(winner.record.ref);
+        const shown =
+          fragment === undefined ? all : resolveSection(page, all, fragment)?.sections;
+        if (shown === undefined || joinSections(shown) !== joinSections(text.own)) return undefined;
+        const ref = fragment === undefined ? page.url : winner.record.ref;
+        return formatCall(TOOLS.read, {
+          ref,
+          view: 'full',
+          cursor: readCursor(page.ref, fragment, shown, text.cutOffset),
+        });
+      };
+
       let next: string | undefined;
-      if (truncated && req.detail === 'full') {
-        next = formatCall(TOOLS.read, { ref: winner.record.ref, view: 'full' });
-      } else if (truncated) {
+      if (shaped.truncated && req.detail === 'signature') {
         next = formatCall(TOOLS.lookupSymbol, {
           symbol: name,
           product: winner.record.product,
-          detail: req.detail === 'signature' ? 'summary' : 'full',
+          detail: 'summary',
         });
+      } else if (shaped.truncated) {
+        // A cut text continues where it stopped. Asking for more detail is the next step
+        // only when the level left something out; `full` of a text that `summary` showed
+        // from its start would return the same words again.
+        const enough = Math.min(MAX_TOKENS, Math.ceil((shaped.totalTokens + 500) / 500) * 500);
+        const fuller = formatCall(TOOLS.lookupSymbol, {
+          symbol: name,
+          product: winner.record.product,
+          detail: 'full',
+          ...(shaped.cutOffset === undefined ? {} : { max_tokens: enough }),
+        });
+        const restart = formatCall(TOOLS.read, { ref: winner.record.ref, view: 'full' });
+        next = continuation(shaped) ?? (req.detail === 'full' ? restart : fuller);
       }
       return {
         record: winner.record,
         page,
-        text,
+        text: shaped.text,
         alternates: alternates.map((candidate) => candidate.record),
         resolvedProduct: resolved,
         ...(next === undefined ? {} : { next }),

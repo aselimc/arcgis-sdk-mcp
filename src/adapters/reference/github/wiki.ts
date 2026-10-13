@@ -7,8 +7,8 @@
  * path inside the wiki's git repository, while wiki links name pages without a directory.
  * For a wiki that keeps its pages in directories, the registry lists those directories as
  * the source's `include` (`Features/Editing`, `Reference`): a page that is not found by
- * name is then looked for in the directories whose names best match the page and its
- * sidebar group, and the path that worked is remembered.
+ * name is then looked for where `wiki-paths.ts` says it may be, and the path that worked is
+ * remembered.
  */
 import { isMcpDocError } from '../../../core/errors.js';
 import { matchesAnyGlob } from '../../../core/glob.js';
@@ -16,6 +16,7 @@ import { BREADCRUMB_SEPARATOR } from '../../../core/names.js';
 import type { Ctx, HttpResponse, ReadTarget } from '../../../core/ports.js';
 import type { CatalogRecord, DocPage } from '../../../core/types.js';
 import { parseGithubUrl } from '../../../core/url.js';
+import { safeDecode } from '../../kit/index.js';
 import { isBinary, presetKind } from './presets.js';
 import {
   baseOf,
@@ -30,11 +31,16 @@ import {
   type GithubSource,
   type RepoScope,
 } from './shared.js';
+import { pathCandidates, type PageHint } from './wiki-paths.js';
 
 const HOME = 'Home';
 const SIDEBAR = '_Sidebar';
-/** Directories tried for a page that is not found by name; each attempt is one request. */
-const MAX_DIRECTORY_ATTEMPTS = 3;
+/**
+ * Paths tried for a page that is not found by name; each attempt is one request. Eight
+ * covers the best directory with its subdirectories in both spellings of the name, and
+ * leaves a read inside the request budget of one call.
+ */
+const MAX_PATH_ATTEMPTS = 8;
 
 /** One wiki page linked from a sidebar. */
 export interface WikiLink {
@@ -52,14 +58,6 @@ const HEADING = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/;
 const BOLD_LINE = /^(?:&nbsp;|\s)*(?:\*\*|__)(.+?)(?:\*\*|__)\s*:?\s*$/;
 const RULE = /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/;
 const SCHEME = /^[a-z][a-z0-9+.-]*:/i;
-
-function decode(text: string): string {
-  try {
-    return decodeURIComponent(text);
-  } catch {
-    return text;
-  }
-}
 
 /** Link text without emphasis, code ticks and tags. */
 function plain(text: string): string {
@@ -82,7 +80,7 @@ function pageOf(target: string, repo: string): string | undefined {
     const location = parseGithubUrl(target);
     return location?.repo.toLowerCase() === repo.toLowerCase() ? location.wikiPage : undefined;
   }
-  const path = decode(target.replace(/[?#].*$/, '')).replace(/\.md$/i, '');
+  const path = safeDecode(target.replace(/[?#].*$/, '')).replace(/\.md$/i, '');
   if (path === '' || isBinary(path)) return undefined;
   const segments = path.split('/').filter((segment) => segment !== '' && segment !== '.');
   const wiki = segments.lastIndexOf('wiki');
@@ -185,64 +183,45 @@ export async function wikiRecords(
   }));
 }
 
-/** Lower-case words of a name: `MapAuthoring`, `Map-Authoring` and `Map Authoring` agree. */
-function words(text: string): string[] {
-  return text
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((word) => word !== '');
-}
-
-/** Shortest word that may match another by being its beginning (`layout` in `layouts`). */
-const MIN_STEM = 4;
-
-/** True for the same word, or a singular and its plural (`network`, `networks`). */
-function sameWord(a: string, b: string): boolean {
-  if (a === b) return true;
-  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
-  return short.length >= MIN_STEM && long.length - short.length <= 2 && long.startsWith(short);
-}
-
 /**
- * The wiki directories to try for a page, best match first: a directory scores one point
- * for each word of its name that also occurs in the page name or its sidebar groups.
+ * How the sidebar links a page (its groups and link text), or `undefined` when the sidebar
+ * does not link it or cannot be read.
  */
-export function rankDirectories(
-  directories: readonly string[],
-  page: string,
-  breadcrumb = '',
-): string[] {
-  const wanted = words(`${page} ${breadcrumb}`);
-  const score = (directory: string): number =>
-    words(directory).filter((word) => wanted.some((other) => sameWord(word, other))).length;
-  return directories
-    .map((directory) => directory.replace(/\/\**$/, '').replace(/^\/+/, ''))
-    .filter((directory) => directory !== '')
-    .map((directory, index) => ({ directory, index, score: score(directory) }))
-    .sort((a, b) => b.score - a.score || a.index - b.index)
-    .map((entry) => entry.directory);
-}
-
-/**
- * The sidebar groups a page is linked under, or `undefined` when the sidebar does not link
- * it or cannot be read.
- */
-async function sidebarTrail(
+async function sidebarLink(
   ctx: Ctx,
   src: GithubSource,
   scope: RepoScope,
   page: string,
-): Promise<string[] | undefined> {
+): Promise<WikiLink | undefined> {
   try {
     const sidebar = await ctx.github.wikiRaw(scope.repo, SIDEBAR, callOptions(src));
     const wanted = page.toLowerCase();
-    return parseSidebar(sidebar.text, scope.repo).find((link) => link.page.toLowerCase() === wanted)
-      ?.trail;
+    return parseSidebar(sidebar.text, scope.repo).find(
+      (link) => link.page.toLowerCase() === wanted,
+    );
   } catch (error) {
     if (isMcpDocError(error) && error.code === 'DOC_NOT_FOUND') return undefined;
     throw error;
   }
+}
+
+/**
+ * What the catalogue record of a page says about where it is kept. A page read by its URL
+ * comes without a record, so the sidebar is asked (one cached request).
+ */
+async function hintFor(
+  ctx: Ctx,
+  src: GithubSource,
+  scope: RepoScope,
+  page: string,
+  target: ReadTarget,
+): Promise<PageHint> {
+  const { record } = target;
+  if (record !== undefined) {
+    return { title: record.title, trail: record.breadcrumb?.split(BREADCRUMB_SEPARATOR) ?? [] };
+  }
+  const link = await sidebarLink(ctx, src, scope, page);
+  return link === undefined ? {} : { title: link.title, trail: link.trail };
 }
 
 /** Fetches a wiki page by name, then from the configured directories (see the file comment). */
@@ -252,7 +231,7 @@ async function fetchPage(
   scope: RepoScope,
   page: string,
   target: ReadTarget,
-): Promise<{ res: HttpResponse }> {
+): Promise<{ res: HttpResponse; linkTitle?: string | undefined }> {
   const opts = callOptions(src);
   const cacheKey = `github-wiki-path:${scope.repo.toLowerCase()}:${page.toLowerCase()}`;
   const known = await ctx.cache.getDerived<{ path: string }>('misc', cacheKey);
@@ -272,31 +251,27 @@ async function fetchPage(
 
   const include = src.source.config.include ?? [];
   if (!page.includes('/') && include.length > 0) {
-    // The sidebar group of the page says which directory is likely. A page read by its URL
-    // comes without its catalogue record, so the sidebar is asked (one cached request).
-    const groups =
-      target.record?.breadcrumb ?? (await sidebarTrail(ctx, src, scope, page))?.join(' ');
-    const directories = rankDirectories(include, page, groups).slice(0, MAX_DIRECTORY_ATTEMPTS);
-    for (const directory of directories) {
-      const path = `${directory}/${page}`;
+    const hint = await hintFor(ctx, src, scope, page, target);
+    for (const path of pathCandidates(include, page, hint).slice(0, MAX_PATH_ATTEMPTS)) {
       const res = await attempt(path);
       if (res === undefined) continue;
       await ctx.cache.putDerived('misc', cacheKey, { path });
-      return { res };
+      return { res, linkTitle: hint.title };
     }
   }
+  const url = wikiUrl(scope.repo, page);
   throw notFound(
-    wikiUrl(scope.repo, page),
+    url,
     `The wiki of ${scope.repo} has no page "${page}" at a known path`,
-    'GitHub serves a wiki page only at its path in the wiki repository, and pages kept in a directory cannot be found by name alone',
+    `GitHub serves the text of a wiki page only at its path in the wiki repository, and this page is in none of the places it was looked for. It can still be opened in a browser at ${url}`,
   );
 }
 
 /**
  * Reads one wiki page as Markdown.
  *
- * @throws McpDocError `DOC_NOT_FOUND` when the page exists neither by name nor in one of
- *   the directories the registry lists.
+ * @throws McpDocError `DOC_NOT_FOUND` when the page exists neither by name nor at one of
+ *   the paths tried for it.
  */
 export async function readWiki(
   ctx: Ctx,
@@ -306,7 +281,7 @@ export async function readWiki(
   target: ReadTarget,
 ): Promise<DocPage> {
   const name = page.replace(/\.md$/i, '');
-  const { res } = await fetchPage(ctx, src, scope, name, target);
+  const { res, linkTitle } = await fetchPage(ctx, src, scope, name, target);
   const kind = target.record?.kind ?? presetKind('wiki', src.source.kinds);
   // The public ref is the page's github.com address, whatever directory the file is kept in.
   const rendered = ctx.render.render(
@@ -322,6 +297,6 @@ export async function readWiki(
   const titled =
     ownTitle && rendered.title !== ''
       ? rendered
-      : { ...rendered, title: target.record?.title ?? titleFromName(name) };
+      : { ...rendered, title: target.record?.title ?? linkTitle ?? titleFromName(name) };
   return withNotices(titled, scope);
 }

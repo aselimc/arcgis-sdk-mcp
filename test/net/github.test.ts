@@ -256,6 +256,31 @@ describe('github: tree, raw, wiki, releases', () => {
     expect((await rig.github.raw(REPO, 'main', 'index.html')).text).toBe(html);
   });
 
+  // The raw host answers 404 for a missing file, so an HTML document under another name is
+  // the file itself (a template), not the page a documentation site serves for a miss.
+  it.each(['public/index.ejs', 'Views/Shared/_Layout.cshtml', 'src/App.vue'])(
+    'returns %s as source text although it is an HTML document',
+    async (path) => {
+      const rig = make();
+      const template =
+        '<!DOCTYPE html>\n<html>\n<head><title><%= title %></title></head>\n</html>\n';
+      rig.origin.on(`${RAW}/${REPO}/main/${path}`, body(template, 'text/plain; charset=utf-8'));
+      const res = await rig.github.raw(REPO, 'main', path);
+      expect(res.text).toBe(template);
+      expect(res.cache).toBe('miss');
+    },
+  );
+
+  it('reads a file that opens with dozens of comment lines without stalling', async () => {
+    const rig = make();
+    const readme = `${'<!-- markdownlint-disable -->\n'.repeat(60)}# Readme\n`;
+    rig.origin.on(`${RAW}/${REPO}/main/README.md`, body(readme, 'text/plain; charset=utf-8'));
+    const startedAt = performance.now();
+    expect((await rig.github.raw(REPO, 'main', 'README.md')).text).toBe(readme);
+    // This read once took minutes for 30 such lines and would not have ended for 60.
+    expect(performance.now() - startedAt).toBeLessThan(1000);
+  });
+
   it('reads wiki pages by name, with or without the extension', async () => {
     const rig = make();
     const url = `${RAW}/wiki/Esri/arcgis-pro-sdk/ProConcepts-Map-Authoring.md`;

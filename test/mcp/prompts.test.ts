@@ -94,7 +94,7 @@ describe('prompts', () => {
       expect(text).toContain('1. Call arcgis_docs_get_versions({})');
       // Regression: a goal sentence as an unlimited filter returned the whole catalogue.
       expect(text).toContain(
-        '2. Choose the product: call arcgis_docs_list_products({"query":"offline field app","limit":8}); the list is ranked, best match first.',
+        '2. Choose the product: call arcgis_docs_list_products({"query":"offline field app","limit":8}); the best match is listed first.',
       );
     });
   });

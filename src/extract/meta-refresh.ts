@@ -16,7 +16,45 @@ const REFRESH_TAG = /<meta\b[^>]*http-equiv\s*=\s*["']?refresh["']?[^>]*>/i;
 const CONTENT_ATTR = /content\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i;
 /** `0; url=/x/`, `0;URL='/x/'`, `0,/x/`: delay, optional separator, optional `url=`, target. */
 const REFRESH_VALUE = /^\s*\d+(?:\.\d+)?\s*[;,]?\s*(?:url\s*=\s*)?(.*)$/i;
-const NON_TEXT = /<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<[^>]+>/g;
+
+/** Elements whose content is not text of the page, with the end tag that closes them. */
+const RAW_TEXT: ReadonlyArray<[open: string, close: string]> = [
+  ['<script', '</script'],
+  ['<style', '</style'],
+  ['<!--', '-->'],
+];
+
+/**
+ * True when the document shows at least `enough` characters of text. Markup, scripts, styles
+ * and comments do not count, nor does whitespace.
+ *
+ * A single pass with `indexOf`: this runs in the HTTP gateway on every HTML body that opens
+ * with a refresh tag, and a regular expression with a lazy `<script ... </script>` branch
+ * rescans the rest of the document from every unclosed `<script`, which is quadratic.
+ */
+function hasVisibleText(html: string, enough: number): boolean {
+  // ASCII only, so that every index means the same in both strings.
+  const lower = html.replace(/[A-Z]+/g, (letters) => letters.toLowerCase());
+  let seen = 0;
+  let at = 0;
+  while (at < html.length) {
+    const tag = html.indexOf('<', at);
+    const end = tag === -1 ? html.length : tag;
+    for (let index = at; index < end; index += 1) {
+      if (html.charCodeAt(index) > 32) seen += 1;
+      if (seen >= enough) return true;
+    }
+    if (tag === -1) break;
+    const raw = RAW_TEXT.find(([open]) => lower.startsWith(open, tag));
+    // An element that is never closed swallows the rest of the document, as in a browser.
+    const close = raw === undefined ? tag : lower.indexOf(raw[1], tag + raw[0].length);
+    if (close === -1) break;
+    const after = html.indexOf('>', close);
+    if (after === -1) break;
+    at = after + 1;
+  }
+  return false;
+}
 
 function decodeEntities(value: string): string {
   return value
@@ -44,8 +82,6 @@ export function detectMetaRefresh(html: string, baseUrl: string): string | undef
     .trim();
   if (target === '') return undefined;
 
-  if (html.length >= STUB_MAX_BYTES && html.replace(NON_TEXT, '').trim().length >= STUB_MAX_TEXT) {
-    return undefined;
-  }
+  if (html.length >= STUB_MAX_BYTES && hasVisibleText(html, STUB_MAX_TEXT)) return undefined;
   return URL.parse(target, baseUrl)?.href;
 }

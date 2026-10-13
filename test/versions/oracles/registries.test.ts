@@ -39,6 +39,43 @@ describe('npm-dist-tags', () => {
     expect(ctx.http.count()).toBe(1);
   });
 
+  // Regression: `rc: 2.0.0-rc.2` was listed as a pre-release next to `latest: 5.1.2`.
+  it('drops pre-release tags that are not ahead of the released version', async () => {
+    const ctx = makeCtx();
+    const url = 'https://registry.npmjs.org/-/package/@esri/widgets/dist-tags';
+    ctx.http.on(url, {
+      json: {
+        rc: '2.0.0-rc.2',
+        hotfix: '2.8.1-hotfix.0',
+        latest: '5.1.2',
+        // The release candidate of the released version itself is behind it, too.
+        beta: '5.1.2-beta.3',
+        next: '5.2.0-next.95',
+      },
+    });
+    const facts = await ORACLES['npm-dist-tags'].read(
+      ctx,
+      jsProduct,
+      spec('npm-dist-tags', { package: '@esri/widgets' }),
+    );
+    expect(facts.map((fact) => [fact.role, fact.tag, fact.value])).toEqual([
+      ['installable', 'latest', '5.1.2'],
+      ['prerelease', 'next', '5.2.0-next.95'],
+    ]);
+  });
+
+  it('keeps pre-release tags when nothing is released yet', async () => {
+    const ctx = makeCtx();
+    const url = 'https://registry.npmjs.org/-/package/@esri/widgets/dist-tags';
+    ctx.http.on(url, { json: { beta: '1.0.0-beta.3' } });
+    const facts = await ORACLES['npm-dist-tags'].read(
+      ctx,
+      jsProduct,
+      spec('npm-dist-tags', { package: '@esri/widgets' }),
+    );
+    expect(facts.map((fact) => [fact.role, fact.value])).toEqual([['prerelease', '1.0.0-beta.3']]);
+  });
+
   it('counts long-term support tags as generally available and drops unrelated tags', async () => {
     const ctx = ctxWithRegistries();
     const [oracle] = restJsProduct.oracles;

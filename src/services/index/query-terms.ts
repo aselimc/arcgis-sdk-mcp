@@ -48,28 +48,52 @@ const STOP_WORDS = new Set([
   'with',
 ]);
 
+/** Shortest plural that is reduced to its singular; `gis` and `bus` are not plurals. */
+const MIN_PLURAL_LENGTH = 4;
+
+const LETTERS_ONLY = /^\p{L}+$/u;
+const ONE_LETTER = /^\p{L}$/u;
+
 /**
- * Splits `text` into distinct query terms, in order.
+ * The other grammatical number of a word: `buttons` for `button`, `layer` for `layers`.
+ * Documents are indexed without stemming, so that API names stay exact, and a guide titled
+ * "Buttons" would otherwise meet the query word `button` only as a low-weight prefix match.
+ * `undefined` for anything that is not a plain word of some length.
+ */
+export function otherNumber(word: string): string | undefined {
+  if (word.length < MIN_PLURAL_LENGTH - 1 || !LETTERS_ONLY.test(word)) return undefined;
+  if (!word.endsWith('s')) return `${word}s`;
+  if (word.length < MIN_PLURAL_LENGTH || word.endsWith('ss')) return undefined;
+  return word.slice(0, -1);
+}
+
+/**
+ * Splits `text` into distinct query terms, in order. Stop words and single letters (the `x`
+ * of `4.x`, which is also the name of a coordinate property on dozens of types) are dropped
+ * when other words remain.
  *
  * @param synonyms lower-case word to alternative phrases (`popup` to `pop up`); see
- *   `search/synonyms.ts`.
+ *   `search/synonyms.ts`. The other grammatical number of each word is added to them.
  */
 export function queryTerms(
   text: string,
   synonyms: ReadonlyMap<string, readonly string[]> = new Map(),
 ): QueryTerm[] {
   const words = text.match(WORD) ?? [];
-  const meaningful = words.filter((word) => !STOP_WORDS.has(word.toLowerCase()));
+  const meaningful = words.filter(
+    (word) => !STOP_WORDS.has(word.toLowerCase()) && !ONE_LETTER.test(word),
+  );
   const kept = meaningful.length > 0 ? meaningful : words;
 
   const terms = new Map<string, QueryTerm>();
   for (const word of kept) {
     const [whole = '', ...parts] = tokenize(word);
     if (whole === '' || terms.has(whole)) continue;
+    const number = otherNumber(whole);
     terms.set(whole, {
       whole,
       parts,
-      synonyms: (synonyms.get(whole) ?? [])
+      synonyms: [...(synonyms.get(whole) ?? []), ...(number === undefined ? [] : [number])]
         .map((phrase) => (phrase.match(WORD) ?? []).map((part) => part.toLowerCase()))
         .filter((phrase) => phrase.length > 0),
     });

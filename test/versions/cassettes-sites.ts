@@ -34,6 +34,20 @@ export const LIBRARIES_HTML = page(
     `<tr><td>python</td><td>3.13.13</td><td></td></tr><tr><td>requests</td><td>2.32.0</td><td></td></tr></table>`,
 );
 
+const KB = 'https://support.esri.com/en-us/knowledge-base';
+
+/** A Knowledge Base article reduced to what the notice reader takes from it: its title. */
+const article = (title: string): string =>
+  `<!doctype html><html><head><title>${title}</title></head><body><h1>${title}</h1></body></html>`;
+
+/** Article titles by slug. The address of the first says less than its title does. */
+export const KB_ARTICLES: Readonly<Record<string, string>> = {
+  'deprecation-arcgis-maps-sdk-for-java-000032164':
+    'Support for 32-bit platforms in ArcGIS Maps SDK for Java',
+  'deprecation-widgets-in-arcgis-maps-sdk-for-javascript-000040437':
+    'Widgets in ArcGIS Maps SDK for JavaScript &amp; their component replacements',
+};
+
 export const SITES: Cassette = {
   name: 'documentation sites',
   interactions: [
@@ -185,9 +199,13 @@ export const SITES: Cassette = {
             'deprecation-notice-arcgis-runtime-sdk-for-android-and-a-000030115',
             'deprecation-arcgis-geoevent-server-000041462',
             'problem-deprecated-function-warning-000055555',
-          ].map((slug) => `https://support.esri.com/en-us/knowledge-base/${slug}`),
+          ].map((slug) => `${KB}/${slug}`),
         ),
       },
     },
+    ...Object.entries(KB_ARTICLES).map(([slug, title]) => ({
+      url: `${KB}/${slug}`,
+      response: { body: article(title) },
+    })),
   ],
 };

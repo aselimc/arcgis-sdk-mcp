@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   readCompatibility,
+  readTable,
   rowsFromTable,
   subjectColumn,
 } from '../../src/versions/compatibility.js';
@@ -105,6 +106,97 @@ describe('rowsFromTable', () => {
     expect(rows[0]).toMatchObject({ with: 'Calcite', value: '5.2.*' });
   });
 
+  // Regression: the Arcade matrix has a value only under the products that shipped a
+  // version, so the report paired Arcade with one product and was silent about the others.
+  describe('a sparse matrix', () => {
+    const arcade = makeProduct({ id: 'arcade', name: 'ArcGIS Arcade', aliases: [] });
+    const sparse = {
+      header: ['Arcade', 'ArcGIS Pro', 'ArcGIS Enterprise', 'ArcGIS Online', 'JS SDK', 'Native'],
+      rows: [
+        ['1.39', 'n/a', 'n/a', 'n/a', '5.2', 'n/a'],
+        ['1.38', '3.8', 'n/a', 'n/a', 'n/a', 'n/a'],
+        ['1.37', 'n/a', 'n/a', 'n/a', 'n/a', '300.1'],
+        ['1.36', 'n/a', '12.2', 'June 2026', '5.1', '300.1'],
+        ['1.35', '3.7', '12.1', 'February 2026', '5.0', '300.0'],
+      ],
+    };
+    const context = { ...about, product: arcade, name: 'Version matrix' };
+    const read = (target?: string) =>
+      rowsFromTable(sparse, {
+        ...context,
+        current: '1.38',
+        ...(target === undefined ? {} : { target }),
+      }).map((row) => `${row.with}: ${row.value}${row.unreleased ? ' (unreleased)' : ''}`);
+
+    it('answers every column: from the reported row, else from the newest earlier row', () => {
+      expect(read()).toEqual([
+        'JS SDK: 5.2 (with Arcade 1.39) (unreleased)',
+        'ArcGIS Pro: 3.8',
+        'ArcGIS Enterprise: 12.2 (with Arcade 1.36)',
+        'ArcGIS Online: June 2026 (with Arcade 1.36)',
+        'JS SDK: 5.1 (with Arcade 1.36)',
+        'Native: 300.1 (with Arcade 1.37)',
+      ]);
+    });
+
+    it('fills the row of a requested version from the rows before it, never after it', () => {
+      expect(read('1.37').filter((line) => !line.endsWith('(unreleased)'))).toEqual([
+        'Native: 300.1',
+        'ArcGIS Pro: 3.7 (with Arcade 1.35)',
+        'ArcGIS Enterprise: 12.2 (with Arcade 1.36)',
+        'ArcGIS Online: June 2026 (with Arcade 1.36)',
+        'JS SDK: 5.1 (with Arcade 1.36)',
+      ]);
+    });
+
+    it('adds nothing to a matrix whose reported row is complete', () => {
+      const rows = rowsFromTable(matrix!, { ...about, target: '5.1', current: '5.1' });
+      expect(rows.filter((row) => !row.unreleased)).toHaveLength(2);
+    });
+  });
+
+  describe('the product own version', () => {
+    const table = {
+      header: ['JS SDK', 'Released', 'Web map spec', 'Web scene spec'],
+      rows: [
+        ['5.2.*', 'November 2026', '2.38', '1.41'],
+        ['5.1.*', 'June 2026', '2.37', '1.40'],
+        ['5.0.*', 'February 2026', '2.36', '1.39'],
+      ],
+    };
+    const webMap = makeProduct({
+      id: 'web-map-spec',
+      name: 'Web map specification',
+      aliases: ['webmap json'],
+    });
+    const context = { ...about, product: webMap, today: '2026-10-14' };
+
+    // Regression: each specification printed the other one's version and "unknown" for itself.
+    it('is the cell of the column that names the product, in the newest released row', () => {
+      const reading = readTable(table, context);
+      expect(reading.own).toBe('2.37');
+      // The row above is dated after today: it is ahead, although no version says so.
+      expect(reading.rows).toEqual([
+        { with: 'JS SDK', value: '5.2.* (with Web map spec 2.38)', unreleased: true, source: MATRIX_URL },
+        { with: 'Web scene spec', value: '1.41 (with Web map spec 2.38)', unreleased: true, source: MATRIX_URL },
+        { with: 'JS SDK', value: '5.1.*', unreleased: false, source: MATRIX_URL },
+        { with: 'Web scene spec', value: '1.40', unreleased: false, source: MATRIX_URL },
+      ]);
+    });
+
+    it('does not call a release of the current month released: a month is not a day', () => {
+      expect(readTable(table, { ...context, today: '2026-11-03' }).own).toBe('2.37');
+      expect(readTable(table, { ...context, today: '2026-12-01' }).own).toBe('2.38');
+    });
+
+    it('is not taken from a first column that was only assumed to be the product', () => {
+      const unrelated = makeProduct({ id: 'widgets', name: 'Widgets', aliases: [] });
+      expect(readTable(table, { ...context, product: unrelated }).own).toBeUndefined();
+      const [list] = htmlTables(LIBRARIES_HTML);
+      expect(readTable(list!, context).own).toBeUndefined();
+    });
+  });
+
   it('reads a name / version list for the packages that matter', () => {
     const [list] = htmlTables(LIBRARIES_HTML);
     const rows = rowsFromTable(list!, { ...about, wanted: new Set(['python', 'arcgis']) });
@@ -132,6 +224,12 @@ describe('readCompatibility', () => {
       ['Calcite', '5.1.*'],
     ]);
     expect(render.calls[0]?.meta).toMatchObject({ url: MATRIX_URL, product: 'js-maps-sdk' });
+  });
+
+  it('reports the own version of a product that a matrix names, with the page it is on', async () => {
+    const ctx = makeCtx({ cassette: SITES });
+    const reading = await readCompatibility(ctx, jsProduct, { current: '5.1' });
+    expect(reading.own).toEqual({ version: '5.1', source: MATRIX_URL });
   });
 
   it('falls back to the markup when the rendered page has no table', async () => {

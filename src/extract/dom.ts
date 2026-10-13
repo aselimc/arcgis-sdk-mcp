@@ -82,6 +82,32 @@ export function workRoot($: CheerioAPI): Cheerio<AnyNode> {
   return holder.length > 0 ? holder : $.root();
 }
 
+/** A Visual Basic declaration: a modifier or `Dim` first, and `As`, `ByVal` or `End` after it. */
+const VISUAL_BASIC =
+  /^\s*(?:Public|Private|Protected|Friend|Shared|Dim|Imports|Sub|Function|Property)\b[^;{}]*\b(?:As|ByVal|ByRef|End)\b/;
+/** Leading `//` and `#` comment lines, which JSON examples sometimes carry. */
+const LEADING_COMMENTS = /^(?:\s*(?:\/\/|#)[^\n]*\n)*\s*/;
+/** How a JSON value can start: an object, an array, a string, a number or a literal. */
+const JSON_START = /^(?:[{["\d-]|true\b|false\b|null\b)/;
+/** A JavaScript statement: a declaration, or a call or assignment on a name. */
+const JAVASCRIPT_START =
+  /^(?:(?:const|let|var|function|import|export|await|new|return|async)\b|[\w$.[\]]+\s*(?:\(|=[^=]))/;
+
+/**
+ * The fence language for code whose page names the wrong one. Two mislabels are common
+ * enough upstream to mislead: Visual Basic declarations tagged C# (the .NET reference of the
+ * Enterprise SDK shows both under `language-cs`) and JavaScript calls tagged JSON (examples
+ * of generated API pages). Anything else keeps the language it was given.
+ */
+export function refineLanguage(language: string, code: string): string {
+  if (language === 'csharp' && VISUAL_BASIC.test(code)) return 'vb';
+  if (language === 'json') {
+    const body = code.replace(LEADING_COMMENTS, '');
+    if (!JSON_START.test(body) && JAVASCRIPT_START.test(body)) return 'js';
+  }
+  return language;
+}
+
 /** Replaces each element with its own children. */
 export function unwrap($: CheerioAPI, elements: Cheerio<Element>): void {
   elements.each((_, element) => {
@@ -101,7 +127,7 @@ export function replaceWithPre(
   language: string | undefined,
 ): void {
   const pre = $('<pre></pre>');
-  pre.attr(LANG_ATTR, normalizeLanguage(language));
+  pre.attr(LANG_ATTR, refineLanguage(normalizeLanguage(language), code));
   pre.text(code);
   target.replaceWith(pre);
 }
