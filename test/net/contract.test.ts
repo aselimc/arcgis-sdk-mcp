@@ -26,7 +26,7 @@ describe('factory contracts', () => {
       policy: fakePolicy(),
       detectMetaRefresh: () => undefined,
     });
-    const github = githubFactory({ config, http, cache, logger });
+    const github = githubFactory({ config, http, cache, logger, clock: systemClock });
 
     expect(http.hostStates()).toEqual([]);
     expect(github.quota()).toEqual({ authenticated: false });

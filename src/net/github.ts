@@ -6,14 +6,7 @@
  */
 import { McpDocError, isMcpDocError } from '../core/errors.js';
 import type { CreateGithubClient } from '../core/factories.js';
-import { systemClock } from '../core/logger.js';
-import type {
-  Clock,
-  GithubCallOptions,
-  GithubClient,
-  HttpRequest,
-  HttpResponse,
-} from '../core/ports.js';
+import type { GithubCallOptions, GithubClient, HttpRequest, HttpResponse } from '../core/ports.js';
 import type { LicenseTier } from '../core/types.js';
 import { notFound } from './errors.js';
 import { classifyLicenseText, classifySpdx } from './github-license.js';
@@ -29,11 +22,8 @@ const META_TTL_MS = 7 * 24 * 3_600_000;
 const REPO = /^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9._-]+$/;
 const FULL_SHA = /^[0-9a-f]{40}$/;
 
-/** What `createGithubClient` receives: the factory contract plus a clock seam for tests. */
-export interface GithubDeps extends Readonly<Parameters<CreateGithubClient>[0]> {
-  /** Default: the system clock. */
-  readonly clock?: Clock;
-}
+/** What `createGithubClient` receives: the factory contract. */
+export type GithubDeps = Readonly<Parameters<CreateGithubClient>[0]>;
 
 type RepoMeta = Awaited<ReturnType<GithubClient['repoMeta']>>;
 
@@ -62,8 +52,7 @@ function text(value: unknown): string | undefined {
 
 /** Creates the GitHub client. Satisfies `CreateGithubClient`. */
 export function createGithubClient(deps: GithubDeps): GithubClient {
-  const { config, http, cache, logger } = deps;
-  const clock = deps.clock ?? systemClock;
+  const { config, http, cache, logger, clock } = deps;
   const authenticated = config.githubToken !== undefined;
   const apiHeaders: Record<string, string> = {
     accept: 'application/vnd.github+json',

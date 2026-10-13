@@ -64,7 +64,9 @@ describe('fixTables', () => {
   it('does not take a partly bold first row for a header', () => {
     const html =
       '<table><tr><td><strong>Note</strong> first</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></table>';
-    expect(applyPass(html, fixTables)).toContain('<li><strong><strong>Note</strong> first:</strong> b</li>');
+    expect(applyPass(html, fixTables)).toContain(
+      '<li><strong><strong>Note</strong> first:</strong> b</li>',
+    );
   });
 
   it('gives a headerless table of another width an empty header', () => {

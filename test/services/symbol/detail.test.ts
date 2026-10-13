@@ -18,9 +18,7 @@ describe('symbolText', () => {
         '',
         'Widens the input by a distance.',
       ].join('\n'),
-      members: [
-        { id: 'spread', name: 'Spread', kind: 'function', summary: 'Widens the input.' },
-      ],
+      members: [{ id: 'spread', name: 'Spread', kind: 'function', summary: 'Widens the input.' }],
     });
     const record = makeRecord({
       ref: 'https://developers.arcgis.com/widgets/functions/#spread',

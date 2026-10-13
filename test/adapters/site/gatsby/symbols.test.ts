@@ -100,8 +100,18 @@ describe('symbols: rest-operations', () => {
   // Sites that title pages with a label instead of a path (regression: `applyEdits` was not
   // found in the services reference, whose titles are all of this form).
   it.each([
-    ['Apply Changes (Gadget Service/Layer)', ['Catalog', 'Gadget Service'], 'applyChanges', 'GadgetServiceLayer.applyChanges'],
-    ['Query Related Records', ['Catalog', 'Gadget Service', 'Layer'], 'queryRelatedRecords', 'Layer.queryRelatedRecords'],
+    [
+      'Apply Changes (Gadget Service/Layer)',
+      ['Catalog', 'Gadget Service'],
+      'applyChanges',
+      'GadgetServiceLayer.applyChanges',
+    ],
+    [
+      'Query Related Records',
+      ['Catalog', 'Gadget Service', 'Layer'],
+      'queryRelatedRecords',
+      'Layer.queryRelatedRecords',
+    ],
     ['Unregister - Machine', ['Site', 'Machines', 'Machine'], 'unregister', 'Machine.unregister'],
     ['HTML Popup (Gadget Service/Layer)', ['Catalog'], 'htmlPopup', 'GadgetServiceLayer.htmlPopup'],
     ['CreateWatersheds', ['Tasks'], 'CreateWatersheds', 'Tasks.CreateWatersheds'],
@@ -112,12 +122,13 @@ describe('symbols: rest-operations', () => {
     );
   });
 
-  it.each(['Examples: scripting a task', 'What is new in 12.1?', 'A title of far too many plain words'])(
-    'does not derive a name from the prose title "%s"',
-    (title) => {
-      expect(parseLabelTitle(title, ['Catalog'])).toBeUndefined();
-    },
-  );
+  it.each([
+    'Examples: scripting a task',
+    'What is new in 12.1?',
+    'A title of far too many plain words',
+  ])('does not derive a name from the prose title "%s"', (title) => {
+    expect(parseLabelTitle(title, ['Catalog'])).toBeUndefined();
+  });
 
   it('tells resources, operations and data types apart in a labelled hierarchy', () => {
     const page = (path: string, title: string, crumbs: string[]) => ({

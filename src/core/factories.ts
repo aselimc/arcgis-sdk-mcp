@@ -30,12 +30,13 @@ export type CreateHttpClient = (deps: {
   fetchImpl?: typeof fetch;
 }) => P.HttpClient;
 
-/** `src/net/github.ts` (WP1). */
+/** `src/net/github.ts` (WP1). The clock dates the cached repository metadata and the quota. */
 export type CreateGithubClient = (deps: {
   config: Config;
   http: P.HttpClient;
   cache: P.Cache;
   logger: P.Logger;
+  clock: P.Clock;
 }) => P.GithubClient;
 
 /** `src/registry/index.ts` (WP2). Pure and synchronous. */

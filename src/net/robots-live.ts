@@ -2,20 +2,19 @@
  * Live `robots.txt` (design decision 24): read lazily, at most once per host per 24 hours,
  * and only ever able to add denials on top of the static rules compiled into the host table.
  *
- * The parser and matcher follow RFC 9309: the most specific user-agent group applies, the
- * longest matching pattern wins, `Allow` wins a tie, `*` and a trailing `$` are the only
- * special characters.
+ * Parsing and matching are those of the static rules (`src/policy/robots-matcher.ts`), so a
+ * live file and the compiled host table are read by one RFC 9309 implementation.
  */
 import { singleFlight } from '../core/async.js';
 import type { Cache, Clock, Logger } from '../core/ports.js';
+import {
+  denyingPattern,
+  parseRobotsTxt,
+  robotsTarget,
+  type RobotsRules,
+} from '../policy/robots-matcher.js';
 import { TransportError, send } from './fetch-transport.js';
 import type { RateLimiter } from './rate-limiter.js';
-
-/** The rules of the group that applies to this client. */
-export interface RobotsRules {
-  allow: string[];
-  disallow: string[];
-}
 
 /** What is remembered per host, in memory and in the `robots` namespace of the cache. */
 export interface RobotsRecord extends RobotsRules {
@@ -80,73 +79,6 @@ export function createRobotsFetcher(deps: {
   };
 }
 
-/**
- * Extracts the rules that apply to `agentToken` (the product token of the User-Agent).
- * Groups that name the token replace the `*` groups; lines that are not robots directives
- * are ignored, so a host that answers `/robots.txt` with something else yields no rules.
- */
-export function parseRobots(text: string, agentToken: string): RobotsRules {
-  const token = agentToken.toLowerCase();
-  const specific: RobotsRules = { allow: [], disallow: [] };
-  const wildcard: RobotsRules = { allow: [], disallow: [] };
-  let targets: RobotsRules[] = [];
-  let readingAgents = false;
-
-  for (const rawLine of text.split(/\r\n|\r|\n/)) {
-    const line = rawLine.replace(/#.*$/, '').trim();
-    const colon = line.indexOf(':');
-    if (colon <= 0) continue;
-    const field = line.slice(0, colon).trim().toLowerCase();
-    const value = line.slice(colon + 1).trim();
-
-    if (field === 'user-agent') {
-      // Consecutive user-agent lines share the rules that follow them.
-      if (!readingAgents) targets = [];
-      readingAgents = true;
-      const agent = value.toLowerCase();
-      if (agent === '*') targets.push(wildcard);
-      else if (agent !== '' && token.startsWith(agent)) targets.push(specific);
-      continue;
-    }
-    if (field !== 'allow' && field !== 'disallow') continue;
-    readingAgents = false;
-    // An empty Disallow means "nothing is disallowed".
-    if (value === '') continue;
-    for (const target of targets) target[field].push(value);
-  }
-
-  const named = specific.allow.length + specific.disallow.length > 0;
-  return named ? specific : wildcard;
-}
-
-function patternToRegExp(pattern: string): RegExp {
-  const anchored = pattern.endsWith('$');
-  const body = (anchored ? pattern.slice(0, -1) : pattern)
-    .split('*')
-    .map((literal) => literal.replace(/[.+?^${}()|[\]\\/]/g, '\\$&'))
-    .join('.*');
-  return new RegExp(`^${body}${anchored ? '$' : ''}`);
-}
-
-function longestMatch(patterns: readonly string[], target: string): string | undefined {
-  let best: string | undefined;
-  for (const pattern of patterns) {
-    if (best !== undefined && pattern.length <= best.length) continue;
-    if (patternToRegExp(pattern).test(target)) best = pattern;
-  }
-  return best;
-}
-
-/**
- * The `Disallow` pattern that forbids `pathAndQuery`, or `undefined` when it may be fetched.
- */
-export function robotsDenial(rules: RobotsRules, pathAndQuery: string): string | undefined {
-  const denied = longestMatch(rules.disallow, pathAndQuery);
-  if (denied === undefined) return undefined;
-  const allowed = longestMatch(rules.allow, pathAndQuery);
-  return allowed !== undefined && allowed.length >= denied.length ? undefined : denied;
-}
-
 /** Collaborators of {@link LiveRobots}. */
 export interface LiveRobotsDeps {
   cache: Cache;
@@ -172,7 +104,7 @@ export class LiveRobots {
    */
   async denial(host: string, url: URL): Promise<string | undefined> {
     const record = await this.rulesFor(host);
-    return robotsDenial(record, `${url.pathname}${url.search}`);
+    return denyingPattern(record, robotsTarget(url));
   }
 
   private async rulesFor(host: string): Promise<RobotsRecord> {
@@ -205,7 +137,7 @@ export class LiveRobots {
     } else {
       const rules =
         fetched.kind === 'rules'
-          ? parseRobots(fetched.text, this.deps.agentToken)
+          ? parseRobotsTxt(fetched.text, this.deps.agentToken)
           : { allow: [], disallow: [] };
       record = { ...rules, fetchedAt: now, expiresAt: now + ROBOTS_TTL_MS };
     }

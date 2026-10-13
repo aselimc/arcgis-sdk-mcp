@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GithubClient } from '../../src/core/ports.js';
 import { createGithubClient } from '../../src/net/github.js';
-import { FAKE_NOW, MINUTE } from '../support/fake-clock.js';
+import { FAKE_NOW, FakeClock, MINUTE } from '../support/fake-clock.js';
 import { FakeHttp } from '../support/fake-http.js';
 import { FakeLogger } from '../support/fake-logger.js';
 import { makeConfig } from '../support/builders.js';
@@ -123,6 +123,7 @@ describe('github: quota', () => {
       http,
       cache: new MemoryCache(),
       logger: new FakeLogger(),
+      clock: new FakeClock(),
     });
     const error = await mcpError(github.repoMeta(REPO));
     expect(error.code).toBe('RATE_LIMITED_GITHUB');

@@ -3,31 +3,13 @@
  * none, how long an entry of each class stays fresh and how long it may answer for a failing
  * host (design section 6.2), and the cache key of a request.
  *
- * The durations mirror `src/cache/ttl.ts`. They are repeated here because the gateway computes
- * `freshUntil` / `staleUntil` itself (the `Cache` port stores what it is given) and reaches
- * the cache only through that port.
+ * The durations themselves live in `src/cache/ttl.ts`; the gateway computes `freshUntil` /
+ * `staleUntil` from them because the `Cache` port stores what it is given.
  */
+import { STALE_IF_ERROR_MS, TTL_MS } from '../cache/ttl.js';
 import { sha256Hex } from '../core/hash.js';
 import type { CachedHttpEntry, HttpRequest } from '../core/ports.js';
 import type { HostPolicy, TtlClass } from '../core/types.js';
-
-const HOUR = 3_600_000;
-const DAY = 24 * HOUR;
-
-/** How long an entry of each class is served without asking the origin. */
-export const TTL_MS: Readonly<Record<TtlClass, number>> = {
-  immutable: 365 * DAY,
-  page: DAY,
-  index: DAY,
-  volatile: 6 * HOUR,
-  'github-meta': 7 * DAY,
-  spec: 7 * DAY,
-  'remote-search': DAY,
-  negative: HOUR,
-};
-
-/** An expired copy may answer for a failing host while it is younger than this. */
-export const STALE_IF_ERROR_MS = 30 * DAY;
 
 /** Classes that are never served stale: a remembered miss and third-party search results. */
 const NEVER_STALE: ReadonlySet<TtlClass> = new Set<TtlClass>(['negative', 'remote-search']);

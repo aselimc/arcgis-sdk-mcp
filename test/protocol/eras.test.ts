@@ -107,7 +107,8 @@ describe.each(ERAS)('protocol era $era', ({ era, connect, version }) => {
       return read(req, options);
     };
     await connection.client.callTool({ name: TOOLS.read, arguments: { ref: REFS.page } });
-    expect(seen).toEqual([{ ref: REFS.page, view: 'auto', maxTokens: 6000 }]);
+    // The default max_tokens of 6000, less the room the tool keeps for the envelope.
+    expect(seen).toEqual([{ ref: REFS.page, view: 'auto', maxTokens: 5800 }]);
     harness.services.docs.read = read;
   });
 

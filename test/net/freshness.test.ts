@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { CachedHttpEntry, HttpRequest } from '../../src/core/ports.js';
 import type { HostPolicy, TtlClass } from '../../src/core/types.js';
+import { STALE_IF_ERROR_MS, TTL_MS } from '../../src/cache/ttl.js';
 import {
-  STALE_IF_ERROR_MS,
-  TTL_MS,
   cacheKey,
   conditionalHeaders,
   defaultTtl,

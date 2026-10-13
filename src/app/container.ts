@@ -117,7 +117,7 @@ export function buildContainer(
     }),
   );
   const github = lazy(() =>
-    factories.createGithubClient({ config, http: http(), cache: cache(), logger }),
+    factories.createGithubClient({ config, http: http(), cache: cache(), logger, clock }),
   );
 
   const workspace = lazy(async (): Promise<WorkspaceSdk[]> => {

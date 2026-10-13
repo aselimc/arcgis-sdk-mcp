@@ -3,17 +3,21 @@ import {
   LiveRobots,
   ROBOTS_RETRY_MS,
   ROBOTS_TTL_MS,
-  parseRobots,
-  robotsDenial,
   type RobotsFetch,
 } from '../../src/net/robots-live.js';
+// The live reader parses and matches with the static policy's implementation; these cases
+// pin the behaviour the gateway relies on.
+import {
+  denyingPattern as robotsDenial,
+  parseRobotsTxt as parseRobots,
+} from '../../src/policy/robots-matcher.js';
 import { FakeClock, HOUR } from '../support/fake-clock.js';
 import { FakeLogger } from '../support/fake-logger.js';
 import { MemoryCache } from '../support/memory-cache.js';
 
 const AGENT = 'arcgis-sdk-mcp';
 
-describe('parseRobots', () => {
+describe('robots.txt parsing as used for live files', () => {
   it('reads the wildcard group, ignoring comments, blank lines and other directives', () => {
     const rules = parseRobots(
       [
@@ -71,7 +75,7 @@ describe('parseRobots', () => {
   });
 });
 
-describe('robotsDenial', () => {
+describe('robots matching as used for live files', () => {
   const rules = {
     allow: ['/products/open/', '/exact$'],
     disallow: ['*?q=', '/downloads', '/products/', '/*.pdf$', '/exact', '/a+b(1)/'],
