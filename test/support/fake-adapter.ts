@@ -37,6 +37,8 @@ export interface FakeAdapterOptions {
   probe?: ProbeResult;
   /** Leave `enumerate` undefined, as on read-only adapters. */
   noEnumerate?: boolean;
+  /** The adapter's `owns` hook; left undefined when omitted, as on most adapters. */
+  owns?: (url: URL) => boolean;
 }
 
 function withoutFragment(url: string): string {
@@ -52,6 +54,7 @@ export class FakeAdapter<A extends AdapterType = AdapterType> implements SourceA
   readonly calls: AdapterCall[] = [];
   readonly maxEnumerateRequests: number;
   enumerate?: (ctx: Ctx, src: BoundSource<A>) => Promise<CatalogRecord[]>;
+  owns?: (url: URL, src: BoundSource<A>) => boolean;
 
   private readonly failures = new Map<AdapterMethod, { error: unknown; remaining: number }>();
   private readonly gates = new Map<AdapterMethod, Promise<void>>();
@@ -67,6 +70,8 @@ export class FakeAdapter<A extends AdapterType = AdapterType> implements SourceA
     this.records = options.records ?? [];
     this.probeResult = options.probe ?? { ok: true, ms: 1 };
     for (const [url, page] of Object.entries(options.pages ?? {})) this.addPage(url, page);
+    const { owns } = options;
+    if (owns !== undefined) this.owns = (url) => owns(url);
     if (options.noEnumerate !== true) {
       this.enumerate = async (_ctx, src) => {
         await this.enter('enumerate', src);

@@ -1,9 +1,9 @@
 /**
  * Helpers shared by every adapter and by the registry: binding a source to a version line,
- * the base-URL rules that decide which source owns a URL, URL filters, and slug titles.
+ * deciding which source owns a URL, URL filters, and slug titles.
  */
-import { BRIEF_PREFIX, DEVELOPERS_ORIGIN } from './names.js';
 import type { BoundSource, RequestBudget, SourceAdapter } from './ports.js';
+import { docUrlPattern, sourceBaseUrls, sourceRootUrl } from './source-urls.js';
 import type {
   AdapterType,
   AnySourceDef,
@@ -16,159 +16,6 @@ import type {
 import { parseGithubUrl } from './url.js';
 
 /**
- * Substitutes `{name}` placeholders from a version line: its `vars`, plus `{line}` for the
- * line id when `vars` does not define it. Unknown placeholders are left in place (adapter
- * placeholders such as `{pkg}`, `{tag}` and `{path}` are filled later).
- */
-export function expandTemplate(template: string, line: VersionLine): string {
-  return template.replace(/\{([A-Za-z][A-Za-z0-9]*)\}/g, (whole, name: string) => {
-    const value = line.vars[name] ?? (name === 'line' ? line.id : undefined);
-    return value ?? whole;
-  });
-}
-
-/** Makes a registry URL absolute: paths belong to developers.arcgis.com. */
-function absolute(urlOrPath: string): string {
-  if (/^https?:\/\//i.test(urlOrPath)) return urlOrPath;
-  return `${DEVELOPERS_ORIGIN}/${urlOrPath.replace(/^\/+/, '')}`;
-}
-
-function withSlash(url: string): string {
-  return url.endsWith('/') ? url : `${url}/`;
-}
-
-/** The directory part of a file URL: `https://h/a/sitemap.xml` gives `https://h/a/`. */
-function directoryOf(url: string): string {
-  return url.replace(/[^/]*$/, '');
-}
-
-/** The part of a doc-URL template before its first adapter placeholder. */
-function templatePrefix(template: string): string {
-  return directoryOf(template.split('{')[0] ?? template);
-}
-
-/**
- * The root URL of a source for one version line: what `BoundSource.url()` joins paths onto.
- *
- * | Adapter | Root |
- * |---|---|
- * | `astro`, `gatsby`, `docc`, `dokka`, `dartdoc`, `docfx-net`, `javadoc`, `sphinx` | `config.base` |
- * | `docfx-esri` | `https://doc.esri.com/en/<slug>/latest/` (`toc` and `scope` are relative to it) |
- * | `legacy-help` | `https://<host><base>` |
- * | `sitemap` | directory of the first sitemap URL |
- * | `static`, `openapi` | the first entry or spec URL |
- * | `npm-dts`, `npm-cem`, `npm-json` | `docUrl` up to its first placeholder; without `docUrl` the package page on jsDelivr |
- * | `github-repo`, `xmldoc` | `https://github.com/<repo>/` |
- * | `pkgdown` | `https://<host>/` |
- * | `brief` | `brief:` |
- *
- * Line variables are substituted (`{prefix}`, `{base}`, `{line}`); relative values are on
- * developers.arcgis.com. A source with nothing to derive a root from gets `fallback`.
- */
-export function sourceRootUrl(source: SourceDef, line: VersionLine, fallback = ''): string {
-  const def = source as AnySourceDef;
-  const expand = (value: string): string => absolute(expandTemplate(value, line));
-  switch (def.adapter) {
-    case 'astro':
-    case 'gatsby':
-    case 'docc':
-    case 'dokka':
-    case 'dartdoc':
-    case 'docfx-net':
-    case 'javadoc':
-    case 'sphinx':
-      return withSlash(expand(def.config.base));
-    case 'docfx-esri':
-      return `https://doc.esri.com/en/${def.config.slug}/latest/`;
-    case 'legacy-help':
-      return withSlash(
-        `https://${def.config.host}/${expandTemplate(def.config.base, line).replace(/^\/+/, '')}`,
-      );
-    case 'sitemap': {
-      const first = def.config.url ?? def.config.urls?.[0];
-      return first === undefined ? fallback : directoryOf(expand(first));
-    }
-    case 'static': {
-      const first = def.config.entries[0]?.url;
-      return first === undefined ? fallback : expand(first);
-    }
-    case 'openapi': {
-      const first = def.config.specs[0];
-      if (first === undefined) return fallback;
-      return expand(typeof first === 'string' ? first : first.url);
-    }
-    case 'npm-dts':
-    case 'npm-cem':
-      return templatePrefix(expand(def.config.docUrl));
-    case 'npm-json':
-      return def.config.docUrl === undefined
-        ? `https://cdn.jsdelivr.net/npm/${def.config.package}/`
-        : templatePrefix(expand(def.config.docUrl));
-    case 'github-repo':
-    case 'xmldoc':
-      return `https://github.com/${def.config.repo}/`;
-    case 'pkgdown':
-      return `https://${def.config.host}/`;
-    case 'brief':
-      return BRIEF_PREFIX;
-  }
-}
-
-/**
- * The URL prefixes a source owns for one version line, most specific available. The
- * registry's `ownerOf` picks the source with the longest matching prefix, so this function
- * is the single definition of "which source does this URL belong to".
- *
- * Differences from {@link sourceRootUrl}: `docfx-esri` narrows to `scope` or to each of
- * `sections`; `legacy-help` narrows to each book; `sitemap`, `static`, `openapi` and
- * `pkgdown` return one prefix per sitemap directory, entry, spec or package; `brief` and
- * `npm-dts` own no URLs. Filters (`include` / `exclude`) are applied by {@link ownedPrefix}.
- *
- * `npm-dts` owns nothing because its `docUrl` is the HTML reference its records point to:
- * that page is read through the site source (design decision 7), and the typings are
- * reached by record (a lookup with a version) or as a declared fallback.
- */
-export function sourceBaseUrls(source: SourceDef, line: VersionLine): string[] {
-  const def = source as AnySourceDef;
-  const root = sourceRootUrl(def, line);
-  const expand = (value: string): string => absolute(expandTemplate(value, line));
-  const under = (paths: readonly string[]): string[] =>
-    paths.map((path) => withSlash(`${root}${path.replace(/^\/+/, '')}`));
-  switch (def.adapter) {
-    case 'docfx-esri':
-      if (def.config.scope !== undefined) return under([def.config.scope]);
-      return def.config.sections?.length ? under(def.config.sections) : [root];
-    case 'legacy-help':
-      return def.config.books.length > 0
-        ? under(def.config.books.map((book) => book.path))
-        : [root];
-    case 'sitemap':
-      return unique(
-        [def.config.url, ...(def.config.urls ?? [])]
-          .filter((url) => url !== undefined)
-          .map((url) => directoryOf(expand(url))),
-      );
-    case 'static':
-      return unique(def.config.entries.map((entry) => expand(entry.url)));
-    case 'openapi':
-      return unique(
-        def.config.specs.map((spec) => expand(typeof spec === 'string' ? spec : spec.url)),
-      );
-    case 'pkgdown':
-      return under(def.config.packages);
-    case 'brief':
-    case 'npm-dts':
-      return [];
-    default:
-      return root === '' ? [] : [root];
-  }
-}
-
-function unique(values: string[]): string[] {
-  return [...new Set(values)];
-}
-
-/**
  * The prefix by which a source owns a URL on one version line, or `undefined` when it does
  * not own it. The registry's `ownerOf` picks the longest result over all sources and lines.
  *
@@ -176,7 +23,8 @@ function unique(values: string[]): string[] {
  *   github.com or raw.githubusercontent.com (owner and name compared without case);
  * - every other adapter: the longest of {@link sourceBaseUrls} the URL starts with, provided
  *   the rest of the path passes the source's `include` / `exclude` filter (`astro`, `gatsby`
- *   and `sitemap` configs carry one).
+ *   and `sitemap` configs carry one) and, for a source addressed through a `docUrl` template
+ *   (`npm-cem`, `npm-json`), the URL has the shape of that template ({@link docUrlPattern}).
  *
  * The fragment is ignored.
  */
@@ -195,6 +43,7 @@ export function ownedPrefix(
     def.adapter === 'astro' || def.adapter === 'gatsby' || def.adapter === 'sitemap'
       ? def.config
       : undefined;
+  if (docUrlPattern(def, line)?.test(target) === false) return undefined;
   let best: string | undefined;
   for (const base of sourceBaseUrls(def, line)) {
     if (!target.startsWith(base) || base.length <= (best?.length ?? 0)) continue;

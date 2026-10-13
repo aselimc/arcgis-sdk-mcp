@@ -69,6 +69,21 @@ describe('FakeAdapter', () => {
     ).toBeUndefined();
   });
 
+  it('claims URLs through owns only when the test provides the hook', () => {
+    expect(new FakeAdapter('gatsby').owns).toBeUndefined();
+    const twin = new FakeAdapter('npm-cem', {
+      owns: (url) => url.pathname.includes('/components/'),
+    });
+    const components = makeSource('npm-cem', {
+      packages: ['@example/widgets'],
+      file: 'dist/docs/api.json',
+      docUrl: '/x/components/{tag}/',
+    });
+    const bound = bindSource(makeProduct(), components, makeLine());
+    expect(twin.owns?.(new URL('https://developers.arcgis.com/x/components/y/'), bound)).toBe(true);
+    expect(twin.owns?.(new URL('https://developers.arcgis.com/x/guide/'), bound)).toBe(false);
+  });
+
   it('reads pages ignoring the fragment, and resolves symbols through read', async () => {
     const fake = adapter();
     const ctx = makeCtx();
