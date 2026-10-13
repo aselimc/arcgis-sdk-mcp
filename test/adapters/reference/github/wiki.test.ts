@@ -258,7 +258,36 @@ describe('wiki preset', () => {
     await expect(
       githubRepoAdapter.read(ctx, src, { url: new URL(`${WIKI}/Nowhere`) }),
     ).rejects.toMatchObject({ code: 'DOC_NOT_FOUND' });
-    expect(ctx.github.count('wikiRaw')).toBe(4);
+    // The page by name, the sidebar (to learn its group), then three directories.
+    expect(ctx.github.count('wikiRaw')).toBe(5);
+  });
+
+  // Regression: a page opened by its URL comes without its catalogue record, so its sidebar
+  // group was unknown and the first three directories of the registry were tried in vain.
+  it('asks the sidebar for the group of a page that is read without its record', async () => {
+    const { ctx, src } = setup({
+      include: ['Reference', 'Features/Framework', 'Features/Geodatabase', 'Features/Editing'],
+    });
+    const page = await githubRepoAdapter.read(ctx, src, {
+      url: new URL(`${WIKI}/ProConcepts-Editing`),
+    });
+    expect(page.ref).toBe(`${WIKI}/ProConcepts-Editing`);
+    expect(
+      ctx.github.calls.filter((call) => call.method === 'wikiRaw').map((call) => call.path),
+    ).toEqual(['ProConcepts-Editing', '_Sidebar', 'Features/Editing/ProConcepts-Editing']);
+  });
+
+  // Regression: a page without a level-1 heading was titled after its first sub-heading.
+  it('titles a page without a title of its own as its record or its name says', async () => {
+    const body = ['Intro text.', '', '## In this topic', '', '* [A](#a)', '', '## A', '', 'Text.'];
+    const { ctx, src } = setup({}, { ...pages, 'Plain-Page': body.join('\n') });
+    const byName = await githubRepoAdapter.read(ctx, src, { url: new URL(`${WIKI}/Plain-Page`) });
+    expect(byName.title).toBe('Plain Page');
+    const byRecord = await githubRepoAdapter.read(ctx, src, {
+      url: new URL(`${WIKI}/Plain-Page`),
+      record: makeRecord({ kind: 'guide', title: 'ProGuide: Plain page' }),
+    });
+    expect(byRecord.title).toBe('ProGuide: Plain page');
   });
 
   it('stops looking when GitHub fails for another reason', async () => {

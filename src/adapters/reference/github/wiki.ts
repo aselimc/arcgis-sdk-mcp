@@ -237,9 +237,8 @@ async function sidebarTrail(
   try {
     const sidebar = await ctx.github.wikiRaw(scope.repo, SIDEBAR, callOptions(src));
     const wanted = page.toLowerCase();
-    return parseSidebar(sidebar.text, scope.repo).find(
-      (link) => link.page.toLowerCase() === wanted,
-    )?.trail;
+    return parseSidebar(sidebar.text, scope.repo).find((link) => link.page.toLowerCase() === wanted)
+      ?.trail;
   } catch (error) {
     if (isMcpDocError(error) && error.code === 'DOC_NOT_FOUND') return undefined;
     throw error;

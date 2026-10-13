@@ -276,12 +276,15 @@ describe('astro: API symbol records', () => {
   const UNITS = `${BASE}references/core/support/units/`;
   const CPP = `${BASE}references/core/cpp/`;
 
-  it('qualifies a type with its breadcrumb and leaves it without a parent', async () => {
+  // The site stores only the package as the breadcrumb of a default-export class; the module
+  // path comes from its page (regression: `@arcgis/core/FeatureLayer` instead of
+  // `@arcgis/core/layers/FeatureLayer`, which is not an import path).
+  it('qualifies a class with the module path of its page and leaves it without a parent', async () => {
     expect((await symbols()).get(`${CANVAS}#Canvas`)).toMatchObject({
       kind: 'api',
       title: 'Canvas',
       symbol: 'Canvas',
-      qualified: '@example/widgets-core/Canvas',
+      qualified: '@example/widgets-core/drawing/Canvas',
       symbolKind: 'class',
       breadcrumb: '@example/widgets-core',
       boost: 0.5,
@@ -294,13 +297,14 @@ describe('astro: API symbol records', () => {
     expect(records.get(`${CANVAS}#draw`)).toMatchObject({
       title: 'draw()',
       symbol: 'draw',
-      qualified: '@example/widgets-core/Canvas.draw',
-      parent: '@example/widgets-core/Canvas',
+      qualified: '@example/widgets-core/drawing/Canvas.draw',
+      parent: '@example/widgets-core/drawing/Canvas',
+      breadcrumb: '@example/widgets-core/drawing/Canvas',
       symbolKind: 'method',
     });
     expect(records.get(`${CANVAS}#event-redraw`)).toMatchObject({
       symbol: 'redraw',
-      parent: '@example/widgets-core/Canvas',
+      parent: '@example/widgets-core/drawing/Canvas',
       symbolKind: 'event',
     });
     // A property of a type declared inside a module page belongs to that type.
@@ -310,7 +314,7 @@ describe('astro: API symbol records', () => {
     });
     expect(records.get(`${CANVAS}#%5BSymbol.iterator%5D`)).toMatchObject({
       symbol: '[Symbol.iterator]',
-      parent: '@example/widgets-core/Canvas',
+      parent: '@example/widgets-core/drawing/Canvas',
     });
   });
 

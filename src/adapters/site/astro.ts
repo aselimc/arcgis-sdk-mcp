@@ -13,6 +13,7 @@ import { McpDocError, toMcpDocError } from '../../core/errors.js';
 import { BREADCRUMB_SEPARATOR } from '../../core/names.js';
 import type { BoundSource, Ctx, ReadTarget, SourceAdapter } from '../../core/ports.js';
 import type { AdapterConfigMap, CatalogRecord, DocKind, DocPage } from '../../core/types.js';
+import { apiNames, type ApiEntry } from './astro-api.js';
 import { isSamplePath, readSample, readSampleCards } from './astro-samples.js';
 import { readSitemap, sitemapRecords } from './sitemap.js';
 import {
@@ -162,45 +163,47 @@ function symbolName(title: string): string {
   return title.replace(/\(\)$/, '').trim();
 }
 
-/** The site's own qualified form: the breadcrumb of a member is `<breadcrumb of its type>/<type>`. */
-function qualify(breadcrumb: string | undefined, name: string): string {
-  return breadcrumb === undefined ? name : `${breadcrumb}/${name}`;
+/** A stored document as the naming rules of `astro-api.ts` see it. */
+function apiEntry(doc: StoredDoc): ApiEntry {
+  const [path = '', ...fragment] = doc.url.replace(/^\/+/, '').split('#');
+  return {
+    name: symbolName(doc.title),
+    ...(doc.breadcrumb === undefined ? {} : { breadcrumb: doc.breadcrumb }),
+    ...(doc.pageType === undefined ? {} : { pageType: doc.pageType.toLowerCase() }),
+    path,
+    anchored: fragment.length > 0,
+  };
 }
 
 /**
- * Symbol records of an API index. A document is a member when it has an anchor and its
- * breadcrumb names another (non-module) document of the index; `parent` is then that
- * breadcrumb and `qualified` is `<parent>.<name>`. Everything else is a top-level symbol
- * qualified as `<breadcrumb>/<name>`, or a plain page when its title is not a name.
+ * Symbol records of an API index, named by {@link apiNames}: a member has `parent` and is
+ * qualified as `<parent>.<name>`, everything else is a top-level symbol. A document whose
+ * title is not a name stays a plain page.
  */
 function apiRecords(src: AstroSource, docs: StoredDoc[]): CatalogRecord[] {
-  const owners = new Set<string>();
-  for (const doc of docs) {
-    if (doc.pageType?.toLowerCase() !== 'module')
-      owners.add(qualify(doc.breadcrumb, symbolName(doc.title)));
-  }
+  const entries = docs.map(apiEntry);
+  const names = apiNames(entries);
   const records: CatalogRecord[] = [];
-  for (const doc of docs) {
+  docs.forEach((doc, index) => {
     const at = locate(src, doc.url);
-    if (at === undefined) continue;
-    const name = symbolName(doc.title);
+    const entry = entries[index];
+    const named = names[index];
+    if (at === undefined || entry === undefined || named === undefined) return;
+    // A member is found under its type, which is also where a reader looks for it.
+    const breadcrumb = named.parent ?? doc.breadcrumb;
     const record: CatalogRecord = {
       ...recordOf(src, at.ref, 'api', doc.title),
-      ...(doc.breadcrumb === undefined ? {} : { breadcrumb: doc.breadcrumb }),
+      ...(breadcrumb === undefined ? {} : { breadcrumb }),
       ...(doc.boost === undefined ? {} : { boost: doc.boost }),
     };
-    if (doc.pageType !== undefined && !/\s/.test(name)) {
-      const owner =
-        at.ref.includes('#') && doc.breadcrumb !== undefined && owners.has(doc.breadcrumb)
-          ? doc.breadcrumb
-          : undefined;
-      record.symbol = name;
-      record.symbolKind = doc.pageType.toLowerCase();
-      record.qualified = owner === undefined ? qualify(doc.breadcrumb, name) : `${owner}.${name}`;
-      if (owner !== undefined) record.parent = owner;
+    if (entry.pageType !== undefined && !/\s/.test(entry.name)) {
+      record.symbol = entry.name;
+      record.symbolKind = entry.pageType;
+      record.qualified = named.qualified;
+      if (named.parent !== undefined) record.parent = named.parent;
     }
     records.push(record);
-  }
+  });
   return records;
 }
 
