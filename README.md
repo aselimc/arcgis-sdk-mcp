@@ -123,7 +123,7 @@ Everything is set through environment variables; none is required.
 | `ARCGIS_DOCS_CACHE_DIR`    | per-user cache directory | Where responses and indexes are cached                                                  |
 | `ARCGIS_DOCS_CACHE_MAX_MB` | `500`                    | Size cap of the cache                                                                   |
 | `ARCGIS_DOCS_PROJECT_DIR`  | working directory        | Project in which SDK versions are detected                                              |
-| `ARCGIS_DOCS_MAX_TOKENS`   | `6000`                   | Default size of a tool result                                                           |
+| `ARCGIS_DOCS_MAX_TOKENS`   | `6000`                   | Default size of a `read` result when the call does not pass `max_tokens`                |
 | `ARCGIS_DOCS_LOG_LEVEL`    | `warn`                   | `debug`, `info`, `warn`, `error` or `silent`; logs go to stderr                         |
 | `GITHUB_TOKEN`             | none                     | Raises the GitHub API quota from 60 to 5,000 requests per hour                          |
 

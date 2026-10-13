@@ -1,37 +1,70 @@
 /**
  * Members a type inherits. A reference indexes a member once, under the type that declares
  * it, so `ArcGISMap.loadStatus` or `Map.LoadAsync` has no record of its own. The page of
- * the type says where such a member lives: Dokka lists it among the type's members with a
- * link to the declaring type, DocFX and Javadoc have an "inherited members" list of links.
- * A same-named member of another type that the type's page links to is therefore the
+ * the type says where such a member lives, in one of two ways:
+ *
+ * - a link to the declaration: Dokka and dartdoc list an inherited member among the type's
+ *   members with a link to the declaring type, DocFX has an "Inherited members" list of links;
+ * - a statement: javadoc writes "Methods inherited from class `<type>`" followed by the names.
+ *
+ * A same-named member of another type that the page points at in either way is the
  * declaration that was asked for.
  */
 import { joinSections } from '../../core/budget.js';
 import type { CatalogRecord, DocPage } from '../../core/types.js';
+import { simpleName } from '../index/symbol-map.js';
 
 /** Same-named members considered; a name on more types than this is not worth a page read. */
 export const MAX_INHERITED_CANDIDATES = 200;
+
+/** A paragraph that lists what a type takes over from another. */
+const INHERITED = /\binherited from\b/i;
 
 /** A ref as it appears as a Markdown link target. */
 function linkTarget(ref: string): string {
   return `](${ref})`;
 }
 
+/** True when `text` holds `name` as a whole identifier, not as part of a longer one. */
+function names(text: string, name: string): boolean {
+  if (name === '') return false;
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?<![\\w$.])${escaped}(?![\\w$])`).test(text);
+}
+
+/** The one declaration among `found`, or `undefined` when there is none or more than one. */
+function only(found: readonly CatalogRecord[]): CatalogRecord | undefined {
+  // The same declaration can be indexed by two sources of a product; one page is one answer.
+  const refs = new Set(found.map((candidate) => candidate.ref));
+  return refs.size === 1 ? found[0] : undefined;
+}
+
 /**
  * The record among `candidates` (members with the wanted name, declared on other types)
- * that the page of the type links to. `undefined` when the page links to none of them, or
- * to several: two links mean the name is not one inherited declaration.
+ * that the page of the type names as inherited. `undefined` when the page points at none of
+ * them, or at several: two declarations mean the name is not one inherited member.
  */
 export function declaredElsewhere(
   typePage: DocPage,
   candidates: readonly CatalogRecord[],
 ): CatalogRecord | undefined {
   if (candidates.length === 0 || typePage.degraded?.level === 'link-only') return undefined;
-  const text = [typePage.header ?? '', joinSections(typePage.sections)].join('\n');
+  const text = [typePage.header ?? '', joinSections(typePage.sections)].join('\n\n');
   const linked = candidates.filter((candidate) => text.includes(linkTarget(candidate.ref)));
-  // The same declaration can be indexed by two sources of a product; one page is one answer.
-  const refs = new Set(linked.map((candidate) => candidate.ref));
-  return refs.size === 1 ? linked[0] : undefined;
+  if (linked.length > 0) return only(linked);
+
+  const statements = text.split(/\n{2,}/).filter((paragraph) => INHERITED.test(paragraph));
+  const stated = candidates.filter((candidate) => {
+    const owner = candidate.parent ?? '';
+    // A page may write the declaring type in full or by its simple name.
+    const short = owner.split(/::|[.#/]/).at(-1) ?? owner;
+    return statements.some(
+      (paragraph) =>
+        (names(paragraph, owner) || names(paragraph, short)) &&
+        names(paragraph, simpleName(candidate)),
+    );
+  });
+  return only(stated);
 }
 
 /** The notice that tells the caller the answer documents the declaring type's member. */

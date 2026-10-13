@@ -304,6 +304,16 @@ describe('request methods', () => {
     expect(error.details?.why).toContain('POST requests only');
   });
 
+  // The method of a host used to be inferred from its capability; it is a field of the row.
+  it('takes the method of a host from its policy row, whatever its capability', () => {
+    const posted = makeHost({ host: 'forms.example.com', capability: 'website', method: 'POST' });
+    const policy = createPolicy({ config: makeConfig(), hosts: [posted] });
+    expect(() => policy.check(new URL('https://forms.example.com/find'), 'POST')).not.toThrow();
+    const error = refusal(policy, 'https://forms.example.com/find');
+    expect(error.code).toBe('HOST_NOT_ALLOWED');
+    expect(error.details?.why).toBe('forms.example.com accepts POST requests only');
+  });
+
   it('refuses other paths of the search backend', () => {
     expect(refusal(everything, 'https://esearchapi.esri.com/suggest', 'POST').code).toBe(
       'HOST_NOT_ALLOWED',

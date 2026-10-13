@@ -99,18 +99,7 @@ export const HOSTS: readonly HostPolicy[] = [
   }),
 
   host('esearchapi.esri.com', 'site-search', 'none', {
-    allowPaths: ['^/search
-    ratePerSec: 1,
-    maxConcurrent: 1,
-    minIntervalMs: 1000,
-    timeoutMs: 12_000,
-  }),
-  host('plc-api.esri.com', 'lifecycle-api', 'none', { allowPaths: ['^/api/PLC$'] }),
-
-  linkOnly('archive.developers.arcgis.com'),
-  linkOnly('desktop.arcgis.com'),
-];
-],
+    allowPaths: ['^/search$'],
     method: 'POST',
     ratePerSec: 1,
     maxConcurrent: 1,

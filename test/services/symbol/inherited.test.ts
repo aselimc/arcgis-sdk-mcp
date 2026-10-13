@@ -138,6 +138,52 @@ describe('declaredElsewhere', () => {
     ).toBe(undefined);
   });
 
+  // javadoc names inherited members in a sentence, without a link to each declaration.
+  describe('a page that states what is inherited', () => {
+    const member = (parent: string, symbol = 'getDepth'): CatalogRecord =>
+      makeRecord({
+        ref: `https://example.test/api/${parent}.html#${symbol}()`,
+        symbol,
+        qualified: `${parent}.${symbol}`,
+        parent,
+      });
+    const stated = makeDocPage({
+      markdown: [
+        '# Class Berth',
+        'A place at the quay. See also `Pier.getDepth`.',
+        '**Methods inherited from class com.example.harbour.Mooring:** `getDepth, getLength, release`',
+        '**Methods inherited from class java.lang.Object:** `equals, hashCode`',
+      ].join('\n\n'),
+    });
+
+    it('finds the member in the list of the type it names', () => {
+      const declared = member('com.example.harbour.Mooring');
+      expect(declaredElsewhere(stated, [member('com.example.harbour.Pier'), declared])).toBe(
+        declared,
+      );
+    });
+
+    it('accepts the simple name of the declaring type', () => {
+      const short = makeDocPage({
+        markdown: '# Berth\n\nMethods inherited from class Mooring: getDepth, release',
+      });
+      const declared = member('com.example.harbour.Mooring');
+      expect(declaredElsewhere(short, [declared])).toBe(declared);
+    });
+
+    it('needs the whole member name and the whole type name', () => {
+      // `getDepthAt` is another member, `MooringBuoy` another type.
+      expect(declaredElsewhere(stated, [member('com.example.harbour.Mooring', 'getDep')])).toBe(
+        undefined,
+      );
+      expect(declaredElsewhere(stated, [member('com.example.harbour.MooringBuoy')])).toBe(
+        undefined,
+      );
+      // A mention outside an "inherited from" statement is not one.
+      expect(declaredElsewhere(stated, [member('com.example.harbour.Pier')])).toBe(undefined);
+    });
+  });
+
   it('words the notice with both types', () => {
     expect(inheritedNotice('a.Map', 'load', 'a.Loadable')).toBe(
       'a.Map inherits load from a.Loadable; this is the documentation of a.Loadable.load.',

@@ -26,8 +26,12 @@ First version.
 - An HTML extraction pipeline for 16 page families and structured renderers for OpenAPI,
   TypeDoc, Custom Elements Manifest, DocC, Sphinx, C# XML documentation, TypeScript
   declarations, Arcade, Markdown, notebooks and sample bundles.
-- Version oracles (npm, PyPI, NuGet, pub.dev, GitHub releases, page banners, sitemaps) and
-  detection of Esri SDK versions in the user's project.
+- Version oracles (npm, PyPI, NuGet, pub.dev, GitHub releases, page banners, sitemaps, and
+  Esri's product life cycle service with the opt-in capability `lifecycle-api`) and detection
+  of Esri SDK versions in the user's project.
+- Symbol lookup follows a member to the type it is inherited from when the page of the type
+  links to the declaration (Kotlin, .NET, Flutter, Java), and shows every overload of a C#
+  method.
 - One HTTP gateway with an allow-list, capability presets (`strict`, `standard`), robots
   rules, rate limiting, retries, a circuit breaker, a disk cache with conditional
   revalidation and stale-if-error, and offline mode.

@@ -350,6 +350,7 @@ export const hostPolicySchema: z.ZodType<HostPolicy> = z.strictObject({
   host: hostName,
   capability: capability.nullable(),
   allowPaths: z.array(pattern).exactOptional(),
+  method: z.enum(['GET', 'POST']).exactOptional(),
   robotsDisallow: z.array(z.string().regex(/^\//, 'must start with a slash')),
   revalidate: z.enum(['etag', 'last-modified', 'both', 'none']),
   bom: z.boolean().exactOptional(),

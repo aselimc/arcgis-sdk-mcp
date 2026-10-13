@@ -29,7 +29,8 @@ lists them.
 | Tool surface      | `test/mcp`                                               | `tools/list` snapshot, description and instruction length limits, every error code renders with `Next:`                                                                   |
 | Protocol          | `test/protocol`                                          | Both protocol eras end to end in memory; `structuredContent` conforms to `outputSchema`                                                                                   |
 | End to end        | `test/e2e`                                               | The packed tarball: only JSON-RPC on stdout, a tool call that works offline, `--version` without starting the server                                                      |
-| Live recorded     | `test/live`                                              | Invariants (not goldens) on real pages recorded to a git-ignored directory                                                                                                |
+| Package seams     | `test/integration`                                       | The real registry, adapters, extractor, renderers and services with only `fetch` scripted: what one package hands another is what the other expects                       |
+| Live recorded     | `test/live`                                              | Invariants (not goldens) on real pages and structured files (OpenAPI, TypeDoc, Custom Elements Manifest, DocC) recorded to a git-ignored directory                        |
 
 ## Fixture policy
 
