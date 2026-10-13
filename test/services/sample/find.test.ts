@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { McpDocError } from '../../../src/core/errors.js';
 import type { SamplesRequest } from '../../../src/core/ports.js';
-import type { DocPage } from '../../../src/core/types.js';
+import type { CatalogRecord, DocPage } from '../../../src/core/types.js';
 import { MAX_METADATA_FETCHES } from '../../../src/services/sample/service.js';
 import { makeDocPage, makeProduct, makeRecord, makeSource } from '../../support/builders.js';
 import { makeHarness, type Harness, type HarnessOptions } from '../support/harness.js';
@@ -237,8 +237,12 @@ describe('find samples: uses_api', () => {
       usesApi: 'ImageryTileLayer',
     });
     expect(none).toMatchObject({ total: 0, hits: [] });
+    // The note says what was checked and gives the way back to the unfiltered list.
     expect(none.notes).toContainEqual(
       expect.stringContaining('No sample of js-maps-sdk was found that uses ImageryTileLayer'),
+    );
+    expect(none.notes.join('\n')).toContain(
+      'arcgis_docs_find_samples({"query":"cluster","product":"js-maps-sdk"})',
     );
 
     h.adapter('docc').failOn('sample', new McpDocError('UPSTREAM_UNAVAILABLE', 'down'));
@@ -247,10 +251,58 @@ describe('find samples: uses_api', () => {
       product: 'js-maps-sdk',
       usesApi: 'applyEdits',
     });
-    expect(unconfirmed.hits.map((hit) => hit.apiConfirmed)).toEqual([false]);
+    expect(unconfirmed.hits.length).toBeGreaterThan(0);
+    expect(unconfirmed.hits.every((hit) => hit.apiConfirmed === false)).toBe(true);
     expect(unconfirmed.notes).toContainEqual(
-      'No sample was confirmed to use applyEdits; the hits only mention it.',
+      'No sample was confirmed to use applyEdits: the hits match the query or mention the API, and their use of it is not verified.',
     );
+  });
+
+  // Regression (README workflow): "point clustering" with uses_api "FeatureLayer" dropped
+  // "Intro to clustering", whose code uses the class, because ten samples that name
+  // FeatureLayer in their title were checked first and query hits beyond them were left out.
+  it('checks the best matches for the task first and keeps unchecked ones as unverified', async () => {
+    const product = makeProduct({
+      sources: [
+        makeSource('docc', { base: '/widgets/samples/' }, { id: 'samples', kinds: ['sample'] }),
+      ],
+    });
+    const base = 'https://developers.arcgis.com/widgets/samples';
+    const naming = Array.from({ length: 12 }, (_, i) =>
+      makeRecord({
+        ref: `${base}/tide-layer-${i}/`,
+        source: 'samples',
+        kind: 'sample',
+        title: `TideLayer option ${i}`,
+      }),
+    );
+    const wanted = makeRecord({
+      ref: `${base}/intro-to-grouping/`,
+      source: 'samples',
+      kind: 'sample',
+      title: 'Intro to grouping',
+      description: 'Group gauges that are close together.',
+    });
+    const h = makeHarness({ products: [product], records: [...naming, wanted] });
+    const page = (record: CatalogRecord, code: string): DocPage => ({
+      ...makeDocPage({ url: record.ref, kind: 'sample', markdown: `# ${record.title}\n\nText.` }),
+      files: [{ name: 'main.js', language: 'js', text: code, ref: `${record.ref}main.js`, bytes: 1 }],
+    });
+    h.adapter('docc').addPage(page(wanted, 'const layer = new TideLayer({ grouping: true });'));
+    for (const record of naming) h.adapter('docc').addPage(page(record, 'new TideLayer();'));
+
+    const response = await find(h, {
+      query: 'grouping gauges',
+      product: 'widgets-sdk',
+      usesApi: 'TideLayer',
+      limit: 20,
+    });
+    expect(response.hits[0]?.record.ref).toBe(wanted.ref);
+    expect(response.hits[0]?.apiConfirmed).toBe(true);
+    // Twelve more name the API; nine were checked, three were not and say so.
+    expect(response.hits.filter((hit) => hit.apiConfirmed === true)).toHaveLength(10);
+    expect(response.hits.filter((hit) => hit.apiConfirmed === false)).toHaveLength(3);
+    expect(response.notes.join('\n')).toContain('the others were not checked');
   });
 
   it('fetches metadata for at most ten candidates and stops when the budget is spent', async () => {

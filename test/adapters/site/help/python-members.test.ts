@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  selectPythonMember,
-  withPythonMembers,
-} from '../../../../src/adapters/site/python-members.js';
+import { withPythonMembers } from '../../../../src/adapters/site/python-members.js';
 import { sectionSubtree } from '../../../../src/core/sections.js';
 import { makeDocPage } from '../../../support/builders.js';
 
@@ -164,7 +161,7 @@ describe('withPythonMembers', () => {
     expect(page.sections.find((section) => section.id === 'property-frame')?.markdown).toBe(
       [
         '### `frame`',
-        '_Frame, required_',
+        '_[Frame](https://doc.esri.com/en/widgets-pro/latest/arcpy/mapping/frame-class.html)_, required',
         'The frame the gadget is drawn in.\n\n> **Note:**\n>\n> Read-only while the project is open elsewhere.',
       ].join('\n\n'),
     );
@@ -263,8 +260,9 @@ describe('withPythonMembers', () => {
   });
 });
 
-describe('selectPythonMember', () => {
-  const page = withPythonMembers(makeDocPage({ markdown: EARLIER }));
+describe('withPythonMembers with a selector', () => {
+  const REF = 'https://doc.esri.com/en/widgets-pro/latest/arcpy/mapping/gadget-class.html';
+  const earlier = (ref = REF) => makeDocPage({ markdown: EARLIER, url: REF, ref });
 
   // The finding: `section: "exportToPDF"` and `Class.exportToPDF` named nothing on the page.
   it('cuts the page to the member a selector names by its bare name', () => {
@@ -275,7 +273,7 @@ describe('selectPythonMember', () => {
       { member: 'exportToPDF()' },
       { member: 'method-exportToPDF' },
     ]) {
-      const cut = selectPythonMember(page, select);
+      const cut = withPythonMembers(earlier(), select);
       expect(
         cut.sections.map((section) => section.id),
         JSON.stringify(select),
@@ -283,13 +281,42 @@ describe('selectPythonMember', () => {
       // The member list still describes the whole class.
       expect(cut.members).toHaveLength(4);
     }
-    expect(selectPythonMember(page, { member: 'frame' }).sections[0]?.id).toBe('property-frame');
+    expect(withPythonMembers(earlier(), { member: 'frame' }).sections[0]?.id).toBe(
+      'property-frame',
+    );
   });
 
-  it('returns the whole page for a name that is no member, and for no selector', () => {
-    expect(selectPythonMember(page, { member: 'nothing' })).toBe(page);
-    expect(selectPythonMember(page, undefined)).toBe(page);
+  // `...#exportToPDF` is not an anchor of the page; the `Source:` line must not cite it.
+  it('points the ref of a selected member at an anchor the published page has', () => {
+    const asked = `${REF}#exportToPDF`;
+    const rendered = makeDocPage({
+      markdown: CURRENT,
+      url: REF,
+      ref: asked,
+      attribution: `Source: Esri, ${asked} (retrieved today).`,
+    });
+    const method = withPythonMembers(rendered, { member: 'exportToPDF' });
+    expect(method.ref).toBe(`${REF}#method-exportToPDF`);
+    expect(method.attribution).toBe(`Source: Esri, ${REF}#method-exportToPDF (retrieved today).`);
+    expect(method.url).toBe(REF);
+
+    // A property row and a method line are no anchors: their section is the nearest one.
+    expect(withPythonMembers(earlier(asked), { member: 'exportToPDF' }).ref).toBe(`${REF}#methods`);
+    expect(withPythonMembers(earlier(`${REF}#frame`), { member: 'frame' }).ref).toBe(
+      `${REF}#properties`,
+    );
+  });
+
+  it('returns the whole page for a name that is no member', () => {
+    const whole = withPythonMembers(earlier(), { member: 'nothing' });
+    expect(whole.sections.length).toBeGreaterThan(5);
+    expect(whole.ref).toBe(REF);
+    expect(whole.members).toHaveLength(4);
   });
 
   it('keeps a slice the renderer made', () => {
-    const slice = { ...page, sections: sectionSubtree(page.sections, 
+    const page = earlier();
+    const slice = { ...page, sections: sectionSubtree(page.sections, 'properties') };
+    expect(withPythonMembers(slice, { section: 'properties' })).toBe(slice);
+  });
+});

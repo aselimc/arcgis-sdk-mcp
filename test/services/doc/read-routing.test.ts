@@ -32,11 +32,34 @@ describe('read: routing', () => {
     expect(h.ctx.http.requests).toEqual([]);
   });
 
-  it('answers an unknown brief with the nearest slugs', async () => {
+  // Regression: `brief:index` listed no slug at all, because none is near it.
+  it('answers an unknown brief with every slug, the nearest first', async () => {
     const h = harness();
-    await expect(read(h, { ref: 'brief:ai/overvew' })).rejects.toMatchObject({
+    const slugs = h.ctx.registry.briefs().map((brief) => `brief:${brief.slug}`);
+    const near: unknown = await read(h, { ref: 'brief:ai/overvew' }).catch((e: unknown) => e);
+    expect(near).toMatchObject({
       code: 'DOC_NOT_FOUND',
-      details: { candidates: ['brief:ai/overview'] },
+      details: { next: 'arcgis_docs_read({"ref":"brief:ai/overview"})' },
+    });
+    const listed = (near as { details: { candidates: string[] } }).details.candidates;
+    expect(listed[0]).toBe('brief:ai/overview');
+    expect([...listed].sort()).toEqual([...slugs].sort());
+
+    const far: unknown = await read(h, { ref: 'brief:index' }).catch((e: unknown) => e);
+    expect([...(far as { details: { candidates: string[] } }).details.candidates].sort()).toEqual(
+      [...slugs].sort(),
+    );
+  });
+
+  // Regression: the URI under which the server lists a brief as an MCP resource was
+  // refused with "Only https URLs can be read".
+  it('reads a brief by its resource URI, and points a product resource at the product list', async () => {
+    const h = harness();
+    const viaUri = await read(h, { ref: 'arcgis-docs://brief/ai/overview' });
+    expect(viaUri.page.ref).toBe('brief:ai/overview');
+    await expect(read(h, { ref: 'arcgis-docs://product/js-maps-sdk' })).rejects.toMatchObject({
+      code: 'DOC_NOT_FOUND',
+      details: { next: 'arcgis_docs_list_products({"product":"js-maps-sdk"})' },
     });
   });
 

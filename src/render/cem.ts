@@ -148,6 +148,25 @@ function eventMember(event: Json, name: string): ApiMember {
   };
 }
 
+/**
+ * Slots are members: their names are what a caller needs to place child components
+ * (`slot="top-left"`), so they belong in the member index and can be looked up by name. The
+ * default slot has no name in the manifest and is listed as `default`.
+ */
+function slotMembers(declaration: Json): ApiMember[] {
+  return records(declaration.slots).map((slot) => {
+    const name = typeof slot.name === 'string' && slot.name !== '' ? slot.name : 'default';
+    const description = str(slot.description)?.trim();
+    return {
+      id: `slot-${name}`,
+      name,
+      kind: 'slot',
+      group: 'Slots',
+      ...(description === undefined ? {} : { description }),
+    };
+  });
+}
+
 function membersOf(declaration: Json): ApiMember[] {
   const members: ApiMember[] = [];
   const methods: ApiMember[] = [];
@@ -163,7 +182,7 @@ function membersOf(declaration: Json): ApiMember[] {
     const name = str(event.name);
     return name === undefined ? [] : [eventMember(event, name)];
   });
-  return [...members, ...methods, ...events];
+  return [...members, ...methods, ...events, ...slotMembers(declaration)];
 }
 
 /** A list section for entries that are one line each and have no anchor of their own. */
@@ -205,8 +224,9 @@ function headerOf(declaration: Json, module: Json, input: RendererInputs['cem'])
  * Renders one declaration of a Custom Elements Manifest.
  *
  * `input.tag` is a tag name (`arcgis-map`) or, for the non-component modules a manifest also
- * describes, a class or function name. Properties, methods and events are members with their
- * own sections (events under `event-<name>`); slots and CSS custom properties are lists.
+ * describes, a class or function name. Properties, methods, events and slots are members
+ * with their own sections (events under `event-<name>`, slots under `slot-<name>`); CSS
+ * custom properties, parts and states are lists.
  *
  * @throws McpDocError `DOC_NOT_FOUND` when the manifest has no such declaration.
  */
@@ -241,9 +261,6 @@ export function renderCem(
     see: [...docs.see, ...demos],
     members: membersOf(declaration),
     trailing: [
-      ...listSection('Slots', declaration.slots, (name) =>
-        name === '' ? '_default slot_' : inlineCode(name),
-      ),
       ...listSection('CSS custom properties', declaration.cssProperties, inlineCode),
       ...listSection('CSS parts', declaration.cssParts, inlineCode),
       ...listSection('CSS states', declaration.cssStates, inlineCode),

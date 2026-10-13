@@ -51,7 +51,16 @@ describe('ranking when not every word has to match', () => {
 
   it('has no record that matches every word, so the search falls back to any word', () => {
     expect(index.search(terms, 'and')).toEqual([]);
-    expect(index.search(terms, 'or').length).toBe(5);
+    const found = index.search(terms, 'or').map((match) => match.record.title);
+    expect(found).toHaveLength(4);
+    // One word of three, met only as the prefix of a longer word in the name: an accident.
+    expect(found).not.toContain('GroupingSupportedLayer');
+  });
+
+  it('reports the share of the words each record matches', () => {
+    const [first, ...rest] = index.search(terms, 'or');
+    expect(first?.covered).toBeCloseTo(2 / 3);
+    expect(rest.every((match) => match.covered < 0.5)).toBe(true);
   });
 
   it('puts the record that covers the question above records that match one word in a name', () => {

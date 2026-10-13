@@ -1,22 +1,38 @@
 /**
  * Registry lint (design section 4, invariants INV-1 to INV-5).
  *
- * Usage: `tsx scripts/registry-check.ts [--json] [--live] [--product <id>]`
+ * Usage: `tsx scripts/registry-check.ts [--json] [--live] [--links] [--kinds] [--product <id>]`
  *
- * Without `--live` nothing is requested: the registry data is checked against the schemas
- * and the invariants, and the process exits 1 when an error is found (warnings do not fail).
- * With `--live` every source probe additionally runs through the server's own HTTP gateway,
- * so policy, rate limits and the cache apply exactly as they do in the server.
+ * Without a live flag nothing is requested: the registry data is checked against the
+ * schemas and the invariants, and the process exits 1 when an error is found (warnings do
+ * not fail). The live flags run through the server's own HTTP gateway, so policy, rate
+ * limits and the cache apply exactly as they do in the server:
+ *
+ * - `--live` runs the probe of every source;
+ * - `--links` requests the home page and the start-here links of every product, the
+ *   addresses the server hands to an agent as "open this first";
+ * - `--kinds` enumerates every source and compares the kinds of its records with the kinds
+ *   the registry declares. It is the slow one (an index build per source): use it with
+ *   `--product`.
  *
  * {@link checkRegistry} is also what the registry tests call.
  */
 import { setTimeout as sleep } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 import { bindSource } from '../src/core/adapter-helpers.js';
+import { newBudget } from '../src/core/async.js';
 import { loadConfig } from '../src/core/config.js';
+import { isMcpDocError } from '../src/core/errors.js';
 import type { AdapterRegistry, Ctx, ProbeResult } from '../src/core/ports.js';
 import { expandTemplate, sourceBaseUrls } from '../src/core/source-urls.js';
-import type { AdapterType, Capability, HostPolicy, Product } from '../src/core/types.js';
+import type {
+  AdapterType,
+  Capability,
+  CatalogRecord,
+  DocKind,
+  HostPolicy,
+  Product,
+} from '../src/core/types.js';
 import { parseGithubUrl } from '../src/core/url.js';
 import { GITHUB_OWNERS } from '../src/registry/hosts.js';
 import { URL_OPTION_KEYS } from '../src/registry/oracle-options.js';
@@ -118,7 +134,7 @@ function urlsOf(product: Product): Array<[where: string, url: string]> {
 function checkProduct(
   product: Product,
   ids: ReadonlySet<string>,
-  hosts: ReadonlySet<string>,
+  hosts: ReadonlyMap<string, HostPolicy>,
   today: Date,
 ): Array<Omit<RegistryIssue, 'product'>> {
   const issues: Array<Omit<RegistryIssue, 'product'>> = [];
@@ -148,8 +164,14 @@ function checkProduct(
       continue;
     }
     const url = new URL(text);
-    if (url.hostname !== 'github.com' && !hosts.has(url.hostname)) {
+    const row = hosts.get(url.hostname);
+    if (url.hostname !== 'github.com' && row === undefined) {
       error('INV-2', `${where}: host ${url.hostname} is not in HOSTS`);
+    }
+    // A host that admits only some paths (the Knowledge Base on support.esri.com) would
+    // refuse the request at run time; the registry must not name such an address.
+    if (row?.allowPaths?.some((path) => new RegExp(path).test(url.pathname)) === false) {
+      error('INV-2', `${where}: ${url.hostname} does not allow the path of ${text}`);
     }
     const owner = GITHUB_HOSTS.has(url.hostname) ? githubOwner(url) : undefined;
     if (GITHUB_HOSTS.has(url.hostname) && !isAllowedOwner(owner)) {
@@ -184,12 +206,23 @@ function checkProduct(
         error('INV-4', `source ${source.id} has an invalid fallback ${fallback}`);
       }
     }
+    // A probe is requested for a line the source exists on: its URL must be complete there.
+    for (const line of product.lines) {
+      if (source.lines !== undefined && !source.lines.includes(line.id)) continue;
+      if (/\{[a-z]+\}/i.test(expandTemplate(source.probe.url, line))) {
+        error('INV-3', `source ${source.id}: probe URL has a placeholder left on line ${line.id}`);
+      }
+    }
   }
   for (const target of [...product.related, ...(product.successor ? [product.successor] : [])]) {
     if (target === product.id || !ids.has(target)) {
       error('INV-4', `reference to ${target} does not resolve to another product`);
     }
   }
+
+  // The router finds a product through its vocabulary: one without keywords is unreachable
+  // for every question that does not spell its name.
+  if (product.keywords.length === 0) error('SCHEMA', 'keywords: at least one is needed');
 
   // INV-5: no build hashes; verification dates.
   for (const text of strings(product)) {
@@ -276,7 +309,7 @@ export function checkRegistry(data: RegistryData, today: Date): RegistryIssue[] 
   }
 
   const ids = new Set(data.products.map((product) => product.id));
-  const hosts = new Set(data.hosts.map((host) => host.host));
+  const hosts = new Map(data.hosts.map((host) => [host.host, host]));
   for (const product of data.products) {
     for (const issue of checkProduct(product, ids, hosts, today)) {
       issues.push({ ...issue, product: product.id });
@@ -327,6 +360,9 @@ async function loadContainer(): Promise<Container> {
 /** Pause after a probe that went upstream: a probe is at most two requests. */
 const PROBE_INTERVAL_MS = 2000;
 
+/** Pause after a link that went upstream: one request each, at most one per second. */
+const LINK_INTERVAL_MS = 1100;
+
 /**
  * Runs the probe of every source on its first documentation line, one after another and
  * paced at one request per second or slower, like `doctor`.
@@ -350,6 +386,8 @@ async function probeAll(products: readonly Product[]): Promise<LiveResult[]> {
           ms: 0,
           skipped: `capability ${source.capability} is off`,
         });
+      } else if (line.access === 'link-only' && source.capability === 'website') {
+        results.push({ ...base, ok: true, ms: 0, skipped: `line ${line.id} is link-only` });
       } else {
         try {
           const adapter = adapters.get(source.adapter);
@@ -362,6 +400,145 @@ async function probeAll(products: readonly Product[]): Promise<LiveResult[]> {
           results.push({ ...base, ok: false, ms: 0, error: message });
         }
       }
+    }
+  }
+  return results;
+}
+
+/** Outcome of requesting one link a product hands out. */
+export interface LinkResult {
+  product: string;
+  /** `homepage` or `startHere`. */
+  where: string;
+  url: string;
+  ok: boolean;
+  /** Why the link was not requested: it is on a host that is linked, never fetched. */
+  skipped?: string;
+  error?: string;
+}
+
+/** Hosts whose pages are refs, not requests: GitHub URLs are rewritten before any request. */
+const UNREQUESTED_HOSTS = new Set(['github.com']);
+
+/**
+ * Requests the home page and every start-here link of the products, one after another.
+ * These are the addresses an agent is told to open first, so a dead one is a defect of the
+ * registry even when every source probe passes.
+ *
+ * @param pause waits between two requests that went upstream (injected so tests do not).
+ */
+export async function checkLinks(
+  ctx: Pick<Ctx, 'http' | 'policy'>,
+  products: readonly Product[],
+  pause: () => Promise<void>,
+): Promise<LinkResult[]> {
+  const results: LinkResult[] = [];
+  const seen = new Map<string, Pick<LinkResult, 'ok' | 'skipped' | 'error'>>();
+  for (const product of products) {
+    const links: Array<[string, string]> = [
+      ['homepage', product.homepage],
+      ...product.startHere.map((entry): [string, string] => ['startHere', entry.ref]),
+    ];
+    for (const [where, url] of links) {
+      if (url.startsWith('brief:')) continue;
+      let outcome = seen.get(url);
+      if (outcome === undefined) {
+        outcome = await requestLink(ctx, url, pause);
+        seen.set(url, outcome);
+      }
+      results.push({ product: product.id, where, url, ...outcome });
+    }
+  }
+  return results;
+}
+
+async function requestLink(
+  ctx: Pick<Ctx, 'http' | 'policy'>,
+  url: string,
+  pause: () => Promise<void>,
+): Promise<Pick<LinkResult, 'ok' | 'skipped' | 'error'>> {
+  if (UNREQUESTED_HOSTS.has(new URL(url).hostname)) {
+    return { ok: true, skipped: 'a repository ref' };
+  }
+  try {
+    const res = await ctx.http.get({ url, expect: 'html', ttl: 'page' });
+    if (res.cache === 'miss') await pause();
+    return { ok: true };
+  } catch (error) {
+    if (!isMcpDocError(error)) throw error;
+    // A link-only host is linked on purpose; its pages are for the reader's browser.
+    if (error.code === 'LINK_ONLY') return { ok: true, skipped: 'a link-only host' };
+    await pause();
+    return { ok: false, error: `${error.code}: ${error.message}` };
+  }
+}
+
+/** The kinds of the records of a source that its declaration does not list. */
+export function undeclaredKinds(
+  declared: readonly DocKind[],
+  records: ReadonlyArray<Pick<CatalogRecord, 'kind'>>,
+): Array<{ kind: DocKind; records: number }> {
+  const counts = new Map<DocKind, number>();
+  for (const record of records) counts.set(record.kind, (counts.get(record.kind) ?? 0) + 1);
+  return [...counts]
+    .filter(([kind]) => !declared.includes(kind))
+    .map(([kind, count]) => ({ kind, records: count }));
+}
+
+/** Outcome of comparing the declared kinds of a source with what it lists. */
+interface KindResult {
+  product: string;
+  source: string;
+  ok: boolean;
+  records?: number;
+  /** Kinds the source lists but does not declare, with their record counts. */
+  undeclared?: string[];
+  skipped?: string;
+  error?: string;
+}
+
+/**
+ * Enumerates every source on its current line and reports the kinds it lists without
+ * declaring them. `arcgis_docs_find_samples` and the product profile go by the declared
+ * kinds, so an undeclared `sample` is a sample section nobody is sent to.
+ */
+async function checkKinds(products: readonly Product[]): Promise<KindResult[]> {
+  const { ctx, adapters } = await loadContainer();
+  const results: KindResult[] = [];
+  for (const product of products) {
+    for (const source of product.sources) {
+      const base = { product: product.id, source: source.id };
+      const line = product.lines.find(
+        (candidate) => candidate.current && (source.lines?.includes(candidate.id) ?? true),
+      );
+      const adapter = adapters.get(source.adapter);
+      if (line === undefined || adapter.enumerate === undefined) {
+        results.push({ ...base, ok: true, skipped: 'not listed on the current line' });
+        continue;
+      }
+      if (source.capability !== undefined && !ctx.policy.enabled(source.capability)) {
+        results.push({ ...base, ok: true, skipped: `capability ${source.capability} is off` });
+        continue;
+      }
+      try {
+        const budget = newBudget(
+          Math.min(ctx.config.limits.requestsPerIndexBuild, adapter.maxEnumerateRequests),
+          ctx.config.limits.indexBuildDeadlineMs * 6,
+          ctx.clock,
+        );
+        const records = await adapter.enumerate(
+          ctx,
+          bindSource(product, source, line, undefined, budget),
+        );
+        const undeclared = undeclaredKinds(source.kinds, records).map(
+          (entry) => `${entry.kind} (${entry.records})`,
+        );
+        results.push({ ...base, ok: undeclared.length === 0, records: records.length, undeclared });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        results.push({ ...base, ok: false, error: message });
+      }
+      await sleep(PROBE_INTERVAL_MS);
     }
   }
   return results;
@@ -384,11 +561,16 @@ async function main(args: readonly string[]): Promise<number> {
     new Date(),
   ).filter((issue) => only === undefined || issue.product === only);
   const live = args.includes('--live') ? await probeAll(products) : [];
+  const links = args.includes('--links')
+    ? await checkLinks((await loadContainer()).ctx, products, () => sleep(LINK_INTERVAL_MS))
+    : [];
+  const kinds = args.includes('--kinds') ? await checkKinds(products) : [];
   const failed =
-    issues.some((issue) => issue.severity === 'error') || live.some((result) => !result.ok);
+    issues.some((issue) => issue.severity === 'error') ||
+    [...live, ...links, ...kinds].some((result) => !result.ok);
 
   if (args.includes('--json')) {
-    console.log(JSON.stringify({ products: products.length, issues, live }, null, 2));
+    console.log(JSON.stringify({ products: products.length, issues, live, links, kinds }, null, 2));
     return failed ? 1 : 0;
   }
   for (const issue of issues) {
@@ -400,10 +582,25 @@ async function main(args: readonly string[]): Promise<number> {
     const state = result.skipped ?? (result.ok ? 'ok' : `FAILED ${result.error ?? ''}`.trim());
     console.log(`probe   ${result.product}/${result.source}: ${state} (${result.ms} ms)`);
   }
+  for (const result of links.filter((entry) => !entry.ok)) {
+    console.log(`link    ${result.product} ${result.where}: FAILED ${result.url} (${result.error ?? ''})`);
+  }
+  for (const result of kinds) {
+    const state =
+      result.skipped ??
+      (result.ok
+        ? `ok (${result.records ?? 0} records)`
+        : `FAILED ${result.error ?? `lists undeclared kinds: ${(result.undeclared ?? []).join(', ')}`}`);
+    console.log(`kinds   ${result.product}/${result.source}: ${state}`);
+  }
   const errors = issues.filter((issue) => issue.severity === 'error').length;
+  const failures = (results: ReadonlyArray<{ ok: boolean }>, what: string): string =>
+    results.length > 0 ? `, ${results.filter((result) => !result.ok).length} failed ${what}` : '';
   console.log(
     `${products.length} products, ${errors} errors, ${issues.length - errors} warnings` +
-      (live.length > 0 ? `, ${live.filter((result) => !result.ok).length} failed probes` : ''),
+      failures(live, 'probes') +
+      failures(links, `of ${links.length} links`) +
+      failures(kinds, 'kind checks'),
   );
   return failed ? 1 : 0;
 }

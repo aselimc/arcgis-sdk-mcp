@@ -2,23 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { ownedPrefix } from '../../../src/core/adapter-helpers.js';
 import { helpProducts } from '../../../src/registry/data/help.generated.js';
 import { validateProducts } from '../../../src/registry/schema.js';
-import {
-  OTHER_DEVELOPER_IDS,
-  floorViolations,
-  hostViolations,
-  identityViolations,
-  sourceViolations,
-  wordingViolations,
-} from '../data-rest/invariants.js';
+import { lintOf } from '../registry-data.js';
 import { helpProduct, idsOf, sourceOf } from './lookup.js';
-
-/** Developer-tier ids defined next to the help products, which `related` may name. */
-const DEVELOPER_IDS = new Set([
-  ...OTHER_DEVELOPER_IDS,
-  ...['rest-api', 'developer-guide', 'hub-dev', 'site-scan-api', 'urban-api'],
-  ...['workflow-manager-dev', 'survey123-dev', 'velocity-grpc', 'knowledge-pbf', 'cim-spec'],
-  ...['enterprise-devops', 'oss-libraries'],
-]);
 
 const live = helpProducts.filter((product) => product.status !== 'retired');
 const onDocEsri = live.filter((product) => product.sources[0]?.adapter === 'docfx-esri');
@@ -36,11 +21,7 @@ describe('generated help products', () => {
 
   it('pass the registry schema and the invariants INV-1 to INV-5', () => {
     expect(validateProducts(helpProducts)).toEqual([]);
-    expect(floorViolations(helpProducts)).toEqual([]);
-    expect(hostViolations(helpProducts)).toEqual([]);
-    expect(sourceViolations(helpProducts)).toEqual([]);
-    expect(identityViolations(helpProducts, DEVELOPER_IDS)).toEqual([]);
-    expect(wordingViolations(helpProducts)).toEqual([]);
+    expect(lintOf(helpProducts)).toEqual([]);
   });
 
   it('carry no version number in their wording that an oracle can supply', () => {

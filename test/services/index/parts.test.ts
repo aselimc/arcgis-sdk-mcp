@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { createBodyIndex, MAX_BODY_SECTIONS } from '../../../src/services/index/body-index.js';
 import { createHealthTracker, FAILING_SKIP_MS } from '../../../src/services/index/health.js';
-import { buildCatalogIndex, documentBoost } from '../../../src/services/index/minisearch-index.js';
-import { queryTerms } from '../../../src/services/index/query-terms.js';
-import { kindMatches } from '../../../src/services/index/query.js';
+import {
+  boilerplateWeight,
+  buildCatalogIndex,
+  documentBoost,
+  titleBonus,
+} from '../../../src/services/index/minisearch-index.js';
+import { otherNumber, queryTerms } from '../../../src/services/index/query-terms.js';
+import { kindMatches, runCatalogQuery } from '../../../src/services/index/query.js';
 import { buildSymbolMap, mergeSymbolMaps } from '../../../src/services/index/symbol-map.js';
 import { makeDocPage, makeRecord } from '../../support/builders.js';
 import { FakeClock } from '../../support/fake-clock.js';
@@ -13,10 +18,44 @@ import { JS_RECORDS, KOTLIN_RECORDS, REST_RECORDS } from '../support/catalogue.j
 describe('queryTerms', () => {
   it('splits words, drops stop words and keeps camelCase parts', () => {
     expect(queryTerms('how to use queryFeatures with a FeatureLayer')).toEqual([
-      { whole: 'use', parts: [], synonyms: [] },
-      { whole: 'queryfeatures', parts: ['query', 'features'], synonyms: [] },
-      { whole: 'featurelayer', parts: ['feature', 'layer'], synonyms: [] },
+      { whole: 'use', parts: [], synonyms: [['uses']] },
+      { whole: 'queryfeatures', parts: ['query', 'features'], synonyms: [['queryfeature']] },
+      { whole: 'featurelayer', parts: ['feature', 'layer'], synonyms: [['featurelayers']] },
     ]);
+  });
+
+  // Regression: "migrate widgets to components 4.x to 5.0" listed three properties named `x`.
+  it('drops single letters when other words remain', () => {
+    expect(queryTerms('migrate 4.x to 5.0').map((term) => term.whole)).toEqual([
+      'migrate',
+      '4',
+      '5',
+      '0',
+    ]);
+    expect(queryTerms('x').map((term) => term.whole)).toEqual(['x']);
+  });
+
+  // Regression: "add a button to the ribbon" met the guide titled "Buttons" only as a
+  // low-weight prefix match.
+  it('offers the other grammatical number of a word as an alternative', () => {
+    expect(otherNumber('button')).toBe('buttons');
+    expect(otherNumber('layers')).toBe('layer');
+    expect(otherNumber('class')).toBeUndefined();
+    expect(otherNumber('gis')).toBeUndefined();
+    expect(otherNumber('3d')).toBeUndefined();
+    const guide = makeRecord({ ref: 'https://developers.arcgis.com/widgets/g/', title: 'Buttons' });
+    const member = makeRecord({
+      ref: 'https://developers.arcgis.com/widgets/m/',
+      title: 'buttonSizing',
+      symbol: 'buttonSizing',
+      kind: 'api',
+    });
+    const index = buildCatalogIndex([member, guide]);
+    const scoreOf = (terms: ReturnType<typeof queryTerms>): number =>
+      index.search(terms, 'and').find((match) => match.record.title === 'Buttons')?.score ?? 0;
+    const prefixOnly = scoreOf([{ whole: 'button', parts: [], synonyms: [] }]);
+    expect(prefixOnly).toBeGreaterThan(0);
+    expect(scoreOf(queryTerms('button'))).toBeGreaterThan(prefixOnly * 2);
   });
 
   it('keeps stop words when nothing else is left, and removes duplicates', () => {
@@ -27,7 +66,89 @@ describe('queryTerms', () => {
 
   it('attaches synonyms as word lists', () => {
     const synonyms = new Map([['popup', ['pop up', 'popups']]]);
+    // The plural that the table already lists is not added a second time.
     expect(queryTerms('popup', synonyms)[0]?.synonyms).toEqual([['pop', 'up'], ['popups']]);
+  });
+});
+
+// Regression: an API record holds its name in `symbol`, `title` and `qualified`, a guide in
+// `title` only, so one shared word made any member outrank the tutorial that answers the
+// question; and a page whose title is most of the query was not preferred to one that only
+// mentions the words.
+describe('catalogue index: plain-word queries', () => {
+  const BASE = 'https://developers.arcgis.com/widgets';
+  const tutorial = makeRecord({
+    ref: `${BASE}/tutorials/change-the-tide-style/`,
+    kind: 'tutorial',
+    title: 'Change the tide style',
+    description: 'Switch between tide styles.',
+  });
+  const event = makeRecord({
+    ref: `${BASE}/references/Gauge/#gaugePropertyChange`,
+    kind: 'api',
+    title: 'gaugePropertyChange',
+    symbol: 'gaugePropertyChange',
+    qualified: 'Gauge.gaugePropertyChange',
+    parent: 'Gauge',
+    symbolKind: 'event',
+  });
+  const internal = makeRecord({
+    ref: `${BASE}/references/Internal/TideChanger/`,
+    kind: 'api',
+    title: 'TideChanger',
+    symbol: 'TideChanger',
+    qualified: 'Widgets.Internal.Tides.TideChanger',
+    symbolKind: 'class',
+    description: 'Change the tide.',
+  });
+  const inheritedModifier = makeRecord({
+    ref: `${BASE}/references/tideview/tidestyle(_:)/`,
+    kind: 'api',
+    title: 'TideView.tideStyle',
+    symbol: 'tideStyle',
+    qualified: 'TideView.tideStyle',
+    parent: 'TideView',
+    symbolKind: 'method',
+    breadcrumb: 'Widgets > TideView > View Implementations',
+  });
+
+  it('ranks the page titled with the query above a member that shares a word', () => {
+    const index = buildCatalogIndex([event, tutorial]);
+    const [first] = index.search(queryTerms('change the tide'), 'or');
+    expect(first?.record.ref).toBe(tutorial.ref);
+  });
+
+  it('gives a title that holds the whole query three times the score', () => {
+    expect(titleBonus(0)).toBe(1);
+    expect(titleBonus(0.5)).toBe(1.5);
+    expect(titleBonus(1)).toBe(3);
+  });
+
+  // Regression: Swift searches were flooded with SwiftUI view modifiers that DocC lists as
+  // "View Implementations" on every view type, and Pro SDK searches with `Internal` types.
+  it('weighs internal namespaces and inherited protocol members down', () => {
+    expect(boilerplateWeight(tutorial)).toBe(1);
+    expect(boilerplateWeight(event)).toBe(1);
+    expect(boilerplateWeight(internal)).toBeLessThan(1);
+    expect(boilerplateWeight(inheritedModifier)).toBeLessThan(1);
+  });
+
+  it('starts at any word for three or more words, and counts what matches half of them', () => {
+    const unit = (records: Parameters<typeof buildCatalogIndex>[0]) =>
+      ({ records, search: buildCatalogIndex(records) }) as unknown as Parameters<
+        typeof runCatalogQuery
+      >[0][number];
+    // No record holds all four words; the tutorial holds three of them, the event one.
+    const result = runCatalogQuery([unit([event, tutorial, internal])], {
+      text: 'change the tide style quickly',
+      products: [],
+      limit: 10,
+      offset: 0,
+    });
+    expect(result.hits[0]?.ref).toBe(tutorial.ref);
+    expect(result.complete).toBe(0);
+    expect(result.total).toBeGreaterThanOrEqual(1);
+    expect(result.total).toBeLessThanOrEqual(result.hits.length);
   });
 });
 

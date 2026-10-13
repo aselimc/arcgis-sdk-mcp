@@ -1,16 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { createOwnership } from '../../src/registry/ownership.js';
 import { makeLine, makeProduct, makeSource } from '../support/builders.js';
-import { loadData } from './load-data.js';
+import { PRODUCTS } from './registry-data.js';
 
 const D = 'https://developers.arcgis.com';
 const PRO = 'https://doc.esri.com/en/arcgis-pro/latest';
 const GH = 'https://github.com';
 const RAW = 'https://raw.githubusercontent.com';
 
-const data = await loadData();
-const ownerOf = createOwnership(data.products);
-const ids = new Set(data.products.map((product) => product.id));
+const ownerOf = createOwnership(PRODUCTS);
 
 function owner(url: string): string | undefined {
   const found = ownerOf(new URL(url));
@@ -185,7 +183,7 @@ describe('URL ownership', () => {
   });
 
   it('finds an owner for the root of every source that has one', () => {
-    for (const product of data.products) {
+    for (const product of PRODUCTS) {
       for (const source of product.sources) {
         if (source.adapter !== 'astro' && source.adapter !== 'gatsby') continue;
         if (source.config.include !== undefined) continue;
@@ -203,26 +201,39 @@ describe('URL ownership', () => {
     }
   });
 
-  // These need products of other data files.
-  it.skipIf(!ids.has('arcgis-pro') || !ids.has('location-platform') || !ids.has('rest-api'))(
-    'shares hosts with product help and the REST products',
-    () => {
-      expect(owner(`${PRO}/help/mapping/some.html`)).toBe('arcgis-pro/help@latest');
-      expect(owner('https://pro.arcgis.com/en/pro-app/3.6/help/some.htm')).toBe(
-        'arcgis-pro/legacy@3.6',
-      );
-      // A page that a product documents is not taken over by a curated link to it.
-      expect(owner('https://location.arcgis.com/help/agentic-ai/')).toBe(
-        'location-platform/help@latest',
-      );
-      expect(owner(`${D}/rest/services-reference/enterprise/some-operation/`)).toBe(
-        'rest-api/services-enterprise@latest',
-      );
-      expect(owner('https://doc.arcgis.com/en/arcgis-earth/use/some.htm')).toBe(
-        'arcgis-earth/help@latest',
-      );
-    },
-  );
+  it('shares hosts with product help and the REST products', () => {
+    expect(owner(`${PRO}/help/mapping/some.html`)).toBe('arcgis-pro/help@latest');
+    expect(owner('https://pro.arcgis.com/en/pro-app/3.6/help/some.htm')).toBe(
+      'arcgis-pro/legacy@3.6',
+    );
+    // A page that a product documents is not taken over by a curated link to it.
+    expect(owner('https://location.arcgis.com/help/agentic-ai/')).toBe(
+      'location-platform/help@latest',
+    );
+    expect(owner(`${D}/rest/services-reference/enterprise/some-operation/`)).toBe(
+      'rest-api/services-enterprise@latest',
+    );
+    expect(owner('https://doc.arcgis.com/en/arcgis-earth/use/some.htm')).toBe(
+      'arcgis-earth/help@latest',
+    );
+  });
+
+  // Regression: a release was link-only for its help pages while the tool reference and
+  // ArcPy pages of the same release had no owner and were fetched by the generic reader.
+  it('gives every page of an earlier ArcGIS Pro release an owner, on link-only lines too', () => {
+    const pro = 'https://pro.arcgis.com/en/pro-app';
+    for (const [url, expected] of [
+      [`${pro}/3.4/get-started/get-started.htm`, 'arcgis-pro/legacy@3.4'],
+      [`${pro}/3.4/help/mapping/introduction/some.htm`, 'arcgis-pro/legacy@3.4'],
+      [`${pro}/3.4/tool-reference/analysis/buffer.htm`, 'arcpy/legacy-tools@3.4'],
+      [`${pro}/3.4/arcpy/classes/some.htm`, 'arcpy/legacy@3.4'],
+      [`${pro}/2.6/tool-reference/spatial-analyst/some.htm`, 'arcpy/legacy-tools-extensions@2.6'],
+    ] as const) {
+      const found = ownerOf(new URL(url));
+      expect(`${found?.product.id}/${found?.source.id}@${found?.line.id}`, url).toBe(expected);
+      expect(found?.line.access, url).toBe('link-only');
+    }
+  });
 });
 
 describe('createOwnership', () => {

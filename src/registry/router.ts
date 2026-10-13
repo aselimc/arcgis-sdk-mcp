@@ -3,11 +3,18 @@
  * (`Registry.route`). It works from the registry alone (ids, names, aliases, packages,
  * keywords, languages, summaries, source titles) and issues no request.
  *
- * Two mechanisms, in order:
+ * Three mechanisms, in order:
  * 1. a word of the query that is shaped like a qualified name, package or custom element
  *    (`arcpy.da.SearchCursor`, `com.arcgismaps.mapping`, `calcite-button`) names its product;
  * 2. otherwise products are ranked by the query words they know, each word weighted by how
- *    rare it is across products and by the field it was found in.
+ *    rare it is across products and by the field it was found in, with a prior for the
+ *    products most questions are about;
+ * 3. a query that decides nothing ("display a map", "legend", an unknown class name) is
+ *    answered with a small default set, at a confidence that says it is a default.
+ *
+ * The third step exists because the caller without a project still needs somewhere to
+ * look: an everyday GIS question used to reach no product at all, or a format
+ * specification that happened to share a word with it.
  */
 import { tokenize } from '../core/tokenize.js';
 import type { Product } from '../core/types.js';
@@ -16,8 +23,22 @@ import { plainKey } from './resolve.js';
 /** One routed product. */
 export interface Route {
   product: string;
-  /** 0 to 1; 1 means every query word is part of the product's own names. */
+  /**
+   * 0 to 1; 1 means every query word is part of the product's own names.
+   * {@link DEFAULT_CONFIDENCE} marks a product of the default set: the query gave no
+   * evidence for it.
+   */
   confidence: number;
+}
+
+/** Options of {@link createRouter}. */
+export interface RouterOptions {
+  /**
+   * Answer an undecided query with the default set (the default), or with `[]`. The
+   * resolver of product names turns the default off: a misspelt product must not be
+   * "suggested" as the JavaScript SDK.
+   */
+  fallback?: boolean;
 }
 
 /** Default number of products returned (design section 3.1: "at most three"). */
@@ -29,6 +50,48 @@ const RELATIVE_CUTOFF = 0.5;
 /** Below this the query says nothing usable about the product. */
 const MIN_CONFIDENCE = 0.12;
 
+/**
+ * A best route below this is a coincidence of one common word ("release notes" reaching a
+ * product whose summary mentions them): the default set is the better answer.
+ */
+const WEAK_CONFIDENCE = 0.2;
+
+/** Confidence of a product of the default set; below {@link MIN_CONFIDENCE} on purpose. */
+export const DEFAULT_CONFIDENCE = 0.1;
+
+/**
+ * Where a question goes when it names no product: the web SDK, the REST APIs and the
+ * cross-product developer guide between them cover maps, services and the concepts every
+ * SDK shares.
+ */
+const DEFAULT_PRODUCTS = ['js-maps-sdk', 'rest-api', 'developer-guide'] as const;
+
+/**
+ * Where a bare class or function name goes: the leading web, Python and native references.
+ * The Maps SDKs share their type names, so one native SDK stands for all of them.
+ */
+const DEFAULT_SYMBOL_PRODUCTS = ['js-maps-sdk', 'python-api', 'swift-maps-sdk'] as const;
+
+/**
+ * A prior, not evidence: the products most questions are about count for more on the same
+ * words. Without it "create a web map" belongs to the web map specification (both words are
+ * in its name) and "buffer" to the protocol buffer definitions. A product that the query
+ * names outright still wins: its words weigh as identity, which no prior reaches.
+ */
+const PRIOR: Readonly<Record<string, number>> = {
+  'js-maps-sdk': 1.5,
+  'rest-api': 1.25,
+  'developer-guide': 1.25,
+  'python-api': 1.25,
+  arcpy: 1.25,
+};
+
+/**
+ * The most a prior may raise a confidence to. Callers read 0.95 and above as "the query
+ * names this product"; only the words of the query can say that.
+ */
+const PRIOR_CEILING = 0.94;
+
 /** More products than this at the top with the same confidence mean the query picks none. */
 const MAX_TIED = 3;
 const TIE_MARGIN = 0.001;
@@ -39,6 +102,9 @@ const TIE_MARGIN = 0.001;
  */
 const UBIQUITOUS_SHARE = 0.25;
 const UBIQUITOUS_FLOOR = 3;
+
+/** A name word known to at most this many products tells a product apart. */
+const DISTINCTIVE_FREQUENCY = 3;
 
 /** Confidence of a product named by a symbol or package shape. */
 const SHAPE_CONFIDENCE = 0.95;
@@ -56,6 +122,14 @@ const STATUS_MULTIPLIER: Record<Product['status'], number> = {
   deprecated: 0.6,
   retired: 0.2,
 };
+
+/**
+ * A product that documents nothing itself and only points elsewhere (the Runtime 100.x
+ * card: four migration guides) is routed like a tombstone whatever its status says. It is
+ * found by name; a question is better answered by the product it points to.
+ */
+const isCard = (product: Product): boolean =>
+  product.sources.length > 0 && product.sources.every((source) => source.adapter === 'static');
 
 /** End-user help ranks just behind developer documentation on equal evidence. */
 const HELP_MULTIPLIER = 0.85;
@@ -118,6 +192,16 @@ const COMPANIONS: ReadonlyArray<readonly [RegExp, string]> = [
   [/\b(?:ai[- ]components?|arcgis[- ]assistant)\b/i, 'ai-agents'],
 ];
 
+/**
+ * A single word written like a code identifier: `GeometryEngine`, `queryFeatures`,
+ * `ST_Buffer`. Its humps are parts of a name, not words of a question, so they are not
+ * looked up one by one: "TotallyMadeUpClass" is not a question about feature classes.
+ */
+function isIdentifier(query: string): boolean {
+  const word = query.trim();
+  return /^[A-Za-z_$][\w$]*$/.test(word) && /[a-z][A-Z]|[A-Za-z]_[A-Za-z]/.test(word);
+}
+
 /** Plural-insensitive form of a term; there is no other stemming. */
 function stem(term: string): string {
   return term.length > 3 && term.endsWith('s') && !term.endsWith('ss') ? term.slice(0, -1) : term;
@@ -144,11 +228,19 @@ interface Candidate {
   multiplier: number;
   /** End-user help or a niche subject: named next to another product only on evidence of its own. */
   secondary: boolean;
+  /** The words of the product id, without the `arcgis` every other id starts with. */
+  idTerms: readonly string[];
 }
 
 /** A vocabulary route with the query terms its product knows. */
 interface Ranked extends Route {
   known: ReadonlySet<string>;
+  /**
+   * True when the query is about this product and not merely near it: it holds every word
+   * of the product id (`field maps`), or a word of the product's names that few products
+   * share (`kubernetes`, not `map`).
+   */
+  distinctive: boolean;
 }
 
 function candidateOf(product: Product): Candidate {
@@ -177,20 +269,26 @@ function candidateOf(product: Product): Candidate {
     product,
     weights,
     multiplier:
-      STATUS_MULTIPLIER[product.status] *
+      Math.min(STATUS_MULTIPLIER[product.status], isCard(product) ? STATUS_MULTIPLIER.retired : 1) *
       (help ? HELP_MULTIPLIER : 1) *
       (niche ? NICHE_MULTIPLIER : 1),
     secondary: help || niche,
+    idTerms: terms(product.id.replace(/-/g, ' ')).filter((term) => term !== 'arcgis'),
   };
 }
 
 /**
  * Builds the router over a product list. Products of tier `link` are never routed to.
  *
- * @returns `route(query, n)`: at most `n` products, best first; `[]` when the query names
- *   nothing the registry knows.
+ * @returns `route(query, n)`: at most `n` products, best first. A query that decides
+ *   nothing gets the default set at {@link DEFAULT_CONFIDENCE}, or `[]` with
+ *   `options.fallback: false`.
  */
-export function createRouter(products: readonly Product[]): (query: string, n?: number) => Route[] {
+export function createRouter(
+  products: readonly Product[],
+  options: RouterOptions = {},
+): (query: string, n?: number) => Route[] {
+  const fallback = options.fallback ?? true;
   const eligible = products.filter((product) => product.tier !== 'link').map(candidateOf);
   const byId = new Map(eligible.map((candidate) => [candidate.product.id, candidate]));
 
@@ -235,8 +333,23 @@ export function createRouter(products: readonly Product[]): (query: string, n?: 
     return undefined;
   }
 
-  function byVocabulary(query: string): Ranked[] {
-    const wanted = [...new Set(terms(query))].filter((term) => rarity(term) > 0);
+  /** A confidence with the product's prior applied (see {@link PRIOR}). */
+  const withPrior = (id: string, confidence: number): number => {
+    const prior = PRIOR[id] ?? 1;
+    return prior === 1 ? confidence : Math.min(confidence * prior, Math.max(confidence, PRIOR_CEILING));
+  };
+
+  /** The default set for a query that decided nothing, as far as the registry has it. */
+  const defaults = (ids: readonly string[], n: number): Route[] =>
+    ids
+      .filter((id) => byId.has(id))
+      .slice(0, n)
+      .map((product) => ({ product, confidence: DEFAULT_CONFIDENCE }));
+
+  /** Products ranked by the evidence of the query words alone, before any prior. */
+  function byVocabulary(queryTerms: readonly string[]): Ranked[] {
+    const asked = new Set(queryTerms);
+    const wanted = [...asked].filter((term) => rarity(term) > 0);
     const total = wanted.reduce((sum, term) => sum + rarity(term) * WEIGHT.identity, 0);
     if (total === 0) return [];
     return eligible
@@ -249,25 +362,77 @@ export function createRouter(products: readonly Product[]): (query: string, n?: 
           product: candidate.product.id,
           confidence: (score / total) * candidate.multiplier,
           known: new Set(wanted.filter((term) => candidate.weights.has(term))),
+          distinctive:
+            (candidate.idTerms.length > 0 && candidate.idTerms.every((term) => asked.has(term))) ||
+            wanted.some(
+              (term) =>
+                (candidate.weights.get(term) ?? 0) >= WEIGHT.name &&
+                (documentFrequency.get(term) ?? 0) <= DISTINCTIVE_FREQUENCY,
+            ),
         };
       })
       .filter((route) => route.confidence >= MIN_CONFIDENCE)
       .sort((a, b) => b.confidence - a.confidence);
   }
 
+  /**
+   * Applies the prior and puts developer documentation first. End-user help and narrow
+   * subjects lead only on a word that is distinctly theirs: "download offline map area"
+   * shares `map` and `area` with Field Maps, which does not make it a question about the
+   * Field Maps app. Such a product then follows the best developer product.
+   */
+  function prioritised(evidence: readonly Ranked[]): Ranked[] {
+    // On equal confidence the product with the prior goes first, then the registry order.
+    const order = (a: Ranked, b: Ranked): number =>
+      b.confidence - a.confidence || (PRIOR[b.product] ?? 1) - (PRIOR[a.product] ?? 1);
+    const ranked = evidence
+      .map((route) => ({ ...route, confidence: withPrior(route.product, route.confidence) }))
+      .sort(order);
+    const isSecondary = (route: Ranked): boolean => byId.get(route.product)?.secondary === true;
+    const lead = ranked[0];
+    const primary = ranked.find((route) => !isSecondary(route));
+    if (lead === undefined || primary === undefined || !isSecondary(lead) || lead.distinctive) {
+      return ranked;
+    }
+    const ceiling = primary.confidence * HELP_MULTIPLIER;
+    return ranked
+      .map((route) =>
+        isSecondary(route) && !route.distinctive && route.confidence > ceiling
+          ? { ...route, confidence: ceiling }
+          : route,
+      )
+      .sort(order);
+  }
+
   return (query, n = DEFAULT_ROUTES) => {
     if (n <= 0 || query.trim() === '') return [];
     // A shape identifies its product on its own; the other words describe what is wanted in it.
     const shaped = byShape(query);
-    const ranked: Ranked[] =
-      shaped === undefined
-        ? byVocabulary(query)
-        : [{ product: shaped, confidence: SHAPE_CONFIDENCE, known: new Set() }];
+    const identifier = shaped === undefined && isIdentifier(query);
+    const undecided = (): Route[] =>
+      fallback ? defaults(identifier ? DEFAULT_SYMBOL_PRODUCTS : DEFAULT_PRODUCTS, n) : [];
+
+    let ranked: Ranked[];
+    if (shaped !== undefined) {
+      ranked = [
+        { product: shaped, confidence: SHAPE_CONFIDENCE, known: new Set(), distinctive: true },
+      ];
+    } else {
+      // An identifier is one name: only a product that lists it whole knows it.
+      const evidence = byVocabulary(
+        identifier ? [stem(query.trim().toLowerCase())] : terms(query),
+      );
+      const best = evidence[0];
+      if (best === undefined) return undecided();
+      // Words that many products share equally (`maps sdk`) single none of them out. The
+      // prior must not break such a tie: it would turn "no evidence" into a confident answer.
+      const tied = evidence.filter((route) => route.confidence > best.confidence - TIE_MARGIN);
+      if (tied.length > MAX_TIED) return undecided();
+      ranked = prioritised(evidence);
+    }
     const top = ranked[0];
-    if (top === undefined) return [];
-    // Words that many products share equally (`maps sdk`) single none of them out.
-    const tied = ranked.filter((route) => route.confidence > top.confidence - TIE_MARGIN);
-    if (tied.length > MAX_TIED) return [];
+    if (top === undefined) return undecided();
+    if (fallback && shaped === undefined && top.confidence < WEAK_CONFIDENCE) return undecided();
     // A help or niche product that knows only some of the words the best product knows has no
     // evidence of its own: one shared word (`cluster` in "cluster points with popups") would
     // otherwise add Kubernetes help to a question about a web map.

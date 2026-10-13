@@ -85,7 +85,8 @@ const PRODUCTS: Array<[string, Product['category'], Product['status'], string]> 
   ['java-maps-sdk', 'native', 'deprecated', 'guide*:astro api:javadoc samples:github-repo'],
   ['unity-maps-sdk', 'game-engine', 'active', 'guide*:gatsby samples:github-repo'],
   ['unreal-maps-sdk', 'game-engine', 'active', 'guide*:gatsby samples:github-repo'],
-  ['runtime-100', 'native', 'retired', 'card*:static'],
+  // In mature support until 2027: not retired, whatever the word "tombstone" suggests.
+  ['runtime-100', 'native', 'deprecated', 'card*:static'],
   ['python-api', 'python', 'active', 'guide*:gatsby api:gatsby samples:github-repo'],
   [
     'arcpy',
@@ -211,7 +212,8 @@ const ORACLES: Array<[string, string[]]> = [
   ['arcade', ['page-regex']],
   ['rest-js', ['npm-dist-tags']],
   ['experience-builder', ['page-regex']],
-  ['esri-leaflet', ['npm-dist-tags']],
+  // The core package and its two plug-ins, which have version numbers of their own.
+  ['esri-leaflet', ['npm-dist-tags', 'npm-dist-tags', 'npm-dist-tags']],
   ['maplibre-arcgis', ['npm-dist-tags']],
   ['openlayers-arcgis', []],
   ['cesium-arcgis', []],
@@ -499,18 +501,37 @@ describe('native SDKs', () => {
     expect(java.oracles[0]?.options).toMatchObject({ version: '200.6' });
   });
 
-  it('describes Runtime 100.x as a tombstone that points to the migration guides', () => {
+  it('describes Runtime 100.x as a card that points to the migration guide of every platform', () => {
     const runtime = product('runtime-100');
     expect(runtime.homepage).toBe('https://archive.developers.arcgis.com/');
     const card = source('runtime-100', 'card');
     if (card.adapter !== 'static') throw new Error('expected a static source');
-    expect(card.config.entries.map((entry) => entry.url)).toEqual([
-      `${D}/kotlin/reference/migrate-from-100-x-to-200-x/`,
-      `${D}/swift/reference/migrate-from-100-x-to-200-x/`,
-      `${D}/net/reference/migrate-from-100-x-to-200-x/`,
-      `${D}/qt/reference/migrate-from-100-x-to-200-x/`,
-    ]);
+    const guides = ['swift', 'kotlin', 'net', 'qt'].map(
+      (slug) => `${D}/${slug}/reference/migrate-from-100-x-to-200-x/`,
+    );
+    expect(card.config.entries.map((entry) => entry.url)).toEqual(guides);
     expect(runtime.oracles[0]?.options).toMatchObject({ retirement: '2027-09-01' });
+    // Regression: "retired" next to a retirement date a year ahead, and Kotlin named as the
+    // one successor of an SDK family that also covers iOS, .NET, Qt and Java.
+    expect(runtime.status).toBe('deprecated');
+    expect(runtime.successor).toBeUndefined();
+    for (const id of ['swift-maps-sdk', 'kotlin-maps-sdk', 'dotnet-maps-sdk', 'qt-maps-sdk']) {
+      expect(runtime.statusNote, id).toContain(id);
+      expect(runtime.related, id).toContain(id);
+    }
+    expect(runtime.startHere.map((link) => link.ref)).toEqual(guides);
+  });
+
+  // Regression: the samples source of the Unreal Engine SDK listed nothing, because its
+  // preset looked for code files next to each README and Blueprint samples have none.
+  it('reads the Unreal Engine samples with the preset that finds README-only samples', () => {
+    const preset = (id: string): string => {
+      const samples = source(id, 'samples');
+      return samples.adapter === 'github-repo' ? samples.config.preset : '';
+    };
+    expect(preset('unreal-maps-sdk')).toBe('samples-metadata');
+    expect(preset('unity-maps-sdk')).toBe('samples-readme');
+    expect(source('unreal-maps-sdk', 'samples').pagesApprox).toBe(17);
   });
 });
 
@@ -654,5 +675,93 @@ describe('Python and desktop products', () => {
       successor: 'arcgis-velocity',
     });
     expect(product('geoevent-server').statusNote).toMatch(/ship with the product/);
+  });
+});
+
+// Regression: `arcgis_docs_find_samples` selects sources by their declared kinds. The sample
+// pages of Esri Leaflet (61), Calcite (14) and Experience Builder (49) were indexed with
+// kind `sample` by sources that did not declare it, so the tool said "no sample source".
+describe('declared kinds of the guide sites', () => {
+  /** `[product, source, kinds]`: the sections each site has, by its sitemap on 2026-10-14. */
+  const KINDS: Array<[string, string, string[]]> = [
+    ['calcite', 'guide', ['guide', 'tutorial', 'sample', 'release-notes']],
+    ['arcade', 'guide', ['guide', 'release-notes']],
+    ['rest-js', 'guide', ['guide', 'tutorial', 'api', 'release-notes']],
+    ['experience-builder', 'guide', ['guide', 'tutorial', 'sample', 'api', 'release-notes']],
+    ['esri-leaflet', 'guide', ['guide', 'tutorial', 'sample', 'api']],
+    ['maplibre-arcgis', 'guide', ['guide', 'tutorial', 'api', 'release-notes']],
+    ['openlayers-arcgis', 'guide', ['guide', 'tutorial']],
+    ['cesium-arcgis', 'guide', ['guide', 'tutorial']],
+    ['unity-maps-sdk', 'guide', ['guide', 'tutorial', 'sample', 'api', 'release-notes']],
+    ['unreal-maps-sdk', 'guide', ['guide', 'tutorial', 'sample', 'api', 'release-notes']],
+    ['python-api', 'guide', ['guide', 'tutorial', 'sample', 'release-notes']],
+    ['geoanalytics-engine', 'guide', ['guide', 'tutorial', 'release-notes']],
+    ['geoanalytics-fabric', 'guide', ['guide', 'tutorial', 'release-notes']],
+    ['r-arcgis', 'guide', ['guide', 'release-notes']],
+    ['enterprise-sdk', 'guide', ['guide', 'api', 'release-notes']],
+  ];
+
+  it.each(KINDS)('%s/%s declares %j', (productId, sourceId, kinds) => {
+    expect(source(productId, sourceId).kinds).toEqual(kinds);
+  });
+
+  it('gives a sample source to every product whose site has a samples section', () => {
+    for (const id of ['esri-leaflet', 'calcite', 'experience-builder']) {
+      expect(
+        product(id).sources.some((candidate) => candidate.kinds.includes('sample')),
+        id,
+      ).toBe(true);
+    }
+  });
+
+  it('keeps the first kind, which is what a page without a section is, a guide', () => {
+    for (const [productId, sourceId] of KINDS) {
+      expect(source(productId, sourceId).kinds[0], productId).toBe('guide');
+    }
+  });
+});
+
+describe('Esri Leaflet and Experience Builder', () => {
+  // Regression: the plug-ins most samples need were unknown products without a version.
+  it('lists the Esri Leaflet plug-ins as packages, each with its own version oracle', () => {
+    const leaflet = product('esri-leaflet');
+    expect(leaflet.packages.map((ref) => [ref.name, ref.primary === true])).toEqual([
+      ['esri-leaflet', true],
+      ['esri-leaflet-vector', false],
+      ['esri-leaflet-geocoder', false],
+    ]);
+    expect(leaflet.oracles.map((oracle) => oracle.options.package)).toEqual([
+      'esri-leaflet',
+      'esri-leaflet-vector',
+      'esri-leaflet-geocoder',
+    ]);
+  });
+
+  // Regression: nothing said that jimu-ui is documented in a Storybook this server cannot
+  // read, so a lookup of `Button` came back with an unrelated jimu-core class.
+  it('says where the jimu-ui components are documented', () => {
+    const builder = product('experience-builder');
+    expect(builder.pitfalls.some((pitfall) => /jimu-ui.*Storybook/.test(pitfall))).toBe(true);
+    expect(builder.startHere.map((link) => link.ref)).toContain(
+      `${D}/experience-builder/storybook/`,
+    );
+  });
+
+  // Regression: a release was listed with its custom-data-feeds page only; the pages for
+  // server object extensions, which the SDK is named after, were dropped as duplicates.
+  it('names the audience of an Enterprise SDK release page in its release-notes pattern', () => {
+    const pattern = new RegExp(product('enterprise-sdk').releaseNotes?.pattern ?? '^$');
+    const match = (path: string): string[] | undefined => pattern.exec(path)?.slice(1, 3);
+    expect(match('/enterprise-sdk/guide/net/whats-new-12-1-net/')).toEqual(['12-1', 'net']);
+    expect(match('/enterprise-sdk/guide/java/whats-new-api-10-9-1-java/')).toEqual([
+      '10-9-1',
+      'java',
+    ]);
+    expect(match('/enterprise-sdk/guide/custom-data-feeds/whats-new-12-1-cdf/')).toEqual([
+      '12-1',
+      'cdf',
+    ]);
+    // The extensions come first: the pattern names them before the data feeds.
+    expect(pattern.source.indexOf('net')).toBeLessThan(pattern.source.indexOf('cdf'));
   });
 });

@@ -10,9 +10,7 @@ import {
   versionLineSchema,
 } from '../../src/registry/schema.js';
 import { makeHost, makeLine, makeProduct, makeSource } from '../support/builders.js';
-import { loadData } from './load-data.js';
-
-const data = await loadData();
+import { BRIEFS, PRODUCTS } from './registry-data.js';
 
 /** A minimal valid config for every adapter type. */
 const CONFIGS: { [A in AdapterType]: AdapterConfigMap[A] } = {
@@ -58,17 +56,17 @@ function issuesOf(product: unknown): string[] {
 
 describe('registry data against the schemas', () => {
   it('validates every product', () => {
-    expect(validateProducts(data.products)).toEqual([]);
+    expect(validateProducts(PRODUCTS)).toEqual([]);
   });
 
   it('validates every brief', () => {
-    for (const brief of data.briefs) {
+    for (const brief of BRIEFS) {
       expect(briefSchema.safeParse(brief).error?.issues ?? [], brief.slug).toEqual([]);
     }
   });
 
   it('keeps summaries, pitfalls and titles within their limits', () => {
-    for (const product of data.products) {
+    for (const product of PRODUCTS) {
       expect(product.summary.length, product.id).toBeLessThanOrEqual(160);
       expect(product.pitfalls.length, product.id).toBeLessThanOrEqual(4);
       expect(product.summary, product.id).not.toMatch(/\s{2,}|^\s|\s$/);

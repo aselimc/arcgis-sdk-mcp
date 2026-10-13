@@ -28,7 +28,7 @@ import {
   type TocEntry,
   type VerifiedNames,
 } from './docfx-esri-toc.js';
-import { selectPythonMember, withPythonMembers } from './python-members.js';
+import { withPythonMembers } from './python-members.js';
 import { readSitemap, sitemapRecords } from './sitemap.js';
 import {
   assertLive,
@@ -124,6 +124,19 @@ function symbolOf(src: DocfxSource, entry: TocEntry, path: string, verified: Ver
     : arcpySymbol(entry, path);
 }
 
+/**
+ * The naming rule of a source for its table-of-contents entries: the symbol an entry stands
+ * for, given its path below the source's scope, or `undefined` for a topic. Names that tool
+ * pages corrected are honoured. No request is made.
+ */
+export async function tocSymbolNamer(
+  ctx: Ctx,
+  src: BoundSource<'docfx-esri'>,
+): Promise<(entry: TocEntry, path: string) => ReturnType<typeof symbolOf>> {
+  const verified = await loadVerified(ctx, src);
+  return (entry, path) => symbolOf(src, entry, path, verified);
+}
+
 /** Catalogue records of one table of contents: every entry with a page under the source's bases. */
 function tocRecords(
   src: DocfxSource,
@@ -163,6 +176,39 @@ async function readToc(
   if (entries === undefined) throw unreadable(file.url, 'It has no "items" list');
   const records = tocRecords(src, file, entries, bases, verified);
   if (records.length === 0) throw unreadable(file.url, 'It lists no page of this source');
+  return records;
+}
+
+/**
+ * The records of a source's tables of contents, in their order: titles, hierarchy and, for
+ * the Python references, symbols. This is the first rung of an enumeration, and what the
+ * `legacy-help` adapter lists an earlier release from when that release publishes no
+ * listing of its own (the pages keep their paths from release to release).
+ *
+ * @param onFailure called for a file that cannot be read; it decides whether the rest may
+ *   still be listed (see `tolerate`).
+ */
+export async function tocCatalogue(
+  ctx: Ctx,
+  src: BoundSource<'docfx-esri'>,
+  onFailure: (error: unknown, what: string) => void,
+): Promise<CatalogRecord[]> {
+  const bases = sourceBaseUrls(src.source, src.line);
+  const verified = await loadVerified(ctx, src);
+  let files: TocFile[] = [];
+  try {
+    files = await tocFiles(ctx, src);
+  } catch (error) {
+    onFailure(error, 'The root table of contents');
+  }
+  const records: CatalogRecord[] = [];
+  for (const file of files.slice(0, MAX_TOC_FILES)) {
+    try {
+      records.push(...(await readToc(ctx, src, file, bases, verified)));
+    } catch (error) {
+      onFailure(error, `Table of contents ${file.url}`);
+    }
+  }
   return records;
 }
 
@@ -250,22 +296,7 @@ export const docfxEsriAdapter: SourceAdapter<'docfx-esri'> = {
       tolerate(ctx, src, error, what);
     };
 
-    if (ctx.policy.enabled('site-index')) {
-      const verified = await loadVerified(ctx, src);
-      let files: TocFile[] = [];
-      try {
-        files = await tocFiles(ctx, src);
-      } catch (error) {
-        without(error, 'The root table of contents');
-      }
-      for (const file of files.slice(0, MAX_TOC_FILES)) {
-        try {
-          add(await readToc(ctx, src, file, bases, verified));
-        } catch (error) {
-          without(error, `Table of contents ${file.url}`);
-        }
-      }
-    }
+    if (ctx.policy.enabled('site-index')) add(await tocCatalogue(ctx, src, without));
 
     try {
       const locs = await readSitemap(ctx, src, `${root}sitemap.xml`, SITEMAP_REQUESTS);
@@ -302,7 +333,7 @@ export const docfxEsriAdapter: SourceAdapter<'docfx-esri'> = {
     const { symbols, gpParameters } = src.source.config;
     // A class of the Python reference: its properties and methods are its members.
     if (symbols === 'toc' && gpParameters !== true) {
-      return selectPythonMember(withPythonMembers(page), target.select);
+      return withPythonMembers(page, target.select);
     }
     if (gpParameters !== true) return page;
     try {

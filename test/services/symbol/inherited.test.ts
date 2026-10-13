@@ -99,10 +99,95 @@ describe('lookup: inherited members', () => {
     expect((error as McpDocError).code).toBe('SYMBOL_NOT_FOUND');
   });
 
-  it('does not read the page of the type when no other type has a member of that name', async () => {
+  it('reads the page of the type once, and no other, when no type has a member of that name', async () => {
     const h = harness([`${MAP_VIEW_URL}#goTo`]);
-    await lookup(h, 'FeatureLayer.noSuchMember').catch(() => undefined);
-    expect(h.adapter('astro').count('read')).toBe(0);
+    const error: unknown = await lookup(h, 'FeatureLayer.noSuchMember').catch((e: unknown) => e);
+    expect((error as McpDocError).code).toBe('SYMBOL_NOT_FOUND');
+    // The page of the type is where an inherited member would be documented.
+    expect(h.adapter('astro').count('read')).toBe(1);
+  });
+});
+
+// Regression (the README's own example): `FeatureLayer.featureReduction`, `MapView.when`,
+// `Map.add` and `Graphic.clone` answered SYMBOL_NOT_FOUND. The JavaScript reference indexes
+// an inherited member under the mixin that declares it, the class page documents it in full
+// ("Inherited from: FeatureReductionLayer"), and that page was only read for sources that
+// index no members at all.
+describe('lookup: an inherited member that the page of the type documents', () => {
+  const LAYER_URL = `${CORE}/layers/TideLayer/`;
+  const tideLayer = makeRecord({
+    ref: LAYER_URL,
+    product: 'js-maps-sdk',
+    source: 'core',
+    kind: 'api',
+    title: 'TideLayer',
+    symbol: 'TideLayer',
+    qualified: 'TideLayer',
+    symbolKind: 'class',
+  });
+  const ownMember = makeRecord({
+    ref: `${LAYER_URL}#refresh`,
+    product: 'js-maps-sdk',
+    source: 'core',
+    kind: 'api',
+    title: 'refresh',
+    symbol: 'refresh',
+    qualified: 'TideLayer.refresh',
+    parent: 'TideLayer',
+    symbolKind: 'method',
+  });
+  // 250 other types declare `when`: too many to tell which one the page means by its links.
+  const elsewhere = Array.from({ length: 250 }, (_, i) =>
+    makeRecord({
+      ref: `${CORE}/mixins/Mixin${i}/#when`,
+      product: 'js-maps-sdk',
+      source: 'core',
+      kind: 'api',
+      title: 'when',
+      symbol: 'when',
+      qualified: `Mixin${i}.when`,
+      parent: `Mixin${i}`,
+      symbolKind: 'method',
+    }),
+  );
+  const page = makeDocPage({
+    url: LAYER_URL,
+    kind: 'api',
+    product: 'js-maps-sdk',
+    source: 'core',
+    markdown: [
+      '# TideLayer',
+      'A layer of tide gauges.',
+      '### refresh',
+      'Fetches the gauges again.',
+      '### when',
+      '```ts\nwhen(callback?: Function): Promise<this>\n```',
+      'Resolves when the layer is ready.',
+      'Inherited from: [PromiseMixin](https://developers.arcgis.com/javascript/latest/references/core/mixins/PromiseMixin/)',
+    ].join('\n\n'),
+    members: [
+      { id: 'refresh', name: 'refresh', kind: 'method' },
+      { id: 'when', name: 'when', kind: 'method', inheritedFrom: 'PromiseMixin' },
+    ],
+  });
+
+  it('answers from the page of the type and names where the member comes from', async () => {
+    const h = makeHarness({
+      records: [tideLayer, ownMember, ...elsewhere],
+      adapters: { astro: { slices: true } },
+    });
+    h.adapter('astro').addPage(page);
+    const response = await lookup(h, 'TideLayer.when');
+    expect(response.record.qualified).toBe('TideLayer.when');
+    expect(response.text).toContain('when(callback?: Function): Promise<this>');
+    expect(response.text).not.toContain('Fetches the gauges again.');
+    expect(response.page.notices).toContain('TideLayer inherits when from PromiseMixin.');
+  });
+
+  it('does not take the placeholder of an unreadable page for the member', async () => {
+    const h = makeHarness({ records: [tideLayer, ownMember] });
+    const error: unknown = await lookup(h, 'TideLayer.when').catch((e: unknown) => e);
+    expect((error as McpDocError).code).toBe('SYMBOL_NOT_FOUND');
   });
 });
 

@@ -297,15 +297,173 @@ describe('resolveSymbol: the resolution table', () => {
     const widgets = scope('widgets-sdk', records);
 
     it.each([
-      ['TideLayr.queryBerths', 'found:pkg/TideLayer.queryBerths@simple'],
+      // A misspelt owner is a guess, and the answer says so ("was matched to").
+      ['TideLayr.queryBerths', 'found:pkg/TideLayer.queryBerths@case-insensitive'],
       ['TideLayr.queryBerthz', 'found:pkg/TideLayer.queryBerths@fuzzy'],
+      // The owner as written behind another module path is still that owner.
       ['layers/TideLayer.queryBerths', 'found:pkg/TideLayer.queryBerths@simple'],
+      // Regression: an exact name on a slash-qualified record was classed as a loose match
+      // and got a "was matched to" note.
+      ['TideLayer.queryBerths', 'found:pkg/TideLayer.queryBerths@simple'],
+      ['pkg.TideLayer.queryBerths', 'found:pkg/TideLayer.queryBerths@simple'],
+      ['pkg/TideLayer', 'found:pkg/TideLayer@simple'],
     ])('%s -> %s', (input, expected) => {
       expect(outcome(resolveSymbol(input, [widgets]))).toBe(expected);
     });
 
     it('stays ambiguous when the written type resembles none of the owners', () => {
       expect(resolveSymbol('Unrelated.queryBerths', [widgets]).kind).toBe('ambiguous');
+    });
+  });
+
+  // Regression: `@arcgis/core/widgets/LayerList`, the Next call the server itself printed,
+  // read `widgets` as the class `Widgets` and `LayerList` as a member it does not have.
+  describe('a module path with a directory that is a class name but for its case', () => {
+    const type = (qualified: string, symbolKind = 'class'): CatalogRecord =>
+      makeRecord({
+        ref: `https://d/${qualified}/`,
+        symbol: qualified.split('/').at(-1) ?? qualified,
+        qualified,
+        symbolKind,
+      });
+    const records = [
+      type('@pkg/core/webdoc/Widgets'),
+      type('@pkg/core/widgets/LayerList'),
+      type('@pkg/core/geometry/Point'),
+      type('@pkg/core/portal/jsonTypes/Point', 'type'),
+      type('@pkg/core/geometry/Geometry'),
+      makeRecord({
+        ref: 'https://d/mixin/#when',
+        symbol: 'when',
+        qualified: '@pkg/core/mixins/Promised.when',
+        parent: '@pkg/core/mixins/Promised',
+        symbolKind: 'method',
+      }),
+    ];
+    const pkg = scope('widgets-sdk', records);
+
+    it.each([
+      ['widgets/LayerList', 'found:@pkg/core/widgets/LayerList@simple'],
+      ['@pkg/core/widgets/LayerList', 'found:@pkg/core/widgets/LayerList@simple'],
+      ['geometry/Point', 'found:@pkg/core/geometry/Point@simple'],
+      // An inherited member behind a type written without its capitals still names the type.
+      ['geometry.when', 'none:@pkg/core/geometry/Geometry'],
+      // No such module: the type is found, and the answer admits that the path was a guess.
+      ['nowhere/Widgets', 'found:@pkg/core/webdoc/Widgets@case-insensitive'],
+    ])('%s -> %s', (input, expected) => {
+      expect(outcome(resolveSymbol(input, [pkg]))).toBe(expected);
+    });
+
+    // Regression: `Point`, `Extent` and `Color` were AMBIGUOUS_SYMBOL because a type alias
+    // of the same name tied with the class.
+    it('answers with the class when a type alias shares its name, and lists the alias', () => {
+      const resolution = resolveSymbol('Point', [pkg]);
+      expect(outcome(resolution)).toBe('found:@pkg/core/geometry/Point@simple');
+      expect(
+        resolution.kind === 'found' ? resolution.alternates.map((c) => c.record.qualified) : [],
+      ).toEqual(['@pkg/core/portal/jsonTypes/Point']);
+    });
+  });
+
+  // Regression: `MapTool` of the Pro SDK said "4 symbols equally well" and listed the two
+  // constructors, which rank after the two types; and the public type tied with a namesake
+  // in an `Internal` namespace.
+  it('lists only what ties, and prefers a public type to an internal namesake', () => {
+    const tool = (namespace: string): CatalogRecord[] => [
+      makeRecord({
+        ref: `https://d/${namespace}/`,
+        symbol: 'DockTool',
+        qualified: `${namespace}.DockTool`,
+        symbolKind: 'type',
+      }),
+      makeRecord({
+        ref: `https://d/${namespace}/#ctor`,
+        symbol: 'DockTool',
+        qualified: `${namespace}.DockTool.DockTool`,
+        parent: `${namespace}.DockTool`,
+        symbolKind: 'constructor',
+      }),
+    ];
+    const tied = scope('widgets-sdk', [...tool('Harbour.Mapping'), ...tool('Harbour.Editing')]);
+    const ambiguous = resolveSymbol('DockTool', [tied]);
+    expect(ambiguous.kind === 'ambiguous' ? ambiguous.candidates.map((c) => displayName(c.record)) : [])
+      .toEqual(['Harbour.Mapping.DockTool', 'Harbour.Editing.DockTool']);
+
+    const mixed = scope('widgets-sdk', [...tool('Harbour.Internal.Editing'), ...tool('Harbour.Mapping')]);
+    expect(outcome(resolveSymbol('DockTool', [mixed]))).toBe('found:Harbour.Mapping.DockTool@simple');
+  });
+
+  // Regression: `esriConfig.apiKey` was ambiguous between eight types with an `apiKey`, and
+  // `arcgis.gis.Folder.add` and `gis.content.add` were answered with another class's `add`.
+  describe('a qualifier that is not the qualified name of the owner', () => {
+    const member = (owner: string, name: string): CatalogRecord =>
+      makeRecord({
+        ref: `https://d/${owner}/#${name}`,
+        symbol: name,
+        qualified: `${owner}.${name}`,
+        parent: owner,
+        symbolKind: 'method',
+      });
+    const records = [
+      makeRecord({ ref: 'https://d/gis/', symbol: 'gis', qualified: 'tides.gis', symbolKind: 'module' }),
+      member('tides.gis._impl._content.Folder', 'add'),
+      member('tides.gis.ContentManager', 'add'),
+      member('tides.gis.SharingManager', 'add'),
+      member('tides.gis.UserManager', 'search'),
+      member('tides.gis.ContentManager', 'search'),
+      member('@pkg/core/config/Config', 'apiKey'),
+      member('@pkg/components/tide-directions', 'apiKey'),
+      member('@pkg/core/layers/TileLayer', 'apiKey'),
+    ];
+    const tides = scope('widgets-sdk', records);
+
+    it.each([
+      ['tides.gis.Folder.add', 'found:tides.gis._impl._content.Folder.add@simple'],
+      ['Folder.add', 'found:tides.gis._impl._content.Folder.add@simple'],
+      ['gis.content.add', 'found:tides.gis.ContentManager.add@case-insensitive'],
+      ['gis.users.search', 'found:tides.gis.UserManager.search@case-insensitive'],
+      ['esriConfig.apiKey', 'found:@pkg/core/config/Config.apiKey@case-insensitive'],
+    ])('%s -> %s', (input, expected) => {
+      expect(outcome(resolveSymbol(input, [tides]))).toBe(expected);
+    });
+
+    it('does not pick a member for an owner that matches none', () => {
+      const resolution = resolveSymbol('tides.gis.Nope.add', [tides]);
+      expect(resolution.kind).toBe('ambiguous');
+      expect(resolution.kind === 'ambiguous' ? resolution.candidates : []).toHaveLength(3);
+    });
+  });
+
+  // Regression: `generateToken` in rest-api silently answered with the ArcGIS Server
+  // operation because its source is listed first; operations of different services are peers.
+  describe('REST operations of the same name in several sources', () => {
+    const operation = (source: string, qualified: string | undefined, breadcrumb: string) =>
+      makeRecord({
+        ref: `https://d/${source}/issue-token/`,
+        product: 'rest-api',
+        source,
+        symbol: 'issueToken',
+        ...(qualified === undefined ? {} : { qualified }),
+        symbolKind: 'operation',
+        breadcrumb,
+      });
+    const records = [
+      operation('server', 'ServerRoot.issueToken', 'Server Root'),
+      operation('portal', undefined, 'Portal Root'),
+    ];
+    const services = scope('rest-api', records);
+
+    it('is ambiguous by the bare name', () => {
+      expect(resolveSymbol('issueToken', [services]).kind).toBe('ambiguous');
+    });
+
+    it('is decided by the owner, which for a record without one is its place in the navigation', () => {
+      expect(outcome(resolveSymbol('ServerRoot.issueToken', [services]))).toBe(
+        'found:ServerRoot.issueToken@qualified',
+      );
+      const portal = resolveSymbol('PortalRoot.issueToken', [services]);
+      expect(portal.kind === 'found' ? portal.winner.record.source : '').toBe('portal');
+      expect(resolveSymbol('Nope.issueToken', [services]).kind).toBe('ambiguous');
     });
   });
 

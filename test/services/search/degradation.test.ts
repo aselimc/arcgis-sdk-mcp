@@ -6,7 +6,7 @@ import { createSearchService } from '../../../src/services/search/service.js';
 import { makeRecord } from '../../support/builders.js';
 import { HOUR } from '../../support/fake-clock.js';
 import { makeCall } from '../../support/make-ctx.js';
-import { JS_RECORDS } from '../support/catalogue.js';
+import { JS_RECORDS, PRODUCTS } from '../support/catalogue.js';
 import { fakeVersions, makeHarness } from '../support/harness.js';
 import { adapterRegistry, TestAdapter } from '../support/test-adapter.js';
 
@@ -95,21 +95,31 @@ describe('search degradation', () => {
       h.call(),
     );
     expect(response.total).toBe(0);
+    // The same search without the filter comes first, as a call that can be copied.
     expect(response.notes).toEqual([
-      'Other content types have hits: repeat without "kind", or with kind "guide".',
+      'Other content types have hits (the best is a "guide" page): repeat without "kind", arcgis_docs_search({"query":"authentication","product":"js-maps-sdk"}).',
       expect.stringContaining('ARCGIS_DOCS_SOURCES=+site-search'),
       expect.stringContaining('does not prove'),
     ]);
   });
 
-  it('names the nearest other product when the scope has no hit', async () => {
-    const h = makeHarness();
-    const response = await h.services.search.search(
-      { query: 'kotlin geodatabase', product: 'js-maps-sdk', limit: 3 },
-      h.call(),
+  // Regression: a Flutter search for "route" named the R bridge as the nearest product, and
+  // a Unity search the JavaScript SDK: whatever the router guessed from one word.
+  it('names another product for a query without hits only when it is related to the scope', async () => {
+    const related = PRODUCTS.map((product) =>
+      product.id === 'js-maps-sdk' ? { ...product, related: ['kotlin-maps-sdk'] } : product,
     );
-    expect(response.total).toBe(0);
-    expect(response.notes).toContain('Nearest other product for this query: kotlin-maps-sdk.');
+    const query = { query: 'kotlin geodatabase', product: 'js-maps-sdk', limit: 3 };
+    const linked = makeHarness({ products: related });
+    const withRelation = await linked.services.search.search(query, linked.call());
+    expect(withRelation.total).toBe(0);
+    expect(withRelation.notes).toContain('Nearest other product for this query: kotlin-maps-sdk.');
+
+    const apart = makeHarness({
+      products: PRODUCTS.map((product) => ({ ...product, related: [] })),
+    });
+    const without = await apart.services.search.search(query, apart.call());
+    expect(without.notes.join('\n')).not.toContain('Nearest other product');
   });
 
   it('says which sources were not searched while their index is building', async () => {

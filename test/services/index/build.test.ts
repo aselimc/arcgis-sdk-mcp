@@ -73,11 +73,13 @@ describe('index build', () => {
     expect(call.budget.used).toBe(0);
   });
 
-  it('caps the build budget at requestsPerIndexBuild', async () => {
+  // Regression: the budget was the smaller of the adapter's declared need and a fixed 30, so
+  // a source of 16 help books (48 requests, declared as 84) failed its first build by design.
+  it.each([84, 2])('gives the build the %i requests its adapter declares', async (declared) => {
     const h = makeHarness({
       products: [product()],
       records: [],
-      adapters: { gatsby: { maxEnumerateRequests: 500 } },
+      adapters: { gatsby: { maxEnumerateRequests: declared } },
     });
     let seen: RequestBudget | undefined;
     h.adapter('gatsby').enumerate = async (_ctx, src) => {
@@ -85,7 +87,7 @@ describe('index build', () => {
       return records(3);
     };
     await h.index.ensure(product(), undefined, makeLine(), h.call());
-    expect(seen?.maxRequests).toBe(h.ctx.config.limits.requestsPerIndexBuild);
+    expect(seen?.maxRequests).toBe(declared);
   });
 
   it('builds once for concurrent callers', async () => {

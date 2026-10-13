@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { createRouter } from '../../src/registry/router.js';
-import { makeProduct } from '../support/builders.js';
-import { loadData } from './load-data.js';
+import { DEFAULT_CONFIDENCE, createRouter } from '../../src/registry/router.js';
+import { makeProduct, makeSource } from '../support/builders.js';
+import { PRODUCTS } from './registry-data.js';
 
-const data = await loadData();
-const route = createRouter(data.products);
-const ids = new Set(data.products.map((product) => product.id));
+const route = createRouter(PRODUCTS);
+const ids = new Set(PRODUCTS.map((product) => product.id));
+
+/** The default set of a question that names no product, and of a bare class or function name. */
+const DEFAULT = ['js-maps-sdk', 'rest-api', 'developer-guide'];
+const DEFAULT_SYMBOL = ['js-maps-sdk', 'python-api', 'swift-maps-sdk'];
+const productsOf = (query: string, n?: number): string[] =>
+  route(query, n).map((entry) => entry.product);
 
 /** `[query, product expected first]`: the routing table of design section 9. */
 const TOP: Array<[string, string]> = [
@@ -106,21 +111,116 @@ describe('query routing', () => {
   it('honours the limit', () => {
     expect(route('python', 1)).toHaveLength(1);
     expect(route('python', 0)).toEqual([]);
-    expect(route('how to add a feature layer in javascript', 2)).toHaveLength(2);
+    expect(route('vector tiles', 2)).toHaveLength(2);
+    expect(route('what is new', 2)).toHaveLength(2);
   });
 
-  it.each(['', '   ', 'what is new', 'arcgis', 'maps sdk', 'sdk', 'qwertyuiop'])(
-    'returns nothing for %j, which names no product',
+  it.each(['', '   '])('returns nothing for the empty query %j', (query) => {
+    expect(route(query)).toEqual([]);
+  });
+
+  // Regression: without a project these questions reached no product at all (0 hits), and a
+  // tie among many products was answered with nothing.
+  it.each(['what is new', 'arcgis', 'maps sdk', 'sdk', 'qwertyuiop', 'display a map', 'offline'])(
+    'answers %j, which names no product, with the default set and says it is a default',
     (query) => {
-      expect(route(query)).toEqual([]);
+      expect(route(query)).toEqual(
+        DEFAULT.map((product) => ({ product, confidence: DEFAULT_CONFIDENCE })),
+      );
     },
   );
 
+  it('keeps the default set apart from evidence: its confidence is below every real route', () => {
+    for (const [query] of TOP) {
+      for (const entry of route(query, 10)) {
+        expect(entry.confidence, query).toBeGreaterThan(DEFAULT_CONFIDENCE);
+      }
+    }
+  });
+
+  it('answers with nothing instead of the default set when the default is switched off', () => {
+    const evidence = createRouter(PRODUCTS, { fallback: false });
+    for (const query of ['what is new', 'maps sdk', 'qwertyuiop', 'TotallyMadeUpClassXyz']) {
+      expect(evidence(query), query).toEqual([]);
+    }
+    expect(evidence('kotlin offline map')[0]?.product).toBe('kotlin-maps-sdk');
+  });
+
+  /** `[query, products in order]`: everyday questions asked without naming a product. */
+  const EVERYDAY: Array<[string, string[]]> = [
+    ['add a feature layer to a map', DEFAULT],
+    ['find address', DEFAULT],
+    ['basemap', DEFAULT],
+    ['change basemap', DEFAULT],
+    ['breaking changes', DEFAULT],
+    ['get started', DEFAULT],
+    ['release notes', DEFAULT],
+    ['v4 34', DEFAULT],
+    ['draw a polygon', ['js-maps-sdk']],
+    ['legend', ['js-maps-sdk']],
+    ['heatmap', ['js-maps-sdk']],
+    // These went to Velocity, to OpenLayers and format specifications, and to the web map
+    // specification: products that share a word with the question.
+    ['time slider', ['js-maps-sdk']],
+    ['how do I add a layer to a map', ['js-maps-sdk', 'openlayers-arcgis', 'i3s-spec']],
+    ['create a web map', ['js-maps-sdk', 'web-map-spec', 'web-scene-spec']],
+    ['3d scene', ['js-maps-sdk', 'i3s-spec', 'web-scene-spec']],
+    ['migrate from 4.x to 5.x', ['js-maps-sdk']],
+    ['geocode an address', ['rest-api']],
+  ];
+
+  it.each(EVERYDAY)('routes the everyday question %j to %j', (query, expected) => {
+    expect(productsOf(query)).toEqual(expected);
+  });
+
+  it('puts the web SDK ahead of the protocol buffer definitions for "Buffer"', () => {
+    expect(productsOf('Buffer')).toEqual(['arcpy', 'arcgis-pbf', 'knowledge-pbf']);
+  });
+
+  // Regression: "GeometryEngine" was looked up in oss-libraries, unreal-maps-sdk and
+  // geoanalytics-engine, and an invented class name in arcpy and cim-spec, because the humps
+  // of the name were read as words of a question.
+  it.each(['GeometryEngine', 'TotallyMadeUpClassXyz', 'queryFeatures', 'some_function_name'])(
+    'sends the bare identifier %j to the leading references, not to products sharing a hump',
+    (query) => {
+      expect(route(query)).toEqual(
+        DEFAULT_SYMBOL.map((product) => ({ product, confidence: DEFAULT_CONFIDENCE })),
+      );
+    },
+  );
+
+  it('still routes an identifier that a product lists whole', () => {
+    expect(productsOf('FeatureLayer')).toEqual(['js-maps-sdk']);
+    expect(productsOf('SearchCursor')[0]).toBe('arcpy');
+  });
+
+  it('lets a product that the query names win over the prior of the web SDK', () => {
+    expect(productsOf('web map specification operational layers')[0]).toBe('web-map-spec');
+    expect(productsOf('kotlin offline map')[0]).toBe('kotlin-maps-sdk');
+    expect(productsOf('esri leaflet basemap')[0]).toBe('esri-leaflet');
+    expect(productsOf('upgrade')).not.toContain('js-maps-sdk');
+    // The prior never claims that the query names the product.
+    for (const [query] of EVERYDAY) {
+      for (const entry of route(query)) expect(entry.confidence, query).toBeLessThan(0.95);
+    }
+  });
+
+  // Regression: "download offline map area" was scoped to Field Maps (end-user help) alone.
+  it('lets end-user help lead only on a word that is distinctly its own', () => {
+    expect(productsOf('download offline map area')).toEqual([
+      'developer-guide',
+      'field-maps',
+      'business-analyst',
+    ]);
+    expect(productsOf('field maps offline area')).toEqual(['field-maps']);
+    expect(productsOf('dashboards')).toEqual(['dashboards']);
+  });
+
   it('never routes to a link-tier product and returns known ids only', () => {
     const eligible = new Set(
-      data.products.filter((product) => product.tier !== 'link').map((product) => product.id),
+      PRODUCTS.filter((product) => product.tier !== 'link').map((product) => product.id),
     );
-    const words = data.products.flatMap((product) => [
+    const words = PRODUCTS.flatMap((product) => [
       product.id,
       product.name,
       ...product.keywords,
@@ -133,43 +233,33 @@ describe('query routing', () => {
     }
   });
 
-  it.skipIf(!ids.has('arcgis-enterprise-k8s'))(
-    'keeps Kubernetes help out of a question about clustering points on a map',
-    () => {
-      const products = route('cluster points with popups').map((entry) => entry.product);
-      expect(products[0]).toBe('js-maps-sdk');
-      expect(products).not.toContain('arcgis-enterprise-k8s');
-      expect(route('kubernetes cluster upgrade')[0]?.product).toBe('arcgis-enterprise-k8s');
-    },
-  );
-
-  it.skipIf(!ids.has('developer-guide'))(
-    'sends a question about OAuth flows to the guide that explains authentication',
-    () => {
-      expect(route('OAuth PKCE').map((entry) => entry.product)).toContain('developer-guide');
-    },
-  );
-
-  it('ranks a retired product far below a live one on the same evidence', () => {
-    const routes = route('runtime sdk android 100.15', 10);
-    const tombstone = routes.find((entry) => entry.product === 'runtime-100');
-    expect(routes[0]?.product).toBe('kotlin-maps-sdk');
-    if (tombstone !== undefined) expect(tombstone.confidence).toBeLessThan(routes[0]!.confidence);
+  it('keeps Kubernetes help out of a question about clustering points on a map', () => {
+    const products = productsOf('cluster points with popups');
+    expect(products[0]).toBe('js-maps-sdk');
+    expect(products).not.toContain('arcgis-enterprise-k8s');
+    expect(productsOf('kubernetes cluster upgrade')[0]).toBe('arcgis-enterprise-k8s');
   });
 
-  it.skipIf(!ids.has('ai-agents'))(
-    'adds the AI overview product to queries about the AI components',
-    () => {
-      for (const query of ['ai components enterprise', 'arcgis-assistant setup', 'ai-components']) {
-        expect(
-          route(query)
-            .slice(0, 2)
-            .map((entry) => entry.product),
-          query,
-        ).toEqual(['js-maps-sdk', 'ai-agents']);
-      }
-    },
-  );
+  it('sends a question about OAuth flows to the guide that explains authentication', () => {
+    expect(productsOf('OAuth PKCE')).toContain('developer-guide');
+  });
+
+  // Runtime 100.x is not retired yet, but it documents nothing itself: it is a card of four
+  // migration guides, and a question is better answered by the SDK it points to.
+  it('ranks a product that only points elsewhere far below the SDK it points to', () => {
+    const routes = route('runtime sdk android 100.15', 10);
+    expect(routes[0]?.product).toBe('kotlin-maps-sdk');
+    const card = routes.find((entry) => entry.product === 'runtime-100');
+    expect(card?.confidence ?? 0).toBeLessThan(routes[0]?.confidence ?? 0);
+    // By name it is still found.
+    expect(productsOf('runtime-100')).toEqual(['runtime-100']);
+  });
+
+  it('adds the AI overview product to queries about the AI components', () => {
+    for (const query of ['ai components enterprise', 'arcgis-assistant setup', 'ai-components']) {
+      expect(productsOf(query).slice(0, 2), query).toEqual(['js-maps-sdk', 'ai-agents']);
+    }
+  });
 });
 
 describe('createRouter', () => {
@@ -253,6 +343,29 @@ describe('createRouter', () => {
     expect(routed('cluster administration popup').map((entry) => entry.product)).toContain(
       'cluster-help',
     );
+  });
+
+  it('treats a product whose every source is a curated link list like a tombstone', () => {
+    const entries = [{ url: 'https://developers.arcgis.com/x/', title: 'X', kind: 'guide' as const }];
+    const card = makeProduct({
+      id: 'old-gadgets',
+      name: 'Old Gadgets',
+      aliases: [],
+      keywords: ['charts'],
+      status: 'deprecated',
+      sources: [makeSource('static', { entries })],
+    });
+    const routes = createRouter([gadgets, card, widgets])('charts', 5);
+    expect(routes.map((entry) => entry.product)).toEqual(['gadgets-sdk']);
+    // Deprecated counts 0.6; a card counts like a retired product, 0.2. Its name still finds it.
+    const named = createRouter([card, widgets], { fallback: false })('gadgets');
+    expect(named.map((entry) => entry.product)).toEqual(['old-gadgets']);
+    expect(named[0]?.confidence).toBeCloseTo(0.75 * 0.2, 2);
+  });
+
+  it('has no default set to offer in a registry without those products', () => {
+    expect(local('qwertyuiop')).toEqual([]);
+    expect(local('SomeUnknownClass')).toEqual([]);
   });
 
   it('skips link-tier products, also when the query is their id', () => {

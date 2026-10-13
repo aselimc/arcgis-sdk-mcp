@@ -34,9 +34,10 @@ function rewriteProse(text: string, base: URL): string {
   const swap = (target: string): string => resolve(target, base) ?? target;
   return (
     text
-      // `[a](<path with spaces>)`: the target runs to the closing bracket.
+      // `[a](<path with spaces>)`: the target runs to the closing bracket. It cannot hold a
+      // `<`, and excluding it keeps a line of unclosed `](<` from being rescanned from each.
       .replace(
-        /(\]\(\s*<)([^>\n]+)(?=>)/g,
+        /(\]\(\s*<)([^<>\n]+)(?=>)/g,
         (_whole, open: string, target: string) => `${open}${swap(target)}`,
       )
       .replace(

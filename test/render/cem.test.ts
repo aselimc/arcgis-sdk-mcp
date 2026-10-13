@@ -39,6 +39,8 @@ describe('renderCem: component', () => {
       'method:componentOnReady',
       'event:event-harbourReadingChange',
       'event:event-harbourReady',
+      'slot:slot-default',
+      'slot:slot-label',
     ]);
     for (const member of page.members ?? []) {
       expect(sectionIds(page)).toContain(member.id);
@@ -55,15 +57,34 @@ describe('renderCem: component', () => {
     expect(placing).toMatchObject({ level: 2, parent: 'harbour-gauge' });
   });
 
-  it('lists slots and CSS custom properties without making them members', () => {
-    const text = pageText(page);
-    expect(text).toContain(
-      '## Slots\n\n- _default slot_: Content shown under the dial.\n- `label`: Replaces the built-in label.',
+  // Regression: the member index of `arcgis-map` listed properties, methods and events but
+  // not its ten slots, which are what a caller needs to place child components.
+  it('makes slots members, so that they are indexed and can be looked up by name', () => {
+    expect(pageText(page)).toContain(
+      '## Slots\n\n### default\n\nContent shown under the dial.\n\n### label\n\nReplaces the built-in label.',
     );
-    expect(text).toContain(
+    expect(page.members?.filter((member) => member.kind === 'slot')).toEqual([
+      {
+        id: 'slot-default',
+        name: 'default',
+        kind: 'slot',
+        summary: 'Content shown under the dial.',
+      },
+      { id: 'slot-label', name: 'label', kind: 'slot', summary: 'Replaces the built-in label.' },
+    ]);
+    expect(
+      renderCem({ ...input, member: 'label' }, meta).sections.map((section) => section.markdown),
+    ).toEqual(['### label\n\nReplaces the built-in label.']);
+    expect(pageText(renderCem(input, meta, { detail: 'summary' }))).toContain(
+      '## Slots\n\n- `default`: Content shown under the dial.\n- `label`: Replaces the built-in label.',
+    );
+  });
+
+  it('lists CSS custom properties without making them members', () => {
+    expect(pageText(page)).toContain(
       '## CSS custom properties\n\n- `--harbour-gauge-needle-color`: Colour of the needle.',
     );
-    expect(page.members?.some((member) => member.name === 'label')).toBe(false);
+    expect(page.members?.some((member) => member.name.startsWith('--'))).toBe(false);
   });
 
   it('omits private fields and the runtime pseudo base class', () => {

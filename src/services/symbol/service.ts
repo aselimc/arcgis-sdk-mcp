@@ -46,6 +46,7 @@ import {
 import { VERSION_ADDRESSED, sourceRank, symbolSources, targetOf, type Target } from './target.js';
 import { namedByTitle, titledRecords } from './titled.js';
 import {
+  documentsSeveralTypes,
   isTypeNamed,
   memberCandidate,
   memberEntry,
@@ -73,8 +74,8 @@ interface Prepared {
 
 /** What a member of a type page turned out to be. */
 type FromType =
-  | { winner: Candidate; page: DocPage; documented: boolean; inheritedFrom?: string }
-  | { names: string[] };
+  | { winner: Candidate; page?: DocPage; documented: boolean; inheritedFrom?: string }
+  | { names: string[]; severalTypes: boolean };
 
 function fragmentOf(ref: string): string | undefined {
   const raw = ref.includes('#') ? ref.slice(ref.indexOf('#') + 1) : '';
@@ -220,7 +221,26 @@ export function createSymbolService(
             elsewhere.length > 0
               ? elsewhere
               : nearest(member, known, MAX_NEAREST).map((name) => `${displayName(type)}.${name}`);
-          return { names: names.slice(0, MAX_NEAREST) };
+          return {
+            names: names.slice(0, MAX_NEAREST),
+            severalTypes: !unread && documentsSeveralTypes(read),
+          };
+        }
+        if (documentsSeveralTypes(read)) {
+          // The page was asked for by the bare member name, which several of its types have.
+          // The entry's id is the member that was meant: its own record when the catalogue
+          // has one, and in any case the anchor to read, so that the answer is that member
+          // and is named as what it is.
+          const { target } = placeOf(type.product);
+          const indexed = index
+            .symbols(type.product, target.line.id)
+            .exact(entry.id)
+            .find((record) => record.qualified === entry.id);
+          const record = indexed ?? {
+            ...memberCandidate(type, entry.name).record,
+            ref: `${type.ref.split('#')[0] ?? type.ref}#${entry.id}`,
+          };
+          return { winner: candidateOf(record, 'member'), documented: true };
         }
         // A member found in the text of the page joins its member list, so that the detail
         // levels cut it out like any other.
@@ -314,10 +334,11 @@ export function createSymbolService(
         // The page of the type first: it documents its own members and, in references that
         // inline them (the JavaScript reference), the inherited ones as well.
         const fromType = await readFromType(knownType, memberName);
-        const declared =
-          'winner' in fromType && fromType.documented
-            ? undefined
-            : await readInherited(knownType, memberName);
+        // A page that documents several types links to every member of each of them: such a
+        // link is no statement that this type inherits the member.
+        const settled =
+          'winner' in fromType ? fromType.documented : fromType.severalTypes;
+        const declared = settled ? undefined : await readInherited(knownType, memberName);
         if (declared !== undefined) {
           winner = declared;
           inherited = inheritedNotice(

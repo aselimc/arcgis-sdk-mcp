@@ -56,16 +56,35 @@ export function memberEntry(
   const exact = members.filter((entry) => entry.name === member || entry.id === member);
   const pool =
     exact.length > 0 ? exact : members.filter((entry) => entry.name.toLowerCase() === lower);
-  // Entries that state different owners mean the page documents several types.
-  const owners = new Set(members.map(statedOwner).filter((stated) => stated !== undefined));
-  if (owner === undefined || owners.size <= 1) return pool[0];
+  if (owner === undefined || !documentsSeveralTypes(page)) return pool[0];
   const wanted = displayName(owner);
-  return pool.find((entry) => {
+  const fits = (entry: MemberEntry): boolean => {
     const stated = statedOwner(entry);
     return (
       stated === undefined || endsWithSegment(stated, wanted) || endsWithSegment(wanted, stated)
     );
-  });
+  };
+  // A class is often indexed by its public path and documented under its private one
+  // (`arcgis.gis.Folder`, `arcgis.gis._impl._content_manager.Folder`): the class name decides
+  // when no path fits.
+  const sameClass = (entry: MemberEntry): boolean =>
+    lastSegment(statedOwner(entry) ?? '') === lastSegment(wanted);
+  return pool.find(fits) ?? pool.find(sameClass);
+}
+
+function lastSegment(name: string): string {
+  return name.split(/::|[.#/]/).at(-1) ?? name;
+}
+
+/**
+ * True when the member list of a page states more than one owner: the page documents several
+ * types (a Sphinx module page), so a member on it is not thereby a member of the type asked for.
+ */
+export function documentsSeveralTypes(page: DocPage): boolean {
+  const owners = new Set(
+    (page.members ?? []).map(statedOwner).filter((stated) => stated !== undefined),
+  );
+  return owners.size > 1;
 }
 
 /** The names under which a page lists `member` when several types of the page have one. */
@@ -83,10 +102,14 @@ export function memberOwners(page: DocPage, member: string): string[] {
 
 const TABLE_ROW = /^\|(.+)\|\s*$/;
 
+/** A Markdown link whose label may hold escaped brackets: `[layers\[\]](url)`. */
+const CELL_LINK = /\[((?:\\.|[^\]\\])*)\]\(([^)\s]*)[^)]*\)/;
+
 /** A table cell as plain text: no code ticks, no link target, no array or optional marker. */
 function cellName(cell: string): string {
   return cell
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(new RegExp(CELL_LINK.source, 'g'), '$1')
+    .replace(/\\(.)/g, '$1')
     .replace(/[`*]/g, '')
     .replace(/\[\]|\?$/g, '')
     .trim();
@@ -101,10 +124,12 @@ function tableMember(sections: readonly DocSection[], member: string): MemberEnt
       const [first = '', ...rest] = cells;
       const name = cellName(first);
       if (name.toLowerCase() !== lower || rest.length === 0) continue;
-      const summary = rest
-        .map((cell) => cell.trim())
-        .filter((cell) => cell !== '')
-        .join(' ');
+      // A linked name leads to the page of the property's own type, which says the rest.
+      const target = CELL_LINK.exec(first)?.[2];
+      const summary = [
+        ...rest.map((cell) => cell.trim()).filter((cell) => cell !== ''),
+        ...(target === undefined || target === '' ? [] : [`Its value is documented at ${target}`]),
+      ].join(' ');
       return { id: name, name, kind: 'property', ...(summary === '' ? {} : { summary }) };
     }
   }

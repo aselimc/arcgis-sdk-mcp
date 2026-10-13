@@ -10,7 +10,13 @@
  *    name the script; otherwise, or when the named one is gone, its name is read from a
  *    topic page of the book;
  * 2. `flisting.htm`, the link list for browsers without scripts (live topics, short titles);
- * 3. the book's `sitemap.xml` (titles from the slug; it also lists redirect stubs).
+ * 3. the book's `sitemap.xml` (titles from the slug; it also lists redirect stubs);
+ * 4. the table of contents of the same book in the current release, when the product
+ *    documents that on doc.esri.com (`legacy-current.ts`). A release may publish none of the
+ *    three listings above, but its pages have the paths of the current ones.
+ *
+ * The same twin names the symbols of a Python reference: a listing has titles only, and
+ * which topic documents `arcpy.da.SearchCursor` is a rule the current release's source has.
  *
  * `config.enumerate: 'on-demand'` and `config.lines` are scheduling hints for the index
  * service (a book of an old release is listed only when a search names that release). The
@@ -23,13 +29,20 @@ import type { BoundSource, Ctx, ProbeResult, SourceAdapter } from '../../core/po
 import { expandTemplate } from '../../core/source-urls.js';
 import type { AdapterConfigMap, CatalogRecord, DocKind } from '../../core/types.js';
 import {
+  currentTwin,
+  listFromCurrent,
+  symbolNamer,
+  type CurrentTwin,
+  type ListedTopic,
+} from './legacy-current.js';
+import {
   findTocScripts,
   parseFileListing,
   parseTreedata,
   treePages,
   type TreePage,
 } from './legacy-treedata.js';
-import { selectPythonMember, withPythonMembers } from './python-members.js';
+import { withPythonMembers } from './python-members.js';
 import { readSitemap } from './sitemap.js';
 import {
   assertLive,
@@ -45,7 +58,8 @@ type Book = AdapterConfigMap['legacy-help']['books'][number];
 
 /**
  * Requests one book may use: a named script that is gone, the link list, a topic page and
- * the script that page names. The usual case is one.
+ * the script that page names (or the sitemap and the current release's table of contents).
+ * The usual case is one.
  */
 const REQUESTS_PER_BOOK = 4;
 /** Covers the largest source of the registry (21 books) in the worst case. */
@@ -54,11 +68,7 @@ const MAX_ENUMERATE_REQUESTS = 84;
 const SCRIPT_MAX_BYTES = 32 * 1024 * 1024;
 
 /** A topic found in a book: its URL, a title when the listing has one, and its headings. */
-interface Listed {
-  ref: string;
-  title: string;
-  ancestors: string[];
-}
+type Listed = ListedTopic;
 
 /** Requests a book may still issue. */
 interface Allowance {
@@ -167,6 +177,24 @@ async function readBookSitemap(ctx: Ctx, src: LegacySource, base: string): Promi
   return listed;
 }
 
+/** The topics of a book as its current release lists them; see `legacy-current.ts`. */
+async function listCurrentRelease(
+  ctx: Ctx,
+  src: LegacySource,
+  twin: CurrentTwin,
+  base: string,
+): Promise<Listed[]> {
+  let failure: McpDocError | undefined;
+  const listed = unique(
+    await listFromCurrent(ctx, twin, base, (error, what) => {
+      // A request that was not sent ends the listing; a missing file leaves the other files.
+      failure ??= tolerate(ctx, src, error, what);
+    }),
+  );
+  if (listed.length > 0) return listed;
+  throw failure ?? unusable(twin.scopeUrl, 'table of contents', 'It lists no topic of the book');
+}
+
 /** The table-of-contents script a topic page of the book loads, preferring one inside the book. */
 async function discoverScript(
   ctx: Ctx,
@@ -228,6 +256,15 @@ async function enumerateBook(
     (await attempt(`Topic list ${base}flisting.htm`, () => readListing(ctx, src, base))) ??
     (await attempt(`Sitemap ${base}sitemap.xml`, () => readBookSitemap(ctx, src, base)));
   if (listed === undefined) {
+    // The release lists nothing itself; the current one says what the book holds.
+    const twin = siteIndex ? currentTwin(src, book.path) : undefined;
+    const current =
+      twin === undefined
+        ? undefined
+        : await attempt(`The current release of ${base}`, () =>
+            listCurrentRelease(ctx, src, twin, base),
+          );
+    if (current !== undefined) return current;
     throw failure ?? unusable(base, 'book', 'The request allowance of the enumeration is spent');
   }
 
@@ -275,12 +312,23 @@ export const legacyHelpAdapter: SourceAdapter<'legacy-help'> = {
       // In a source of several books the book is the outermost level of the breadcrumb.
       const lead = books.length > 1 ? [humanizeSlug(book.path)] : [];
       try {
+        const twin = currentTwin(src, book.path);
+        const nameOf = twin === undefined ? undefined : await symbolNamer(ctx, twin);
+        const bookUrl = bookBase(src, book);
         for (const topic of await enumerateBook(ctx, src, book, allowance)) {
           if (records.has(topic.ref)) continue;
           const trail = [...lead, ...topic.ancestors];
+          // A listing of the release itself has titles only; the twin's rule names the symbol.
+          const symbol =
+            topic.symbol ??
+            (twin === undefined || !topic.ref.startsWith(bookUrl)
+              ? undefined
+              : nameOf?.(topic, `${twin.within}${topic.ref.slice(bookUrl.length)}`));
+          const kind = symbol === undefined ? pageKind(src) : 'api';
           records.set(topic.ref, {
-            ...recordOf(src, topic.ref, pageKind(src), topic.title || humanizeSlug(topic.ref)),
+            ...recordOf(src, topic.ref, kind, topic.title || humanizeSlug(topic.ref)),
             ...(trail.length === 0 ? {} : { breadcrumb: trail.join(BREADCRUMB_SEPARATOR) }),
+            ...symbol,
           });
         }
       } catch (error) {
@@ -308,7 +356,7 @@ export const legacyHelpAdapter: SourceAdapter<'legacy-help'> = {
     const page = await readHtmlPage(ctx, src, target, { kind: pageKind(src) });
     // The ArcPy reference of an earlier release is in this layout; any other page has no
     // property rows or method lines and comes back as it is.
-    return selectPythonMember(withPythonMembers(page), target.select);
+    return withPythonMembers(page, target.select);
   },
 
   probe(ctx, src): Promise<ProbeResult> {

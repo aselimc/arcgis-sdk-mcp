@@ -8,8 +8,7 @@ import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js
 import { sectionsFromMarkdown } from '../core/sections.js';
 import type { DocPage, SourceFile } from '../core/types.js';
 import { asRecord, str, strings } from './json.js';
-import { absolutizeLinks } from './links.js';
-import { isVerbatim, splitFrontMatter, titleOf } from './markdown.js';
+import { isVerbatim, readableMarkdown, splitFrontMatter, titleOf } from './markdown.js';
 import { blocks, inlineCode } from './md.js';
 import { buildSections, finishPage } from './page.js';
 
@@ -63,8 +62,9 @@ function baseName(name: string): string {
 /**
  * Renders a sample.
  *
- * - `sections` come from the README (links made absolute against `meta.url`); without one,
- *   from the metadata's title and description.
+ * - `sections` come from the README (links made absolute against `meta.url`; HTML comments,
+ *   hidden HTML and invisible characters removed, as for any Markdown document); without
+ *   one, from the metadata's title and description.
  * - `files` keep the order given, except that the files the metadata names as `snippets`
  *   (the sample's main sources) come first. Their text is not repeated in the sections.
  * - `title`, `relevantApis` and the category and keyword line of `header` come from
@@ -77,7 +77,7 @@ export function renderSource(
 ): DocPage {
   const metadata = asRecord(input.metadata);
   const readme = splitFrontMatter((input.readme ?? '').replace(/\r\n?/g, '\n'));
-  const body = isVerbatim(meta, opts) ? readme.body : absolutizeLinks(readme.body, meta.url);
+  const body = isVerbatim(meta, opts) ? readme.body : readableMarkdown(readme.body, meta.url);
   const description = str(metadata.description);
   const metadataTitle = str(metadata.title);
 
@@ -99,7 +99,8 @@ export function renderSource(
     .map(({ file }) => ({
       name: file.name,
       language: languageOf(file.name),
-      text: file.text.replace(/\r\n?/g, '\n'),
+      // A byte order mark is not part of the code: pasted, it would precede the first token.
+      text: file.text.replace(/^\ufeff/, '').replace(/\r\n?/g, '\n'),
       ref: file.ref,
       bytes: Buffer.byteLength(file.text, 'utf8'),
     }));

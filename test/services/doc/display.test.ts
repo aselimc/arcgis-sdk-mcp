@@ -250,8 +250,61 @@ describe('resolveSection', () => {
     });
     expect(find('parameters', page)).toEqual(['pseudo', 'input-arguments', ['input-arguments']]);
     expect(find('syntax', page)).toEqual(['pseudo', 'usage-notes', ['usage-notes']]);
-    expect(find('source', page)).toEqual(['pseudo', 'usage-notes', ['usage-notes']]);
+    // Prose under a heading that sounds like code is not the source of a page without code.
+    expect(find('source', page)).toBeUndefined();
     expect(find('members', page)).toBeUndefined();
+  });
+
+  // Regression: find_samples ends with `section: "source"`, which failed on every sample
+  // page of Esri's site (the code is under "Sample code"), returned the prose of "Example
+  // use case" for a Markdown sample, and failed for notebooks.
+  describe('the pseudo-section "source" on a page without source files', () => {
+    const fence = ['```kotlin', 'val map = ArcGISMap()', '```'].join('\n');
+
+    it('is the section that holds the code of a site sample', () => {
+      const page = makeDocPage({
+        kind: 'sample',
+        markdown: `# Show a map\n\nx\n\n## Use case\n\ny\n\n## Sample code\n\n${fence}`,
+      });
+      expect(find('source', page)).toEqual(['pseudo', 'sample-code', ['sample-code']]);
+    });
+
+    it('skips a heading that only sounds like code and takes the one with a code block', () => {
+      const page = makeDocPage({
+        markdown: `# Fetch\n\n## Example use case\n\nProse.\n\n## Example code\n\n${fence}`,
+      });
+      expect(find('source', page)).toEqual(['pseudo', 'example-code', ['example-code']]);
+    });
+
+    it('is every code block of a page that has no code section, as in a notebook', () => {
+      const page = makeDocPage({
+        markdown: `# Notebook\n\nIntro.\n\n## Connect\n\nText.\n\n${fence}\n\n## Query\n\n${fence}`,
+      });
+      const resolved = resolveSection(page, page.sections, 'source');
+      expect(resolved?.by).toBe('pseudo');
+      expect(resolved?.sections).toHaveLength(1);
+      const text = resolved?.sections[0]?.markdown ?? '';
+      expect(text.match(/```kotlin/g)).toHaveLength(2);
+      expect(text).toContain('### Connect');
+      expect(text).not.toContain('Intro.');
+    });
+  });
+
+  // Regression: `read` with section "HandleRESTRequest" failed on the Enterprise SDK page
+  // whose heading is "IRESTRequestHandler.HandleRESTRequest Method".
+  it('finds a member by the heading a page-per-type reference gives it', () => {
+    const page = makeDocPage({
+      markdown:
+        '# IDockHandler Interface\n\nx\n\n### IDockHandler.HandleDock Method\n\ny\n\n### Name Property\n\nz',
+    });
+    expect(find('HandleDock', page)).toEqual([
+      'member',
+      'idockhandlerhandledock-method',
+      ['idockhandlerhandledock-method'],
+    ]);
+    expect(find('handledock', page)?.[0]).toBe('member');
+    expect(find('name', page)).toEqual(['member', 'name-property', ['name-property']]);
+    expect(find('Handle', page)).toBeUndefined();
   });
 
   it('resolves members by name or id, with or without call syntax and case', () => {

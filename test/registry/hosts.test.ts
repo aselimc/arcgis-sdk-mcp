@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { CAPABILITIES, PRESETS } from '../../src/core/capabilities.js';
 import type { HostPolicy } from '../../src/core/types.js';
-import { GITHUB_OWNERS, HOSTS } from '../../src/registry/hosts.js';
+import { ESRI_UNSCOPED_NPM_PACKAGES, GITHUB_OWNERS, HOSTS } from '../../src/registry/hosts.js';
+import { createRegistry } from '../../src/registry/index.js';
 import { hostPolicySchema } from '../../src/registry/schema.js';
 
 function row(host: string): HostPolicy {
@@ -136,13 +137,35 @@ describe('HOSTS', () => {
     ['cdn.jsdelivr.net', '/npm/@arcgis/core@5.1.0/layers/FeatureLayer.d.ts', true],
     ['cdn.jsdelivr.net', '/npm/@esri/calcite-components@5.1.2/dist/docs/api.json', true],
     ['cdn.jsdelivr.net', '/npm/esri-leaflet@3.0.0/package.json', true],
+    ['cdn.jsdelivr.net', '/npm/esri-leaflet/dist/esri-leaflet.js', true],
+    ['cdn.jsdelivr.net', '/npm/esri-leaflet', true],
+    ['cdn.jsdelivr.net', '/npm/esri-leaflet-vector@4.3.2/package.json', true],
+    ['cdn.jsdelivr.net', '/npm/esri-leaflet-geocoder@3.1.7/README.md', true],
+    // Regression: `esri-leaflet` is not a scope. Anyone can publish `esri-leaflet-<x>`, and
+    // the prefix admitted every such package as "an Esri npm package".
+    ['cdn.jsdelivr.net', '/npm/esri-leaflet-evil@1.0.0/x.html', false],
+    ['cdn.jsdelivr.net', '/npm/esri-leaflet-legend@2.0.1/example/featureserver.html', false],
+    ['cdn.jsdelivr.net', '/npm/esri-leaflet-webmap@0.4.0/index.html', false],
+    ['cdn.jsdelivr.net', '/npm/esri-leafletx@1.0.0/x.html', false],
+    ['cdn.jsdelivr.net', '/npm/esri-leaflet-vector-evil@1.0.0/x.js', false],
+    ['cdn.jsdelivr.net', '/npm/leaflet@1.9.4/README.md', false],
     ['cdn.jsdelivr.net', '/npm/react@19.0.0/index.js', false],
     ['cdn.jsdelivr.net', '/gh/Esri/arcgis-rest-js@main/README.md', false],
     ['data.jsdelivr.com', '/v1/packages/npm/@arcgis/core@5.1.0', true],
     ['data.jsdelivr.com', '/v1/packages/npm/react@19.0.0', false],
+    ['data.jsdelivr.com', '/v1/packages/npm/esri-leaflet@3.0.0', true],
+    ['data.jsdelivr.com', '/v1/package/npm/esri-leaflet-vector@4.3.2/flat', true],
+    ['data.jsdelivr.com', '/v1/packages/npm/esri-leaflet-evil@1.0.0', false],
+    ['data.jsdelivr.com', '/v1/packages/npm/esri-leaflet-evil-package@1.0.0/flat', false],
     ['registry.npmjs.org', '/-/package/@arcgis/core/dist-tags', true],
     ['registry.npmjs.org', '/-/package/@esri%2farcgis-rest-request/dist-tags', true],
     ['registry.npmjs.org', '/-/package/esri-leaflet/dist-tags', true],
+    ['registry.npmjs.org', '/-/package/esri-leaflet-vector/dist-tags', true],
+    ['registry.npmjs.org', '/esri-leaflet-geocoder/latest', true],
+    ['registry.npmjs.org', '/-/package/esri-leaflet-evil/dist-tags', false],
+    ['registry.npmjs.org', '/esri-leaflet-evil', false],
+    ['registry.npmjs.org', '/esri-leaflet-anything-goes', false],
+    ['registry.npmjs.org', '/esri-leaflet-webmap/0.4.0', false],
     ['registry.npmjs.org', '/@arcgis/core/5.1.0', true],
     ['registry.npmjs.org', '/-/package/react/dist-tags', false],
     ['registry.npmjs.org', '/-/v1/search', false],
@@ -172,5 +195,32 @@ describe('HOSTS', () => {
 
   it.each(PATHS)('%s%s allowed: %s', (host, path, allowed) => {
     expect(allows(host, path)).toBe(allowed);
+  });
+});
+
+describe('Esri npm packages', () => {
+  const npmPackages = createRegistry()
+    .all()
+    .flatMap((product) => product.packages)
+    .filter((ref) => ref.registry === 'npm')
+    .map((ref) => ref.name);
+
+  it('lists by name exactly the unscoped npm packages the registry declares', () => {
+    const unscoped = [...new Set(npmPackages.filter((name) => !name.startsWith('@')))];
+    expect(unscoped.sort()).toEqual([...ESRI_UNSCOPED_NPM_PACKAGES].sort());
+  });
+
+  it('allows the registry metadata and a CDN file of every npm package the registry declares', () => {
+    for (const name of npmPackages) {
+      expect(allows('registry.npmjs.org', `/-/package/${name}/dist-tags`), name).toBe(true);
+      expect(allows('cdn.jsdelivr.net', `/npm/${name}@1.0.0/package.json`), name).toBe(true);
+      expect(allows('data.jsdelivr.com', `/v1/packages/npm/${name}@1.0.0`), name).toBe(true);
+    }
+  });
+
+  it('declares scoped packages under the two scopes Esri owns only', () => {
+    for (const name of npmPackages.filter((candidate) => candidate.startsWith('@'))) {
+      expect(name).toMatch(/^@(?:arcgis|esri)\//);
+    }
   });
 });

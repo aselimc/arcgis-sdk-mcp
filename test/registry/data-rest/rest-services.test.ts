@@ -249,7 +249,9 @@ describe('ai-agents', () => {
   it('starts from the overview brief and links into the JavaScript guides', () => {
     const refs = ai.startHere.map((link) => link.ref);
     expect(refs[0]).toBe('brief:ai/overview');
-    expect(refs).toContain(`${D}/javascript/latest/agentic-apps/`);
+    // The section root is not a page (404): the link goes to its first page.
+    expect(refs).toContain(`${D}/javascript/latest/agentic-apps/ai-introduction/`);
+    expect(refs).not.toContain(`${D}/javascript/latest/agentic-apps/`);
     expect(refs).toContain(`${D}/javascript/latest/ai-assisted-development/`);
   });
 });

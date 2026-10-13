@@ -168,6 +168,9 @@ const SAME_OWNER = 0.5;
 /** Distance of a qualifier that fits the record's owner only loosely (`esriConfig` for `config`). */
 const LOOSE_QUALIFIER = 1;
 
+/** Added to a loose fit whose path is not the written one. */
+const OFF_PATH = 0.5;
+
 /** Distance of a qualifier that names something else. */
 const WRONG_QUALIFIER = MAX_SYMBOL_DISTANCE + 1;
 
@@ -231,7 +234,10 @@ function qualifierDistance(written: readonly string[], record: CatalogRecord): n
       owner.startsWith(hint) ||
       (singular.length >= MIN_AFFIX_LENGTH && owner.startsWith(singular))
     ) {
-      return LOOSE_QUALIFIER;
+      // Of two loose fits the one on the written path is meant: `gis.content` is the
+      // `ContentManager` of `gis`, not the `MapContent` of the map widget.
+      const onPath = isSubsequence(written.slice(0, -1), segments);
+      return LOOSE_QUALIFIER + (onPath ? 0 : OFF_PATH);
     }
   }
   return WRONG_QUALIFIER;

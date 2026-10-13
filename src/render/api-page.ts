@@ -10,6 +10,7 @@ import { slugify } from '../core/url.js';
 import {
   blocks,
   bullets,
+  closeFences,
   fence,
   fencedExample,
   firstSentence,
@@ -120,7 +121,7 @@ function docBody(doc: ApiDoc & Partial<ApiMember>, language: string, detail: Sym
   const full = detail === 'full';
   // Headings inside a description start sections of their own, so whatever follows them
   // would land in the last of those sections: the titled part of a description goes last.
-  const description = splitAtFirstHeading(doc.description ?? '');
+  const description = splitAtFirstHeading(closeFences(doc.description ?? ''));
   return blocks(
     signature,
     flags.length > 0 ? `_${flags.join(' · ')}_` : undefined,
@@ -144,7 +145,7 @@ function docBody(doc: ApiDoc & Partial<ApiMember>, language: string, detail: Sym
 }
 
 /** The section of one member. */
-export function memberBlock(
+function memberBlock(
   member: ApiMember,
   language: string,
   detail: SymbolDetail,
@@ -158,6 +159,21 @@ export function memberBlock(
   };
 }
 
+/** A type or parameter list longer than this would turn an index line into a paragraph. */
+const MAX_INDEX_SHAPE = 140;
+
+/**
+ * What follows the name in a member's declaration: the type of a property
+ * (`string[] | "*"`), the parameters and result of a callable (`(url): Promise<Item>`).
+ * `undefined` when the declaration does not start with the name or is too long for a line.
+ */
+function shapeOf(member: ApiMember): string | undefined {
+  const signature = oneLine(member.signature ?? '');
+  if (!signature.startsWith(member.name)) return undefined;
+  const rest = signature.slice(member.name.length).replace(/^\??\s*:\s*/, '');
+  return rest === '' || rest.length > MAX_INDEX_SHAPE ? undefined : rest;
+}
+
 function indexLine(member: ApiMember): string {
   const marks = [
     member.readonly === true ? 'readonly' : undefined,
@@ -165,10 +181,16 @@ function indexLine(member: ApiMember): string {
     member.deprecated === undefined || member.deprecated === false ? undefined : 'deprecated',
   ].filter((mark) => mark !== undefined);
   const summary = summaryLine(member.description);
+  // A line that says nothing ("`outFields`") or stops at a colon ("..., where:", the list
+  // of values cut off) is completed with the type, which is what a caller needs next.
+  const shape = summary === '' || summary.endsWith(':') ? shapeOf(member) : undefined;
+  const text = [summary, shape === undefined ? '' : inlineCode(shape)]
+    .filter((part) => part !== '')
+    .join(' ');
   return [
     inlineCode(member.name),
     marks.length > 0 ? ` _(${marks.join(', ')})_` : '',
-    summary === '' ? '' : `: ${summary}`,
+    text === '' ? '' : `: ${text}`,
   ].join('');
 }
 

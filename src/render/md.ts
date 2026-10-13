@@ -28,9 +28,23 @@ export function hasFence(text: string): boolean {
   return /^ {0,3}(?:`{3,}|~{3,})/m.test(text);
 }
 
-/** Example text as Markdown: left alone when it brings its own fences, fenced otherwise. */
+/**
+ * Closes a code fence that the text opens and never closes. Authored text (JSDoc examples,
+ * descriptions) sometimes ends inside a fence; embedded as it is, it would turn every fence
+ * after it inside out: headings and signatures become code, and code becomes prose.
+ */
+export function closeFences(text: string): string {
+  let open: OpenFence;
+  for (const line of text.replace(/\r\n?/g, '\n').split('\n')) open = stepFence(line, open).open;
+  return open === undefined ? text : `${text.replace(/\s+$/, '')}\n${open}`;
+}
+
+/**
+ * Example text as Markdown: kept when it brings its own fences (with an unclosed one
+ * closed), fenced otherwise.
+ */
 export function fencedExample(example: string, language: string): string {
-  return hasFence(example) ? example.trim() : fence(example, language);
+  return hasFence(example) ? closeFences(example.trim()) : fence(example, language);
 }
 
 /** An inline code span that survives backticks in the text. */
@@ -75,12 +89,15 @@ export function firstSentence(markdown: string | undefined): string {
   return end === null ? text : text.slice(0, end.index + 1);
 }
 
+/** An inline link; its target may hold one level of paired parentheses (`.../tojson()/`). */
+const LINK = /\[([^\]]*)\]\((?:[^()\s]|\([^()\s]*\))*\)/g;
+
 /**
  * A one-line summary for member indexes: the first sentence with link targets removed, since
  * a list of fifty members should not carry fifty URLs.
  */
 export function summaryLine(markdown: string | undefined): string {
-  return firstSentence(markdown).replace(/\[([^\]]*)\]\([^)\s]*\)/g, '$1');
+  return firstSentence(markdown).replace(LINK, '$1');
 }
 
 /** Cell text for a GFM table: one line, paragraph breaks as `<br>`, pipes escaped. */

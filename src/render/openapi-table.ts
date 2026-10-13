@@ -47,6 +47,7 @@ function typeCell(property: OaProperty, links: Linker): string {
 
 function descriptionCell(property: OaProperty, links: Linker): string {
   const facts = [
+    property.deprecated === true ? '**Deprecated.**' : undefined,
     property.default === undefined ? undefined : `Default ${inlineCode(property.default)}.`,
     property.constraints.length === 0
       ? undefined
@@ -54,7 +55,7 @@ function descriptionCell(property: OaProperty, links: Linker): string {
     property.example === undefined ? undefined : `Example: ${inlineCode(property.example)}.`,
   ].filter((fact) => fact !== undefined);
   return [links((property.description ?? '').trim()), ...facts]
-    .filter((part) => part !== '')
+    .filter((part) => part !== undefined && part !== '')
     .join(' ');
 }
 

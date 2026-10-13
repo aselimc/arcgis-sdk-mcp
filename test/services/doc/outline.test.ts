@@ -92,7 +92,22 @@ describe('renderOutline', () => {
     const outline = renderOutline(page, page.sections, 5000);
     expect(estimateTokens(outline)).toBeLessThanOrEqual(MAX_OUTLINE_TOKENS);
     expect(outline).toContain('`section-number-0-with-a-fairly-long-heading`');
-    expect(outline).toMatch(/- \.\.\. \d+ more sections; ask for one by its heading text$/);
+    // Regression: the rows that did not fit were only counted ("14 more sections; ask for
+    // one by its heading text"), so their ids, "Breaking changes" among them, could not be
+    // asked for. They are named as far as the budget reaches, with the way to all of them.
+    expect(outline).toMatch(/- \.\.\. \d+ more sections: `section-number-\d+-with/);
+    expect(outline).toMatch(/and \d+ more; pass max_tokens with view "outline" for all of them$/);
+  });
+
+  it('lists every section when the caller sets the budget of the outline', () => {
+    const wide = ['# Top', '', 'Lead.', ''];
+    for (let i = 0; i < 120; i++) {
+      wide.push(`## Section number ${i} with a fairly long heading`, '', 'Body.', '');
+    }
+    const page = makeDocPage({ markdown: wide.join('\n') });
+    const outline = renderOutline(page, page.sections, 12_000, 12_000);
+    expect(outline).toContain('`section-number-119-with-a-fairly-long-heading`');
+    expect(outline).not.toContain('more sections');
   });
 
   it('drops to one level when the document has several top-level sections', () => {

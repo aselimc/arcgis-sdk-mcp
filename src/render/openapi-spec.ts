@@ -5,6 +5,7 @@
 import { asRecord, isRecord, list, records, scalar, str, strings, type Json } from './json.js';
 import {
   constraintsOf,
+  type OaBody,
   type OaOperation,
   type OaProperty,
   type OaResponse,
@@ -72,6 +73,17 @@ function displayType(spec: Json, node: unknown): string | undefined {
   return type ?? (isRecord(schema.properties) ? 'object' : undefined);
 }
 
+/**
+ * What to call a schema that states no type: an enumeration of strings is a `string`, any
+ * other enumeration an `enum`, and a schema without constraints accepts `any` value. An
+ * empty type cell would read as a rendering fault.
+ */
+function untypedName(schema: Json): string {
+  const values = list(schema.enum);
+  if (values.length === 0) return 'any';
+  return values.every((value) => typeof value === 'string') ? 'string' : 'enum';
+}
+
 function childProperties(spec: Json, node: unknown, depth: number): OaProperty[] {
   if (depth >= MAX_DEPTH) return [];
   const schema = flatten(spec, node);
@@ -93,7 +105,7 @@ function property(
   const schema = flatten(spec, node);
   const description = str(asRecord(node).description) ?? str(schema.description);
   const type = str(schema.type);
-  const shown = displayType(spec, node);
+  const shown = displayType(spec, node) ?? untypedName(schema);
   const fallback = scalar(schema.default);
   const example = scalar(schema.example);
   // A named schema is documented once, under its own name; only inline objects are expanded.
@@ -107,6 +119,9 @@ function property(
     ...(fallback === undefined ? {} : { default: fallback }),
     ...(example === undefined ? {} : { example }),
     constraints: constraintsOf(schema),
+    ...(schema.deprecated === true || asRecord(node).deprecated === true
+      ? { deprecated: true }
+      : {}),
     properties: inline ? childProperties(spec, node, depth) : [],
   };
 }
@@ -125,7 +140,10 @@ function parameter(spec: Json, node: Json): OaProperty {
 }
 
 interface Content {
+  /** The media type the schema and the property table are taken from. */
   contentType?: string;
+  /** Every media type, in the order of the document. */
+  contentTypes: string[];
   schema?: unknown;
   examples: string[];
 }
@@ -135,25 +153,48 @@ function asExample(value: unknown): string | undefined {
   return typeof value === 'string' ? value : JSON.stringify(value, null, 2);
 }
 
-/** The first media type of a request body or response, with its schema and examples. */
-function contentOf(node: Json): Content {
-  const [entry] = Object.entries(asRecord(node.content));
-  if (entry === undefined) {
-    // Swagger 2: the schema sits directly on the response.
-    return { ...(node.schema === undefined ? {} : { schema: node.schema }), examples: [] };
-  }
-  const [contentType, media] = entry;
-  const body = asRecord(media);
-  const examples = [
-    asExample(body.example),
-    ...Object.values(asRecord(body.examples)).map((example) => asExample(asRecord(example).value)),
+function examplesOf(media: Json): string[] {
+  return [
+    asExample(media.example),
+    ...Object.values(asRecord(media.examples)).map((example) =>
+      asExample(asRecord(example).value),
+    ),
   ].filter((example) => example !== undefined);
-  return { contentType, schema: body.schema, examples };
+}
+
+/**
+ * The content of a request body or response: every media type it names, and the schema and
+ * examples of the one that says most. That is the first media type whose schema has
+ * properties: an upload operation lists `image/jpeg` (a binary string) before the
+ * `application/json` form that carries the documented fields, and taking the first entry
+ * left such a body without any description at all. Examples are collected from all of them.
+ */
+function contentOf(spec: Json, node: Json): Content {
+  const entries = Object.entries(asRecord(node.content)).map(
+    ([contentType, media]) => [contentType, asRecord(media)] as const,
+  );
+  const [first] = entries;
+  if (first === undefined) {
+    // Swagger 2: the schema sits directly on the response.
+    return {
+      contentTypes: [],
+      ...(node.schema === undefined ? {} : { schema: node.schema }),
+      examples: [],
+    };
+  }
+  const [contentType, media] =
+    entries.find(([, candidate]) => childProperties(spec, candidate.schema, 0).length > 0) ?? first;
+  return {
+    contentType,
+    contentTypes: entries.map(([name]) => name),
+    schema: media.schema,
+    examples: [...new Set(entries.flatMap(([, candidate]) => examplesOf(candidate)))],
+  };
 }
 
 function response(spec: Json, status: string, node: unknown): OaResponse {
   const resolved = deref(spec, node);
-  const content = contentOf(resolved);
+  const content = contentOf(spec, resolved);
   const description = str(resolved.description);
   const shown = content.schema === undefined ? undefined : displayType(spec, content.schema);
   return {
@@ -162,6 +203,31 @@ function response(spec: Json, status: string, node: unknown): OaResponse {
     ...(content.contentType === undefined ? {} : { contentType: content.contentType }),
     ...(shown === undefined ? {} : { displayType: shown }),
     properties: content.schema === undefined ? [] : childProperties(spec, content.schema, 0),
+    examples: content.examples,
+  };
+}
+
+/**
+ * The request body as a whole: its description, whether it is required, the media types
+ * accepted, the name of its schema and its examples. `undefined` for an operation without
+ * a body (OpenAPI 3 `requestBody`, or a Swagger 2 `in: body` parameter).
+ */
+function bodyOf(
+  spec: Json,
+  requestBody: Json,
+  legacyBody: Json | undefined,
+  content: Content,
+  schema: unknown,
+): OaBody | undefined {
+  if (Object.keys(requestBody).length === 0 && legacyBody === undefined) return undefined;
+  const description = str(requestBody.description) ?? str(legacyBody?.description);
+  const required = requestBody.required === true || legacyBody?.required === true;
+  const shown = schema === undefined ? undefined : displayType(spec, schema);
+  return {
+    ...(description === undefined ? {} : { description }),
+    ...(required ? { required: true } : {}),
+    contentTypes: content.contentTypes,
+    ...(shown === undefined ? {} : { displayType: shown }),
     examples: content.examples,
   };
 }
@@ -184,9 +250,11 @@ function operation(
   const parameters = [...shared, ...records(node.parameters)].map((item) => deref(spec, item));
   const located = (where: string): OaProperty[] =>
     parameters.filter((item) => item.in === where).map((item) => parameter(spec, item));
-  const body = contentOf(deref(spec, node.requestBody));
+  const requestBody = deref(spec, node.requestBody);
+  const content = contentOf(spec, requestBody);
   const legacyBody = parameters.find((item) => item.in === 'body');
-  const bodySchema = body.schema ?? legacyBody?.schema;
+  const bodySchema = content.schema ?? legacyBody?.schema;
+  const body = bodyOf(spec, requestBody, legacyBody, content, bodySchema);
   const base = baseUrl(spec);
   const operationId = str(node.operationId);
   const summary = str(node.summary);
@@ -206,6 +274,7 @@ function operation(
       ...located('formData'),
       ...(bodySchema === undefined ? [] : childProperties(spec, bodySchema, 0)),
     ],
+    ...(body === undefined ? {} : { body }),
     examples: [],
     responses: Object.entries(asRecord(node.responses)).map(([status, item]) =>
       response(spec, status, item),

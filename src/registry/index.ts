@@ -48,8 +48,11 @@ const PRODUCTS: readonly Product[] = [
 export const createRegistry: CreateRegistry = () => {
   const byId = new Map(PRODUCTS.map((product) => [product.id, product]));
   const route = createRouter(PRODUCTS);
+  // Suggestions for a product name that resolved to nothing come from the words of that
+  // name alone: the router's default set would "suggest" the same three products for any typo.
+  const suggest = createRouter(PRODUCTS, { fallback: false });
   const resolver = createResolver(PRODUCTS, (text, n) =>
-    route(text, n).map((entry) => entry.product),
+    suggest(text, n).map((entry) => entry.product),
   );
   const ownerOf = createOwnership(PRODUCTS);
 

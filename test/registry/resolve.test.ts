@@ -8,17 +8,17 @@ import { webProducts } from '../../src/registry/data/web.js';
 import { createResolver, plainKey, squashedKey } from '../../src/registry/resolve.js';
 import { createRouter } from '../../src/registry/router.js';
 import { makeProduct, makeSource } from '../support/builders.js';
-import { loadData } from './load-data.js';
+import { PRODUCTS } from './registry-data.js';
 
 type How = ProductResolution['how'];
 
 /** The products this table is about; the resolver itself is built over everything that exists. */
 const OWN = [...webProducts, ...nativeProducts, ...pythonProducts, ...desktopEnterpriseProducts];
 
-const data = await loadData();
-const route = createRouter(data.products);
-// Wired as in `createRegistry`: the router supplies candidates for names that match nothing.
-const resolver = createResolver(data.products, (text, n) =>
+// Wired as in `createRegistry`: the router supplies candidates for names that match
+// nothing, from the words of the name alone (no default set).
+const route = createRouter(PRODUCTS, { fallback: false });
+const resolver = createResolver(PRODUCTS, (text, n) =>
   route(text, n).map((entry) => entry.product),
 );
 
@@ -208,7 +208,7 @@ describe('product resolution', () => {
   });
 
   it('resolves every alias in the data to its own product', () => {
-    for (const product of data.products) {
+    for (const product of PRODUCTS) {
       for (const alias of product.aliases) {
         expect(resolver.resolve(alias).product.id, alias).toBe(product.id);
       }

@@ -18,7 +18,23 @@ export interface OaProperty {
   example?: string;
   /** `min 1`, `max 20`, `one of ...`, `pattern ...`. */
   constraints: string[];
+  deprecated?: boolean;
   properties: OaProperty[];
+}
+
+/**
+ * The request body of an operation, when the source describes it as a whole (a
+ * specification document does; page data lists the body fields only).
+ */
+export interface OaBody {
+  description?: string;
+  required?: boolean;
+  /** Every media type the operation accepts, in the order of the source. */
+  contentTypes: string[];
+  /** Name of the schema (`CreateProjectRequest`, `Mission[]`). */
+  displayType?: string;
+  /** Example bodies, as text. */
+  examples: string[];
 }
 
 /** One response of an operation. */
@@ -51,7 +67,9 @@ export interface OaOperation {
   pathParameters: OaProperty[];
   queryParameters: OaProperty[];
   headerParameters: OaProperty[];
+  /** The fields of the request body (of its object-shaped media type, when it has several). */
   bodyParameters: OaProperty[];
+  body?: OaBody;
   examples: OaExample[];
   responses: OaResponse[];
 }

@@ -9,14 +9,7 @@ import { restServicesProducts } from '../../../src/registry/data/rest-services.j
 import { specsProducts } from '../../../src/registry/data/specs.js';
 import { supportProducts } from '../../../src/registry/data/support.js';
 import { validateProducts } from '../../../src/registry/schema.js';
-import {
-  OTHER_DEVELOPER_IDS,
-  floorViolations,
-  hostViolations,
-  identityViolations,
-  sourceViolations,
-  wordingViolations,
-} from './invariants.js';
+import { lintOf } from '../registry-data.js';
 import { ALL, byId, ownerOf, sourceOf } from './lookup.js';
 
 describe('developer-tier registry data of section 4.5', () => {
@@ -82,18 +75,11 @@ describe('developer-tier registry data of section 4.5', () => {
     expect(validateProducts(ALL)).toEqual([]);
   });
 
+  // The one lint of `npm run registry:check`, over the whole registry: ids and aliases are
+  // then also unique against the generated help products, and references resolve as they do
+  // in the server.
   it('holds the invariants INV-1 to INV-5', () => {
-    const helpIds = new Set(helpProducts.map((product) => product.id));
-    const others = new Set([...OTHER_DEVELOPER_IDS, ...helpIds]);
-    expect(floorViolations(ALL)).toEqual([]);
-    expect(hostViolations(ALL)).toEqual([]);
-    expect(sourceViolations(ALL)).toEqual([]);
-    expect(identityViolations(ALL, others)).toEqual([]);
-    expect(wordingViolations(ALL)).toEqual([]);
-  });
-
-  it('shares no id or alias with the generated help products', () => {
-    expect(identityViolations([...ALL, ...helpProducts], OTHER_DEVELOPER_IDS)).toEqual([]);
+    expect(lintOf(ALL)).toEqual([]);
   });
 });
 

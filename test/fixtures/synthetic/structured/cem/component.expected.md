@@ -132,8 +132,13 @@ Fires once after the first render.
 
 ## Slots
 
-- _default slot_: Content shown under the dial.
-- `label`: Replaces the built-in label.
+### default
+
+Content shown under the dial.
+
+### label
+
+Replaces the built-in label.
 
 ## CSS custom properties
 

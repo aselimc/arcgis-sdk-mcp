@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { absolutizeLinks } from '../../src/render/links.js';
-import { renderMarkdown, splitFrontMatter, stripHtmlComments } from '../../src/render/markdown.js';
+import { renderMarkdown, splitFrontMatter } from '../../src/render/markdown.js';
+import { stripUnseen } from '../../src/render/unseen.js';
 import { readFixture } from '../support/fixtures.js';
 import { expectGolden, makeMeta, pageText, sectionIds, structured } from './helpers.js';
 
@@ -35,9 +36,11 @@ describe('renderMarkdown', () => {
     expect(text).toContain(
       '[log]: https://github.com/example/tides/blob/v1.2.0/samples/clock/CHANGELOG.md',
     );
+    // A plain HTML link is written as a Markdown link, then resolved like the others.
     expect(text).toContain(
-      '<a href="https://github.com/example/tides/blob/v1.2.0/samples/clock/docs/faq.md">',
+      '[the FAQ](https://github.com/example/tides/blob/v1.2.0/samples/clock/docs/faq.md)',
     );
+    expect(text).not.toContain('<a ');
   });
 
   it('points images at the raw file', () => {
@@ -121,7 +124,7 @@ describe('renderMarkdown', () => {
         '',
       ].join('\n'),
     );
-    expect(stripHtmlComments('No comment here.')).toBe('No comment here.');
+    expect(stripUnseen('No comment here.')).toBe('No comment here.');
   });
 
   it('keeps the comments of a verbatim document', () => {
@@ -156,8 +159,8 @@ describe('renderMarkdown', () => {
       renderer: 'markdown',
       fences: 1,
       fencesWithLanguage: 1,
-      // The two tags are the author's own inline HTML.
-      leftoverHtmlTags: 3,
+      // The author's own inline image; the HTML link next to it became a Markdown link.
+      leftoverHtmlTags: 1,
     });
   });
 });

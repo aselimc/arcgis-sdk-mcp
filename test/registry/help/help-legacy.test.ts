@@ -76,9 +76,26 @@ describe('twins, aliases and tombstones', () => {
     expect(helpProduct('insights').startHere[1]?.ref).toMatch(
       /^https:\/\/support\.esri\.com\/en-us\/knowledge-base\/deprecation-/,
     );
-    expect(helpProduct('geoanalytics-server').homepage).toBe(
-      'https://enterprise.arcgis.com/en/geoanalytics/11.3/',
+  });
+
+  // Regression: the only link of two tombstones was dead (403), although a tombstone exists
+  // to offer that one link.
+  it('gives a tombstone whose own pages are gone a link that answers', () => {
+    // The numbered roots of the old server help are refused; the component page is not.
+    const server = helpProduct('geoanalytics-server');
+    expect(server.homepage).toBe('https://enterprise.arcgis.com/en/geoanalytics/');
+    expect(server.startHere.map((link) => link.ref)).toEqual([server.homepage]);
+
+    // The umbrella help is gone and was split per app: the apps' help is where to go.
+    const umbrella = helpProduct('microsoft-365');
+    expect(umbrella.startHere).toEqual(
+      umbrella.related.map((id) => ({
+        title: `${helpProduct(id).name} help`,
+        ref: helpProduct(id).homepage,
+      })),
     );
+    expect(umbrella.homepage).toBe(helpProduct('arcgis-for-excel').homepage);
+    expect(umbrella.homepage).not.toContain('/microsoft-365/');
   });
 });
 

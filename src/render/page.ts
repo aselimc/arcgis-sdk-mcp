@@ -10,7 +10,7 @@ import { pageProvenance } from '../core/provenance.js';
 import { LEAD_SECTION_ID, sectionSubtree, sectionsFromMarkdown } from '../core/sections.js';
 import type { DocPage, DocSection, MemberEntry, SourceFile } from '../core/types.js';
 import { slugify } from '../core/url.js';
-import { headingText, shiftHeadings } from './md.js';
+import { closeFences, headingText, shiftHeadings } from './md.js';
 
 /**
  * One section as a renderer writes it. Unlike Markdown parsed by `sectionsFromMarkdown`, a
@@ -81,7 +81,10 @@ export function buildSections(input: readonly Block[]): DocSection[] {
   const sections: DocSection[] = [];
 
   for (const block of input) {
-    const body = block.level === 0 ? block.body : shiftHeadings(block.body, block.level + 1);
+    // The last line of defence for balanced fences: nothing a renderer embeds may leave one
+    // open, or the heading of the next block would be read as code.
+    const closed = closeFences(block.body);
+    const body = block.level === 0 ? closed : shiftHeadings(closed, block.level + 1);
     const parts = sectionsFromMarkdown(body);
     const lead = parts[0]?.level === 0 ? (parts.shift()?.markdown ?? '') : '';
     const heading =

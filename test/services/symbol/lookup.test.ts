@@ -180,7 +180,16 @@ describe('lookup: answers', () => {
       maxTokens: 60,
     });
     expect(cut.text).not.toContain('### applyEdits');
-    expect(cut.next).toBe(`arcgis_docs_read({"ref":"${FL_URL}","view":"full"})`);
+    // Regression: the Next of a cut lookup restarted the page from its top. It now carries
+    // the cursor of the place where the text stopped, and says what was left out.
+    expect(cut.text).toMatch(/_Cut at the token budget: about \d+ of \d+ tokens shown\. Not shown: .*applyEdits/);
+    const next = /^arcgis_docs_read\((.*)\)$/.exec(cut.next ?? '')?.[1] ?? '{}';
+    const args = JSON.parse(next) as { ref: string; view: 'full'; cursor: string };
+    expect(args).toMatchObject({ ref: FL_URL, view: 'full' });
+    const rest = await h.services.docs.read({ ...args, maxTokens: 6000 }, h.call());
+    expect(rest.text).toContain('### applyEdits');
+    const shown = cut.text.slice(0, cut.text.indexOf('\n\n_Cut at the token budget'));
+    expect(`${shown}\n\n${rest.text}`).toBe(full.text);
 
     const summary = await lookup(h, {
       symbol: 'FeatureLayer',

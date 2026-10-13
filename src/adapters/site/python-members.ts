@@ -44,7 +44,7 @@ interface Cut {
   name: string;
   /** Heading text: the name of a property, the call of a method. */
   title: string;
-  /** What followed the name on the row of a property, as plain text: its type or its access. */
+  /** What the row of a property says besides its name, as Markdown: its type or its access. */
   note: string;
   /** The type of a property, when its row states it. */
   type?: string;
@@ -125,12 +125,22 @@ function propertyRow(line: string): { cut: Cut; skip: number } | undefined {
   const accessed = coded === null ? ACCESS_ROW.exec(line) : null;
   const name = coded?.[1] ?? accessed?.[1];
   if (name === undefined) return undefined;
-  // `— _String_, required` after the name, or `Read Only` beside it.
-  const rest = (coded?.[2] ?? accessed?.[2] ?? '').replace(/^\s*[—-]\s*/, '').trim();
-  const type = oneLine(/_([^_]+)_/.exec(rest)?.[1]);
-  const note = rest.replace(/_/g, '');
+  if (accessed !== null) {
+    const note = `_${accessed[2] ?? ''}_`;
+    return { cut: { kind: 'property', name, title: name, note, body: [] }, skip: 0 };
+  }
+  // `— _String_, required` after the name; the type may be a link, whose URL may hold `_`.
+  const note = (coded?.[2] ?? '').replace(/^\s*[—-]\s*/, '').trim();
+  const type = oneLine(/^_(.+)_(?=,|$)/.exec(note)?.[1]);
   return {
-    cut: { kind: 'property', name, title: name, note, body: [], ...(type ? { type } : {}) },
+    cut: {
+      kind: 'property',
+      name,
+      title: name,
+      note,
+      body: [],
+      ...(type === undefined ? {} : { type }),
+    },
     skip: 0,
   };
 }
@@ -163,10 +173,8 @@ function memberSections(
     let id = `${cut.kind}-${cut.name}`;
     for (let count = 1; used.has(id); count++) id = `${cut.kind}-${cut.name}-${count}`;
     used.add(id);
-    const text = [cut.note === '' ? '' : `_${cut.note}_`, cut.body.join('\n').trim()];
-    const markdown = [`${heading} \`${cut.title}\``, ...text.filter((part) => part !== '')].join(
-      '\n\n',
-    );
+    const text = [cut.note, cut.body.join('\n').trim()].filter((part) => part !== '');
+    const markdown = [`${heading} \`${cut.title}\``, ...text].join('\n\n');
     sections.push(
       sectionOf({ level: parent.level + 1, parent: parent.id }, id, cut.title, markdown),
     );
@@ -188,9 +196,13 @@ function entryOf(cut: Cut, id: string): MemberEntry {
   };
 }
 
-/** A method that the page already documents under a heading of its own. */
+/**
+ * A method that the page already documents under a heading of its own, below "Methods". The
+ * place matters: the earlier layout has a "Method Overview" table next to it, whose id
+ * (`method-overview`) reads like a method named `overview`.
+ */
 function headedMethod(section: DocSection): MemberEntry | undefined {
-  const name = METHOD_SECTION.exec(section.id)?.[1];
+  const name = section.parent === METHODS_ID ? METHOD_SECTION.exec(section.id)?.[1] : undefined;
   if (name === undefined) return undefined;
   const summary = summaryOf(section.markdown.split('\n').slice(1));
   return {
@@ -203,19 +215,26 @@ function headedMethod(section: DocSection): MemberEntry | undefined {
   };
 }
 
-/**
- * Gives the properties and methods of an ArcPy class page sections of their own and lists
- * them as the page's members. Returns the page unchanged when it has members already, was
- * cut to a part by its renderer, or documents neither properties nor methods.
- */
-export function withPythonMembers(page: DocPage): DocPage {
-  if ((page.members?.length ?? 0) > 0) return page;
+/** A class page with its members, and where each member is on the published page. */
+interface ClassPage {
+  page: DocPage;
+  /**
+   * The anchor of the published page nearest to each member, by member id: a method heading
+   * of doc.esri.com is an anchor itself; a property row or a method line is not, so its
+   * section ("properties", "methods") stands in.
+   */
+  anchors: ReadonlyMap<string, string>;
+}
+
+function classPage(page: DocPage): ClassPage | undefined {
+  if ((page.members?.length ?? 0) > 0) return undefined;
   // Only a whole page can say what all the members are; a slice starts below the title.
-  if ((page.sections[0]?.level ?? 0) > 1) return page;
+  if ((page.sections[0]?.level ?? 0) > 1) return undefined;
 
   const used = new Set(page.sections.map((section) => section.id));
   const sections: DocSection[] = [];
   const members: MemberEntry[] = [];
+  const anchors = new Map<string, string>();
   for (const section of page.sections) {
     const lines = section.markdown.split('\n');
     const cut =
@@ -228,32 +247,55 @@ export function withPythonMembers(page: DocPage): DocPage {
       const made = memberSections(section, cut.lead, cut.cuts, used);
       sections.push(...made.sections);
       members.push(...made.members);
+      for (const member of made.members) anchors.set(member.id, section.id);
       continue;
     }
     sections.push(section);
     const headed = headedMethod(section);
-    if (headed !== undefined) members.push(headed);
+    if (headed === undefined) continue;
+    members.push(headed);
+    anchors.set(headed.id, headed.id);
   }
-  return members.length === 0 ? page : { ...page, sections, members };
+  return members.length === 0 ? undefined : { page: { ...page, sections, members }, anchors };
+}
+
+/** The member a selector names by its id or name; letter case decides only between ties. */
+function memberNamed(
+  members: readonly MemberEntry[],
+  select: SectionSelector | undefined,
+): MemberEntry | undefined {
+  const wanted = select?.member ?? select?.section;
+  if (wanted === undefined) return undefined;
+  // `exportToPDF()` names the method `exportToPDF`.
+  const name = wanted.replace(/\(.*\)$/s, '').trim();
+  return (
+    members.find((entry) => entry.id === wanted || entry.name === name) ??
+    members.find((entry) => entry.name.toLowerCase() === name.toLowerCase())
+  );
 }
 
 /**
- * Cuts a whole page down to the member a selector names by its name or section id, as
- * `SectionSelector` asks of every adapter: found, the page holds that member's section;
- * not found, the page is returned whole. The letter case of a name decides only between
- * members that differ in nothing else.
+ * Gives the properties and methods of an ArcPy class page sections of their own and lists
+ * them as the page's members. With a selector that names one of them (by name or section
+ * id) the page is cut to that member, as `SectionSelector` asks of every adapter, and its
+ * ref points at the anchor the published page has for it, not at the bare name.
+ *
+ * The page is returned unchanged when its renderer reports members itself or already cut
+ * it to a part, and when it documents neither properties nor methods.
  */
-export function selectPythonMember(page: DocPage, select: SectionSelector | undefined): DocPage {
-  const wanted = select?.member ?? select?.section;
-  const members = page.members ?? [];
-  if (wanted === undefined || members.length === 0) return page;
-  // The renderer found the section itself: nothing is left to select.
-  if ((page.sections[0]?.level ?? 0) > 1) return page;
-  const name = wanted.replace(/\(.*\)$/s, '').trim();
-  const member =
-    members.find((entry) => entry.id === wanted || entry.name === name) ??
-    members.find((entry) => entry.name.toLowerCase() === name.toLowerCase());
-  if (member === undefined) return page;
-  const sections = sectionSubtree(page.sections, member.id);
-  return sections.length === 0 ? page : { ...page, sections };
+export function withPythonMembers(page: DocPage, select?: SectionSelector): DocPage {
+  const found = classPage(page);
+  if (found === undefined) return page;
+  const member = memberNamed(found.page.members ?? [], select);
+  const sections = member === undefined ? [] : sectionSubtree(found.page.sections, member.id);
+  if (member === undefined || sections.length === 0) return found.page;
+
+  const ref = `${page.url}#${found.anchors.get(member.id) ?? member.id}`;
+  return {
+    ...found.page,
+    sections,
+    ref,
+    // The `Source:` line was written for the ref as requested.
+    attribution: page.attribution.replace(page.ref, ref),
+  };
 }

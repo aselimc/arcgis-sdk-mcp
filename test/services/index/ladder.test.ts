@@ -254,8 +254,9 @@ describe('enumeration ladder', () => {
       throw unavailable;
     };
     await h.index.ensure(product(), undefined, makeLine(), h.call());
+    // The wording names the local limit: the host did answer, the build ran out of requests.
     expect(h.index.reason('widgets-sdk', 'guide')).toMatch(
-      /^request budget of the index build spent/,
+      /^the request budget of the index build \(\d+ requests\) was spent before the source was listed/,
     );
   });
 });

@@ -28,7 +28,7 @@ Returns the beacon with the given id.
 
 The beacon.
 
-`application/json`
+`application/json` · `Beacon`
 
 | Property | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -51,7 +51,7 @@ The beacon.
 
 No beacon has this id.
 
-`application/json`
+`application/json` · `Problem`
 
 | Property | Type | Required | Description |
 | --- | --- | --- | --- |

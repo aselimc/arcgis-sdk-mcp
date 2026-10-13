@@ -90,10 +90,11 @@ export function queryTerms(
     const [whole = '', ...parts] = tokenize(word);
     if (whole === '' || terms.has(whole)) continue;
     const number = otherNumber(whole);
+    const phrases = new Set([...(synonyms.get(whole) ?? []), ...(number === undefined ? [] : [number])]);
     terms.set(whole, {
       whole,
       parts,
-      synonyms: [...(synonyms.get(whole) ?? []), ...(number === undefined ? [] : [number])]
+      synonyms: [...phrases]
         .map((phrase) => (phrase.match(WORD) ?? []).map((part) => part.toLowerCase()))
         .filter((phrase) => phrase.length > 0),
     });

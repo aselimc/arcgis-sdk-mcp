@@ -7,8 +7,7 @@ import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js
 import { sectionsFromMarkdown } from '../core/sections.js';
 import type { DocPage } from '../core/types.js';
 import { asRecord, isRecord, list, records, str, type Json } from './json.js';
-import { absolutizeLinks } from './links.js';
-import { isVerbatim, titleOf } from './markdown.js';
+import { isVerbatim, readableMarkdown, titleOf } from './markdown.js';
 import { blocks, fence } from './md.js';
 import { finishPage, invalidInput } from './page.js';
 
@@ -87,7 +86,7 @@ export function renderNotebook(
   const parts = records(notebook.cells).map((cell) => {
     if (cell.cell_type === 'markdown') {
       const text = sourceOf(cell.source);
-      return verbatim ? text : absolutizeLinks(text, meta.url);
+      return verbatim ? text : readableMarkdown(text, meta.url);
     }
     return cell.cell_type === 'code' ? codeCell(cell, language) : '';
   });

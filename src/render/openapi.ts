@@ -26,23 +26,82 @@ const EXAMPLE_LANGUAGES: Record<string, string> = {
   node: 'javascript',
 };
 
+/** JSON type names: as the type of a whole body they say nothing a reader does not see. */
+const BARE_TYPES = new Set(['object', 'string', 'number', 'integer', 'boolean', 'null']);
+
+/**
+ * The type of a request or response body as shown next to its media type: the linked type
+ * of page data, or the schema name of a specification (`Mission`, `Mission[]`). The name is
+ * a lookup target, and the `[]` is the only place that says the body is an array.
+ */
+function bodyType(displayType: string | undefined, links: Linker): string | undefined {
+  if (displayType === undefined || BARE_TYPES.has(displayType)) return undefined;
+  return displayType.includes('%%') ? links(displayType) : inlineCode(displayType);
+}
+
+/** Said above the property table of a body that is an array. */
+function arrayNote(displayType: string | undefined, properties: readonly OaProperty[]): string {
+  return displayType?.endsWith('[]') === true && properties.length > 0
+    ? 'The body is an array; the table describes one item.'
+    : '';
+}
+
 function responseBlock(response: OaResponse, links: Linker): Block {
   const title = [response.status, response.phrase].filter((part) => part !== undefined).join(' ');
-  const type =
-    response.displayType?.includes('%%') === true ? links(response.displayType) : undefined;
   return {
     id: `response-${slugify(response.status)}`,
     level: 3,
     title,
     body: blocks(
       links(response.description ?? ''),
-      [response.contentType === undefined ? undefined : inlineCode(response.contentType), type]
+      [
+        response.contentType === undefined ? undefined : inlineCode(response.contentType),
+        bodyType(response.displayType, links),
+      ]
         .filter((part) => part !== undefined)
         .join(' · '),
+      arrayNote(response.displayType, response.properties),
       propertyTable('Property', response.properties, links),
       ...response.examples.map(jsonExample),
     ),
   };
+}
+
+/**
+ * The request body section: what the body is for, the media types it may be sent as, the
+ * name of its schema, its fields and its examples. Present whenever the operation has a
+ * body, also when no field can be listed (a binary upload).
+ */
+function requestBodyBlocks(operation: OaOperation, links: Linker): Block[] {
+  const { body, bodyParameters } = operation;
+  if (body === undefined && bodyParameters.length === 0) return [];
+  const facts = [
+    ...(body?.contentTypes ?? []).map(inlineCode),
+    bodyType(body?.displayType, links),
+    body?.required === true ? 'required' : undefined,
+  ].filter((part) => part !== undefined);
+  const examples = body?.examples ?? [];
+  return [
+    {
+      level: 2,
+      title: 'Request body',
+      body: blocks(
+        links(body?.description ?? ''),
+        facts.join(' · '),
+        arrayNote(body?.displayType, bodyParameters),
+        propertyTable('Name', bodyParameters, links),
+        examples.length === 0 ? undefined : examples.length === 1 ? '**Example**' : '**Examples**',
+        ...examples.map(jsonExample),
+      ),
+    },
+  ];
+}
+
+/** True when two optional texts say the same, whitespace and case aside. */
+function sameText(a: string | undefined, b: string | undefined): boolean {
+  const normal = (text: string | undefined): string =>
+    (text ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+  return normal(a) !== '' && normal(a) === normal(b);
 }
 
 function operationTitle(operation: OaOperation): string {
@@ -69,14 +128,15 @@ function operationPage(operation: OaOperation, links: Linker): { header: string;
         title: operationTitle(operation),
         body: blocks(
           operation.deprecated === true ? '> **Deprecated**' : undefined,
-          links(operation.summary ?? ''),
+          // Many specifications repeat the summary as the description.
+          sameText(operation.summary, operation.description) ? '' : links(operation.summary ?? ''),
           links(operation.description ?? ''),
         ),
       },
       ...parameters('Path parameters', operation.pathParameters),
       ...parameters('Query parameters', operation.queryParameters),
       ...parameters('Header parameters', operation.headerParameters),
-      ...parameters('Request body', operation.bodyParameters),
+      ...requestBodyBlocks(operation, links),
       ...(operation.examples.length === 0
         ? []
         : [

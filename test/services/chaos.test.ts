@@ -156,8 +156,10 @@ describe('chaos: first index build', () => {
         makeCall(w.ctx),
       )
       .catch((caught: unknown) => caught);
-    expect(error).toMatchObject({ code: 'SYMBOL_NOT_FOUND', details: { retryable: true } });
+    // Nothing was searched, so the answer is "unavailable", never "not found".
+    expect(error).toMatchObject({ code: 'UPSTREAM_UNAVAILABLE', details: { retryable: true } });
     expect((error as McpDocError).details?.why).toContain('widgets-sdk/guide');
+    expect((error as McpDocError).details?.why).toContain('says nothing about whether');
   });
 });
 

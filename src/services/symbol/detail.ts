@@ -17,6 +17,7 @@ import {
   compactMemberIndexSection,
   memberIndexSection,
 } from '../doc/display.js';
+import { chunkFences, mergeChunks } from '../doc/paging.js';
 import { resolveSection } from '../doc/section-resolve.js';
 import { simpleName } from '../index/symbol-map.js';
 
@@ -307,7 +308,10 @@ export function symbolText(
   detail: SymbolDetail,
   maxTokens: number,
 ): SymbolText {
-  const own = ownSections(page, record);
+  // Above the signature level, code blocks larger than any budget are divided as the reader
+  // divides them, so that a cut can fall inside one and a read can continue at its offset.
+  const undivided = ownSections(page, record);
+  const own = detail === 'signature' ? undivided : chunkFences(undivided);
   const header = page.header?.trim() ?? '';
   const headerTokens = header === '' ? 0 : estimateTokens(header);
   const budget = Math.max(50, maxTokens - headerTokens);
@@ -334,7 +338,7 @@ export function symbolText(
   // The offset is only meaningful when the text shown is the start of the full one.
   const continuous = indexed === undefined && joinSections(sections) === joinSections(own);
   return {
-    text: [header, fit.text].filter((part) => part !== '').join('\n\n'),
+    text: [header, mergeChunks(fit.text)].filter((part) => part !== '').join('\n\n'),
     truncated:
       fit.nextOffset !== undefined ||
       indexed !== undefined ||

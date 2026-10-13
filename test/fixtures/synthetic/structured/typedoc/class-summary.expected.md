@@ -22,7 +22,7 @@ const clock = TideClock.forHarbour("brest");
 
 ## Constructors
 
-- `constructor`
+- `constructor`: `(options: HarbourOptions)`
 
 ## Properties
 
