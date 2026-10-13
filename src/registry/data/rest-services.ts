@@ -253,6 +253,7 @@ const developerGuide: Product = {
     'authentication',
     'api key',
     'oauth',
+    'pkce',
     'user authentication',
     'app authentication',
     'access token',

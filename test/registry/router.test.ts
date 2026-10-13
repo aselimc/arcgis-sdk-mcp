@@ -143,6 +143,13 @@ describe('query routing', () => {
     },
   );
 
+  it.skipIf(!ids.has('developer-guide'))(
+    'sends a question about OAuth flows to the guide that explains authentication',
+    () => {
+      expect(route('OAuth PKCE').map((entry) => entry.product)).toContain('developer-guide');
+    },
+  );
+
   it('ranks a retired product far below a live one on the same evidence', () => {
     const routes = route('runtime sdk android 100.15', 10);
     const tombstone = routes.find((entry) => entry.product === 'runtime-100');
