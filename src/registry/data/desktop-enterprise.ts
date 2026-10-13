@@ -93,6 +93,30 @@ function legacyHelp(spec: {
 
 const PRO_SDK_REPO = 'Esri/arcgis-pro-sdk';
 
+/** Directories of the Pro SDK wiki repository that hold its pages. */
+const PRO_SDK_WIKI_DIRECTORIES = [
+  'Features/Framework',
+  'Features/Editing',
+  'Features/MapAuthoring',
+  'Features/MapExploration',
+  'Features/Geodatabase',
+  'Features/Geometry',
+  'Features/Content',
+  'Features/Layouts',
+  'Features/UtilityNetwork',
+  'Features/Arcade',
+  'Features/CoreHost',
+  'Features/DataReviewer',
+  'Features/Geoprocessing',
+  'Features/KnowledgeGraph',
+  'Features/ParcelFabric',
+  'Features/Raster',
+  'Features/Sharing',
+  'Features/Tasks',
+  'Features/WorkflowManager',
+  'Reference',
+];
+
 const arcgisProSdk: Product = {
   id: 'arcgis-pro-sdk',
   name: 'ArcGIS Pro SDK for .NET',
@@ -149,7 +173,9 @@ const arcgisProSdk: Product = {
     githubSource(
       'wiki',
       'Concepts and guides (wiki)',
-      { repo: PRO_SDK_REPO, preset: 'wiki' },
+      // The wiki keeps its pages in directories, which its links do not name and GitHub does
+      // not list: these are the directories a page is looked for in (verified on the raw host).
+      { repo: PRO_SDK_REPO, preset: 'wiki', include: PRO_SDK_WIKI_DIRECTORIES },
       { kinds: ['guide'], floor: true },
     ),
     {

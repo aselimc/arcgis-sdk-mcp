@@ -194,6 +194,16 @@ function words(text: string): string[] {
     .filter((word) => word !== '');
 }
 
+/** Shortest word that may match another by being its beginning (`layout` in `layouts`). */
+const MIN_STEM = 4;
+
+/** True for the same word, or a singular and its plural (`network`, `networks`). */
+function sameWord(a: string, b: string): boolean {
+  if (a === b) return true;
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  return short.length >= MIN_STEM && long.length - short.length <= 2 && long.startsWith(short);
+}
+
 /**
  * The wiki directories to try for a page, best match first: a directory scores one point
  * for each word of its name that also occurs in the page name or its sidebar groups.
@@ -203,15 +213,37 @@ export function rankDirectories(
   page: string,
   breadcrumb = '',
 ): string[] {
-  const wanted = new Set(words(`${page} ${breadcrumb}`));
+  const wanted = words(`${page} ${breadcrumb}`);
   const score = (directory: string): number =>
-    words(directory).filter((word) => wanted.has(word)).length;
+    words(directory).filter((word) => wanted.some((other) => sameWord(word, other))).length;
   return directories
     .map((directory) => directory.replace(/\/\**$/, '').replace(/^\/+/, ''))
     .filter((directory) => directory !== '')
     .map((directory, index) => ({ directory, index, score: score(directory) }))
     .sort((a, b) => b.score - a.score || a.index - b.index)
     .map((entry) => entry.directory);
+}
+
+/**
+ * The sidebar groups a page is linked under, or `undefined` when the sidebar does not link
+ * it or cannot be read.
+ */
+async function sidebarTrail(
+  ctx: Ctx,
+  src: GithubSource,
+  scope: RepoScope,
+  page: string,
+): Promise<string[] | undefined> {
+  try {
+    const sidebar = await ctx.github.wikiRaw(scope.repo, SIDEBAR, callOptions(src));
+    const wanted = page.toLowerCase();
+    return parseSidebar(sidebar.text, scope.repo).find(
+      (link) => link.page.toLowerCase() === wanted,
+    )?.trail;
+  } catch (error) {
+    if (isMcpDocError(error) && error.code === 'DOC_NOT_FOUND') return undefined;
+    throw error;
+  }
 }
 
 /** Fetches a wiki page by name, then from the configured directories (see the file comment). */
@@ -234,23 +266,25 @@ async function fetchPage(
     }
   };
 
-  const directories = page.includes('/')
-    ? []
-    : rankDirectories(src.source.config.include ?? [], page, target.record?.breadcrumb).slice(
-        0,
-        MAX_DIRECTORY_ATTEMPTS,
-      );
-  const paths = [
-    ...(known === undefined ? [] : [known.path]),
-    page,
-    ...directories.map((directory) => `${directory}/${page}`),
-  ];
-  for (const path of new Set(paths)) {
+  for (const path of new Set([...(known === undefined ? [] : [known.path]), page])) {
     const res = await attempt(path);
-    if (res === undefined) continue;
-    if (path !== page && path !== known?.path)
+    if (res !== undefined) return { res };
+  }
+
+  const include = src.source.config.include ?? [];
+  if (!page.includes('/') && include.length > 0) {
+    // The sidebar group of the page says which directory is likely. A page read by its URL
+    // comes without its catalogue record, so the sidebar is asked (one cached request).
+    const groups =
+      target.record?.breadcrumb ?? (await sidebarTrail(ctx, src, scope, page))?.join(' ');
+    const directories = rankDirectories(include, page, groups).slice(0, MAX_DIRECTORY_ATTEMPTS);
+    for (const directory of directories) {
+      const path = `${directory}/${page}`;
+      const res = await attempt(path);
+      if (res === undefined) continue;
       await ctx.cache.putDerived('misc', cacheKey, { path });
-    return { res };
+      return { res };
+    }
   }
   throw notFound(
     wikiUrl(scope.repo, page),
@@ -282,7 +316,13 @@ export async function readWiki(
     metaOf(src, scope, `${wikiUrl(scope.repo, name)}${target.url.hash}`, kind, res),
     renderOptionsOf(target, scope),
   );
-  // Wiki pages usually start below the title GitHub shows, which is the page name.
-  const titled = rendered.title === '' ? { ...rendered, title: titleFromName(name) } : rendered;
+  // Wiki pages usually start below the title GitHub shows, which is the page name: without
+  // a level-1 heading of its own, a page is titled as the sidebar links it, not after
+  // whatever sub-heading comes first ("In this topic").
+  const ownTitle = rendered.sections.some((section) => section.level === 1);
+  const titled =
+    ownTitle && rendered.title !== ''
+      ? rendered
+      : { ...rendered, title: target.record?.title ?? titleFromName(name) };
   return withNotices(titled, scope);
 }

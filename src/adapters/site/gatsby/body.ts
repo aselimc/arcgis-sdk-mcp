@@ -107,14 +107,17 @@ function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+/** An `h1` that opens the fragment, possibly inside wrapper elements. */
+const LEADING_H1 = /^\s*(?:<(?:div|section|article|header)[^>]*>\s*)*<h1[\s>]/i;
+
 /**
  * Wraps a body fragment from page-data into a document, so that the HTML extractor finds a
- * title and a main element like on a fetched page. A fragment that brings its own `h1`
- * keeps it.
+ * title and a main element like on a fetched page. A fragment that opens with its own `h1`
+ * keeps it; an `h1` further down (a notebook with several parts) is a section, not the title.
  */
 export function documentOf(title: string, fragment: string): string {
   const safe = escapeHtml(title);
-  const heading = title === '' || /<h1[\s>]/i.test(fragment) ? '' : `<h1>${safe}</h1>`;
+  const heading = title === '' || LEADING_H1.test(fragment) ? '' : `<h1>${safe}</h1>`;
   return `<!doctype html><html><head><title>${safe}</title></head><body><main>${heading}${fragment}</main></body></html>`;
 }
 

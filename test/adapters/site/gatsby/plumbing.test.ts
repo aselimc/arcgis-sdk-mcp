@@ -78,6 +78,16 @@ describe('body variants', () => {
     expect(documentOf('T', '<h1 class="t">Own</h1>')).not.toContain('<h1>T</h1>');
     expect(documentOf('', '<p>x</p>')).toContain('<main><p>x</p></main>');
   });
+
+  // Regression: a notebook whose only `h1` introduces its second half was titled after it.
+  it('titles a fragment whose first h1 comes later, and keeps one that opens with its own', () => {
+    expect(documentOf('Guide', '<p>Intro.</p><h1 id="part-two">Part two</h1>')).toContain(
+      '<main><h1>Guide</h1><p>Intro.</p><h1 id="part-two">Part two</h1></main>',
+    );
+    expect(documentOf('Guide', ' <div class="cell"><h1>Own</h1></div>')).not.toContain(
+      '<h1>Guide</h1>',
+    );
+  });
 });
 
 describe('static queries', () => {

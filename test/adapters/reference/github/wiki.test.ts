@@ -101,6 +101,18 @@ describe('rankDirectories', () => {
     );
   });
 
+  // Regression: the sidebar group "Layout" did not lead to the directory "Layouts", nor
+  // "Networks" to "UtilityNetwork".
+  it('takes a singular and its plural for the same word', () => {
+    const more = [...directories, 'Features/Layouts', 'Features/UtilityNetwork'];
+    expect(rankDirectories(more, 'ProConcepts-Reports', 'Layout')[0]).toBe('Features/Layouts');
+    expect(rankDirectories(more, 'ProSnippets-Tracing', 'Networks')[0]).toBe(
+      'Features/UtilityNetwork',
+    );
+    // A short word is not a stem: "Map" does not match "MapAuthoring" through "maps".
+    expect(rankDirectories(['A/Go', 'B/Gone'], 'Page', 'Gone')[0]).toBe('B/Gone');
+  });
+
   it('keeps the registry order between equal candidates and drops empty entries', () => {
     expect(rankDirectories(directories, 'Unrelated')).toEqual([
       'Reference',
