@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { McpDocError } from '../../../src/core/errors.js';
 import type { CatalogRecord, DocPage } from '../../../src/core/types.js';
-import { declaredElsewhere, inheritedNotice } from '../../../src/services/symbol/inherited.js';
+import {
+  baseTypes,
+  declaredElsewhere,
+  inheritedNotice,
+} from '../../../src/services/symbol/inherited.js';
 import { makeDocPage, makeRecord } from '../../support/builders.js';
 import { makeHarness, type Harness } from '../support/harness.js';
 
@@ -188,5 +192,119 @@ describe('declaredElsewhere', () => {
     expect(inheritedNotice('a.Map', 'load', 'a.Loadable')).toBe(
       'a.Map inherits load from a.Loadable; this is the documentation of a.Loadable.load.',
     );
+  });
+});
+
+// Regression: `MapQuickView::setViewpointAsync` (Qt) and
+// `ServiceFeatureTable.queryFeatureCount` (Swift) answered SYMBOL_NOT_FOUND: QDoc and DocC
+// pages neither link nor list inherited members, they only name the base types.
+describe('lookup: a member declared on a base type the page names', () => {
+  const FEATURE_URL = `${CORE}/layers/FeatureLayer/`;
+  const typePage = (url: string, title: string, body: readonly string[]): DocPage =>
+    makeDocPage({
+      url,
+      kind: 'api',
+      product: 'js-maps-sdk',
+      source: 'core',
+      markdown: [`# ${title}`, '', ...body].join('\n'),
+    });
+  const sceneViewPage = (): DocPage => ({
+    ...mapViewPage(),
+    url: SCENE_VIEW_URL,
+    ref: SCENE_VIEW_URL,
+    title: 'SceneView',
+  });
+
+  it('follows a direct base type', async () => {
+    const h = makeHarness();
+    h.adapter('astro')
+      .addPage(
+        typePage(GRAPHICS_URL, 'GraphicsLayer', [
+          `- **Inherits:** [Thing](${CORE}/Thing/) and [MapView](${MAP_VIEW_URL})`,
+        ]),
+      )
+      .addPage(mapViewPage());
+    const response = await lookup(h, 'GraphicsLayer.goTo');
+    expect(response.record.qualified).toBe('MapView.goTo');
+    expect(response.page.notices).toContain(
+      'GraphicsLayer inherits goTo from MapView; this is the documentation of MapView.goTo.',
+    );
+  });
+
+  it('walks up through a base type that does not declare the member itself', async () => {
+    const h = makeHarness();
+    h.adapter('astro')
+      .addPage(
+        typePage(GRAPHICS_URL, 'GraphicsLayer', [
+          '### Inherits From',
+          '',
+          // DocC: a declaration keyword in the label and no trailing slash in the link.
+          `- [\`class FeatureLayer\`](${FEATURE_URL.replace(/\/$/, '')})`,
+          '',
+          '### Conforms To',
+          '',
+          `- [\`protocol MapView\`](${MAP_VIEW_URL})`,
+        ]),
+      )
+      .addPage(typePage(FEATURE_URL, 'FeatureLayer', [`Inherits: [SceneView](${SCENE_VIEW_URL})`]))
+      .addPage(sceneViewPage());
+    const response = await lookup(h, 'GraphicsLayer.goTo');
+    expect(response.record.qualified).toBe('SceneView.goTo');
+  });
+
+  it('stays SYMBOL_NOT_FOUND when no base type declares the member', async () => {
+    const h = makeHarness();
+    h.adapter('astro')
+      .addPage(
+        typePage(GRAPHICS_URL, 'GraphicsLayer', [`- **Inherits:** [FeatureLayer](${FEATURE_URL})`]),
+      )
+      .addPage(typePage(FEATURE_URL, 'FeatureLayer', ['A layer of features.']));
+    const error: unknown = await lookup(h, 'GraphicsLayer.goTo').catch((caught: unknown) => caught);
+    expect((error as McpDocError).code).toBe('SYMBOL_NOT_FOUND');
+  });
+});
+
+describe('baseTypes', () => {
+  const page = (...blocks: string[]): DocPage =>
+    makeDocPage({ markdown: ['# Buoy', ...blocks].join('\n\n') });
+
+  it('reads the links of a line that says what the type inherits', () => {
+    expect(
+      baseTypes(
+        page(
+          '- **Inherits:** [a::Marker](https://example.test/api/marker.html#details) and [Floating](https://example.test/api/floating.html)',
+        ),
+      ),
+    ).toEqual([
+      { name: 'a::Marker', ref: 'https://example.test/api/marker.html' },
+      { name: 'Floating', ref: 'https://example.test/api/floating.html' },
+    ]);
+  });
+
+  it('reads the list under a heading that says so, and no other list', () => {
+    expect(
+      baseTypes(
+        page(
+          '### Inherits From',
+          '- [`class Marker`](https://example.test/api/marker/)',
+          '### Conforms To',
+          '- [`protocol Loadable`](https://example.test/api/loadable/)',
+        ),
+      ),
+    ).toEqual([{ name: 'Marker', ref: 'https://example.test/api/marker' }]);
+  });
+
+  it('is not misled by a link target, a member list or an unreadable page', () => {
+    expect(baseTypes(page('See [the guide](https://example.test/inheritance/extends/).'))).toEqual(
+      [],
+    );
+    expect(
+      baseTypes(page('Methods inherited from [Marker](https://example.test/api/marker/): `sink`')),
+    ).toEqual([]);
+    const unread = {
+      ...page('Inherits: [Marker](https://example.test/api/marker/)'),
+      degraded: { level: 'link-only' as const, reason: 'upstream failing' },
+    };
+    expect(baseTypes(unread)).toEqual([]);
   });
 });

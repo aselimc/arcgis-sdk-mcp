@@ -21,7 +21,14 @@ import { simpleName } from '../index/symbol-map.js';
 import type { IndexInternals } from '../index/types.js';
 import { resolveScope } from '../scope.js';
 import { symbolText } from './detail.js';
-import { MAX_INHERITED_CANDIDATES, declaredElsewhere, inheritedNotice } from './inherited.js';
+import {
+  MAX_INHERITED_CANDIDATES,
+  baseTypes,
+  declaredElsewhere,
+  inheritedNotice,
+  pageKey,
+  type BaseType,
+} from './inherited.js';
 import { MAX_NEAREST, nearestNames, notFoundError } from './not-found.js';
 import { createSymbolReader } from './read.js';
 import { displayName, resolveSymbol, type Candidate, type SymbolScope } from './resolve.js';
@@ -30,6 +37,9 @@ import { isTypeNamed, memberCandidate, memberEntry, ownerName } from './type-mem
 
 /** Most products a lookup without a `product` argument covers. */
 const MAX_ROUTED_PRODUCTS = 3;
+
+/** Pages of base types read while looking for the declaration of an inherited member. */
+const MAX_BASE_PAGES = 4;
 
 /** Creates the symbol service. */
 export function createSymbolService(
@@ -122,10 +132,58 @@ export function createSymbolService(
           'full',
           call,
         );
-        const declared = declaredElsewhere(typePage, candidates);
+        const declared =
+          declaredElsewhere(typePage, candidates) ??
+          (await declaredOnBase(target, typePage, candidates));
         return declared === undefined
           ? undefined
           : { record: declared, step: 'member', rank: [1, 0, 0, 0], twins: [] };
+      };
+
+      /**
+       * The candidate declared on the nearest base type of the type documented by
+       * `typePage`, for references whose pages name base types but not inherited members.
+       * Walks up level by level, reading at most {@link MAX_BASE_PAGES} pages of base types.
+       */
+      const declaredOnBase = async (
+        target: Target,
+        typePage: DocPage,
+        candidates: readonly CatalogRecord[],
+      ): Promise<CatalogRecord | undefined> => {
+        const symbols = index.symbols(target.product.id, target.line.id);
+        const typeNamed = (name: string): CatalogRecord[] =>
+          symbols.exact(name).filter((record) => record.parent === undefined);
+        // The page of each declaring type, so a link to that type identifies its member.
+        const declaredAt = new Map<string, CatalogRecord>();
+        for (const candidate of candidates) {
+          for (const owner of typeNamed(candidate.parent ?? '')) {
+            if (!declaredAt.has(pageKey(owner.ref))) declaredAt.set(pageKey(owner.ref), candidate);
+          }
+        }
+        const visited = new Set<string>([pageKey(typePage.url)]);
+        let level = baseTypes(typePage);
+        let pagesRead = 0;
+        while (level.length > 0) {
+          const hit = level.map((base) => declaredAt.get(base.ref)).find((found) => found);
+          if (hit !== undefined) return hit;
+          const above: BaseType[] = [];
+          for (const base of level) {
+            if (visited.has(base.ref) || pagesRead >= MAX_BASE_PAGES) continue;
+            visited.add(base.ref);
+            const record = typeNamed(base.name).find((found) => pageKey(found.ref) === base.ref);
+            if (record === undefined) continue;
+            pagesRead += 1;
+            const page = await reader.read(
+              target,
+              { record, step: 'qualified', rank: [0, 0, 0, 0], twins: [] },
+              'full',
+              call,
+            );
+            above.push(...baseTypes(page));
+          }
+          level = above;
+        }
+        return undefined;
       };
 
       let winner: Candidate;

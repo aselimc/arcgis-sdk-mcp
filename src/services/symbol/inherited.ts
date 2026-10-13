@@ -9,6 +9,10 @@
  *
  * A same-named member of another type that the page points at in either way is the
  * declaration that was asked for.
+ *
+ * QDoc and DocC pages do neither; they only name the base types ({@link baseTypes}). The
+ * symbol service then follows those up the hierarchy to the first type that declares a
+ * member of the wanted name.
  */
 import { joinSections } from '../../core/budget.js';
 import type { CatalogRecord, DocPage } from '../../core/types.js';
@@ -65,6 +69,61 @@ export function declaredElsewhere(
     );
   });
   return only(stated);
+}
+
+/** A type that a page names as one its own type derives from. */
+export interface BaseType {
+  /** The simple or qualified name of the type, from the link text. */
+  name: string;
+  /** The page of the type, as {@link pageKey} writes it. */
+  ref: string;
+}
+
+/**
+ * A ref reduced to its page, in the one spelling that links and catalogue records share:
+ * no fragment and no trailing slash (DocC pages link each other without the slash that
+ * their catalogue refs end in).
+ */
+export function pageKey(ref: string): string {
+  return ref.replace(/#.*$/, '').replace(/\/+$/, '');
+}
+
+/**
+ * Wording that introduces base types: "Inherits" (QDoc), "Inherits From" (DocC),
+ * "Inheritance" (the JavaScript reference, dartdoc, DocFX), "Extends", "Bases" (Sphinx).
+ * "inherited from" is not among them: that wording lists members, not types.
+ */
+const DERIVES = /\b(?:inherits?|inheritance|extends|superclass(?:es)?)\b|^\W*bases\b/i;
+const HEADING_LINE = /^ {0,3}#{1,6}[ \t]/;
+/** A Markdown link; the target may hold one level of parentheses (DocC member pages). */
+const LINK = /\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)/g;
+
+/**
+ * The base types a type page names, in page order: the links of a block that says what the
+ * type inherits, or of the block under a heading that says so. A reference that neither
+ * lists inherited members (QDoc, DocC) nor states them leaves only this trail to the type
+ * that declares one.
+ */
+export function baseTypes(typePage: DocPage): BaseType[] {
+  if (typePage.degraded?.level === 'link-only') return [];
+  const blocks = [typePage.header ?? '', joinSections(typePage.sections)]
+    .join('\n\n')
+    .split(/\n{2,}/);
+  const found = new Map<string, BaseType>();
+  blocks.forEach((block, position) => {
+    if (HEADING_LINE.test(block)) return;
+    const above = blocks[position - 1] ?? '';
+    // Link targets are left out of the test: a URL may hold any of these words.
+    const says = DERIVES.test(block.replace(LINK, '$1'));
+    if (!says && !(HEADING_LINE.test(above) && DERIVES.test(above))) return;
+    for (const [, label = '', target = ''] of block.matchAll(LINK)) {
+      const ref = pageKey(target);
+      // DocC labels a base type with its declaration keyword: `class FeatureTable`.
+      const name = label.replace(/[`*_]/g, '').trim().split(/\s+/).at(-1) ?? '';
+      if (name !== '' && !found.has(ref)) found.set(ref, { name, ref });
+    }
+  });
+  return [...found.values()];
 }
 
 /** The notice that tells the caller the answer documents the declaring type's member. */
