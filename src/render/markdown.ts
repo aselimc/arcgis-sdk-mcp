@@ -24,7 +24,8 @@ export function splitFrontMatter(markdown: string): { title?: string; body: stri
 /** Title of a document: its first level-1 heading, else its first heading. */
 export function titleOf(sections: readonly DocSection[]): string | undefined {
   const heading =
-    sections.find((section) => section.level === 1) ?? sections.find((section) => section.level > 0);
+    sections.find((section) => section.level === 1) ??
+    sections.find((section) => section.level > 0);
   return heading === undefined || heading.title === '' ? undefined : heading.title;
 }
 

@@ -44,11 +44,9 @@ export function squash(text: string): string {
 
 /** True for element nodes (`script` and `style` included). */
 export function isElement(node: AnyNode | null | undefined): node is Element {
-  return (
-    node !== null &&
-    node !== undefined &&
-    (node.type === 'tag' || node.type === 'script' || node.type === 'style')
-  );
+  // `type` is an enum of the parser package; its values are these plain strings.
+  const type: string | undefined = node?.type;
+  return type === 'tag' || type === 'script' || type === 'style';
 }
 
 /** 1 to 6 for `h1` to `h6`, 0 for everything else. */
@@ -94,7 +92,7 @@ export function removeComments($: CheerioAPI, scope: Cheerio<AnyNode>): void {
     .find('*')
     .addBack()
     .contents()
-    .filter((_, node) => node.type === 'comment')
+    .filter((_, node) => (node.type as string) === 'comment')
     .remove();
 }
 

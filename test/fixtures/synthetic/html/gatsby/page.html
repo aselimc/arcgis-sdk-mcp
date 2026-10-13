@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="generator" content="Gatsby 5.14.0" />
+    <title>Text functions | Quay expression language</title>
+  </head>
+  <body>
+    <div id="___gatsby">
+      <nav><a class="group flex" href="/quay/"><span>Home</span></a></nav>
+      <main id="main" class="main has-toc">
+        <header class="page-header"><h1 class="page-title">Text functions</h1></header>
+        <div id="skip-to-content" class="afd-flow-content page-content">
+          <p>Functions for building and inspecting text values.</p>
+          <aside role="note" class="note">
+            <header><calcite-icon icon="exclamation-mark-triangle"></calcite-icon><span>Caution</span></header>
+            <div class="contents"><p>Text positions start at zero.</p></div>
+          </aside>
+          <a class="group grid" href="/quay/profiles/labels/">
+            <svg width="24" height="24"><circle r="4"></circle></svg>
+            <h3>Label profile</h3>
+            <div><p>Expressions that build map labels.</p></div>
+          </a>
+          <a class="group grid" href="/quay/profiles/popups/">
+            <svg width="24" height="24"><circle r="4"></circle></svg>
+            <h3>Popup profile</h3>
+            <div><p>Expressions shown when a feature is clicked.</p></div>
+          </a>
+          <h2 id="join" class="group relative">
+            Join<a href="#join" aria-label="Join permalink" class="anchor-link"><svg width="16" height="16"></svg></a>
+          </h2>
+          <h4><a id="join-sig"></a>Join(values, separator?) -> <a href="/quay/types/#text">Text</a></h4>
+          <p>Glues the values together. A date is written with its offset, as in <code>-07<wbr />:00</code>.</p>
+          <div class="not-afd-flow-content code-block mb-8 flex flex-col">
+            <div class="relative flex">
+              <calcite-button id="ThemeButton-1" data-component-name="CodeBlock"></calcite-button>
+              <calcite-tooltip>Use dark colors for code blocks</calcite-tooltip>
+              <calcite-button data-testid="copy-button" id="CopyButton-1"></calcite-button>
+              <calcite-tooltip>Copy</calcite-tooltip>
+            </div>
+            <div class="relative grow">
+              <pre data-language="quay" class="syntax-highlighter m-0 flex"><code class="text-inherit flex-1" style="white-space:pre"><code style="display:none">1
+2
+</code><span style="--line-number-digits:-1rem"><span class="react-syntax-highlighter-line-number">1</span><span>var parts = ["north", "pier"]
+</span></span><span style="--line-number-digits:-1rem"><span class="react-syntax-highlighter-line-number">2</span><span>Join(parts, "-") // "north-pier"
+</span></span></code></pre>
+            </div>
+          </div>
+          <hr />
+          <h2 id="count" class="group relative">
+            Count<a href="#count" aria-label="Count permalink" class="anchor-link"><svg width="16" height="16"></svg></a>
+          </h2>
+          <h4><a id="count-sig"></a>Count(value) -> <a href="/quay/types/#number">Number</a></h4>
+          <p>Returns the number of characters in a text value.</p>
+          <pre class="syntax-highlighter" data-language="quay"><code><span class="react-syntax-highlighter-line-number">1</span><span>Count("quay") // 4
+</span></code></pre>
+        </div>
+        <div class="sidebar-container"><div class="table-of-contents">On this page</div></div>
+      </main>
+    </div>
+  </body>
+</html>

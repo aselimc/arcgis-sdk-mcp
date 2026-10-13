@@ -54,13 +54,15 @@ export function site(
   overrides: Partial<Omit<SourceDef<'gatsby'>, 'adapter' | 'config'>> = {},
 ): Site {
   const base = config.base.startsWith('http') ? config.base : `${D}${config.base}`;
-  const source = makeSource('gatsby', config, { probe: { url: base, expect: 'html' }, ...overrides });
+  const source = makeSource('gatsby', config, {
+    probe: { url: base, expect: 'html' },
+    ...overrides,
+  });
   const product = makeProduct({ sources: [source], homepage: base });
   return {
     product,
     source,
-    ctx: (options = {}) =>
-      makeCtx({ cassette: cassetteOf(cassette), ...options }),
+    ctx: (options = {}) => makeCtx({ cassette: cassetteOf(cassette), ...options }),
     bound: () => bindSource(product, source, makeLine()),
   };
 }
@@ -71,10 +73,14 @@ export const guide = (config: Partial<AdapterConfigMap['gatsby']> = {}): Site =>
 
 /** REST reference with nav and search in static queries. */
 export const rest = (): Site =>
-  site('rest', { base: '/rest/gadgets/', seedPage: '/rest/gadgets/', symbols: 'rest-operations' }, {
-    kinds: ['api'],
-    probe: { url: `${D}/rest/gadgets/`, expect: 'html', family: 'gatsby-rest' },
-  });
+  site(
+    'rest',
+    { base: '/rest/gadgets/', seedPage: '/rest/gadgets/', symbols: 'rest-operations' },
+    {
+      kinds: ['api'],
+      probe: { url: `${D}/rest/gadgets/`, expect: 'html', family: 'gatsby-rest' },
+    },
+  );
 
 /** Developer guide with per-section indexes and the glossary. */
 export const documentation = (): Site =>

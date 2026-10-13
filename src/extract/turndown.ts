@@ -65,7 +65,7 @@ export function createMarkdownConverter(): (html: string) => Converted {
   service.use(gfm);
 
   service.addRule('fencedPre', {
-    filter: (node) => node.nodeName === 'PRE',
+    filter: (node) => asRuleNode(node).nodeName === 'PRE',
     replacement: (_content, node) => {
       const pre = asRuleNode(node);
       const language = (pre.getAttribute(LANG_ATTR) ?? '').trim();
@@ -132,7 +132,7 @@ export function createMarkdownConverter(): (html: string) => Converted {
     'meta',
   ]);
   // `svg` is not in Turndown's HTML element name list, so it is removed by a filter function.
-  service.remove((node) => node.nodeName.toLowerCase() === 'svg');
+  service.remove((node) => asRuleNode(node).nodeName.toLowerCase() === 'svg');
 
   return (html: string): Converted => {
     headingIds = [];

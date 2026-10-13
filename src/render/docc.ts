@@ -36,7 +36,9 @@ function platforms(metadata: Json): string | undefined {
       platform.deprecated === true ? 'deprecated' : undefined,
     ].filter((mark) => mark !== undefined);
     const version = str(platform.introducedAt);
-    return [`${name}${version === undefined ? '' : ` ${version}+`}${marks.length > 0 ? ` (${marks.join(', ')})` : ''}`];
+    return [
+      `${name}${version === undefined ? '' : ` ${version}+`}${marks.length > 0 ? ` (${marks.join(', ')})` : ''}`,
+    ];
   });
   return names.length === 0 ? undefined : names.join(', ');
 }
@@ -53,15 +55,26 @@ function declarations(section: Json): string {
 function topicLine(identifier: string, context: DoccContext, withAbstract: boolean): string {
   const reference = asRecord(context.references[identifier]);
   const fragments = fragmentsText(reference.fragments);
-  const link = referenceLink(identifier, context, fragments === '' ? undefined : oneLine(fragments));
+  const link = referenceLink(
+    identifier,
+    context,
+    fragments === '' ? undefined : oneLine(fragments),
+  );
   const abstract = withAbstract ? inline(reference.abstract, context) : '';
   return abstract === '' ? link : `${link}: ${abstract}`;
 }
 
 /** A group of titled reference lists (`topicSections`, `seeAlsoSections`, relationships). */
-function referenceGroups(title: string, sections: unknown, context: DoccContext, withAbstract: boolean): Block[] {
+function referenceGroups(
+  title: string,
+  sections: unknown,
+  context: DoccContext,
+  withAbstract: boolean,
+): Block[] {
   const groups = records(sections).flatMap((section): Block[] => {
-    const lines = strings(section.identifiers).map((identifier) => topicLine(identifier, context, withAbstract));
+    const lines = strings(section.identifiers).map((identifier) =>
+      topicLine(identifier, context, withAbstract),
+    );
     if (lines.length === 0) return [];
     return [{ level: 3, title: str(section.title) ?? title, body: bullets(lines) }];
   });
@@ -109,7 +122,8 @@ function primaryBody(json: Json, context: DoccContext, includeContent: boolean):
             '## Parameters',
             bullets(
               records(section.parameters).map(
-                (parameter) => `${inlineCode(str(parameter.name) ?? '')}: ${content(parameter.content, context)}`,
+                (parameter) =>
+                  `${inlineCode(str(parameter.name) ?? '')}: ${content(parameter.content, context)}`,
               ),
             ),
           );
@@ -161,9 +175,10 @@ export function renderDocc(
       .filter((section) => section.kind === 'declarations')
       .map(declarations),
   );
-  const deprecated = list(json.deprecationSummary).length > 0
-    ? `> **Deprecated:** ${content(json.deprecationSummary, context)}`
-    : undefined;
+  const deprecated =
+    list(json.deprecationSummary).length > 0
+      ? `> **Deprecated:** ${content(json.deprecationSummary, context)}`
+      : undefined;
 
   const sectionBlocks: Block[] = [
     {
@@ -193,7 +208,11 @@ export function renderDocc(
       unknown,
       ...(unknown.length === 0
         ? {}
-        : { notices: [`Some DocC content types are shown as plain text: ${unknown.map((u) => u.replace(/^docc:/, '')).join(', ')}.`] }),
+        : {
+            notices: [
+              `Some DocC content types are shown as plain text: ${unknown.map((u) => u.replace(/^docc:/, '')).join(', ')}.`,
+            ],
+          }),
     },
     opts,
   );

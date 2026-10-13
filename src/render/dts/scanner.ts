@@ -106,7 +106,11 @@ function statements(tokens: readonly Token[]): Range[] {
     const starts =
       depth === 0 && token.lineStart && token.kind === 'word' && STATEMENT_START.has(token.text);
     if (starts) {
-      current = { from: index, to: index + 1, ...(pending === undefined ? {} : { jsdoc: pending }) };
+      current = {
+        from: index,
+        to: index + 1,
+        ...(pending === undefined ? {} : { jsdoc: pending }),
+      };
       ranges.push(current);
     } else if (current !== undefined) {
       current.to = index + 1;

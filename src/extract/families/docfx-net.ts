@@ -31,7 +31,11 @@ const prepare: Pass = ($) => {
   });
   // `h5` and `h6` are field labels on these pages (Namespace, Assembly, Declaration).
   $('h5, h6').each((_, el) => {
-    if ($(el).closest('div.NOTE, div.WARNING, div.TIP, div.IMPORTANT, div.CAUTION, div.alert').length > 0) return;
+    if (
+      $(el).closest('div.NOTE, div.WARNING, div.TIP, div.IMPORTANT, div.CAUTION, div.alert')
+        .length > 0
+    )
+      return;
     const text = squash($(el).text());
     const field = /^([^:]{1,40}):\s*(.+)$/.exec(text);
     $(el).replaceWith(

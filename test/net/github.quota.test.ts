@@ -1,17 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { newBudget } from '../../src/core/async.js';
 import type { GithubClient } from '../../src/core/ports.js';
-import { classifyLicenseText, classifySpdx } from '../../src/net/github-license.js';
 import { createGithubClient } from '../../src/net/github.js';
-import { DAY, FAKE_NOW, HOUR, MINUTE } from '../support/fake-clock.js';
+import { FAKE_NOW, MINUTE } from '../support/fake-clock.js';
 import { FakeHttp } from '../support/fake-http.js';
 import { FakeLogger } from '../support/fake-logger.js';
 import { makeConfig } from '../support/builders.js';
 import { MemoryCache } from '../support/memory-cache.js';
 import { body, hostRow, json, makeRig, mcpError, status, type Rig } from './harness.js';
 
-const API = 'https://api.github.com';
-const RAW = 'https://raw.githubusercontent.com';
 const REPO = 'Esri/arcgis-maps-sdk-kotlin-samples';
 const HOSTS = [
   hostRow('api.github.com', { capability: 'github' }),
@@ -31,9 +27,6 @@ function make(token?: string): Rig & { github: GithubClient } {
   });
   return { ...rig, github };
 }
-
-const repoJson = (license: unknown, extra: object = {}) =>
-  json({ default_branch: 'main', archived: false, license, ...extra });
 
 describe('github: quota', () => {
   const limitHeaders = (remaining: number) => ({

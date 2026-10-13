@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Plot tide stations | Harbor Maps SDK</title>
+    <link rel="stylesheet" href="/harbor/latest/_astro/base.a1b2c3.css" />
+  </head>
+  <body>
+    <nav class="site-nav"><a href="/harbor/latest/">Harbor Maps SDK</a></nav>
+    <main id="main" class="main has-toc">
+      <header class="page-header">
+        <h1 class="page-title">Plot tide stations</h1>
+      </header>
+      <div id="skip-to-content" class="afd-flow-content page-content">
+        <p>
+          Learn how to draw a
+          <span data-term=""
+            ><a id="term-station-1" href="/glossary/station/" class="term">tide station</a
+            ><calcite-tooltip reference-element="term-station-1" data-term="true"
+              ><span class="term-tooltip-wrapper"
+                ><span class="term-tooltip-content">A fixed gauge that records water level.</span
+                ><a href="/glossary/station/" class="button">Learn more</a></span
+              ></calcite-tooltip
+            ></span
+          >
+          layer on a chart and label each gauge.
+        </p>
+        <em><p>This walkthrough takes about ten minutes.</p></em>
+        <aside role="note" aria-labelledby="note-1" class="note bg-inherit">
+          <header class="inline-flex">
+            <calcite-icon icon="information-f" scale="s" aria-label="Note"></calcite-icon>
+            <span id="note-1" class="font-bold">Note</span>
+          </header>
+          <div class="contents">
+            <p>You need a free harbor key before you start.</p>
+          </div>
+        </aside>
+        <astro-island
+          uid="m1"
+          component-url="/harbor/latest/_astro/MoreInfoReact.Dk3f9.js"
+          renderer-url="/harbor/latest/_astro/client.x.js"
+          ><astro-slot
+            ><p>Gauges report every six minutes, so the layer refreshes itself.</p></astro-slot
+          ></astro-island
+        >
+        <h2 id="prerequisites" class="group relative">
+          Prerequisites<a href="#prerequisites" aria-label="Prerequisites permalink" class="anchor-link"
+            ><calcite-icon icon="link" scale="s"></calcite-icon
+          ></a>
+        </h2>
+        <p>
+          Finish the first chart walkthrough, or start from the
+          <astro-island uid="c1" component-url="/harbor/latest/_astro/CodePenLinkReact.9zQ.js"
+            ><a href="https://codepen.example/pen/first-chart">starter pen</a></astro-island
+          >.
+        </p>
+        <starship-popover data-content="Supported in Harbor Online"></starship-popover>
+        <h2 id="steps" class="group relative">
+          Steps<a href="#steps" aria-label="Steps permalink" class="anchor-link"
+            ><calcite-icon icon="link" scale="s"></calcite-icon
+          ></a>
+        </h2>
+        <h3 id="add-the-station-layer" class="group relative">
+          Add the station layer<a href="#add-the-station-layer" class="anchor-link"
+            ><calcite-icon icon="link" scale="s"></calcite-icon
+          ></a>
+        </h3>
+        <ol>
+          <li>
+            <p>Create a <code><a href="/harbor/latest/references/TideLayer/">TideLayer</a></code> and add it to the chart.</p>
+            <div data-codeblock='{"language":"js"}'>
+              <div class="border-s-3">
+                <div class="expressive-code not-afd-flow-content mb-4">
+                  <link rel="stylesheet" href="/harbor/latest/_astro/ec.xtl7i.css" />
+                  <script type="module" src="/harbor/latest/_astro/ec.0vx5m.js"></script>
+                  <figure class="frame">
+                    <figcaption class="header"></figcaption>
+                    <pre data-language="js"><code><details class="ec-section github"><summary><div class="ec-line"><div class="code">2 collapsed lines</div></div></summary><div class="ec-line"><div class="code">const chart = new Chart("view");</div></div><div class="ec-line"><div class="code"></div></div></details><div class="ec-line highlight ins"><div class="code"><span class="indent"></span><span style="--0:#cf0012">const</span> stations = <span style="--0:#cf0012">new</span> TideLayer({ source: "gauges" });</div></div><div class="ec-line highlight ins"><div class="code">chart.add(stations);</div></div></code></pre>
+                    <div class="copy">
+                      <div aria-live="polite"></div>
+                      <button
+                        title="Copy to clipboard"
+                        data-copied="Copied!"
+                        data-code="const chart = new Chart(&quot;view&quot;);&#127;&#127;const stations = new TideLayer({ source: &quot;gauges&quot; });&#127;chart.add(stations);"
+                      >
+                        <div></div>
+                      </button>
+                    </div>
+                  </figure>
+                </div>
+              </div>
+              <ul class="m-0 mt-2 mb-4 flex list-none items-stretch justify-end gap-2">
+                <li>
+                  <astro-island uid="c2" component-url="/harbor/latest/_astro/CodePenLinkReact.9zQ.js"
+                    ><a href="https://codepen.example/pen/stations">View in CodePen</a></astro-island
+                  >
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li><p>Reload the page. Each gauge appears as a blue dot.</p></li>
+        </ol>
+        <h3 id="label-the-gauges" class="group relative">Label the gauges</h3>
+        <p>Set <code>labelField</code> to the station name. <a href="#">Back to top</a></p>
+        <astro-island uid="p1" component-url="/harbor/latest/_astro/PricingCalculator.77a.js"
+          ><div>Estimate your monthly cost</div></astro-island
+        >
+        <h2 id="whats-next" class="group relative">What's next</h2>
+        <p>Try the <a href="../animate-tides/" title="Animate tides">animation walkthrough</a>.</p>
+      </div>
+      <div class="sidebar-container has-toc">
+        <div class="table-of-contents">On this page</div>
+        <astro-island uid="f1" component-url="/harbor/latest/_astro/FeedbackWidget.Buv.js"
+          ><form>Was this page helpful?</form></astro-island
+        >
+      </div>
+    </main>
+  </body>
+</html>

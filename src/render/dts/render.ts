@@ -94,7 +94,10 @@ function mergeAccessors(members: readonly DtsMember[]): DtsMember[][] {
   return merged;
 }
 
-function classMember(parts: readonly DtsMember[], options: Map<string, DtsMember>): ApiMember | undefined {
+function classMember(
+  parts: readonly DtsMember[],
+  options: Map<string, DtsMember>,
+): ApiMember | undefined {
   const [first] = parts;
   if (first === undefined) return undefined;
   const option = options.get(first.name);
@@ -136,7 +139,12 @@ function classMember(parts: readonly DtsMember[], options: Map<string, DtsMember
   };
 }
 
-function extraMembers(owner: DtsDeclaration | undefined, groupName: string, kind: string, skip: ReadonlySet<string>): ApiMember[] {
+function extraMembers(
+  owner: DtsDeclaration | undefined,
+  groupName: string,
+  kind: string,
+  skip: ReadonlySet<string>,
+): ApiMember[] {
   return (owner?.members ?? []).flatMap((member) => {
     if (member.name === '' || skip.has(member.name) || isHidden(member)) return [];
     const doc = parseJsDoc(member.jsdoc);
@@ -203,7 +211,8 @@ function classPage(view: ClassView, input: RendererInputs['dts'], isDefault: boo
       : `**Events also come from:** ${inheritedEvents.map(inlineCode).join(', ')}`,
   ].filter((fact) => fact !== undefined);
   const members = classMembers(view);
-  const raw = !view.complete || members.some((member) => member.flags?.includes('unparsed declaration'));
+  const raw =
+    !view.complete || members.some((member) => member.flags?.includes('unparsed declaration'));
   return {
     title: view.name,
     header: blocks(
@@ -221,7 +230,8 @@ function classPage(view: ClassView, input: RendererInputs['dts'], isDefault: boo
 function exportMember(declaration: DtsDeclaration, file: DtsFile): ApiMember | undefined {
   const doc = parseJsDoc(declaration.jsdoc);
   if (doc.internal) return undefined;
-  const container = declaration.kind === 'class' || declaration.kind === 'interface' || declaration.kind === 'enum';
+  const container =
+    declaration.kind === 'class' || declaration.kind === 'interface' || declaration.kind === 'enum';
   const index = container
     ? classMembers(classView(file, declaration)).map((member) => {
         const summary = firstSentence(member.description);
@@ -234,7 +244,9 @@ function exportMember(declaration: DtsDeclaration, file: DtsFile): ApiMember | u
     kind: declaration.kind === 'const' ? 'variable' : declaration.kind,
     group: GROUP_BY_KIND[declaration.kind],
     // A container's members are indexed below; repeating its whole body would double the text.
-    signature: container ? `${declarationText({ ...declaration, text: declaration.head })} { ... }` : declarationText(declaration),
+    signature: container
+      ? `${declarationText({ ...declaration, text: declaration.head })} { ... }`
+      : declarationText(declaration),
     ...documentation(doc),
     ...(index.length === 0 ? {} : { extra: blocks('**Members**', bullets(index)) }),
   };
@@ -248,7 +260,9 @@ function modulePage(file: DtsFile, input: RendererInputs['dts']): ApiType {
     title: module.split('/').at(-1) ?? module,
     header: blocks(
       `_Module_ · ${inlineCode(module)}`,
-      names.length === 0 ? undefined : fence(`import { ${names.join(', ')} } from "${input.packageName}";`, 'js'),
+      names.length === 0
+        ? undefined
+        : fence(`import { ${names.join(', ')} } from "${input.packageName}";`, 'js'),
     ),
     language: 'ts',
     members: exports.flatMap((declaration) => exportMember(declaration, file) ?? []),
@@ -278,13 +292,19 @@ export function renderDts(
   const primary = defaultClass(file);
   const target = exported ?? primary;
 
-  if (target === undefined) return renderApiPage('dts', meta, modulePage(file, input), opts, wanted);
+  if (target === undefined)
+    return renderApiPage('dts', meta, modulePage(file, input), opts, wanted);
 
   const view = classView(file, target);
   const type = classPage(view, input, target === primary);
   const memberName = exported === undefined ? wanted : ownerMember;
-  const known = type.members.some((member) => member.name === memberName || member.id === memberName);
-  const rawText = !view.complete && memberName !== undefined && !known ? rawMemberText(input.source, memberName) : undefined;
+  const known = type.members.some(
+    (member) => member.name === memberName || member.id === memberName,
+  );
+  const rawText =
+    !view.complete && memberName !== undefined && !known
+      ? rawMemberText(input.source, memberName)
+      : undefined;
   if (rawText !== undefined && memberName !== undefined) {
     type.members.push({
       id: memberName,

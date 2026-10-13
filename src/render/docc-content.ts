@@ -84,7 +84,9 @@ export function inline(nodes: unknown, context: DoccContext): string {
           const reference = asRecord(context.references[str(node.identifier) ?? '']);
           const url = str(asRecord(list(reference.variants)[0]).url);
           const alt = str(reference.alt) ?? '';
-          return url === undefined ? alt : `![${alt}](${/^https?:/.test(url) ? url : `${context.baseUrl}${url}`})`;
+          return url === undefined
+            ? alt
+            : `![${alt}](${/^https?:/.test(url) ? url : `${context.baseUrl}${url}`})`;
         }
         default:
           context.unknown.add(`docc:${str(node.type) ?? 'inline'}`);
@@ -114,13 +116,16 @@ function aside(node: Json, context: DoccContext): string {
 }
 
 function tableBlock(node: Json, context: DoccContext): string {
-  const rows = list(node.rows).map((row) =>
-    list(row).map((cell) => content(cell, context)),
-  );
+  const rows = list(node.rows).map((row) => list(row).map((cell) => content(cell, context)));
   const [first, ...rest] = rows;
   if (first === undefined) return '';
   const hasHeader = node.header === 'row' || node.header === 'both';
-  return hasHeader ? table(first, rest) : table(first.map(() => ''), rows);
+  return hasHeader
+    ? table(first, rest)
+    : table(
+        first.map(() => ''),
+        rows,
+      );
 }
 
 function block(node: Json, context: DoccContext): string {

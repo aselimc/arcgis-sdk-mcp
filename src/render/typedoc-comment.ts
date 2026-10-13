@@ -104,7 +104,8 @@ export function readComment(comment: unknown, context: CommentContext): CommentD
         break;
       }
       default:
-        if (text !== '') doc.remarks.push(tag === '@remarks' ? text : `**${tag.slice(1)}:** ${text}`);
+        if (text !== '')
+          doc.remarks.push(tag === '@remarks' ? text : `**${tag.slice(1)}:** ${text}`);
     }
   }
   if (doc.remarks.length > 0) {

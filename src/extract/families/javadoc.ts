@@ -51,7 +51,9 @@ function gridsToTables($: CheerioAPI): void {
     const body = cells.filter((cell) => !isHeader(cell));
     const rows: string[] = [];
     for (let start = 0; start < body.length; start += width) {
-      const row = body.slice(start, start + width).map((cell) => `<td>${$(cell).html() ?? ''}</td>`);
+      const row = body
+        .slice(start, start + width)
+        .map((cell) => `<td>${$(cell).html() ?? ''}</td>`);
       rows.push(`<tr>${row.join('')}</tr>`);
     }
     $(el).replaceWith(
@@ -69,7 +71,9 @@ function flattenInheritance($: CheerioAPI): void {
     .map((_, link) => squash($(link).text()))
     .get();
   const innermost = outer.find('div.inheritance').last();
-  const own = squash((innermost.length > 0 ? innermost : outer).clone().children().remove().end().text());
+  const own = squash(
+    (innermost.length > 0 ? innermost : outer).clone().children().remove().end().text(),
+  );
   const names = [...chain, own].filter((name) => name !== '');
   outer.replaceWith(
     `<p>${tagged('strong', 'Inheritance:')} ${names.map((name) => tagged('code', name)).join(ARROW)}</p>`,

@@ -1,18 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { newBudget } from '../../src/core/async.js';
 import { createHttpClient } from '../../src/net/index.js';
-import { DAY, HOUR, MINUTE, SECOND } from '../support/fake-clock.js';
-import {
-  PAGE,
-  hostRow,
-  json,
-  makeRig,
-  mcpError,
-  page,
-  redirect,
-  refreshStub,
-  status,
-} from './harness.js';
+import { DAY, MINUTE, SECOND } from '../support/fake-clock.js';
+import { PAGE, hostRow, json, makeRig, mcpError, page, status } from './harness.js';
 
 const HOST = 'developers.arcgis.com';
 const at = (path: string) => `https://${HOST}${path}`;

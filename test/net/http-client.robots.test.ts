@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { newBudget } from '../../src/core/async.js';
-import { createHttpClient } from '../../src/net/index.js';
-import { DAY, HOUR, MINUTE, SECOND } from '../support/fake-clock.js';
+import { HOUR, MINUTE } from '../support/fake-clock.js';
 import {
   PAGE,
   hostRow,

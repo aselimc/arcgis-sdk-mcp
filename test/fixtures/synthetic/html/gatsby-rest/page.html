@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="generator" content="Gatsby 5.14.1" />
+    <title>Find berths | Harbor REST reference</title>
+  </head>
+  <body>
+    <div id="___gatsby">
+      <main id="main" class="main has-toc">
+        <header class="page-header"><h1 class="page-title">Find berths</h1></header>
+        <div id="skip-to-content" class="afd-flow-content page-content">
+          <div class="last:child-mb-0 afd-flow-content-block border">
+            <dl class="grid grid-cols-4 gap-2">
+              <dt class="col-start-1 mt-2">URL:</dt>
+              <dd class="col-start-2 col-span-3">
+                <span>https://<a href="/harbor-rest/catalog/">&lt;root&gt;</a><span>/&lt;portName&gt;/BerthServer/find</span></span>
+              </dd>
+              <dt class="col-start-1 mt-2">Methods:</dt>
+              <dd class="col-start-2 col-span-3 flex gap-2"><code class="bg-foreground-3">GET</code><code class="bg-foreground-3">POST</code></dd>
+              <dt class="col-start-1 mt-2">Version Introduced:</dt>
+              <dd class="col-start-2 col-span-3">3.1</dd>
+            </dl>
+          </div>
+          <h2 id="description" class="group relative">
+            Description<a href="#description" class="anchor-link"><svg width="16" height="16"></svg></a>
+          </h2>
+          <p>The find operation returns the berths of a port that are free in a time window.</p>
+          <h2 id="request-parameters" class="group relative">
+            Request parameters<a href="#request-parameters" class="anchor-link"><svg width="16" height="16"></svg></a>
+          </h2>
+          <table>
+            <thead>
+              <tr><th>Parameter</th><th>Details</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>window</code><p>(Required)</p></td>
+                <td>
+                  <p>Start and end of the stay as two timestamps.</p>
+                  <div class="not-afd-flow-content code-block mb-8 flex flex-col">
+                    <div class="relative flex"><calcite-button data-testid="copy-button"></calcite-button><calcite-tooltip>Copy</calcite-tooltip></div>
+                    <div class="relative grow">
+                      <pre data-language="other" class="syntax-highlighter m-0"><code style="white-space:pre"><code style="display:none">1
+</code><span><span class="react-syntax-highlighter-line-number">1</span><span>window=1767225600,1767312000
+</span></span></code></pre>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><code>minLength</code></td>
+                <td>
+                  <p>Shortest berth to return, in metres.</p>
+                  <ul>
+                    <li>Default: <code>0</code></li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <h3 id="sort-order" class="group relative">Sort order</h3>
+          <table>
+            <thead>
+              <tr><th>Value</th><th>Meaning</th><th>Default</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>length</td><td><p>Longest berth first.</p><p>Ties keep their catalogue order.</p></td><td>yes</td></tr>
+              <tr><td>name</td><td>Alphabetical.</td></tr>
+            </tbody>
+          </table>
+          <h2 id="example-usage" class="group relative">
+            Example usage<a href="#example-usage" class="anchor-link"><svg width="16" height="16"></svg></a>
+          </h2>
+          <div class="tab-group">
+            <div class="tab-nav" role="tablist">
+              <button id="tab-title-0-c1" type="button" role="tab" aria-selected="true" aria-controls="tab-0-c1">Any berth</button>
+              <button id="tab-title-1-c1" type="button" role="tab" aria-selected="false" aria-controls="tab-1-c1">Long berths</button>
+            </div>
+            <div id="tab-0-c1" role="tabpanel" aria-labelledby="tab-title-0-c1" class="tab-content block">
+              <p>Every free berth in the first week of the year:</p>
+              <div class="not-afd-flow-content code-block mb-8 flex flex-col">
+                <div class="relative grow">
+                  <pre data-language="http" class="syntax-highlighter m-0"><code style="white-space:pre"><span><span class="react-syntax-highlighter-line-number">1</span><span>GET /north/BerthServer/find?window=1767225600,1767830400&amp;f=json
+</span></span></code></pre>
+                </div>
+              </div>
+            </div>
+            <div id="tab-1-c1" role="tabpanel" aria-labelledby="tab-title-1-c1" class="tab-content hidden" hidden="">
+              <p>Only berths of 200 metres or more:</p>
+              <div class="not-afd-flow-content code-block mb-8 flex flex-col">
+                <div class="relative grow">
+                  <pre data-language="http" class="syntax-highlighter m-0"><code style="white-space:pre"><span><span class="react-syntax-highlighter-line-number">1</span><span>GET /north/BerthServer/find?window=1767225600,1767830400&amp;minLength=200&amp;f=json
+</span></span></code></pre>
+                </div>
+              </div>
+            </div>
+            <div id="tab-c1-no-results" role="tabpanel" hidden="">No examples match the filter.</div>
+          </div>
+          <h2 id="json-response-example" class="group relative">JSON Response example</h2>
+          <table>
+            <thead>
+              <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>berths</code></td>
+                <td>array</td>
+                <td>
+                  <ul>
+                    <li>Empty when nothing is free.</li>
+                    <li>At most 50 entries.</li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="not-afd-flow-content code-block mb-8 flex flex-col">
+            <div class="relative grow">
+              <pre data-language="json" class="syntax-highlighter m-0"><code style="white-space:pre"><code style="display:none">1
+2
+3
+</code><span><span class="react-syntax-highlighter-line-number">1</span><span>{
+</span></span><span><span class="react-syntax-highlighter-line-number">2</span><span>  "berths": [{ "name": "N4", "length": 240 }]
+</span></span><span><span class="react-syntax-highlighter-line-number">3</span><span>}
+</span></span></code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-container">
+          <div class="table-of-contents">On this page</div>
+          <form aria-label="Page feedback" class="feedback">Was this page helpful?</form>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

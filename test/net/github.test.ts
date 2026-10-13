@@ -3,11 +3,8 @@ import { newBudget } from '../../src/core/async.js';
 import type { GithubClient } from '../../src/core/ports.js';
 import { classifyLicenseText, classifySpdx } from '../../src/net/github-license.js';
 import { createGithubClient } from '../../src/net/github.js';
-import { DAY, FAKE_NOW, HOUR, MINUTE } from '../support/fake-clock.js';
+import { DAY, HOUR } from '../support/fake-clock.js';
 import { FakeHttp } from '../support/fake-http.js';
-import { FakeLogger } from '../support/fake-logger.js';
-import { makeConfig } from '../support/builders.js';
-import { MemoryCache } from '../support/memory-cache.js';
 import { body, hostRow, json, makeRig, mcpError, status, type Rig } from './harness.js';
 
 const API = 'https://api.github.com';
@@ -17,8 +14,6 @@ const HOSTS = [
   hostRow('api.github.com', { capability: 'github' }),
   hostRow('raw.githubusercontent.com', { capability: 'github' }),
 ];
-const RESET_SECONDS = FAKE_NOW / 1000 + 30 * 60;
-const RESET_ISO = new Date(RESET_SECONDS * 1000).toISOString();
 
 function make(token?: string): Rig & { github: GithubClient } {
   const rig = makeRig({ hosts: HOSTS, config: token === undefined ? {} : { githubToken: token } });

@@ -18,12 +18,20 @@ const NOTICE_LIST_TTL_MS = 24 * 60 * 60 * 1000;
 
 const CACHE_KEY = 'kb-deprecations';
 
+/** Characters of a product name that must be present before a cut-off slug is taken to name it. */
+const MIN_TAIL = 12;
+
+/** The Knowledge Base cuts article slugs at this many characters, before the article id. */
+const SLUG_CUT = 55;
+
 /** One deprecation notice. */
 export interface DeprecationNotice {
   /** The article slug without the `deprecation-` prefix and the trailing article id. */
   subject: string;
   title: string;
   url: string;
+  /** True when the slug reached the length at which the Knowledge Base cuts it off. */
+  truncated: boolean;
 }
 
 interface CachedNotices {
@@ -37,12 +45,16 @@ export function noticesFromUrls(urls: readonly string[]): DeprecationNotice[] {
   for (const url of urls) {
     const slug = /\/knowledge-base\/(deprecation-[^/?#]+)/.exec(url)?.[1];
     if (slug === undefined) continue;
-    const subject = slug
-      .replace(/^deprecation-(?:notice-)?/, '')
-      // Articles end in their id (`-000032164`), which says nothing to a reader.
-      .replace(/-\d{6,}$/, '');
+    // Articles end in their id (`-000032164`), which says nothing to a reader.
+    const named = slug.replace(/(?:^|-)\d{6,}$/, '');
+    const subject = named.replace(/^deprecation-?(?:notice-)?/, '');
     if (subject === '') continue;
-    notices.push({ subject, title: `Deprecation: ${humanizeSlug(subject)}`, url });
+    notices.push({
+      subject,
+      title: `Deprecation: ${humanizeSlug(subject)}`,
+      url,
+      truncated: named.length >= SLUG_CUT,
+    });
   }
   return notices;
 }
@@ -59,18 +71,19 @@ function productPhrases(product: Product): string[] {
 
 /**
  * True when the notice names the product. Phrases match on hyphen boundaries, so
- * `arcgis-maps-sdk-for-java` does not claim a notice about `...-for-javascript`. Slugs are
- * cut off at about 60 characters, so a truncated tail is matched as a prefix.
+ * `arcgis-maps-sdk-for-java` does not claim a notice about `...-for-javascript`. A slug that
+ * was cut off may end in the middle of the product name; its tail is then matched as a
+ * prefix of the name.
  */
 export function noticeConcerns(notice: DeprecationNotice, product: Product): boolean {
   const subject = `-${notice.subject}-`;
   return productPhrases(product).some((phrase) => {
     if (subject.includes(`-${phrase}-`)) return true;
-    // The slug may end in the middle of the product name.
-    const start = notice.subject.indexOf(phrase.slice(0, 12));
-    if (start < 0 || (start > 0 && notice.subject[start - 1] !== '-')) return false;
+    if (!notice.truncated) return false;
+    const start = subject.indexOf(`-${phrase.slice(0, MIN_TAIL)}`);
+    if (start < 0) return false;
     const tail = notice.subject.slice(start);
-    return tail.length >= 16 && tail.length < phrase.length && phrase.startsWith(tail);
+    return tail.length < phrase.length && phrase.startsWith(tail);
   });
 }
 

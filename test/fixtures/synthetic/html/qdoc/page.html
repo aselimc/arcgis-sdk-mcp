@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Chart Class | Harbor Maps SDK for Qt</title>
+    <link rel="stylesheet" href="/harbor-qt/_astro/qdoc.1f2.css" />
+  </head>
+  <body>
+    <main id="main" class="main has-toc">
+      <header class="page-header"><h1 class="page-title">Chart Class</h1></header>
+      <div id="skip-to-content" class="afd-flow-content page-content">
+        <div class="qdoc-html">
+          <li>Chart</li>
+          <span class="small-subtitle">class Harbor::<wbr />Chart</span>
+          <p>A chart holds the layers that a view draws. <a href="#details">More...</a></p>
+          <div class="table">
+            <table class="alignedsummary requisites">
+              <tr><td class="memItemLeft rightAlign topAlign">Header:</td><td class="memItemRight bottomAlign"><span class="preprocessor">#include &lt;Chart.h&gt;</span></td></tr>
+              <tr><td class="memItemLeft rightAlign topAlign">Since:</td><td class="memItemRight bottomAlign">Harbor 2.0</td></tr>
+            </table>
+          </div>
+          <h2 id="public-functions">Public Functions</h2>
+          <div class="table">
+            <table class="alignedsummary">
+              <tr><td class="memItemLeft rightAlign topAlign"></td><td class="memItemRight bottomAlign"><b><a href="esri-chart.html#Chart">Chart</a></b>(QObject *<i>parent</i> = nullptr)</td></tr>
+              <tr><td class="memItemLeft rightAlign topAlign">double</td><td class="memItemRight bottomAlign"><b><a href="esri-chart.html#maxScale">maxScale</a></b>() const</td></tr>
+            </table>
+          </div>
+          <h2 id="details">Detailed Description</h2>
+          <p>Add layers to a chart, then hand the chart to a view.</p>
+          <div class="admonition note">
+            <p class="admonition-title">Note</p>
+            <p>A chart can be shown in one view at a time.</p>
+          </div>
+          <pre class="cpp">auto* chart = new Chart(this);
+view-&gt;setChart(chart);</pre>
+          <h2 id="member-function-documentation">Member Function Documentation</h2>
+          <h3 class="fn" id="Chart"><code class="details extra">[explicit]</code> <span class="name">Chart</span>::<wbr />Chart(<span class="type">QObject</span> *<i>parent</i> = nullptr)</h3>
+          <p>Creates an empty chart.</p>
+          <ul>
+            <li><i>parent</i> - The optional parent object.</li>
+          </ul>
+          <h3 class="fn" id="maxScale"><span class="type">double</span> Chart::<wbr /><span class="name">maxScale</span>() const</h3>
+          <p>Returns the largest scale the chart can be shown at. Zero means there is no limit.</p>
+        </div>
+      </div>
+      <astro-island uid="f1" component-url="/harbor-qt/_astro/FeedbackWidget.Buv.js"></astro-island>
+    </main>
+  </body>
+</html>

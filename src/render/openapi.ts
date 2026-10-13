@@ -38,7 +38,10 @@ function linker(meta: RenderMeta, sitePrefix: string | undefined): Linker {
     `[${name}](${/^https?:/.test(path) ? path : `${origin}${prefix}${path}`})`;
   return (text) =>
     text
-      .replace(/\[%%\[([^\]]+)\]\(([^)]+)\)%%\]/g, (_w, name: string, path: string) => `${link(name, path)}[]`)
+      .replace(
+        /\[%%\[([^\]]+)\]\(([^)]+)\)%%\]/g,
+        (_w, name: string, path: string) => `${link(name, path)}[]`,
+      )
       .replace(/%%\[([^\]]+)\]\(([^)]+)\)%%/g, (_w, name: string, path: string) => link(name, path))
       .replace(/%%/g, '');
 }
@@ -59,10 +62,14 @@ function typeCell(property: OaProperty, links: Linker): string {
 function descriptionCell(property: OaProperty, links: Linker): string {
   const facts = [
     property.default === undefined ? undefined : `Default ${inlineCode(property.default)}.`,
-    property.constraints.length === 0 ? undefined : `Constraints: ${property.constraints.join('; ')}.`,
+    property.constraints.length === 0
+      ? undefined
+      : `Constraints: ${property.constraints.join('; ')}.`,
     property.example === undefined ? undefined : `Example: ${inlineCode(property.example)}.`,
   ].filter((fact) => fact !== undefined);
-  return [links((property.description ?? '').trim()), ...facts].filter((part) => part !== '').join(' ');
+  return [links((property.description ?? '').trim()), ...facts]
+    .filter((part) => part !== '')
+    .join(' ');
 }
 
 /** Rows of a property table; nested properties follow their parent under a dotted name. */
@@ -90,11 +97,16 @@ function jsonExample(example: string): string {
   return fence(example, /^\s*[{[]/.test(example) ? 'json' : '');
 }
 
-const EXAMPLE_LANGUAGES: Record<string, string> = { curl: 'bash', shell: 'bash', node: 'javascript' };
+const EXAMPLE_LANGUAGES: Record<string, string> = {
+  curl: 'bash',
+  shell: 'bash',
+  node: 'javascript',
+};
 
 function responseBlock(response: OaResponse, links: Linker): Block {
   const title = [response.status, response.phrase].filter((part) => part !== undefined).join(' ');
-  const type = response.displayType?.includes('%%') === true ? links(response.displayType) : undefined;
+  const type =
+    response.displayType?.includes('%%') === true ? links(response.displayType) : undefined;
   return {
     id: `response-${slugify(response.status)}`,
     level: 3,
@@ -121,8 +133,12 @@ function operationPage(operation: OaOperation, links: Linker): { header: string;
       : [{ level: 2, title, body: propertyTable('Name', properties, links) }];
   return {
     header: blocks(
-      operation.endpoint === undefined ? undefined : fence(`${operation.method} ${operation.endpoint}`, 'http'),
-      operation.operationId === undefined ? undefined : `**Operation ID:** ${inlineCode(operation.operationId)}`,
+      operation.endpoint === undefined
+        ? undefined
+        : fence(`${operation.method} ${operation.endpoint}`, 'http'),
+      operation.operationId === undefined
+        ? undefined
+        : `**Operation ID:** ${inlineCode(operation.operationId)}`,
     ),
     blocks: [
       {
@@ -171,7 +187,9 @@ function schemaBlock(schema: OaSchema, links: Linker, level: number): Block {
     body: blocks(
       schema.type === undefined ? undefined : `Type: ${inlineCode(schema.type)}`,
       links(schema.description ?? ''),
-      schema.constraints.length === 0 ? undefined : `Constraints: ${schema.constraints.join('; ')}.`,
+      schema.constraints.length === 0
+        ? undefined
+        : `Constraints: ${schema.constraints.join('; ')}.`,
       propertyTable('Property', schema.properties, links),
       schema.example === undefined ? undefined : jsonExample(schema.example),
     ),
@@ -181,7 +199,12 @@ function schemaBlock(schema: OaSchema, links: Linker, level: number): Block {
 function schemaEntries(schemas: readonly OaSchema[]): MemberEntry[] {
   return schemas.map((schema) => {
     const summary = firstSentence(schema.description);
-    return { id: schemaId(schema), name: schema.name, kind: 'type', ...(summary === '' ? {} : { summary }) };
+    return {
+      id: schemaId(schema),
+      name: schema.name,
+      kind: 'type',
+      ...(summary === '' ? {} : { summary }),
+    };
   });
 }
 
@@ -189,11 +212,15 @@ function operationId(operation: OaOperation): string {
   return operation.operationId ?? slugify(operationTitle(operation));
 }
 
-function findOperation(operations: readonly OaOperation[], target: string): OaOperation | undefined {
+function findOperation(
+  operations: readonly OaOperation[],
+  target: string,
+): OaOperation | undefined {
   const wanted = target.trim().toLowerCase();
   return operations.find(
     (operation) =>
-      operation.operationId?.toLowerCase() === wanted || operationTitle(operation).toLowerCase() === wanted,
+      operation.operationId?.toLowerCase() === wanted ||
+      operationTitle(operation).toLowerCase() === wanted,
   );
 }
 
@@ -202,7 +229,12 @@ function findSchema(schemas: readonly OaSchema[], target: string): OaSchema | un
   return schemas.find((schema) => schema.name.toLowerCase() === wanted);
 }
 
-function renderOperation(operation: OaOperation, meta: RenderMeta, links: Linker, opts?: RenderOptions): DocPage {
+function renderOperation(
+  operation: OaOperation,
+  meta: RenderMeta,
+  links: Linker,
+  opts?: RenderOptions,
+): DocPage {
   const page = operationPage(operation, links);
   return finishPage(
     'openapi',
@@ -233,7 +265,12 @@ function renderSchemas(
   );
 }
 
-function renderOverview(index: SpecIndex, meta: RenderMeta, links: Linker, opts?: RenderOptions): DocPage {
+function renderOverview(
+  index: SpecIndex,
+  meta: RenderMeta,
+  links: Linker,
+  opts?: RenderOptions,
+): DocPage {
   const title = index.title ?? 'API specification';
   const operations = index.operations.map((operation) => {
     const summary = operation.summary ?? firstSentence(operation.description);
@@ -243,12 +280,23 @@ function renderOverview(index: SpecIndex, meta: RenderMeta, links: Linker, opts?
     {
       level: 1,
       title,
-      body: blocks(index.version === undefined ? undefined : `Version ${index.version}`, links(index.description ?? '')),
+      body: blocks(
+        index.version === undefined ? undefined : `Version ${index.version}`,
+        links(index.description ?? ''),
+      ),
     },
-    ...(operations.length === 0 ? [] : [{ level: 2, title: 'Operations', body: bullets(operations) }]),
+    ...(operations.length === 0
+      ? []
+      : [{ level: 2, title: 'Operations', body: bullets(operations) }]),
     ...(index.schemas.length === 0
       ? []
-      : [{ level: 2, title: 'Schemas', body: bullets(index.schemas.map((schema) => inlineCode(schema.name))) }]),
+      : [
+          {
+            level: 2,
+            title: 'Schemas',
+            body: bullets(index.schemas.map((schema) => inlineCode(schema.name))),
+          },
+        ]),
   ];
   const members: MemberEntry[] = [
     ...index.operations.map((operation): MemberEntry => {
@@ -262,7 +310,12 @@ function renderOverview(index: SpecIndex, meta: RenderMeta, links: Linker, opts?
     }),
     ...schemaEntries(index.schemas),
   ];
-  return finishPage('openapi', meta, { title, sections: buildSections(sectionBlocks), members }, opts);
+  return finishPage(
+    'openapi',
+    meta,
+    { title, sections: buildSections(sectionBlocks), members },
+    opts,
+  );
 }
 
 /**
@@ -290,15 +343,30 @@ export function renderOpenapi(
   if (input.schemas !== undefined && input.schemas !== null) {
     const holder = asRecord(input.schemas);
     const schemas = records(Array.isArray(input.schemas) ? list(input.schemas) : holder.schemas);
-    return renderSchemas(str(holder.title) ?? 'Types', schemas.map(pageDataSchema), input.target, meta, links, opts);
+    return renderSchemas(
+      str(holder.title) ?? 'Types',
+      schemas.map(pageDataSchema),
+      input.target,
+      meta,
+      links,
+      opts,
+    );
   }
   if (isRecord(input.spec)) {
     const index = readSpec(input.spec);
-    const operation = input.target === undefined ? undefined : findOperation(index.operations, input.target);
+    const operation =
+      input.target === undefined ? undefined : findOperation(index.operations, input.target);
     if (operation !== undefined) return renderOperation(operation, meta, links, opts);
     const schema = input.target === undefined ? undefined : findSchema(index.schemas, input.target);
     if (schema !== undefined) {
-      return renderSchemas(index.title ?? 'Schemas', index.schemas, input.target, meta, links, opts);
+      return renderSchemas(
+        index.title ?? 'Schemas',
+        index.schemas,
+        input.target,
+        meta,
+        links,
+        opts,
+      );
     }
     return renderOverview(index, meta, links, opts);
   }

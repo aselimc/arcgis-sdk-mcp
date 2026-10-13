@@ -28,7 +28,11 @@ export interface ClassView {
   complete: boolean;
 }
 
-function named(file: DtsFile, name: string, kinds: ReadonlyArray<DtsDeclaration['kind']>): DtsDeclaration | undefined {
+function named(
+  file: DtsFile,
+  name: string,
+  kinds: ReadonlyArray<DtsDeclaration['kind']>,
+): DtsDeclaration | undefined {
   return file.declarations.find(
     (declaration) => declaration.name === name && kinds.includes(declaration.kind),
   );

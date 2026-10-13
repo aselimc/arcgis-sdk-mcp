@@ -6,14 +6,7 @@ import { depthChange, matchingClose, type Token } from './tokens.js';
 
 /** Kind of a member as far as the scanner can tell without type analysis. */
 export type DtsMemberKind =
-  | 'constructor'
-  | 'method'
-  | 'property'
-  | 'getter'
-  | 'setter'
-  | 'index'
-  | 'call'
-  | 'unknown';
+  'constructor' | 'method' | 'property' | 'getter' | 'setter' | 'index' | 'call' | 'unknown';
 
 /** One member at depth 1 of a class, interface or enum body. */
 export interface DtsMember {
@@ -73,7 +66,9 @@ function typeAfterColon(source: string, tokens: readonly Token[]): string | unde
     const token = tokens[index];
     if (token === undefined) break;
     if (depth === 0 && token.text === ':') {
-      const text = slice(source, tokens[index + 1], tokens.at(-1)).replace(/[;,]$/, '').trim();
+      const text = slice(source, tokens[index + 1], tokens.at(-1))
+        .replace(/[;,]$/, '')
+        .trim();
       return text === '' ? undefined : text;
     }
     depth += depthChange(token);

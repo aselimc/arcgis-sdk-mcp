@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { budgetExhausted, newBudget } from '../../src/core/async.js';
-import { DAY, HOUR, MINUTE } from '../support/fake-clock.js';
+import { newBudget } from '../../src/core/async.js';
+import { DAY, MINUTE } from '../support/fake-clock.js';
 import {
   PAGE,
   hostRow,

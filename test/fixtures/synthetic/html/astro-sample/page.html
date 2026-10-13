@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Intro to charts | Harbor Maps SDK</title>
+    <script type="module" src="/harbor/latest/_astro/page.9d1.js"></script>
+  </head>
+  <body>
+    <main id="main" class="main">
+      <header class="page-header">
+        <h2 class="page-title">Intro to charts</h2>
+      </header>
+      <div id="skip-to-content" class="afd-flow-content page-content">
+        <astro-island uid="d1" component-url="/harbor/latest/_astro/DemoAppReact.4kq.js"
+          ><div class="demo">Loading the live sample</div></astro-island
+        >
+        <p>This sample draws an empty harbor chart and centres it on a pier.</p>
+        <h2 id="1-load-the-library" class="group relative">
+          1. Load the library<a href="#1-load-the-library" class="anchor-link"
+            ><calcite-icon icon="link" scale="s"></calcite-icon
+          ></a>
+        </h2>
+        <p>Add one script tag to the page head:</p>
+        <div data-codeblock='{"language":"html"}'>
+          <div class="border-s-3">
+            <div class="expressive-code">
+              <figure class="frame">
+                <figcaption class="header"></figcaption>
+                <pre data-language="html"><code><div class="ec-line"><div class="code">&lt;script type="module" src="https://cdn.example/harbor.js"&gt;&lt;/script&gt;</div></div></code></pre>
+                <div class="copy">
+                  <button
+                    title="Copy to clipboard"
+                    data-code="&lt;script type=&quot;module&quot; src=&quot;https://cdn.example/harbor.js&quot;&gt;&lt;/script&gt;"
+                  ></button>
+                </div>
+              </figure>
+            </div>
+          </div>
+          <ul class="list-none"></ul>
+        </div>
+        <h2 id="2-create-the-chart" class="group relative">2. Create the chart</h2>
+        <p>Pass the id of an empty <code>div</code> and a centre point.</p>
+      </div>
+      <div class="sample-code-source" hidden aria-hidden="true">
+        <div class="expressive-code">
+          <figure class="frame">
+            <figcaption class="header"></figcaption>
+            <pre data-language="html"><code><div class="ec-line"><div class="code">&lt;!doctype html&gt;</div></div></code></pre>
+            <div class="copy">
+              <button
+                title="Copy to clipboard"
+                data-code="&lt;!doctype html&gt;&#127;&lt;html&gt;&#127;  &lt;body&gt;&#127;    &lt;div id=&quot;view&quot;&gt;&lt;/div&gt;&#127;    &lt;script type=&quot;module&quot;&gt;&#127;      new Chart(&quot;view&quot;, { center: [4.9, 52.4] });&#127;    &lt;/script&gt;&#127;  &lt;/body&gt;&#127;&lt;/html&gt;"
+              ></button>
+            </div>
+          </figure>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

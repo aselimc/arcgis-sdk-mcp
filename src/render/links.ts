@@ -33,10 +33,14 @@ function resolve(target: string, base: URL): string | undefined {
 function rewriteProse(text: string, base: URL): string {
   const swap = (target: string): string => resolve(target, base) ?? target;
   return text
-    .replace(/(\]\(\s*<?)([^)\s>]+)/g, (_whole, open: string, target: string) => `${open}${swap(target)}`)
+    .replace(
+      /(\]\(\s*<?)([^)\s>]+)/g,
+      (_whole, open: string, target: string) => `${open}${swap(target)}`,
+    )
     .replace(
       /(\b(?:href|src)\s*=\s*)(["'])([^"']+)\2/gi,
-      (_whole, attribute: string, quote: string, target: string) => `${attribute}${quote}${swap(target)}${quote}`,
+      (_whole, attribute: string, quote: string, target: string) =>
+        `${attribute}${quote}${swap(target)}${quote}`,
     );
 }
 

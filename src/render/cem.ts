@@ -217,7 +217,11 @@ export function renderCem(
 ): DocPage {
   const found = isRecord(input.manifest) ? findDeclaration(input.manifest, input.tag) : undefined;
   if (found === undefined) {
-    throw invalidInput('cem', meta, `the manifest of ${input.packageName} does not declare ${input.tag}`);
+    throw invalidInput(
+      'cem',
+      meta,
+      `the manifest of ${input.packageName} does not declare ${input.tag}`,
+    );
   }
   const { declaration, module } = found;
   const element = declaration.customElement === true;

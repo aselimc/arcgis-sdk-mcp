@@ -38,11 +38,15 @@ export function fragment($: CheerioAPI, html: string): AnyNode[] {
  * A bullet list of the named `<meta>` values that are present, as detached nodes; empty when
  * none is. `fields` maps a meta name to the label shown.
  */
-export function metaBlock($: CheerioAPI, fields: ReadonlyArray<[name: string, label: string]>): AnyNode[] {
+export function metaBlock(
+  $: CheerioAPI,
+  fields: ReadonlyArray<[name: string, label: string]>,
+): AnyNode[] {
   const items: string[] = [];
   for (const [name, label] of fields) {
     const value = ($(`meta[name="${name}"]`).attr('content') ?? '').trim();
-    if (value !== '') items.push(`<li><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`);
+    if (value !== '')
+      items.push(`<li><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`);
   }
   return items.length === 0 ? [] : fragment($, `<ul>${items.join('')}</ul>`);
 }

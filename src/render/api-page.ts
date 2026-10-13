@@ -93,11 +93,7 @@ function examplesOf(doc: ApiDoc, language: string, limit: number): string | unde
 }
 
 /** Body of a documented entity at one detail level (the rules of `RenderOptions.detail`). */
-function docBody(
-  doc: ApiDoc & Partial<ApiMember>,
-  language: string,
-  detail: SymbolDetail,
-): string {
+function docBody(doc: ApiDoc & Partial<ApiMember>, language: string, detail: SymbolDetail): string {
   const signature = doc.signature === undefined ? undefined : fence(doc.signature, language);
   if (detail === 'signature') return blocks(signature, firstSentence(doc.description));
 
@@ -173,7 +169,12 @@ function grouped(members: readonly ApiMember[]): Array<[string, ApiMember[]]> {
  * - `summary`: the description and, per group, a one-line index of the members;
  * - `full`: the description and one section per member.
  */
-export function typeBlocks(type: ApiType, detail: SymbolDetail, level: number, id?: string): Block[] {
+export function typeBlocks(
+  type: ApiType,
+  detail: SymbolDetail,
+  level: number,
+  id?: string,
+): Block[] {
   const top: Block = {
     ...(id === undefined ? {} : { id }),
     level,

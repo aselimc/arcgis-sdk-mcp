@@ -9,15 +9,29 @@ export interface TextTable {
   rows: string[][];
 }
 
-/** Removes inline Markdown from a cell: links keep their text, emphasis and code marks go. */
+/**
+ * Removes inline Markdown from a cell: links keep their text, paired emphasis and code marks
+ * go, backslash escapes are resolved. A lone `*` or `_` is literal (`5.1.*`, `arcgis_maps`).
+ */
 function plainCell(cell: string): string {
-  return cell
-    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/[*_`]+/g, '')
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/\\\|/g, '|')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const escaped: string[] = [];
+  return (
+    cell
+      // Park escaped characters so that `5.1.\*` is not read as the start of emphasis.
+      // The marker is a private-use character, which no documentation page contains.
+      .replace(/\\([\\`*_{}[\]()#+\-.!|~<>])/g, (_whole, char: string) => {
+        escaped.push(char);
+        return `\uE000${escaped.length - 1}\uE000`;
+      })
+      .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/(\*\*|__)(.+?)\1/g, '$2')
+      .replace(/(?<![\w*])([*_])(?!\s)(.+?)(?<!\s)\1(?![\w*])/g, '$2')
+      .replace(/`([^`]*)`/g, '$1')
+      .replace(/<br\s*\/?>/gi, ' ')
+      .replace(/\uE000(\d+)\uE000/g, (_whole, index: string) => escaped[Number(index)] ?? '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 /** Splits a Markdown table line on unescaped pipes, without the outer ones. */

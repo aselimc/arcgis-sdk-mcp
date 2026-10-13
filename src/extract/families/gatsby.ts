@@ -13,9 +13,15 @@ export const cardsToList: Pass = ($) => {
     .each((_, el) => {
       const card = $(el);
       const href = card.attr('href');
-      const title = tagged('a', squash(card.children('h3').first().text()), `href="${escapeHtml(href ?? '#')}"`);
+      const title = tagged(
+        'a',
+        squash(card.children('h3').first().text()),
+        `href="${escapeHtml(href ?? '#')}"`,
+      );
       const description = squash(card.find('p').text());
-      card.replaceWith(`<ul><li>${title}${description === '' ? '' : `: ${escapeHtml(description)}`}</li></ul>`);
+      card.replaceWith(
+        `<ul><li>${title}${description === '' ? '' : `: ${escapeHtml(description)}`}</li></ul>`,
+      );
     });
 };
 

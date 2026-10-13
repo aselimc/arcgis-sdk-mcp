@@ -95,7 +95,12 @@ describe('gatsby enumerate: guide site', () => {
   });
 
   it('lets a classify rule of the source overrule the heuristics', async () => {
-    const site = guide({ classify: [['^faq/', 'troubleshooting'], ['^api-reference/', 'guide']] });
+    const site = guide({
+      classify: [
+        ['^faq/', 'troubleshooting'],
+        ['^api-reference/', 'guide'],
+      ],
+    });
     const records = await enumerate(site.ctx(), site.bound());
     expect(recordAt(records, '/faq/').kind).toBe('troubleshooting');
     expect(recordAt(records, '/api-reference/gauge/').kind).toBe('guide');
@@ -359,7 +364,8 @@ describe('gatsby enumerate: sites with several sections', () => {
     ctx.http.fail(/page-data\/s\d\d\//, 404);
     const records = await enumerate(ctx, site.bound());
 
-    expect(records).toHaveLength(60);
+    // Sixty pages and the three glossary terms of the static query.
+    expect(records).toHaveLength(63);
     expect(ctx.http.count()).toBeLessThanOrEqual(MAX_ENUMERATE_REQUESTS);
     // Eight further sections are asked, one page each; the rest keep their slug titles.
     expect(ctx.http.count(/page-data\/s\d\d\//)).toBe(8);
@@ -382,9 +388,9 @@ describe('gatsby enumerate: site prefix above the source base', () => {
       'api-reference/',
     ]);
     expect(records.every((record) => record.kind === 'api')).toBe(true);
-    expect(await ctx.cache.getDerived('misc', `gatsby-prefix:${D}/pylib/latest/api-reference/`)).toBe(
-      `${D}/pylib/latest/`,
-    );
+    expect(
+      await ctx.cache.getDerived('misc', `gatsby-prefix:${D}/pylib/latest/api-reference/`),
+    ).toBe(`${D}/pylib/latest/`);
   });
 
   it('asks a page of the section when the base page has no data', async () => {
@@ -392,7 +398,9 @@ describe('gatsby enumerate: site prefix above the source base', () => {
     const ctx = site.ctx();
     await enumerate(ctx, site.bound());
     expect(ctx.http.count(/page-data\/api-reference\/page-data\.json$/)).toBe(1);
-    expect(ctx.http.count(/page-data\/api-reference\/pylib\.geocoding\.html\/page-data\.json$/)).toBe(1);
+    expect(
+      ctx.http.count(/page-data\/api-reference\/pylib\.geocoding\.html\/page-data\.json$/),
+    ).toBe(1);
     expect(ctx.http.count(/\.pagination\.json$/)).toBe(1);
   });
 

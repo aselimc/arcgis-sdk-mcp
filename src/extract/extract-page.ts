@@ -82,7 +82,13 @@ export function extractPage(
     }
   }
   // A profile that failed has taken the parsed document apart: the fallback parses again.
-  result ??= runProfile(detected === 'generic' ? $ : load(html), PROFILES.generic, meta, opts, convert) ?? {
+  result ??= runProfile(
+    detected === 'generic' ? $ : load(html),
+    PROFILES.generic,
+    meta,
+    opts,
+    convert,
+  ) ?? {
     title: '',
     sections: [],
     sliced: false,

@@ -45,16 +45,14 @@ export function stripComment(comment: string): string {
 /** `{@link Target}`, `{@link Target | label}`, `{@linkcode Target label}` to Markdown. */
 function inlineTags(text: string): string {
   return text
-    .replace(/\{@(link|linkcode|linkplain)\s+([^}|\s]+)(?:\s*\|\s*|\s+)?([^}]*)\}/g, (
-      _whole,
-      tag: string,
-      target: string,
-      label: string,
-    ) => {
-      const shown = label.trim() === '' ? target : label.trim();
-      if (/^https?:\/\//.test(target)) return `[${shown}](${target})`;
-      return tag === 'linkplain' ? shown : `\`${shown}\``;
-    })
+    .replace(
+      /\{@(link|linkcode|linkplain)\s+([^}|\s]+)(?:\s*\|\s*|\s+)?([^}]*)\}/g,
+      (_whole, tag: string, target: string, label: string) => {
+        const shown = label.trim() === '' ? target : label.trim();
+        if (/^https?:\/\//.test(target)) return `[${shown}](${target})`;
+        return tag === 'linkplain' ? shown : `\`${shown}\``;
+      },
+    )
     .replace(/\\@/g, '@');
 }
 

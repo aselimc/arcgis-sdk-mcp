@@ -70,7 +70,12 @@ export function tokenize(source: string): Token[] {
     if (char === '\n') {
       lineStart = true;
       i += 1;
-    } else if (char === ' ' || char === '\t' || char === '\r' || char.charCodeAt(0) === BYTE_ORDER_MARK) {
+    } else if (
+      char === ' ' ||
+      char === '\t' ||
+      char === '\r' ||
+      char.charCodeAt(0) === BYTE_ORDER_MARK
+    ) {
       i += 1;
     } else if (char === '/' && source.charAt(i + 1) === '*') {
       const close = source.indexOf('*/', i + 2);

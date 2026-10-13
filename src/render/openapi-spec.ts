@@ -174,7 +174,13 @@ function baseUrl(spec: Json): string | undefined {
   return `${strings(spec.schemes)[0] ?? 'https'}://${host}${(str(spec.basePath) ?? '').replace(/\/$/, '')}`;
 }
 
-function operation(spec: Json, path: string, method: string, shared: Json[], node: Json): OaOperation {
+function operation(
+  spec: Json,
+  path: string,
+  method: string,
+  shared: Json[],
+  node: Json,
+): OaOperation {
   const parameters = [...shared, ...records(node.parameters)].map((item) => deref(spec, item));
   const located = (where: string): OaProperty[] =>
     parameters.filter((item) => item.in === where).map((item) => parameter(spec, item));

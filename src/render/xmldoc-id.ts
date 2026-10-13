@@ -74,15 +74,20 @@ function typeName(encoded: string): string {
   }
   const suffix = /(?:\[[\d:,]*\]|\*)+$/.exec(text)?.[0] ?? '';
   text = text.slice(0, text.length - suffix.length);
-  const array = suffix.replace(/\[[^\]]*\]/g, (dims) => `[${','.repeat((dims.match(/,/g) ?? []).length)}]`);
+  const array = suffix.replace(
+    /\[[^\]]*\]/g,
+    (dims) => `[${','.repeat((dims.match(/,/g) ?? []).length)}]`,
+  );
 
   // A reference to a generic parameter: `0 of the type, ``0 of the method.
   const parameter = /^(`{1,2})(\d+)$/.exec(text);
-  if (parameter !== null) return `${prefix}${parameter[1] === '``' ? 'M' : 'T'}${parameter[2] ?? ''}${array}`;
+  if (parameter !== null)
+    return `${prefix}${parameter[1] === '``' ? 'M' : 'T'}${parameter[2] ?? ''}${array}`;
 
   const open = text.indexOf('{');
   const base = open === -1 ? text : text.slice(0, open);
-  const args = open === -1 ? [] : splitTopLevel(text.slice(open + 1, text.lastIndexOf('}'))).map(typeName);
+  const args =
+    open === -1 ? [] : splitTopLevel(text.slice(open + 1, text.lastIndexOf('}'))).map(typeName);
   const alias = ALIASES[base];
   const short = alias ?? (base.split('.').at(-1) ?? base).replace(/`+\d+$/, '');
   if (base === 'System.Nullable' && args.length === 1) return `${prefix}${args[0] ?? ''}?${array}`;
@@ -113,14 +118,23 @@ export function parseMemberId(id: string): MemberId | undefined {
 
   if (prefix === 'T' || prefix === 'N') {
     const name = readable(last);
-    return { prefix, qualified, owner, name, display: name, parameters, signature: readable(qualified) };
+    return {
+      prefix,
+      qualified,
+      owner,
+      name,
+      display: name,
+      parameters,
+      signature: readable(qualified),
+    };
   }
   const constructor = last === '#ctor' || last === '#cctor';
   const name = constructor ? ownerShort : readable(last.replace(/#/g, '.'));
   const display = constructor ? ownerShort : `${ownerShort}.${name}`;
   let signature = display;
   if (prefix === 'M') signature = `${display}(${parameters.join(', ')})`;
-  else if (prefix === 'P' && parameters.length > 0) signature = `${ownerShort}.this[${parameters.join(', ')}]`;
+  else if (prefix === 'P' && parameters.length > 0)
+    signature = `${ownerShort}.this[${parameters.join(', ')}]`;
   if (match[4] !== undefined) signature += `: ${typeName(match[4])}`;
   return { prefix, qualified, owner, name, display, parameters, signature };
 }

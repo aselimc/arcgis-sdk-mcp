@@ -92,7 +92,8 @@ function select(
     outline.find((node) => node.id === key) ?? outline.find((node) => node.alias === key);
   // A member selector prefers members; a section selector prefers sections, except that a
   // member id always wins: member cards carry headings of their own.
-  const member = selector?.member === undefined ? (byId ?? (section ? undefined : byName)) : (byId ?? byName);
+  const member =
+    selector?.member === undefined ? (byId ?? (section ? undefined : byName)) : (byId ?? byName);
   if (member !== undefined) {
     const nodes = profile.sliceMember?.(page, member.id);
     if (nodes !== undefined && nodes.length > 0) return { nodes, member };

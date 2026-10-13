@@ -78,144 +78,69 @@ function apacheRepo(repo: string, role: RepoRef['role'], defaultBranch: string):
   return { repo, role, license: 'apache-2.0', defaultBranch };
 }
 
+/**
+ * One Gatsby sub-site below `/rest/`: source id, title, path on developers.arcgis.com, pages
+ * in its sitemap, index-build priority. The rows follow the table of design section 4.5.
+ */
+type RestSiteRow = [id: string, title: string, base: string, pages: number, priority: number];
+
+// prettier-ignore
+const REST_SITE_ROWS: readonly RestSiteRow[] = [
+  ['services-enterprise', 'Services reference (ArcGIS Enterprise): feature, map, image, GP, geometry, scene', '/rest/services-reference/enterprise/', 906, 1],
+  ['portal', 'Users, groups and items (sharing API)', '/rest/users-groups-and-items/', 336, 2],
+  ['geocode', 'Geocoding service', '/rest/geocode/', 15, 4],
+  ['routing', 'Routing service', '/rest/routing/', 30, 5],
+  ['services-online', 'Services reference (ArcGIS Online hosted services)', '/rest/services-reference/online/', 46, 6],
+  ['geoenrichment', 'GeoEnrichment service', '/rest/geoenrichment/', 18, 7],
+  // Absent from the global sitemap index; its own sitemap-0.xml exists.
+  ['analysis', 'Spatial analysis service', '/rest/analysis/', 43, 8],
+  ['elevation-analysis', 'Elevation and hydrology analysis services', '/rest/elevation-analysis/', 10, 9],
+  ['packaging', 'Packaging service (offline map areas)', '/rest/packaging/', 4, 9],
+  ['services-mission', 'Services reference (ArcGIS Mission)', '/rest/services-reference/mission/', 21, 9],
+  ['admin-enterprise', 'Administration API (ArcGIS Enterprise on Kubernetes)', '/rest/enterprise-administration/enterprise/', 340, 10],
+  ['admin-server', 'Administration API (ArcGIS Server)', '/rest/enterprise-administration/server/', 275, 10],
+  ['admin-portal', 'Administration API (Portal for ArcGIS)', '/rest/enterprise-administration/portal/', 125, 10],
+  ['admin-notebook', 'Administration API (ArcGIS Notebook Server)', '/rest/enterprise-administration/notebook/', 137, 10],
+  ['admin-mission', 'Administration API (ArcGIS Mission Server)', '/rest/enterprise-administration/mission-server/', 53, 10],
+  // Absent from the global sitemap index as well.
+  ['admin-video', 'Administration API (ArcGIS Video Server)', '/rest/enterprise-administration/video-server/', 115, 10],
+];
+
+/** The floor source, and the only sub-site with a what's-new page. */
+const ENTERPRISE_SERVICES = 'services-enterprise';
+
 interface RestSite {
   id: string;
   title: string;
-  /** Path of the sub-site on developers.arcgis.com. */
   base: string;
   pages: number;
   priority: number;
-  floor?: true;
-  /** The site has a what's-new page. */
-  whatsNew?: true;
 }
 
-/** The 16 sub-sites below `/rest/` that have their own Gatsby build, in index-build order. */
-const REST_SITES: readonly RestSite[] = [
-  {
-    id: 'services-enterprise',
-    title: 'Services reference (ArcGIS Enterprise): feature, map, image, GP, geometry, scene',
-    base: '/rest/services-reference/enterprise/',
-    pages: 906,
-    priority: 1,
-    floor: true,
-    whatsNew: true,
-  },
-  {
-    id: 'portal',
-    title: 'Users, groups and items (sharing API)',
-    base: '/rest/users-groups-and-items/',
-    pages: 336,
-    priority: 2,
-  },
-  { id: 'geocode', title: 'Geocoding service', base: '/rest/geocode/', pages: 15, priority: 4 },
-  { id: 'routing', title: 'Routing service', base: '/rest/routing/', pages: 30, priority: 5 },
-  {
-    id: 'services-online',
-    title: 'Services reference (ArcGIS Online hosted services)',
-    base: '/rest/services-reference/online/',
-    pages: 46,
-    priority: 6,
-  },
-  {
-    id: 'geoenrichment',
-    title: 'GeoEnrichment service',
-    base: '/rest/geoenrichment/',
-    pages: 18,
-    priority: 7,
-  },
-  // Absent from the global sitemap index; its own sitemap-0.xml exists.
-  {
-    id: 'analysis',
-    title: 'Spatial analysis service',
-    base: '/rest/analysis/',
-    pages: 43,
-    priority: 8,
-  },
-  {
-    id: 'elevation-analysis',
-    title: 'Elevation and hydrology analysis services',
-    base: '/rest/elevation-analysis/',
-    pages: 10,
-    priority: 9,
-  },
-  {
-    id: 'packaging',
-    title: 'Packaging service (offline map areas)',
-    base: '/rest/packaging/',
-    pages: 4,
-    priority: 9,
-  },
-  {
-    id: 'services-mission',
-    title: 'Services reference (ArcGIS Mission)',
-    base: '/rest/services-reference/mission/',
-    pages: 21,
-    priority: 9,
-  },
-  {
-    id: 'admin-enterprise',
-    title: 'Administration API (ArcGIS Enterprise on Kubernetes)',
-    base: '/rest/enterprise-administration/enterprise/',
-    pages: 340,
-    priority: 10,
-  },
-  {
-    id: 'admin-server',
-    title: 'Administration API (ArcGIS Server)',
-    base: '/rest/enterprise-administration/server/',
-    pages: 275,
-    priority: 10,
-  },
-  {
-    id: 'admin-portal',
-    title: 'Administration API (Portal for ArcGIS)',
-    base: '/rest/enterprise-administration/portal/',
-    pages: 125,
-    priority: 10,
-  },
-  {
-    id: 'admin-notebook',
-    title: 'Administration API (ArcGIS Notebook Server)',
-    base: '/rest/enterprise-administration/notebook/',
-    pages: 137,
-    priority: 10,
-  },
-  {
-    id: 'admin-mission',
-    title: 'Administration API (ArcGIS Mission Server)',
-    base: '/rest/enterprise-administration/mission-server/',
-    pages: 53,
-    priority: 10,
-  },
-  // Absent from the global sitemap index as well.
-  {
-    id: 'admin-video',
-    title: 'Administration API (ArcGIS Video Server)',
-    base: '/rest/enterprise-administration/video-server/',
-    pages: 115,
-    priority: 10,
-  },
-];
+/** The 16 sub-sites below `/rest/` that have their own Gatsby build. */
+const REST_SITES: readonly RestSite[] = REST_SITE_ROWS.map(
+  ([id, title, base, pages, priority]) => ({ id, title, base, pages, priority }),
+);
 
 const WHATS_NEW: [string, DocKind] = ['^whats-new', 'release-notes'];
 /** `^` matches every path: these are reference sites, so a page is `api` unless a rule above says otherwise. */
 const EVERYTHING_ELSE_IS_API: [string, DocKind] = ['^', 'api'];
 
 function restSource(site: RestSite): AnySourceDef {
+  const flagship = site.id === ENTERPRISE_SERVICES;
   return {
     id: site.id,
     title: site.title,
-    kinds: site.whatsNew ? ['api', 'release-notes'] : ['api'],
+    kinds: flagship ? ['api', 'release-notes'] : ['api'],
     adapter: 'gatsby',
     config: {
       base: site.base,
       seedPage: site.base,
       symbols: 'rest-operations',
-      classify: [...(site.whatsNew ? [WHATS_NEW] : []), EVERYTHING_ELSE_IS_API],
+      classify: [...(flagship ? [WHATS_NEW] : []), EVERYTHING_ELSE_IS_API],
     },
     capability: 'website',
-    ...(site.floor ? { floor: true } : {}),
+    ...(flagship ? { floor: true } : {}),
     priority: site.priority,
     pagesApprox: site.pages,
     probe: { ...sitemapProbe(site.base, site.pages), family: 'gatsby-rest' },

@@ -4,7 +4,8 @@
  * from the member id, which encodes the parameter types but not the return type.
  */
 import * as cheerio from 'cheerio';
-import type { AnyNode, Element } from 'cheerio';
+// Type-only: cheerio's node types live in its dependency and are not re-exported by name.
+import type { AnyNode, Element } from 'domhandler';
 import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js';
 import type { DocPage } from '../core/types.js';
 import { renderApiPage, type ApiMember, type ApiParam, type ApiType } from './api-page.js';
@@ -43,7 +44,10 @@ function park($: Api, block: string): string {
 
 /** Code text without the indentation the XML file gives every line of an element. */
 function codeText(text: string): string {
-  const lines = text.replace(/\r\n?/g, '\n').replace(/^\s*\n|\s+$/g, '').split('\n');
+  const lines = text
+    .replace(/\r\n?/g, '\n')
+    .replace(/^\s*\n|\s+$/g, '')
+    .split('\n');
   const indent = Math.min(
     ...lines.filter((line) => line.trim() !== '').map((line) => /^\s*/.exec(line)?.[0].length ?? 0),
   );
@@ -63,10 +67,15 @@ function listBlock($: Api, element: Element): string {
       oneLine(children($, $(header).children('term').get(0))) || 'Term',
       oneLine(children($, $(header).children('description').get(0))) || 'Description',
     ];
-    return table(titles, entries.map((entry) => [entry.term, entry.description]));
+    return table(
+      titles,
+      entries.map((entry) => [entry.term, entry.description]),
+    );
   }
   const lines = entries.map((entry) =>
-    entry.term === '' || entry.term === entry.description ? entry.description : `**${entry.term}**: ${entry.description}`,
+    entry.term === '' || entry.term === entry.description
+      ? entry.description
+      : `**${entry.term}**: ${entry.description}`,
   );
   return $(element).attr('type') === 'number'
     ? lines.map((line, index) => `${index + 1}. ${line}`).join('\n')
@@ -192,7 +201,10 @@ function toMember(slice: Slice): ApiMember | undefined {
     .map((element) => {
       const cref = $(element).attr('cref');
       const text = markdown($, element);
-      return `${cref === undefined ? '' : `${inlineCode(crefName(cref))}: `}${text}`.replace(/: $/, '');
+      return `${cref === undefined ? '' : `${inlineCode(crefName(cref))}: `}${text}`.replace(
+        /: $/,
+        '',
+      );
     });
   const see = $(root)
     .children('seealso')

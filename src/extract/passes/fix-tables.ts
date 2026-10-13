@@ -1,6 +1,6 @@
 import type { Cheerio, CheerioAPI } from 'cheerio';
 import type { Element } from 'domhandler';
-import { BR_PLACEHOLDER, escapeHtml, squash, tagged } from '../dom.js';
+import { BR_PLACEHOLDER, escapeHtml, firstNonEmpty, squash, tagged } from '../dom.js';
 import type { Pass, PassCounters } from '../types.js';
 
 /** Content a GFM table cell cannot hold. */
@@ -104,7 +104,7 @@ function recordLists($: CheerioAPI, grid: Grid): string {
   const rows = grid.body.map((cells) => {
     const title = inline($, cells[0]) || '(row)';
     const fields = cells.slice(1).map((cell, index) => {
-      const label = grid.headers[index + 1] || `Column ${index + 2}`;
+      const label = firstNonEmpty(grid.headers[index + 1], `Column ${index + 2}`);
       return `<li><strong>${escapeHtml(label)}:</strong> ${$(cell).html() ?? ''}</li>`;
     });
     return `<p><strong>${title}</strong></p><ul>${fields.join('')}</ul>`;
@@ -145,7 +145,9 @@ export const fixTables: Pass = ($, env) => {
       table.remove();
       continue;
     }
-    const complex = grid.body.some((cells) => cells.some((cell) => $(cell).find(BLOCKY).length > 0));
+    const complex = grid.body.some((cells) =>
+      cells.some((cell) => $(cell).find(BLOCKY).length > 0),
+    );
     if (!complex && !grid.hasHeader && grid.columns === 2) {
       count(env.counters, 'key-value');
       table.replaceWith(keyValueBullets($, grid));

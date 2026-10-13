@@ -37,7 +37,8 @@ const prepare: Pass = ($) => {
         description.find('.features, .constructor-modifier').remove();
         const signature = tagged('code', squash(term.text()));
         const href = term.find('.name a').first().attr('href');
-        const link = href === undefined ? signature : `<a href="${escapeHtml(href)}">${signature}</a>`;
+        const link =
+          href === undefined ? signature : `<a href="${escapeHtml(href)}">${signature}</a>`;
         const flags = features.length === 0 ? '' : ` ${tagged('em', `(${features.join(', ')})`)}`;
         const text = (description.html() ?? '').trim();
         return `<li>${link}${flags}${text === '' ? '' : `: ${text}`}</li>`;

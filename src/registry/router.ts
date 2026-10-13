@@ -29,11 +29,21 @@ const RELATIVE_CUTOFF = 0.5;
 /** Below this the query says nothing usable about the product. */
 const MIN_CONFIDENCE = 0.12;
 
+/** More products than this at the top with the same confidence mean the query picks none. */
+const MAX_TIED = 3;
+const TIE_MARGIN = 0.001;
+
+/** A term known to more than this share of the products (`arcgis`) tells them apart no longer. */
+const UBIQUITOUS_SHARE = 0.25;
+
 /** Confidence of a product named by a symbol or package shape. */
 const SHAPE_CONFIDENCE = 0.95;
 
-/** How much a word counts, by the field it was found in. */
-const WEIGHT = { name: 3, keyword: 2, language: 1.5, text: 0.5 } as const;
+/**
+ * How much a word counts, by where it was found. `identity` is a word that is a whole id or
+ * alias on its own (`kotlin`, `arcpy`, `exb`): it names the product rather than describing it.
+ */
+const WEIGHT = { identity: 4, name: 3, keyword: 2, language: 1.5, text: 0.5 } as const;
 
 /** Legacy tombstones are almost never what a query is about (design section 4.5). */
 const STATUS_MULTIPLIER: Record<Product['status'], number> = {
@@ -46,10 +56,24 @@ const STATUS_MULTIPLIER: Record<Product['status'], number> = {
 /** End-user help ranks just behind developer documentation on equal evidence. */
 const HELP_MULTIPLIER = 0.85;
 
+/**
+ * Format specifications, operations tooling and the support site are narrow subjects whose
+ * names are made of common words (`3d`, `tiles`, `enterprise`); an SDK that shares those
+ * words is the likelier subject of a question.
+ */
+const NICHE_CATEGORIES: ReadonlySet<Product['category']> = new Set([
+  'specs',
+  'devops-oss',
+  'support',
+]);
+const NICHE_MULTIPLIER = 0.75;
+
+/** Words that describe the question, not its subject. Ignored in queries and in the registry text. */
 const STOP_WORDS = new Set(
-  'a an and are as at by can do does for from how i in is it my of on or the to use using what with'.split(
-    ' ',
-  ),
+  (
+    'a an and are as at by can do does for from how i in is it my of on or the to use using what with ' +
+    'add build create display get make new set show'
+  ).split(' '),
 );
 
 /**
@@ -95,8 +119,18 @@ function stem(term: string): string {
   return term.length > 3 && term.endsWith('s') && !term.endsWith('ss') ? term.slice(0, -1) : term;
 }
 
+/** Compound words written with hyphens: `add-in`, `low-code`. */
+const COMPOUND = /[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)+/gu;
+
+/**
+ * Router terms of a text: the project tokenizer, plus each hyphenated compound as one word
+ * (so `add-in` meets `addin` although both of its halves are stop words), plural-folded.
+ */
 function terms(text: string): string[] {
-  return tokenize(text).map(stem);
+  const compounds = (text.match(COMPOUND) ?? []).map((word) => word.replace(/-/g, ''));
+  return [...tokenize(text), ...compounds.map((word) => word.toLowerCase())]
+    .map(stem)
+    .filter((term) => !STOP_WORDS.has(term));
 }
 
 interface Candidate {
@@ -113,7 +147,12 @@ function candidateOf(product: Product): Candidate {
       if (weight > (weights.get(term) ?? 0)) weights.set(term, weight);
     }
   };
-  add([product.id, product.name, ...product.aliases], WEIGHT.name);
+  const names = [product.id, product.name, ...product.aliases];
+  add(names, WEIGHT.name);
+  add(
+    names.filter((name) => /^[\p{L}\p{N}]+$/u.test(name)),
+    WEIGHT.identity,
+  );
   add(
     product.packages.map((pkg) => pkg.name),
     WEIGHT.name,
@@ -124,7 +163,10 @@ function candidateOf(product: Product): Candidate {
   return {
     product,
     weights,
-    multiplier: STATUS_MULTIPLIER[product.status] * (product.tier === 'help' ? HELP_MULTIPLIER : 1),
+    multiplier:
+      STATUS_MULTIPLIER[product.status] *
+      (product.tier === 'help' ? HELP_MULTIPLIER : 1) *
+      (NICHE_CATEGORIES.has(product.category) ? NICHE_MULTIPLIER : 1),
   };
 }
 
@@ -149,16 +191,18 @@ export function createRouter(
   }
   const rarity = (term: string): number => {
     const frequency = documentFrequency.get(term);
-    return frequency === undefined ? 0 : Math.log(1 + eligible.length / frequency);
+    if (frequency === undefined || frequency > eligible.length * UBIQUITOUS_SHARE) return 0;
+    return Math.log(1 + eligible.length / frequency);
   };
 
   // Names that are themselves product names must not be read as element names
   // (`arcgis-pro` is a product, `arcgis-map` an element of the JavaScript SDK).
-  const names = new Map<string, string>();
-  for (const { product } of eligible) {
+  // Link-tier products are in the table too, so that their names are not routed elsewhere.
+  const names = new Map<string, Product>();
+  for (const product of products) {
     for (const name of [product.id, ...product.aliases, ...product.packages.map((p) => p.name)]) {
       const key = plainKey(name);
-      if (!names.has(key)) names.set(key, product.id);
+      if (!names.has(key)) names.set(key, product);
     }
   }
 
@@ -166,9 +210,12 @@ export function createRouter(
   function byShape(query: string): string | undefined {
     for (const word of query.trim().split(/\s+/)) {
       const bare = word.replace(/[<>()`'",;]+/g, '');
-      const named = names.get(bare.toLowerCase());
       // Only names that could not be ordinary words: they contain punctuation.
-      if (named !== undefined && /[./@_-]/.test(bare)) return named;
+      const named = /[./@_-]/.test(bare) ? names.get(bare.toLowerCase()) : undefined;
+      if (named !== undefined) {
+        if (byId.has(named.id)) return named.id;
+        continue;
+      }
       const shape = SHAPES.find(([pattern, id]) => pattern.test(bare) && byId.has(id));
       if (shape !== undefined) return shape[1];
     }
@@ -176,10 +223,8 @@ export function createRouter(
   }
 
   function byVocabulary(query: string): Route[] {
-    const wanted = [...new Set(terms(query))].filter(
-      (term) => !STOP_WORDS.has(term) && rarity(term) > 0,
-    );
-    const total = wanted.reduce((sum, term) => sum + rarity(term) * WEIGHT.name, 0);
+    const wanted = [...new Set(terms(query))].filter((term) => rarity(term) > 0);
+    const total = wanted.reduce((sum, term) => sum + rarity(term) * WEIGHT.identity, 0);
     if (total === 0) return [];
     return eligible
       .map((candidate) => {
@@ -203,6 +248,9 @@ export function createRouter(
         : [{ product: shaped, confidence: SHAPE_CONFIDENCE }];
     const top = ranked[0];
     if (top === undefined) return [];
+    // Words that many products share equally (`maps sdk`) single none of them out.
+    const tied = ranked.filter((route) => route.confidence > top.confidence - TIE_MARGIN);
+    if (tied.length > MAX_TIED) return [];
     let routes = ranked.filter((route) => route.confidence >= top.confidence * RELATIVE_CUTOFF);
 
     for (const [pattern, companion] of COMPANIONS) {

@@ -247,6 +247,14 @@ const jsMapsSdk: Product = {
     'mapview',
     'sceneview',
     'featurelayer',
+    'feature layer',
+    'layers',
+    'basemap',
+    'graphics',
+    'query',
+    'editing',
+    'symbols',
+    'labels',
     'web components',
     'map components',
     'charts',
@@ -287,7 +295,7 @@ const jsMapsSdk: Product = {
       // Pages of older versions live on the archive host, which is never fetched; the
       // typings of every published version stay reachable through npm.
       access: 'link-only',
-      vars: { versions: '^\\d+\\.\\d+' },
+      vars: { versions: '^\\d' },
     },
   ],
   sources: jsSources,

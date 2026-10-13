@@ -1,7 +1,14 @@
 import type { CheerioAPI } from 'cheerio';
 import type { Element } from 'domhandler';
 import type { MemberEntry } from '../../core/types.js';
-import { firstNonEmpty, firstSentence, removeComments, replaceWithPre, squash, tagged } from '../dom.js';
+import {
+  firstNonEmpty,
+  firstSentence,
+  removeComments,
+  replaceWithPre,
+  squash,
+  tagged,
+} from '../dom.js';
 import { stampOutline } from '../outline.js';
 import type { FamilyProfile, PageView, Pass } from '../types.js';
 import { fragment } from './shared.js';

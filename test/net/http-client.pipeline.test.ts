@@ -1,17 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { budgetExhausted, newBudget } from '../../src/core/async.js';
-import { DAY, HOUR, MINUTE } from '../support/fake-clock.js';
-import {
-  PAGE,
-  hostRow,
-  json,
-  makeRig,
-  mcpError,
-  networkError,
-  page,
-  status,
-  timeoutError,
-} from './harness.js';
+import { DAY, HOUR } from '../support/fake-clock.js';
+import { PAGE, hostRow, json, makeRig, mcpError, page, status } from './harness.js';
 
 const DOC = 'https://developers.arcgis.com/javascript/latest/get-started/';
 const HOSTS = [

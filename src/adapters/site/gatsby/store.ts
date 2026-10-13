@@ -34,6 +34,9 @@ export interface PaginationEntry {
 /** Longest description kept in a catalogue record; search excerpts are capped at 240 characters. */
 const MAX_DESCRIPTION = 240;
 
+/** Tags that sit inside a word or sentence; removing them must not add a space. */
+const INLINE_TAG = /<\/?(?:a|b|code|em|i|span|strong|wbr)[^>]*>/gi;
+
 function text(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const trimmed = value.trim();
@@ -41,12 +44,14 @@ function text(value: unknown): string | undefined {
 }
 
 /**
- * Plain text of a short description: tags removed, the common entities decoded, whitespace
+ * Plain text of a short description: tags removed (inline ones without leaving a gap, so
+ * `<b>x</b>.` stays `x.`), the common entities decoded, whitespace
  * collapsed, cut at a word boundary to the excerpt length. `undefined` when nothing is left.
  */
 export function plainText(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const plain = value
+    .replace(INLINE_TAG, '')
     .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')
