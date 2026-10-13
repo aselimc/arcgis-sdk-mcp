@@ -7,7 +7,7 @@ import type { BoundSource, Ctx } from '../../../../src/core/ports.js';
 import type { CatalogRecord } from '../../../../src/core/types.js';
 import { makeLine } from '../../../support/builders.js';
 import { fakePolicy } from '../../../support/fake-policy.js';
-import { D, guide, recordAt, rejection } from './sites.js';
+import { D, guide, recordAt, rejection, rest } from './sites.js';
 
 function enumerate(ctx: Ctx, src: BoundSource<'gatsby'>): Promise<CatalogRecord[]> {
   if (gatsbyAdapter.enumerate === undefined) throw new Error('the adapter must enumerate');
@@ -66,6 +66,26 @@ describe('gatsby enumerate: degradation', () => {
     expect(recordAt(records, '/get-started/').title).toBe('Get started'); // navigation title
     expect(recordAt(records, '/widgets/').title).toBe('Overview');
     expect(ctx.logger.entries.some((entry) => entry.msg.includes('not rediscovered'))).toBe(true);
+  });
+
+  // Regression: the REST reference sub-sites answer their root with a redirect stub, which has
+  // no page-data, so no navigation was found and every title came from a slug.
+  it('starts from another page when the site root has no page-data', async () => {
+    const site = rest();
+    const ctx = site.ctx();
+    const rootData = `${D}/rest/gadgets/page-data/index/page-data.json`;
+    const standIn = `${D}/rest/gadgets/page-data/gadget-service/page-data.json`;
+    const recorded = await site.ctx().http.getJson({ url: rootData });
+    ctx.http.fail(rootData, 404);
+    ctx.http.on(standIn, { json: recorded.data });
+    const records = await enumerate(ctx, site.bound());
+
+    expect(ctx.http.unrecorded).toEqual([]);
+    expect(ctx.http.count(standIn)).toBe(1);
+    expect(recordAt(records, '/apply-changes-gadget-service/')).toMatchObject({
+      title: '/applyChanges: Apply Changes (Gadget Service)',
+      symbol: 'applyChanges',
+    });
   });
 
   it('does not ask twice when rediscovery names the same file', async () => {

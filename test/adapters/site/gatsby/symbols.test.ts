@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { emptyIndex } from '../../../../src/adapters/site/gatsby/discovery.js';
 import { gatsbyAdapter } from '../../../../src/adapters/site/gatsby/index.js';
 import { fuseSymbols } from '../../../../src/adapters/site/gatsby/symbols-fuse.js';
-import { parseOperationTitle } from '../../../../src/adapters/site/gatsby/symbols-rest.js';
+import {
+  parseLabelTitle,
+  parseOperationTitle,
+  restSymbols,
+} from '../../../../src/adapters/site/gatsby/symbols-rest.js';
 import { typedocSymbols } from '../../../../src/adapters/site/gatsby/symbols-typedoc.js';
 import type { SymbolInput } from '../../../../src/adapters/site/gatsby/symbols.js';
 import type { CatalogRecord } from '../../../../src/core/types.js';
@@ -62,9 +66,13 @@ describe('symbols: rest-operations', () => {
     expect(bare.qualified).toBeUndefined();
   });
 
-  it('leaves pages that are not operations alone', async () => {
+  it('names a labelled resource page after its label and leaves prose pages alone', async () => {
     const records = await recordsOf(rest());
-    expect(recordAt(records, '/gadget-service/').symbol).toBeUndefined();
+    expect(recordAt(records, '/gadget-service/')).toMatchObject({
+      symbol: 'gadgetService',
+      symbolKind: 'resource',
+    });
+    expect(recordAt(records, '/whats-new/').symbol).toBeUndefined();
     // The path heuristic still classifies a what's-new page of an API source.
     expect(recordAt(records, '/whats-new/').kind).toBe('release-notes');
   });
@@ -88,6 +96,51 @@ describe('symbols: rest-operations', () => {
       expect(parseOperationTitle(title)).toBeUndefined();
     },
   );
+
+  // Sites that title pages with a label instead of a path (regression: `applyEdits` was not
+  // found in the services reference, whose titles are all of this form).
+  it.each([
+    ['Apply Changes (Gadget Service/Layer)', ['Catalog', 'Gadget Service'], 'applyChanges', 'GadgetServiceLayer.applyChanges'],
+    ['Query Related Records', ['Catalog', 'Gadget Service', 'Layer'], 'queryRelatedRecords', 'Layer.queryRelatedRecords'],
+    ['Unregister - Machine', ['Site', 'Machines', 'Machine'], 'unregister', 'Machine.unregister'],
+    ['HTML Popup (Gadget Service/Layer)', ['Catalog'], 'htmlPopup', 'GadgetServiceLayer.htmlPopup'],
+    ['CreateWatersheds', ['Tasks'], 'CreateWatersheds', 'Tasks.CreateWatersheds'],
+    ['Query', [], 'query', undefined],
+  ])('derives a name from the label "%s"', (title, crumbs, symbol, qualified) => {
+    expect(parseLabelTitle(title, crumbs)).toEqual(
+      qualified === undefined ? { symbol } : { symbol, qualified },
+    );
+  });
+
+  it.each(['Examples: scripting a task', 'What is new in 12.1?', 'A title of far too many plain words'])(
+    'does not derive a name from the prose title "%s"',
+    (title) => {
+      expect(parseLabelTitle(title, ['Catalog'])).toBeUndefined();
+    },
+  );
+
+  it('tells resources, operations and data types apart in a labelled hierarchy', () => {
+    const page = (path: string, title: string, crumbs: string[]) => ({
+      url: `${D}/x/${path}/`,
+      title,
+      crumbs,
+    });
+    const entries = restSymbols(
+      input({
+        pages: [
+          page('gadget-service', 'Gadget Service', ['Catalog']),
+          page('apply-changes', 'Apply Changes (Gadget Service)', ['Catalog', 'Gadget Service']),
+          page('gadgetset-object', 'GadgetSet object', ['Data Types']),
+          page('overview', 'Working with gadgets', []),
+        ],
+      }),
+    );
+    expect(entries.map((entry) => [entry.symbol, entry.symbolKind, entry.qualified])).toEqual([
+      ['gadgetService', 'resource', 'Catalog.gadgetService'],
+      ['applyChanges', 'operation', 'GadgetService.applyChanges'],
+      ['GadgetSet', 'type', undefined],
+    ]);
+  });
 });
 
 describe('symbols: glossary', () => {

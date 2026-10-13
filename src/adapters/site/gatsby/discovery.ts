@@ -137,8 +137,9 @@ async function loadHashed<V>(
 /**
  * Reads the index files reachable from one page and adds them to `index`.
  *
- * @returns true when the page contributed something new (a navigation tree, store records,
- *   a manifest), which tells the caller whether asking further pages is worth a request.
+ * @returns `'missing'` when the page has no page-data to start from (a root that only
+ *   redirects, a page that has gone), so the caller can start from another page; `'read'`
+ *   otherwise, whether or not the page contributed anything new.
  * @throws McpDocError only when the call budget is spent or the failure is not upstream's
  *   (see `continueWithout`); a missing or malformed file is skipped.
  */
@@ -148,28 +149,25 @@ export async function discoverFrom(
   pageUrl: string,
   index: SiteIndex,
   wants: DiscoveryWants,
-): Promise<boolean> {
+): Promise<'missing' | 'read'> {
   const wantGlossary = wants.glossary && index.glossaryTerms.length === 0;
   const pointers = await pagePointers(session, site, pageUrl, wantGlossary, {});
-  if (pointers === undefined) return false;
+  if (pointers === undefined) return 'missing';
   // One revalidating pass serves both hashed files, should both have rotated.
   let refreshed: Promise<IndexPointers | undefined> | undefined;
   const rediscover = (): Promise<IndexPointers | undefined> =>
     (refreshed ??= pagePointers(session, site, pageUrl, false, { fresh: true }));
 
-  let gained = false;
   const known = new Set(index.navTrees.map((tree) => tree.key));
   for (const tree of pointers.navTrees) {
     if (known.has(tree.key)) continue;
     index.navTrees.push(tree);
-    gained = true;
   }
   if (index.hierarchies.length === 0) index.hierarchies.push(...pointers.hierarchies);
   if (index.glossaryTerms.length === 0) index.glossaryTerms.push(...pointers.glossaryTerms);
   for (const manifest of ['typedocNodes', 'mdxPages'] as const) {
     if (index[manifest].length > 0 || pointers[manifest].length === 0) continue;
     index[manifest].push(...pointers[manifest]);
-    gained = true;
   }
 
   const records: StoreRecord[] = [];
@@ -190,10 +188,7 @@ export async function discoverFrom(
     );
     records.push(...(parsed ?? []));
   }
-  if (records.length > 0) {
-    index.store.push(...records);
-    gained = true;
-  }
+  index.store.push(...records);
 
   if (wants.pagination && index.pagination.length === 0 && pointers.paginationUrl !== undefined) {
     const entries = await loadHashed(
@@ -204,10 +199,7 @@ export async function discoverFrom(
       parsePagination,
       async () => (await rediscover())?.paginationUrl,
     );
-    if (entries.length > 0) {
-      index.pagination.push(...entries);
-      gained = true;
-    }
+    index.pagination.push(...entries);
   }
-  return gained;
+  return 'read';
 }

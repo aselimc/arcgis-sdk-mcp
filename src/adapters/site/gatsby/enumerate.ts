@@ -137,7 +137,14 @@ async function discoverIndex(
   };
   const seed =
     config.seedPage === undefined ? site.base : absoluteUrl(config.seedPage, session.src);
-  await discoverFrom(session, site, pageKey(seed), index, wants);
+  const seedKey = pageKey(seed);
+  if ((await discoverFrom(session, site, seedKey, index, wants)) === 'missing') {
+    // A site root that only redirects to its first topic has no page-data of its own (the
+    // REST reference sub-sites): any real page of the site points at the same index files.
+    const sorted = pages.filter((page) => page !== seedKey).sort();
+    const stand = sorted[Math.floor(sorted.length / 2)];
+    if (stand !== undefined) await discoverFrom(session, site, stand, index, wants);
+  }
 
   const spent = new Set<string>();
   for (let round = 0; round < MAX_EXTRA_SECTIONS; round += 1) {
