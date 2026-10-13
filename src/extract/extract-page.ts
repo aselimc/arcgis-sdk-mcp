@@ -8,7 +8,7 @@ import { estimateTokens } from '../core/budget.js';
 import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js';
 import { pageProvenance } from '../core/provenance.js';
 import type { DocPage, DocSection, HtmlFamily, MemberEntry } from '../core/types.js';
-import { detectFamilyOf } from './detect-family.js';
+import { resolveFamily } from './detect-family.js';
 import { measureMarkdown } from './diagnostics.js';
 import { PROFILES } from './families/registry.js';
 import { runProfile, type ProfileResult } from './pipeline.js';
@@ -59,7 +59,7 @@ export function extractPage(
   const started = performance.now();
   const { html } = input;
   const $ = load(html);
-  const detected = input.familyHint ?? detectFamilyOf($, html);
+  const detected = resolveFamily($, html, input.familyHint);
   let family = detected;
   let degraded: DocPage['degraded'];
   let result: ProfileResult | undefined;

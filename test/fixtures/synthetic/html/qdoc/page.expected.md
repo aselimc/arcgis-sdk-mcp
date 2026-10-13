@@ -1,6 +1,8 @@
 # Chart Class
 
-`class Harbor::Chart`
+```cpp
+class Harbor::Chart
+```
 
 A chart holds the layers that a view draws. [More...](https://docs.example.com/harbor-qt/cpp/api-reference/harbor-chart.html#details)
 

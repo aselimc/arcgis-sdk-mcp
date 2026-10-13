@@ -43,8 +43,10 @@ const prepare: Pass = ($) => {
         tagged('pre', squash(heading.text()), 'data-md-lang="cpp"'),
     );
   });
+  // The declaration of the type (`class Ns::Name`): a fence, so that it reads as the
+  // signature. Its namespace links point at unrelated enums upstream and are dropped.
   $('span.small-subtitle').each((_, el) => {
-    $(el).replaceWith(`<p>${tagged('code', squash($(el).text()))}</p>`);
+    $(el).replaceWith(tagged('pre', squash($(el).text()), 'data-md-lang="cpp"'));
   });
   unwrap($, $('div.table'));
   // Member summary tables (return type | name and arguments): one linked signature per bullet.

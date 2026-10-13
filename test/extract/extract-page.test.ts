@@ -146,6 +146,36 @@ describe('fallback to the generic extractor', () => {
     expect(page.degraded?.level).toBe('generic-extractor');
   });
 
+  // Regression: a source declares the family of its site, and that hint replaced detection.
+  // Sample pages of an Astro site were converted as guide pages (no source files), and the
+  // Qt reference, QDoc output inside the Astro shell, kept its raw summary tables.
+  it.each([
+    ['astro', 'astro-sample'],
+    ['astro', 'astro-js-ref'],
+    ['astro', 'qdoc'],
+    ['gatsby', 'gatsby-rest'],
+  ] as const)('a %s hint does not hide a %s page', (hint, family) => {
+    const { url, kind } = caseOf(family);
+    const hinted = sharedExtractor().extract(
+      { html: fixtureHtml(family), familyHint: hint },
+      metaFor(url, kind),
+    );
+    expect(hinted.diagnostics.family).toBe(family);
+    expect(pageMarkdown(hinted)).toBe(pageMarkdown(extractFixture(family)));
+  });
+
+  it('keeps the hinted family when the page is not a page type of the hinted site', () => {
+    // A dokka page is no refinement of `astro`: the hint stands, finds no content root of
+    // its own, and the page is reported as drift rather than silently read as dokka.
+    const { url, kind } = caseOf('dokka');
+    const page = sharedExtractor().extract(
+      { html: fixtureHtml('dokka'), familyHint: 'astro' },
+      metaFor(url, kind),
+    );
+    expect(page.diagnostics.family).toBe('generic');
+    expect(page.degraded?.reason).toContain('no astro content root');
+  });
+
   it('falls back when a hinted or detected family has no content root', () => {
     const page = sharedExtractor().extract(
       { html: `<html><body>${article}</body></html>`, familyHint: 'dokka' },

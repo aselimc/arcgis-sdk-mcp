@@ -45,6 +45,30 @@ export function detectFamilyOf($: CheerioAPI, html: string): HtmlFamily {
   return 'generic';
 }
 
+/**
+ * Page types that live inside another family's site shell. A source declares the family of
+ * its site (`astro`, `gatsby`); one page of that site can still be a sample, a reference
+ * page or embedded QDoc output, each with a profile of its own.
+ */
+const REFINEMENTS: Partial<Record<HtmlFamily, readonly HtmlFamily[]>> = {
+  astro: ['astro-js-ref', 'astro-sample', 'qdoc'],
+  gatsby: ['gatsby-rest'],
+};
+
+/**
+ * The family to convert a page as, given the family its source declares. The hint decides,
+ * except that a page carrying the marker of a more specific page type of the hinted site is
+ * converted as that type: without this, every sample page of an Astro site lost its source
+ * files and the Qt reference kept its raw summary tables.
+ */
+export function resolveFamily($: CheerioAPI, html: string, hint?: HtmlFamily): HtmlFamily {
+  if (hint === undefined) return detectFamilyOf($, html);
+  const refinements = REFINEMENTS[hint];
+  if (refinements === undefined) return hint;
+  const detected = detectFamilyOf($, html);
+  return refinements.includes(detected) ? detected : hint;
+}
+
 /** Family of an HTML document given as text. */
 export function detectFamily(html: string): HtmlFamily {
   return detectFamilyOf(load(html), html);
