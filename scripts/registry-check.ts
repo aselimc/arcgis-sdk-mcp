@@ -10,6 +10,7 @@
  *
  * {@link checkRegistry} is also what the registry tests call.
  */
+import { setTimeout as sleep } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 import { bindSource } from '../src/core/adapter-helpers.js';
 import { loadConfig } from '../src/core/config.js';
@@ -321,7 +322,13 @@ async function loadContainer(): Promise<Container> {
   return container;
 }
 
-/** Runs the probe of every source on its first documentation line, one after another. */
+/** Pause after a probe that went upstream: a probe is at most two requests. */
+const PROBE_INTERVAL_MS = 2000;
+
+/**
+ * Runs the probe of every source on its first documentation line, one after another and
+ * paced at one request per second or slower, like `doctor`.
+ */
 async function probeAll(products: readonly Product[]): Promise<LiveResult[]> {
   const { ctx, adapters } = await loadContainer();
   const results: LiveResult[] = [];
@@ -344,10 +351,10 @@ async function probeAll(products: readonly Product[]): Promise<LiveResult[]> {
       } else {
         try {
           const adapter = adapters.get(source.adapter);
-          results.push({
-            ...base,
-            ...(await adapter.probe(ctx, bindSource(product, source, line))),
-          });
+          const outcome = await adapter.probe(ctx, bindSource(product, source, line));
+          results.push({ ...base, ...outcome });
+          // A probe answered from the cache returns at once and owes no pause.
+          if (outcome.ms > 50) await sleep(PROBE_INTERVAL_MS);
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           results.push({ ...base, ok: false, ms: 0, error: message });

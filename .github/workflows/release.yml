@@ -1,0 +1,77 @@
+name: Release
+
+# On a version tag: verify, publish to npm with provenance (trusted publishing, no token),
+# then publish the server metadata to the MCP Registry.
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: The tag matches package.json and server.json
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg=$(node -p "require('./package.json').version")
+          server=$(node -p "require('./server.json').version")
+          npm_entry=$(node -p "require('./server.json').packages[0].version")
+          if [ "$tag" != "$pkg" ] || [ "$tag" != "$server" ] || [ "$tag" != "$npm_entry" ]; then
+            echo "Tag $tag, package.json $pkg, server.json $server / $npm_entry do not agree" >&2
+            exit 1
+          fi
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:e2e
+
+  publish-npm:
+    name: Publish to npm
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      # Required for npm trusted publishing and provenance attestations.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      # `prepack` builds and runs scripts/check-package-contents.ts.
+      - run: npm publish --provenance --access public
+
+  publish-registry:
+    name: Publish to the MCP Registry
+    needs: publish-npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # GitHub OIDC proves ownership of the io.github.aselimc namespace.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mcp-publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+      - run: ./mcp-publisher login github-oidc
+      - run: ./mcp-publisher publish

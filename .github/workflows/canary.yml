@@ -1,0 +1,106 @@
+name: Canary
+
+# Weekly check against the real upstream hosts. A failure means a documentation site changed;
+# it opens or updates one issue and never blocks a merge.
+
+on:
+  schedule:
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: Also run every source probe of the registry (about 200 requests)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: canary
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    name: Doctor and live suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        # An explicit shell enables pipefail, so `command | tee file` fails when the command does.
+        shell: bash
+    env:
+      # Raises the GitHub API quota for the repository probes.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ARCGIS_DOCS_LOG_LEVEL: warn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      - name: Doctor (developer tier, about 60 probes at one request per second or slower)
+        id: doctor
+        continue-on-error: true
+        run: node dist/cli/main.js doctor --tier developer 2>&1 | tee doctor.txt
+
+      - name: Record live fixtures (git-ignored, one request per second)
+        id: record
+        continue-on-error: true
+        run: npx tsx scripts/record-fixtures.ts 2>&1 | tee record.txt
+
+      - name: Live suite (invariants on the recordings)
+        id: live
+        continue-on-error: true
+        run: npm run test:live 2>&1 | tee live.txt
+
+      - name: Registry probes
+        id: registry
+        if: ${{ inputs.registry == true }}
+        continue-on-error: true
+        run: npm run registry:check -- --live 2>&1 | tee registry.txt
+
+      - name: Open or update the drift issue
+        if: ${{ steps.doctor.outcome == 'failure' || steps.record.outcome == 'failure' || steps.live.outcome == 'failure' || steps.registry.outcome == 'failure' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo "The scheduled canary found a difference between the registry or the parsers and the live sites."
+            echo
+            echo "Run: $RUN_URL"
+            echo
+            echo "| Step | Outcome |"
+            echo "|---|---|"
+            echo "| doctor | ${{ steps.doctor.outcome }} |"
+            echo "| record fixtures | ${{ steps.record.outcome }} |"
+            echo "| live suite | ${{ steps.live.outcome }} |"
+            echo "| registry probes | ${{ steps.registry.outcome }} |"
+            for file in doctor.txt record.txt live.txt registry.txt; do
+              [ -f "$file" ] || continue
+              echo
+              echo "<details><summary>$file (last 80 lines)</summary>"
+              echo
+              echo '```'
+              tail -n 80 "$file"
+              echo '```'
+              echo
+              echo "</details>"
+            done
+          } > body.md
+          existing=$(gh issue list --label upstream-drift --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file body.md
+          else
+            gh label create upstream-drift --color D93F0B --description "A documentation site changed" 2>/dev/null || true
+            gh issue create --title "Upstream drift detected by the canary" --label upstream-drift --body-file body.md
+          fi
+
+      - name: Fail the run when a check failed
+        if: ${{ steps.doctor.outcome == 'failure' || steps.record.outcome == 'failure' || steps.live.outcome == 'failure' || steps.registry.outcome == 'failure' }}
+        run: exit 1
