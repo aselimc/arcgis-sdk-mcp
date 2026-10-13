@@ -16,6 +16,7 @@
  */
 import { joinSections } from '../../core/budget.js';
 import type { CatalogRecord, DocPage } from '../../core/types.js';
+import { pageKey } from '../../core/url.js';
 import { simpleName } from '../index/symbol-map.js';
 
 /** Same-named members considered; a name on more types than this is not worth a page read. */
@@ -77,15 +78,6 @@ export interface BaseType {
   name: string;
   /** The page of the type, as {@link pageKey} writes it. */
   ref: string;
-}
-
-/**
- * A ref reduced to its page, in the one spelling that links and catalogue records share:
- * no fragment and no trailing slash (DocC pages link each other without the slash that
- * their catalogue refs end in).
- */
-export function pageKey(ref: string): string {
-  return ref.replace(/#.*$/, '').replace(/\/+$/, '');
 }
 
 /**

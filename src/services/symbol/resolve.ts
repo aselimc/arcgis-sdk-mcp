@@ -8,6 +8,7 @@
 import { levenshtein } from '../../core/text-distance.js';
 import { normalizeSymbol } from '../../core/tokenize.js';
 import type { CatalogRecord } from '../../core/types.js';
+import { pageKey } from '../../core/url.js';
 import { MAX_SYMBOL_DISTANCE, simpleName, type SymbolMap } from '../index/symbol-map.js';
 
 /** The step of the resolution table that produced a candidate, most exact first. */
@@ -132,25 +133,46 @@ function compare(a: Candidate, b: Candidate): number {
   return 0;
 }
 
-/** Merges records that are the same symbol of the same product seen through several sources. */
+/** What makes two records the same name to a caller: product, name and owning type. */
+function identityOf(record: CatalogRecord): string {
+  return `${record.product}\n${displayName(record)}\n${record.parent ?? ''}`;
+}
+
+/**
+ * True when two same-named records of one source are documented on different pages. They
+ * are then two declarations (the Arcade `Intersects` of geometries and the one of feature
+ * sets, the overloads of a DocC method), not one symbol seen twice.
+ */
+function isNamesake(a: CatalogRecord, b: CatalogRecord): boolean {
+  return a.source === b.source && pageKey(a.ref) !== pageKey(b.ref);
+}
+
+/**
+ * Merges records that are the same symbol of the same product seen through several sources,
+ * or overloads on one page. Namesakes (see {@link isNamesake}) stay candidates of their own,
+ * next to each other.
+ */
 function mergeTwins(candidates: Candidate[]): Candidate[] {
-  const merged = new Map<string, Candidate>();
+  const merged = new Map<string, Candidate[]>();
   for (const candidate of [...candidates].sort(compare)) {
     const { record } = candidate;
-    const identity = `${record.product}\n${displayName(record)}\n${record.parent ?? ''}`;
-    const first = merged.get(identity);
-    if (first === undefined) merged.set(identity, candidate);
+    const group = merged.get(identityOf(record)) ?? [];
+    merged.set(identityOf(record), group);
+    const first = group.find((known) => !isNamesake(known.record, record));
+    if (first === undefined) group.push(candidate);
     else if (first.record.ref !== record.ref || first.record.source !== record.source) {
       first.twins.push(record);
     }
   }
-  return [...merged.values()];
+  // Stable: groups in the order of their best candidate, which the sort above fixed.
+  return [...merged.values()].flat().sort(compare);
 }
 
 /**
  * Resolves `input` against the symbols of the given product lines.
  *
- * - `found`: one candidate ranks strictly before every other.
+ * - `found`: one candidate ranks strictly before every other, or ties only with other
+ *   declarations of its own name, which are then the first alternates.
  * - `ambiguous`: several rank equally; at most {@link MAX_AMBIGUOUS} are returned.
  * - `none`: nothing matched; when `Type.member` named a known type without such a member,
  *   that type is returned.
@@ -212,11 +234,17 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
     step = all.length > 0 ? 'fuzzy' : undefined;
   }
   const candidates = mergeTwins(all.filter((entry) => entry.step === step));
-  const [winner, runnerUp, ...rest] = candidates;
+  const [winner, ...others] = candidates;
   if (winner === undefined) {
     return { kind: 'none', ...(knownType === undefined ? {} : { knownType }) };
   }
-  if (runnerUp === undefined || compare(winner, runnerUp) < 0) {
+  // Namesakes of the winner tie with it by construction. They are not a choice the caller
+  // can make by name, so the first is answered and the others are listed with their refs.
+  const rivals = others.filter(
+    (other) =>
+      compare(winner, other) === 0 && identityOf(other.record) !== identityOf(winner.record),
+  );
+  if (rivals.length === 0) {
     // Less exact readings of the same name are worth showing next to the answer.
     // The symbol maps stop at their most exact reading, so same-named symbols elsewhere
     // (`smartMapping.Point` next to `Point`) are collected here.
@@ -230,8 +258,13 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
     const looser = mergeTwins(all.filter((entry) => entry.step !== step)).filter(
       (entry) => displayName(entry.record) !== displayName(winner.record),
     );
-    const alternates = [...(runnerUp === undefined ? [] : [runnerUp, ...rest]), ...looser];
+    const alternates = [...others, ...looser];
     return { kind: 'found', winner, alternates: alternates.slice(0, MAX_ALTERNATES) };
   }
-  return { kind: 'ambiguous', candidates: candidates.slice(0, MAX_AMBIGUOUS) };
+  // One entry per name: a namesake cannot be told apart by the pair a caller copies.
+  const named = new Map<string, Candidate>();
+  for (const candidate of candidates) {
+    if (!named.has(identityOf(candidate.record))) named.set(identityOf(candidate.record), candidate);
+  }
+  return { kind: 'ambiguous', candidates: [...named.values()].slice(0, MAX_AMBIGUOUS) };
 }

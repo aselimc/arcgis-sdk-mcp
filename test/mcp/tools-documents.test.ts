@@ -207,6 +207,21 @@ describe('document tools', () => {
       suite.harness.services.symbols.lookup = lookup;
     });
 
+    // A second declaration of the answer's own name cannot be asked for by name again.
+    it('lists another declaration of the same name as the ref to read', async () => {
+      const lookup = suite.harness.services.symbols.lookup.bind(suite.harness.services.symbols);
+      suite.harness.services.symbols.lookup = async (req, options) => {
+        const response = await lookup(req, options);
+        const other = { ...response.record, ref: 'https://developers.arcgis.com/widgets/other/' };
+        return { ...response, alternates: [other, ...response.alternates] };
+      };
+      const outcome = await call(TOOLS.lookupSymbol, { symbol: 'FeatureLayer' });
+      expect(outcome.text).toContain(
+        'Other matches:\n- another layers.FeatureLayer (class): arcgis_docs_read({"ref":"https://developers.arcgis.com/widgets/other/"})\n- {"symbol":"FeatureLayerView","product":"js-maps-sdk"} (class): https://',
+      );
+      suite.harness.services.symbols.lookup = lookup;
+    });
+
     it('lists the candidates of an ambiguous name as complete calls', async () => {
       const outcome = await call(TOOLS.lookupSymbol, { symbol: 'Graphic' });
       expect(outcome.isError).toBe(true);

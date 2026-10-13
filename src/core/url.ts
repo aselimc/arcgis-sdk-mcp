@@ -236,3 +236,13 @@ export function splitRef(ref: string): { url?: URL; fragment?: string; brief?: s
   const fragment = decodeFragment(url.hash);
   return fragment === undefined ? { url } : { url, fragment };
 }
+
+/**
+ * A ref reduced to its page, in the one spelling that Markdown links and catalogue records
+ * share: no query, no fragment and no trailing slash (DocC pages link each other without the
+ * slash that their catalogue refs end in). Two members with the same page key are
+ * documented on one page. A comparison key, not a URL to fetch.
+ */
+export function pageKey(ref: string): string {
+  return ref.replace(/[?#].*$/, '').replace(/\/+$/, '');
+}

@@ -222,9 +222,11 @@ describe('npm-json read, mapper arcade-api', () => {
       license: 'esri-ma',
       packageName: NAME,
     });
+    // The page is labelled with the package: its number alone would read as a version of the
+    // product (Arcade is at 1.x, the package it is read from at 5.x).
     expect(page).toMatchObject({
       ref: TEXT_PAGE,
-      version: '7.2.4',
+      version: `${NAME} 7.2.4`,
       attribution:
         'From @arcgis/script-components 7.2.4. Copyright Esri. Licensed under the Esri Master License Agreement.',
       notices: [],
@@ -289,7 +291,7 @@ describe('npm-json read, mapper arcade-api', () => {
     ctx.http.on(resolved(NAME, '6'), { json: { version: '6.9.1' } });
     ctx.http.on(cdnFile(NAME, '6.9.1', API_FILE), { json: api });
     const page = await npmJsonAdapter.read(ctx, functions('6'), { url: new URL(TEXT_PAGE) });
-    expect(page.version).toBe('6.9.1');
+    expect(page.version).toBe(`${NAME} 6.9.1`);
     expect(page.notices).toHaveLength(1);
   });
 
@@ -303,7 +305,7 @@ describe('npm-json read, mapper arcade-api', () => {
     const ctx = npmCtx({ projectDir });
     const page = await npmJsonAdapter.read(ctx, functions(), { url: new URL(TEXT_PAGE) });
     expect(ctx.http.count()).toBe(0);
-    expect(page.version).toBe('7.1.9');
+    expect(page.version).toBe(`${NAME} 7.1.9`);
   });
 });
 
@@ -399,7 +401,10 @@ describe('npm-json, mapper arcade-profiles', () => {
     });
     // The fragment names the profile, so it is not passed on as a member selector.
     expect(call?.opts).toBeUndefined();
-    expect(page).toMatchObject({ ref: `${PROFILES_REF}#row-label`, version: '7.2.4' });
+    expect(page).toMatchObject({
+      ref: `${PROFILES_REF}#row-label`,
+      version: `${NAME} 7.2.4`,
+    });
   });
 
   it('passes an explicit selector and the detail on', async () => {

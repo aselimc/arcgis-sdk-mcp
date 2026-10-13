@@ -7,7 +7,7 @@ import type { BoundSource, Ctx, ReadTarget } from '../../../core/ports.js';
 import type { CatalogRecord, DocPage, SymbolDetail } from '../../../core/types.js';
 import { JSDELIVR_CDN } from './jsdelivr.js';
 import type { PackageJson } from './package-file.js';
-import type { ResolvedPackage } from './resolve-version.js';
+import { withVersionNotice, type ResolvedPackage } from './resolve-version.js';
 import { docTemplate } from './shared.js';
 
 /** A source of the `npm-json` adapter bound to a product and line. */
@@ -62,7 +62,12 @@ export function docRoot(src: JsonSrc): string | undefined {
   return docUrl === undefined ? undefined : `${docTemplate(src, docUrl).replace(/\/+$/, '')}/`;
 }
 
-/** A URL without fragment, query and trailing slash, for comparing page addresses. */
-export function pageKey(url: string): string {
-  return url.replace(/[?#].*$/, '').replace(/\/+$/, '');
+/**
+ * Labels a page with the package its content was read from, and adds the notice of a page
+ * that is not of the current release. The Arcade mappers use it: Arcade is documented in
+ * the coding components of the JavaScript SDK, whose bare version number (5.x) would read
+ * as a version of Arcade (1.x).
+ */
+export function fromPackage(page: DocPage, pkg: ResolvedPackage): DocPage {
+  return withVersionNotice({ ...page, version: `${pkg.name} ${pkg.version}` }, pkg);
 }

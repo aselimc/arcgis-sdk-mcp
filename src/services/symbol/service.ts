@@ -17,6 +17,7 @@ import type {
 import { nearest } from '../../core/text-distance.js';
 import { normalizeSymbol } from '../../core/tokenize.js';
 import type { CatalogRecord, DocPage } from '../../core/types.js';
+import { pageKey } from '../../core/url.js';
 import { simpleName } from '../index/symbol-map.js';
 import type { IndexInternals } from '../index/types.js';
 import { resolveScope } from '../scope.js';
@@ -26,7 +27,6 @@ import {
   baseTypes,
   declaredElsewhere,
   inheritedNotice,
-  pageKey,
   type BaseType,
 } from './inherited.js';
 import { MAX_NEAREST, nearestNames, notFoundError } from './not-found.js';

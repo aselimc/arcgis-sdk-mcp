@@ -9,16 +9,16 @@ import { formatCall } from '../../../core/budget.js';
 import { TOOLS } from '../../../core/names.js';
 import type { Ctx, ReadTarget, RenderOptions } from '../../../core/ports.js';
 import type { CatalogRecord, DocPage, SymbolDetail } from '../../../core/types.js';
+import { pageKey } from '../../../core/url.js';
 import {
   docRoot,
   fileRef,
-  pageKey,
+  fromPackage,
   type JsonMapper,
   type JsonSrc,
   type LoadedFile,
 } from './json-mapper.js';
 import { packageMeta } from './package-file.js';
-import { withVersionNotice } from './resolve-version.js';
 import {
   baseRecord,
   fragmentOf,
@@ -215,7 +215,7 @@ export const arcadeApiMapper: JsonMapper = {
       packageMeta(src, loaded.pkg, loaded.file, item?.ref ?? category.ref),
       Object.keys(opts).length === 0 ? undefined : opts,
     );
-    return withVersionNotice(page, loaded.pkg);
+    return fromPackage(page, loaded.pkg);
   },
 
   /** One function on a page of its own, with its overloads, instead of a slice of its category. */
@@ -228,6 +228,6 @@ export const arcadeApiMapper: JsonMapper = {
       packageMeta(src, loaded.pkg, loaded.file, item.ref),
       { detail },
     );
-    return withVersionNotice(page, loaded.pkg);
+    return fromPackage(page, loaded.pkg);
   },
 };

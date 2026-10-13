@@ -4,6 +4,7 @@
  */
 import type { McpServer } from '@modelcontextprotocol/server';
 import * as z from 'zod/v4';
+import { formatCall } from '../../core/budget.js';
 import { TOOLS } from '../../core/names.js';
 import type { CatalogRecord } from '../../core/types.js';
 import { LARGE_RESULT_META } from '../annotations.js';
@@ -51,18 +52,26 @@ function displayName(record: CatalogRecord): string {
   return record.qualified ?? record.symbol ?? record.title;
 }
 
-/** The other candidates as copyable `{symbol, product}` pairs with their refs. */
-function alternates(records: readonly CatalogRecord[]): string {
+/**
+ * The other candidates as copyable `{symbol, product}` pairs with their refs. A candidate
+ * with the name of the answer itself (another declaration of that name: an overload on a
+ * page of its own, the same function for another type of argument) cannot be asked for by
+ * name again, so it is listed as the ref to read.
+ */
+function alternates(answer: CatalogRecord, records: readonly CatalogRecord[]): string {
   if (records.length === 0) return '';
-  return [
-    'Other matches:',
-    ...records
-      .slice(0, 3)
-      .map(
-        (record) =>
-          `- ${JSON.stringify({ symbol: displayName(record), product: record.product })}${record.symbolKind === undefined ? '' : ` (${record.symbolKind})`}: ${record.ref}`,
-      ),
-  ].join('\n');
+  const lines = records.slice(0, 3).map((record) => {
+    const kind = record.symbolKind === undefined ? '' : ` (${record.symbolKind})`;
+    const namesake =
+      record.product === answer.product && displayName(record) === displayName(answer);
+    const call = namesake
+      ? formatCall(TOOLS.read, { ref: record.ref })
+      : JSON.stringify({ symbol: displayName(record), product: record.product });
+    return namesake
+      ? `- another ${displayName(record)}${kind}: ${call}`
+      : `- ${call}${kind}: ${record.ref}`;
+  });
+  return ['Other matches:', ...lines].join('\n');
 }
 
 const handle: ToolHandler<typeof Input> = async (args, call, container) => {
@@ -88,7 +97,7 @@ const handle: ToolHandler<typeof Input> = async (args, call, container) => {
   return textResult({
     status: pageStatus(`${displayName(record)}${kind}`, page, echo, version),
     notes: pageNotes(page),
-    body: [response.text.trim(), alternates(response.alternates)]
+    body: [response.text.trim(), alternates(record, response.alternates)]
       .filter((block) => block.length > 0)
       .join('\n\n'),
     next: response.next,

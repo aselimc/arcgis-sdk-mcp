@@ -6,16 +6,16 @@
  */
 import type { Ctx, RenderOptions } from '../../../core/ports.js';
 import type { CatalogRecord, DocPage } from '../../../core/types.js';
+import { pageKey } from '../../../core/url.js';
 import {
   docRoot,
   fileRef,
-  pageKey,
+  fromPackage,
   type JsonMapper,
   type JsonSrc,
   type LoadedFile,
 } from './json-mapper.js';
 import { packageMeta } from './package-file.js';
-import { withVersionNotice } from './resolve-version.js';
 import { baseRecord, fragmentOf, notFound, records, shapeError, str, type Json } from './shared.js';
 
 /** One profile. */
@@ -122,6 +122,6 @@ export const arcadeProfilesMapper: JsonMapper = {
       packageMeta(src, loaded.pkg, loaded.file, profile.ref),
       Object.keys(opts).length === 0 ? undefined : opts,
     );
-    return withVersionNotice(page, loaded.pkg);
+    return fromPackage(page, loaded.pkg);
   },
 };

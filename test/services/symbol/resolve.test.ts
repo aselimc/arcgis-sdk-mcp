@@ -185,6 +185,64 @@ describe('resolveSymbol: the resolution table', () => {
     expect(resolution.kind === 'found' ? resolution.alternates : undefined).toEqual([]);
   });
 
+  // Regression: Arcade has `Intersects` for geometries and for feature sets, on two pages of
+  // one source. They were merged as "twins", so the second was never mentioned.
+  describe('same-named declarations on different pages of one source', () => {
+    const namesake = (page: string, extra: Partial<CatalogRecord> = {}): CatalogRecord =>
+      makeRecord({
+        ref: `https://d/fn/${page}/#overlaps`,
+        source: 'functions',
+        symbol: 'Overlaps',
+        qualified: 'Overlaps',
+        ...extra,
+      });
+
+    it('answers with the first and lists the other as an alternate, not as a twin', () => {
+      const resolution = resolveSymbol('Overlaps', [
+        scope('widgets-sdk', [namesake('geometry'), namesake('featureset')]),
+      ]);
+      expect(outcome(resolution)).toBe('found:Overlaps@qualified');
+      if (resolution.kind !== 'found') return;
+      expect(resolution.winner.record.ref).toBe('https://d/fn/geometry/#overlaps');
+      expect(resolution.winner.twins).toEqual([]);
+      expect(resolution.alternates.map((c) => c.record.ref)).toEqual([
+        'https://d/fn/featureset/#overlaps',
+      ]);
+    });
+
+    it('keeps overloads on one page, and the same page in another source, as twins', () => {
+      const resolution = resolveSymbol('Overlaps', [
+        scope('widgets-sdk', [
+          namesake('geometry'),
+          namesake('geometry', { ref: 'https://d/fn/geometry/#overlaps-1' }),
+          namesake('other', { source: 'typings' }),
+        ]),
+      ]);
+      expect(resolution.kind === 'found' ? resolution.winner.twins.map((t) => t.ref) : []).toEqual([
+        'https://d/fn/geometry/#overlaps-1',
+        'https://d/fn/other/#overlaps',
+      ]);
+      expect(resolution.kind === 'found' ? resolution.alternates : undefined).toEqual([]);
+    });
+
+    it('names each rival once when the name is ambiguous for another reason', () => {
+      const rival = makeRecord({
+        ref: 'https://d/fn/text/#overlaps',
+        source: 'functions',
+        symbol: 'Overlaps',
+        qualified: 'text.Overlaps',
+      });
+      const resolution = resolveSymbol('Overlaps', [
+        scope('widgets-sdk', [
+          namesake('geometry', { qualified: 'geo.Overlaps' }),
+          namesake('featureset', { qualified: 'geo.Overlaps' }),
+          rival,
+        ]),
+      ]);
+      expect(outcome(resolution)).toBe('ambiguous:geo.Overlaps,text.Overlaps');
+    });
+  });
+
   it('lets the caller reorder sources, for versioned packages', () => {
     const typingsFirst: SymbolScope = {
       ...js,

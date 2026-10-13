@@ -3,6 +3,7 @@ import { isMcpDocError, type McpDocError } from '../../src/core/errors.js';
 import {
   canonicalize,
   githubBlobToRaw,
+  pageKey,
   parseGithubUrl,
   rawToGithubBlob,
   slugify,
@@ -265,5 +266,18 @@ describe('splitRef', () => {
 
   it('rejects other schemes with HOST_NOT_ALLOWED', () => {
     expect(thrown(() => splitRef('file:///c:/secret.txt')).code).toBe('HOST_NOT_ALLOWED');
+  });
+});
+
+describe('pageKey', () => {
+  it('drops fragment, query and trailing slashes, so links and catalogue refs agree', () => {
+    expect(pageKey('https://d.example/api/buoy/#sink')).toBe('https://d.example/api/buoy');
+    expect(pageKey('https://d.example/api/buoy')).toBe('https://d.example/api/buoy');
+    expect(pageKey('https://d.example/api/buoy.html?v=2#sink')).toBe(
+      'https://d.example/api/buoy.html',
+    );
+    expect(pageKey('https://d.example/api/buoy/sink(depth:)/')).toBe(
+      'https://d.example/api/buoy/sink(depth:)',
+    );
   });
 });
