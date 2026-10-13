@@ -47,6 +47,13 @@ export interface HttpRequest {
   encoding?: 'utf8' | 'base64';
   /** Default from the host table and the URL class. */
   ttl?: T.TtlClass;
+  /**
+   * Ask upstream even though a fresh cached copy exists (conditionally where the host
+   * supports it). For the one case where a fresh copy is known to be out of date: a page
+   * that points at a hashed index file which has since been replaced. The cache key is the
+   * same, so the answer refreshes the entry every other caller reads.
+   */
+  revalidate?: boolean;
   /** Default 8 MB for pages, 32 MB for index files. */
   maxBytes?: number;
   method?: 'GET' | 'POST';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createBodyIndex, MAX_BODY_SECTIONS } from '../../../src/services/index/body-index.js';
 import { createHealthTracker, FAILING_SKIP_MS } from '../../../src/services/index/health.js';
-import { buildCatalogIndex } from '../../../src/services/index/minisearch-index.js';
+import { buildCatalogIndex, documentBoost } from '../../../src/services/index/minisearch-index.js';
 import { queryTerms } from '../../../src/services/index/query-terms.js';
 import { kindMatches } from '../../../src/services/index/query.js';
 import { buildSymbolMap, mergeSymbolMaps } from '../../../src/services/index/symbol-map.js';
@@ -66,6 +66,16 @@ describe('catalogue index', () => {
     expect(titles('authentcation')).toContain('Authentication');
     expect(titles('mpa')).not.toContain('MapView');
     expect(titles('edts', 'fuzzy')).toContain('Edit features');
+  });
+
+  // Regression: member records of the JavaScript reference carry the site's boost of 0.08 to
+  // 0.2 and vanished behind samples and guides, which carry none.
+  it('lets a published boost move a score by at most half', () => {
+    expect(documentBoost(undefined)).toBe(1);
+    expect(documentBoost(1)).toBe(1);
+    expect(documentBoost(0.08)).toBeCloseTo(0.54);
+    expect(documentBoost(0)).toBe(1);
+    expect(documentBoost(40)).toBe(1.25);
   });
 
   it('applies the record filter and the record boost', () => {

@@ -9,7 +9,7 @@ import type { CatalogRecord } from '../../core/types.js';
 import { LARGE_RESULT_META } from '../annotations.js';
 import { compact } from '../compact.js';
 import type { McpContainer } from '../container.js';
-import { textResult } from '../envelope.js';
+import { bodyBudget, textResult } from '../envelope.js';
 import { pageNotes, pageStatus, pageVersion } from '../presenters/page.js';
 import { maxTokensArg, productArg, versionArg } from '../schemas.js';
 import { registerDocTool, type ToolDefinition, type ToolHandler } from '../tool.js';
@@ -72,7 +72,7 @@ const handle: ToolHandler<typeof Input> = async (args, call, container) => {
       product: args.product,
       detail: args.detail,
       version: args.version,
-      maxTokens: args.max_tokens,
+      maxTokens: bodyBudget(args.max_tokens),
     }),
     call,
   );

@@ -9,7 +9,7 @@ import { RESOURCE_SCHEME, TOOLS } from '../../core/names.js';
 import { LARGE_RESULT_META } from '../annotations.js';
 import { compact } from '../compact.js';
 import type { McpContainer } from '../container.js';
-import { textResult } from '../envelope.js';
+import { bodyBudget, textResult } from '../envelope.js';
 import { pageNotes, pageProduct, pageStatus, pageVersion } from '../presenters/page.js';
 import { cursorArg, maxTokensArg } from '../schemas.js';
 import { registerDocTool, type ToolDefinition, type ToolHandler } from '../tool.js';
@@ -60,7 +60,7 @@ const handle: ToolHandler<typeof Input> = async (args, call, container) => {
       ref: args.ref,
       section: args.section,
       view: args.view,
-      maxTokens: args.max_tokens,
+      maxTokens: bodyBudget(args.max_tokens),
       cursor: args.cursor,
     }),
     call,

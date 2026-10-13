@@ -72,10 +72,12 @@ function typeSummary(page: DocPage, sections: readonly DocSection[]): DocSection
     members.flatMap((member) => sectionSubtree(sections, member.id).map((section) => section.id)),
   );
   if (memberSections.size === 0) return [...sections];
-  return [
-    ...sections.filter((section) => !memberSections.has(section.id)),
-    memberIndexSection(members),
-  ];
+  const own = sections.filter((section) => !memberSections.has(section.id));
+  // A page that is nothing but member sections documents the symbol itself (an Arcade
+  // function, a specification object listed as the only member of its page): an index of
+  // one would replace the documentation that was asked for.
+  if (own.length === 0) return [...sections];
+  return [...own, memberIndexSection(members)];
 }
 
 /**

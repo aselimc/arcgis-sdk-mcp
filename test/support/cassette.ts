@@ -90,6 +90,8 @@ export interface SeenRequest {
   encoding?: 'base64';
   body?: string;
   headers?: Record<string, string>;
+  /** Present when the request asked to bypass a fresh cached copy. */
+  revalidate?: true;
 }
 
 /** Selects requests: an exact URL (fragment ignored) or a pattern tested against the URL. */

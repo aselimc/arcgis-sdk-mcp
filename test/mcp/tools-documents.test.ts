@@ -65,6 +65,17 @@ describe('document tools', () => {
       expect(estimateTokens(outcome.text)).toBeLessThan(6000);
     });
 
+    it('gives the service max_tokens minus the room the envelope needs', async () => {
+      const read = suite.harness.services.docs.read.bind(suite.harness.services.docs);
+      const seen: number[] = [];
+      suite.harness.services.docs.read = async (req, options) => {
+        seen.push(req.maxTokens);
+        return read(req, options);
+      };
+      await call(TOOLS.read, { ref: REFS.page, max_tokens: 2000 });
+      expect(seen).toEqual([1800]);
+    });
+
     it('falls back to the line label, the bare product id or no version at all', async () => {
       const read = suite.harness.services.docs.read.bind(suite.harness.services.docs);
       const withPage = (patch: Record<string, unknown>): void => {

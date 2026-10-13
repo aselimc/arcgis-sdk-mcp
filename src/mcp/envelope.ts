@@ -35,6 +35,21 @@ export interface Envelope {
 const NEXT_PREFIX = 'Next: ';
 
 /**
+ * Tokens set aside for everything around the body: the status line, notes, a `Next:` line
+ * carrying a cursor and the `Source:` line. `max_tokens` bounds the whole response, so the
+ * services are given the remainder.
+ */
+export const ENVELOPE_RESERVE_TOKENS = 200;
+
+/** Smallest body budget, so a tiny `max_tokens` still returns a declaration. */
+const MIN_BODY_TOKENS = 150;
+
+/** The budget of the body of a response that may be `maxTokens` long in total. */
+export function bodyBudget(maxTokens: number): number {
+  return Math.max(MIN_BODY_TOKENS, maxTokens - ENVELOPE_RESERVE_TOKENS);
+}
+
+/**
  * Joins the facts of a status line with ` | `, skipping absent ones. A lower rung of a
  * degradation ladder (design section 6.6) is stated last, as `degraded: <reason>`.
  */

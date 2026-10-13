@@ -46,8 +46,8 @@ describe('gatsby enumerate: degradation', () => {
     expect(ctx.http.count(STORE)).toBe(1);
     expect(ctx.http.count(`${D}${ROTATED}`)).toBe(1);
     const pageDataRequests = ctx.http.requests.filter((request) => request.url === PAGE_DATA);
-    expect(pageDataRequests[0]?.headers).toBeUndefined();
-    expect(pageDataRequests[1]?.headers).toEqual({ 'Cache-Control': 'no-cache' });
+    expect(pageDataRequests[0]?.revalidate).toBeUndefined();
+    expect(pageDataRequests[1]?.revalidate).toBe(true);
     expect(recordAt(records, '/get-started/').title).toBe('Start here');
   });
 

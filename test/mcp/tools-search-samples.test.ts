@@ -157,7 +157,11 @@ describe('search and sample tools', () => {
       };
       const sparse = await call(TOOLS.findSamples, { query: 'cluster' });
       structuredOf(TOOLS.findSamples, sparse);
-      expect(sparse.text).toContain('1. Cluster points [js-maps-sdk, unknown, github, apache-2.0]');
+      // A sample without a stated language is in the language of its product (regression:
+      // every site sample of the Swift SDK was listed as "unknown").
+      expect(sparse.text).toContain(
+        '1. Cluster points [js-maps-sdk, typescript, github, apache-2.0]',
+      );
       expect(sparse.text).not.toContain('APIs:');
       expect(sparse.text).not.toContain('Note: API use');
       suite.harness.services.samples.find = find;

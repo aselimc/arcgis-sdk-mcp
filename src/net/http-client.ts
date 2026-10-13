@@ -97,7 +97,8 @@ export function createGateway(deps: GatewayDeps): HttpClient {
   async function load(accepted: Accepted): Promise<HttpResponse> {
     const { key, target } = accepted;
     const cached = await store.read(key);
-    if (cached !== undefined && isFresh(cached, clock.now())) {
+    // A caller that asks to revalidate knows the fresh copy is out of date.
+    if (cached !== undefined && isFresh(cached, clock.now()) && accepted.req.revalidate !== true) {
       if (isNegative(cached)) throw notFound(target.href, cached.body);
       return toResponse(cached, 'hit');
     }

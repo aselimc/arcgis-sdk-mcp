@@ -20,13 +20,25 @@ export function snapshotKey(product: string, source: string, line: string): stri
 
 /**
  * Fingerprint of everything that decides what an enumeration returns, short of the upstream
- * files themselves: the snapshot format, the adapter, the source configuration and the line
+ * files themselves: the snapshot format, this server's version (a release may change how an
+ * adapter names or classifies records), the adapter, the source configuration and the line
  * variables. A snapshot whose fingerprint differs was built for another definition of the
  * source and is discarded.
  */
-export function sourceFingerprint(source: SourceDef, line: VersionLine): string {
+export function sourceFingerprint(
+  source: SourceDef,
+  line: VersionLine,
+  serverVersion: string,
+): string {
   return shortHash(
-    JSON.stringify([INDEX_SCHEMA_VERSION, source.adapter, source.config, line.id, line.vars]),
+    JSON.stringify([
+      INDEX_SCHEMA_VERSION,
+      serverVersion,
+      source.adapter,
+      source.config,
+      line.id,
+      line.vars,
+    ]),
   );
 }
 
@@ -64,7 +76,7 @@ export async function loadSnapshot(
     const usable =
       isSnapshot(stored) &&
       stored.v === INDEX_SCHEMA_VERSION &&
-      stored.fingerprint === sourceFingerprint(source, line) &&
+      stored.fingerprint === sourceFingerprint(source, line, ctx.config.version) &&
       ctx.clock.now() - stored.builtAt <= MAX_SNAPSHOT_AGE_MS;
     if (usable) return stored;
     await ctx.cache.deleteDerived('catalog', key);

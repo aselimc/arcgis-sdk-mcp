@@ -10,7 +10,7 @@ import { TOOLS } from '../../core/names.js';
 import type { SampleHit, SamplesResponse } from '../../core/ports.js';
 import { compact } from '../compact.js';
 import type { McpContainer } from '../container.js';
-import { type Attribution, statusLine, structuredResult } from '../envelope.js';
+import { type Attribution, bodyBudget, statusLine, structuredResult } from '../envelope.js';
 import { maxTokensArg, Notes, productArg } from '../schemas.js';
 import { registerDocTool, type ToolDefinition, type ToolHandler } from '../tool.js';
 
@@ -100,7 +100,15 @@ export const findSamplesTool = {
   outputSchema: Output,
 } satisfies ToolDefinition<typeof Input, typeof Output>;
 
-function resultSample(hit: SampleHit, rank: number): ResultSample {
+/**
+ * @param fallbackLanguage the main language of the sample's product, for sample pages whose
+ *   index does not state a language (every sample of a single-language SDK is in it).
+ */
+function resultSample(
+  hit: SampleHit,
+  rank: number,
+  fallbackLanguage: string | undefined,
+): ResultSample {
   const { record } = hit;
   return compact({
     rank,
@@ -108,7 +116,7 @@ function resultSample(hit: SampleHit, rank: number): ResultSample {
     ref: record.ref,
     product: record.product,
     platform: record.platform,
-    language: record.language ?? 'unknown',
+    language: record.language ?? fallbackLanguage ?? 'unknown',
     summary: hit.summary,
     relevantApis: hit.relevantApis,
     category: record.breadcrumb,
@@ -162,11 +170,13 @@ const handle: ToolHandler<typeof Input> = async (args, call, { ctx, services }) 
       platform: args.platform,
       withCode: args.with_code,
       limit: args.limit,
-      maxTokens: args.max_tokens,
+      maxTokens: bodyBudget(args.max_tokens),
     }),
     call,
   );
-  const results = response.hits.map((hit, index) => resultSample(hit, index + 1));
+  const results = response.hits.map((hit, index) =>
+    resultSample(hit, index + 1, ctx.registry.get(hit.record.product)?.languages[0]),
+  );
   const result: Result = compact({
     scope: compact({ ...response.scope }),
     total: response.total,

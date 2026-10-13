@@ -167,6 +167,19 @@ describe('index persistence', () => {
     expect(state).toMatchObject({ state: 'ready', records: 3 });
   });
 
+  // Regression: a release that changed how an adapter names records kept serving the
+  // records of the previous release from disk for up to a week.
+  it('discards a snapshot built by another version of this server', async () => {
+    const first = makeHarness({ products: [product()], records: records(7) });
+    await first.index.ensure(product(), undefined, makeLine(), first.call());
+
+    const upgraded = { ...first.ctx, config: { ...first.ctx.config, version: '99.0.0' } };
+    const second = makeHarness({ products: [product()], records: records(4), ctx: upgraded });
+    const [state] = await second.index.ensure(product(), undefined, makeLine(), second.call());
+    expect(second.adapter('gatsby').count('enumerate')).toBe(1);
+    expect(state).toMatchObject({ state: 'ready', records: 4 });
+  });
+
   it('discards a snapshot of another schema version, and one that is not a snapshot', async () => {
     for (const stored of [{ v: 0, fingerprint: 'x', builtAt: 0, records: [] }, 'garbage']) {
       const h = makeHarness({ products: [product()], records: records(2) });

@@ -28,9 +28,17 @@ function readGrid($: CheerioAPI, el: Element): Grid | undefined {
   const first = rows[0];
   if (first === undefined) return undefined;
   const firstCells = cellsOf($, first);
+  // Generated reference tables (Sphinx list tables) have no header markup: their first row
+  // is a header when every cell of it is bold from start to end.
+  const allBold = (cell: Element): boolean => {
+    const text = squash($(cell).text());
+    return text !== '' && text === squash($(cell).find('strong, b').text());
+  };
   const headRow =
     rows.find((row) => $(row).parent().is('thead')) ??
-    (firstCells.length > 0 && firstCells.every((cell) => cell.tagName === 'th')
+    (firstCells.length > 0 &&
+    (firstCells.every((cell) => cell.tagName === 'th') ||
+      (rows.length > 1 && firstCells.length > 1 && firstCells.every(allBold)))
       ? first
       : undefined);
   const headerCells = headRow === undefined ? [] : cellsOf($, headRow);

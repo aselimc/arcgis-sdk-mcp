@@ -126,6 +126,7 @@ export class FakeHttp implements HttpClient {
       ...(req.encoding === 'base64' ? { encoding: req.encoding } : {}),
       ...(req.body === undefined ? {} : { body: req.body }),
       ...(req.headers === undefined ? {} : { headers: req.headers }),
+      ...(req.revalidate === true ? { revalidate: true as const } : {}),
     });
     const host = hostOf(url);
     if (!this.breakers.has(host)) this.breakers.set(host, { breaker: 'closed' });

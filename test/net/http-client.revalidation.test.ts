@@ -57,6 +57,22 @@ describe('gateway: conditional revalidation per host rule', () => {
     expect(rig.origin.calls[2]?.headers['if-none-match']).toBe('W/"abc-2"');
   });
 
+  it('asks upstream despite a fresh copy when the caller asks to revalidate', async () => {
+    const rig = rigFor('etag');
+    rig.origin.on(URL_, page(PAGE, VALIDATORS), page('<html><body>new build</body></html>'));
+    await rig.http.get({ url: URL_, expect: 'html' });
+
+    rig.clock.advance(HOUR);
+    const again = await rig.http.get({ url: URL_, expect: 'html', revalidate: true });
+    expect(again).toMatchObject({ cache: 'miss', text: '<html><body>new build</body></html>' });
+    expect(rig.origin.calls[1]?.headers['if-none-match']).toBe(VALIDATORS.etag);
+
+    // The refreshed entry is what every later caller reads.
+    const later = await rig.http.get({ url: URL_, expect: 'html' });
+    expect(later).toMatchObject({ cache: 'hit', text: '<html><body>new build</body></html>' });
+    expect(rig.origin.calls).toHaveLength(2);
+  });
+
   it('replaces the entry when the origin answers 200', async () => {
     const rig = rigFor('etag');
     const changed = PAGE.replace('Body text.', 'New text.');

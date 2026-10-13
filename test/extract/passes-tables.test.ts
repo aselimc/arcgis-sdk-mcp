@@ -49,6 +49,24 @@ describe('fixTables', () => {
     expect(env.counters.tables).toEqual({ 'key-value': 1 });
   });
 
+  // Regression: the parameter tables of the Python reference printed "**`Parameter`**" and
+  // "**Description**" as if they were the first parameter.
+  it('takes a first row of bold cells for the header', () => {
+    const env = passEnv();
+    const html =
+      '<table><tbody><tr><td><p><strong>Parameter</strong></p></td><td><p><strong>Description</strong></p></td></tr><tr><td><p>url</p></td><td><p>Optional string.</p></td></tr></tbody></table>';
+    expect(applyPass(html, fixTables, env)).toBe(
+      '<table><thead><tr><th><strong>Parameter</strong></th><th><strong>Description</strong></th></tr></thead><tbody><tr><td>url</td><td>Optional string.</td></tr></tbody></table>',
+    );
+    expect(env.counters.tables).toEqual({ gfm: 1 });
+  });
+
+  it('does not take a partly bold first row for a header', () => {
+    const html =
+      '<table><tr><td><strong>Note</strong> first</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></table>';
+    expect(applyPass(html, fixTables)).toContain('<li><strong><strong>Note</strong> first:</strong> b</li>');
+  });
+
   it('gives a headerless table of another width an empty header', () => {
     const html = '<table><tr><td>a</td><td>b</td><td>c</td></tr></table>';
     expect(applyPass(html, fixTables)).toBe(

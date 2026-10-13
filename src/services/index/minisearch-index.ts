@@ -39,6 +39,23 @@ const MATCH_LABEL: Record<Field, SearchHit['match']> = {
   breadcrumb: 'keyword',
 };
 
+/**
+ * Share of a record's score that does not depend on its `boost`. Sites publish boosts that
+ * rank the entries of one index against each other (a class 1.0, its members 0.05 to 0.2);
+ * applied in full they would push every API member below any guide page of another source,
+ * which has no boost at all. Half the score is therefore kept for every record.
+ */
+const BOOST_FLOOR = 0.5;
+
+/** Largest effect a published boost may have. */
+const BOOST_CEILING = 1.5;
+
+/** The score multiplier for a record's published `boost`; 1 when it has none. */
+export function documentBoost(boost: number | undefined): number {
+  if (boost === undefined || !Number.isFinite(boost) || boost <= 0) return 1;
+  return BOOST_FLOOR + (1 - BOOST_FLOOR) * Math.min(boost, BOOST_CEILING);
+}
+
 /** Terms shorter than this are matched exactly or by prefix only. */
 const FUZZY_MIN_LENGTH = 5;
 
@@ -109,7 +126,7 @@ export function buildCatalogIndex(records: readonly CatalogRecord[]): CatalogInd
       const results = engine.search(termQuery(terms, mode), {
         ...matchOptions(mode),
         boost: FIELD_BOOSTS,
-        boostDocument: (id: number) => records[id]?.boost ?? 1,
+        boostDocument: (id: number) => documentBoost(records[id]?.boost),
         ...(accept === undefined
           ? {}
           : {

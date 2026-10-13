@@ -239,6 +239,34 @@ describe('unwrapBlockyInline', () => {
       '<p>Block.</p><ul><li>x</li></ul><p><em>inline</em> <b>bold</b></p>',
     );
   });
+  // Regression: a tutorial step read "Learn more in", "[", "Item access privileges", "](url)", "."
+  // on separate lines, because the page source nests a paragraph inside the link.
+  it('rejoins a link that wraps a paragraph with the sentence it was cut out of', () => {
+    const html =
+      '<em><p>Learn more in </p><a href="/x/"><p>Access rules</p></a><p>.</p></em><p>Next sentence.</p>';
+    expect(applyPass(html, unwrapBlockyInline)).toBe(
+      '<p>Learn more in <a href="/x/">Access rules</a>.</p><p>Next sentence.</p>',
+    );
+  });
+
+  it('makes a paragraph link inline even when it stands alone', () => {
+    const html = '<div><a href="/x/"><p>One</p><p>Two</p></a></div><p>After.</p>';
+    expect(applyPass(html, unwrapBlockyInline)).toBe(
+      '<div><a href="/x/">One Two</a></div><p>After.</p>',
+    );
+  });
+
+  it('leaves a new sentence after a paragraph link in its own paragraph', () => {
+    const html = '<p>See</p><a href="/x/"><p>the guide</p></a><p>Then continue.</p>';
+    expect(applyPass(html, unwrapBlockyInline)).toBe(
+      '<p>See <a href="/x/">the guide</a></p><p>Then continue.</p>',
+    );
+  });
+
+  it('does not touch a link around other block content', () => {
+    const html = '<a href="/x/"><div>Card</div></a>';
+    expect(applyPass(html, unwrapBlockyInline)).toBe(html);
+  });
 });
 
 describe('absolutize', () => {

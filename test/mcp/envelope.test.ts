@@ -5,6 +5,8 @@ import { TOOLS } from '../../src/core/names.js';
 import { LICENSE_TIERS } from '../../src/core/types.js';
 import { compact } from '../../src/mcp/compact.js';
 import {
+  bodyBudget,
+  ENVELOPE_RESERVE_TOKENS,
   type Envelope,
   renderEnvelope,
   sourceLine,
@@ -72,6 +74,19 @@ describe('renderEnvelope', () => {
     expect(
       renderEnvelope({ status: 'No hits', body: '', next: '', attribution: { kind: 'project' } }),
     ).toBe('No hits');
+  });
+});
+
+// Regression: a read with max_tokens 2000 answered with about 2,400 tokens, because the
+// whole budget went to the body and the status, Next and Source lines came on top.
+describe('bodyBudget', () => {
+  it('leaves room for the envelope inside max_tokens', () => {
+    expect(bodyBudget(6000)).toBe(6000 - ENVELOPE_RESERVE_TOKENS);
+    expect(bodyBudget(500)).toBe(300);
+  });
+
+  it('never goes below what a declaration needs', () => {
+    expect(bodyBudget(300)).toBe(150);
   });
 });
 

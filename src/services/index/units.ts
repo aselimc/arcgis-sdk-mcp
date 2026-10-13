@@ -197,7 +197,7 @@ export function createUnitManager(
     install(unit);
     await saveSnapshot(ctx, {
       v: INDEX_SCHEMA_VERSION,
-      fingerprint: sourceFingerprint(source, line),
+      fingerprint: sourceFingerprint(source, line, ctx.config.version),
       product: product.id,
       source: source.id,
       line: line.id,

@@ -45,6 +45,39 @@ describe('renderView', () => {
     });
   });
 
+  // Regression: a REST reference page opened with its bare title and an outline, because
+  // the text of such a page starts in the first sub-section.
+  it('auto: opens with the first sub-section when the lead is only a heading', () => {
+    const page = makeDocPage({
+      markdown: [
+        '# Apply changes',
+        '',
+        '## Description',
+        '',
+        'Writes changes to the gadget layer.',
+        '',
+        '## Request parameters',
+        '',
+        'parameter '.repeat(900),
+        '',
+        '## Examples',
+        '',
+        'example '.repeat(300),
+      ].join('\n'),
+    });
+    const view = renderView({
+      page,
+      shown: page.sections,
+      view: 'auto',
+      maxTokens: 800,
+      offset: 0,
+    });
+    expect(view.truncated).toBe(true);
+    expect(view.text).toContain('Writes changes to the gadget layer.');
+    expect(view.text).not.toContain('parameter parameter');
+    expect(view.suggest).toBe('request-parameters');
+  });
+
   it('auto: returns the opening, the outline and a suggestion when it does not fit', () => {
     const body = (name: string, words: number) =>
       `## ${name}\n\n${`${name.toLowerCase()} `.repeat(words)}`;

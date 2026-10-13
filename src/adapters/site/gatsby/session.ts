@@ -18,9 +18,6 @@ export interface SessionRequest {
   fresh?: boolean;
 }
 
-/** Sent with a `fresh` request; a gateway that honours it revalidates the cached entry. */
-const REVALIDATE = { 'Cache-Control': 'no-cache' } as const;
-
 /** Counts and issues the upstream requests of one `enumerate`, `read` or `probe` call. */
 export class GatsbySession {
   private used = 0;
@@ -75,7 +72,7 @@ export class GatsbySession {
     return {
       url,
       ttl: options.ttl ?? 'index',
-      ...(options.fresh === true ? { headers: { ...REVALIDATE } } : {}),
+      ...(options.fresh === true ? { revalidate: true } : {}),
       ...budgetOf(this.src),
     };
   }

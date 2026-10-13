@@ -34,7 +34,24 @@ describe('classifyQuery', () => {
     expect(classifyQuery(query)).toEqual({ shape: 'symbol', names });
   });
 
-  it.each(['cluster points with popups', 'offline', '5.1', '   '])('"%s" is text', (query) => {
+  // Regression: "FeatureLayer queryFeatures" listed samples only; the member was not found.
+  it.each([
+    ['FeatureLayer queryFeatures', ['FeatureLayer.queryFeatures']],
+    ['  MapView   goTo ', ['MapView.goTo']],
+  ])('"%s" is a type and a member written with a space', (query, names) => {
+    expect(classifyQuery(query)).toEqual({ shape: 'symbol', names });
+  });
+
+  it.each([
+    'cluster points with popups',
+    'offline',
+    '5.1',
+    '   ',
+    'query layers',
+    'Feature layers',
+    'FeatureLayer query features',
+    'display FeatureLayer',
+  ])('"%s" is text', (query) => {
     expect(classifyQuery(query)).toEqual({ shape: 'text', names: [] });
   });
 });

@@ -18,6 +18,9 @@ export const MAX_OUTLINE_TOKENS = 600;
 /** Share of the budget the opening of a large document may take in `auto`. */
 const LEAD_SHARE = 0.25;
 
+/** A section this small is a heading without text of its own. */
+const BARE_HEADING_TOKENS = 30;
+
 /** Outline depth below the shallowest heading. */
 const OUTLINE_DEPTH = 2;
 
@@ -146,9 +149,14 @@ export function renderView(request: ViewRequest): ViewResult {
       return { text: joinParts([header, whole]), truncated: false };
     }
     const suggest = largestSection(page, shown);
-    const [lead] = shown;
+    const [lead, second] = shown;
     if (suggest !== undefined && lead !== undefined) {
-      const opening = fitSections([lead], Math.floor(maxTokens * LEAD_SHARE)).text;
+      // A lead that is only its heading says nothing: the section below it is the opening.
+      const bare = lead.tokens <= BARE_HEADING_TOKENS && second !== undefined;
+      const opening = fitSections(
+        bare ? [lead, second] : [lead],
+        Math.floor(maxTokens * LEAD_SHARE),
+      ).text;
       const used = estimateTokens(joinParts([header, opening]));
       const outline = renderOutline(page, shown, Math.max(MIN_CONTENT_TOKENS, maxTokens - used));
       return { text: joinParts([header, opening, outline]), truncated: true, suggest };
