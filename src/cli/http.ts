@@ -85,11 +85,28 @@ function sendJson(
 }
 
 /**
+ * The path of a request target, or `undefined` when the target names no path.
+ *
+ * An origin-form target (`/mcp?x=1`, what every client sends) is cut at the query by hand
+ * and never resolved against a base URL: `//[` is a valid origin-form target, but as a
+ * relative reference it names the host `[` and `new URL` throws on it. An absolute-form
+ * target (`http://host/mcp`, sent through a proxy) is parsed without throwing; `*` and an
+ * authority-form target have no path.
+ */
+export function requestPath(target: string | undefined): string | undefined {
+  if (target === undefined) return '/';
+  if (target.startsWith('/')) return target.split(/[?#]/, 1)[0];
+  return URL.parse(target)?.pathname;
+}
+
+/**
  * Builds the request listener and its shutdown function without opening a socket.
  *
- * The MCP handler answers each request with a single JSON body (`responseMode: 'json'`): the
- * tools are request/response only, so there is nothing to stream. 2025-era clients are served
- * by the SDK's stateless fallback from the same factory.
+ * Each request gets one response. The SDK's default response mode answers a 2026-07-28
+ * client with a single JSON body as long as the handler sends nothing before its result,
+ * which is the case for every tool here; 2025-era clients are served by the SDK's stateless
+ * fallback from the same factory, which frames that one message as a `text/event-stream`
+ * event. Both are why a client has to accept both media types.
  */
 export function createHttpApp(options: HttpAppOptions): {
   listener: (req: IncomingMessage, res: ServerResponse) => void;
@@ -99,19 +116,30 @@ export function createHttpApp(options: HttpAppOptions): {
   const onerror = (error: Error): void => {
     logger.warn('http request error', { error });
   };
-  const handler = createMcpHandler(options.factory, { responseMode: 'json', onerror });
+  const handler = createMcpHandler(options.factory, { onerror });
   const mcp = toNodeHandler(handler, { onerror });
   const guards = guardsFor(options.host);
 
-  const listener = (req: IncomingMessage, res: ServerResponse): void => {
-    const path = new URL(req.url ?? '/', 'http://localhost').pathname;
+  const fail = (res: ServerResponse, error: unknown): void => {
+    logger.error('http handler failed', { error });
+    if (!res.headersSent) sendJson(res, 500, { error: 'Internal error' });
+    else res.end();
+  };
+
+  const route = (req: IncomingMessage, res: ServerResponse): void => {
+    // The guards run before anything is read from the request line, and for every path:
+    // not even a 404 or the health check may confirm the server to a rebinding page.
+    for (const guard of guards) {
+      if (!guard(req, res)) return;
+    }
+    const path = requestPath(req.url);
+    if (path === undefined) {
+      sendJson(res, 400, { error: 'Bad request target' });
+      return;
+    }
     if (path !== MCP_PATH && path !== HEALTH_PATH) {
       sendJson(res, 404, { error: `Not found. The MCP endpoint is ${MCP_PATH}` });
       return;
-    }
-    // The health check is guarded too: it must not confirm the server to a rebinding page.
-    for (const guard of guards) {
-      if (!guard(req, res)) return;
     }
     if (path === HEALTH_PATH) {
       if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -124,10 +152,18 @@ export function createHttpApp(options: HttpAppOptions): {
     // Node declares optional members as `T | undefined`, the SDK's structural request type
     // as `T`; under exactOptionalPropertyTypes that needs stating, the shapes are the same.
     mcp(req as NodeIncomingMessageLike, res).catch((error: unknown) => {
-      logger.error('http handler failed', { error });
-      if (!res.headersSent) sendJson(res, 500, { error: 'Internal error' });
-      else res.end();
+      fail(res, error);
     });
+  };
+
+  // A throw inside a 'request' listener is an uncaught exception, which ends the process:
+  // whatever a request manages to break, it gets a 500 and the server keeps serving.
+  const listener = (req: IncomingMessage, res: ServerResponse): void => {
+    try {
+      route(req, res);
+    } catch (error) {
+      fail(res, error);
+    }
   };
   return { listener, close: () => handler.close() };
 }

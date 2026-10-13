@@ -85,7 +85,7 @@ describe('fixTables', () => {
     expect(applyPass(html, fixTables, env)).toBe(
       '<div><p><em>Parameter / Details</em></p>' +
         '<p><strong><code>where</code> (Required)</strong></p><p>A filter.</p><pre>a = 1</pre>' +
-        '<p><strong><code>plain key</code></strong></p><ul><li>x</li></ul>' +
+        '<p><strong>plain key</strong></p><ul><li>x</li></ul>' +
         '<p><strong><a href="/k">linked</a></strong></p></div>',
     );
     expect(env.counters.tables).toEqual({ definition: 1 });
@@ -100,6 +100,62 @@ describe('fixTables', () => {
         '<p><strong>(row)</strong></p><ul><li><strong>Type:</strong> x</li><li><strong>Column 3:</strong> <pre>y</pre></li></ul></div>',
     );
     expect(env.counters.tables).toEqual({ records: 1 });
+  });
+
+  // Regression: the first cell was always flattened to a bold one-line key, which joined the
+  // lines of a code block, printed list items as `- <br>text` and set whole paragraphs in bold.
+  describe('a first cell that is content, not a key', () => {
+    it('keeps the lines and the fence of a code block in the first cell of a layout table', () => {
+      const md = markdownOf(
+        '<table><tr><td><p>Run this:</p><pre><code class="language-python">def f(x):\n    if x:\n        return 1\n    return 2</code></pre></td><td><img src="a.png" alt="shot"></td></tr></table>',
+      );
+      expect(md).toBe(
+        'Run this:\n\n```python\ndef f(x):\n    if x:\n        return 1\n    return 2\n```\n\n![shot](https://docs.example.com/page/a.png)',
+      );
+    });
+
+    it('does not set a sentence of prose in bold or in code', () => {
+      const md = markdownOf(
+        '<table><tr><td>On the right, an initial shape with two faces is shown.</td><td><pre>Lot --&gt;\n   extrude(10)</pre></td></tr></table>',
+      );
+      expect(md).toBe(
+        'On the right, an initial shape with two faces is shown.\n\n```\nLot -->\n   extrude(10)\n```',
+      );
+    });
+
+    it('writes a wider row with a list or a code block in its first cell as labelled blocks', () => {
+      const env = passEnv();
+      const html =
+        '<table><tr><th>When</th><th>Type</th><th>Notes</th></tr>' +
+        '<tr><td><ul><li>I need my data</li><li>I want to share</li></ul></td><td>Reference</td><td><pre>a = 1\nb = 2</pre></td></tr>' +
+        '<tr><td><code>plain</code></td><td>Hosted</td><td><ul><li>x</li></ul></td></tr></table>';
+      expect(applyPass(html, fixTables, env)).toBe(
+        '<div><p><strong>When:</strong></p><div><ul><li>I need my data</li><li>I want to share</li></ul></div>' +
+          '<p><strong>Type:</strong></p><p>Reference</p>' +
+          '<p><strong>Notes:</strong></p><div><pre>a = 1\nb = 2</pre></div><hr>' +
+          '<p><strong><code>plain</code></strong></p><ul><li><strong>Type:</strong> Hosted</li><li><strong>Notes:</strong> <ul><li>x</li></ul></li></ul></div>',
+      );
+      expect(env.counters.tables).toEqual({ records: 1 });
+    });
+
+    it('leaves no line-break mark, no literal <br> and no stray emphasis outside a table', () => {
+      const md = markdownOf(
+        '<table><tr><th>When</th><th>Type</th><th>Notes</th></tr>' +
+          '<tr><td><ul><li><p>I need my data</p></li><li><p>I want to share</p></li></ul></td><td><p>Reference</p></td><td><div class="note"><h5>Tip:</h5><p>To access the data</p></div></td></tr></table>',
+      );
+      expect(md).toBe(
+        '**When:**\n\n- I need my data\n- I want to share\n\n**Type:**\n\nReference\n\n**Notes:**\n\n> **Tip:**\n>\n> To access the data',
+      );
+      expect(md).not.toContain('<br>');
+      expect(md).not.toContain(BR_PLACEHOLDER);
+    });
+
+    it('writes line breaks of a key and value list as real breaks, not as <br> text', () => {
+      const md = markdownOf(
+        '<table><tr><td><p>Header</p><p>file</p></td><td><p>one</p><p>two</p></td></tr></table>',
+      );
+      expect(md).toBe('- **Header file:** one\n  two');
+    });
   });
 
   it('rewrites a nested table first and treats its parent as a table with block content', () => {

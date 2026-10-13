@@ -56,7 +56,7 @@ export async function connectLegacy(container: McpContainer): Promise<Connection
  * HTTP handler, whose `fetch` is called in process (no socket is opened).
  */
 export async function connectModern(container: McpContainer): Promise<Connection> {
-  const handler = createMcpHandler(() => createServer(container), { responseMode: 'json' });
+  const handler = createMcpHandler(() => createServer(container));
   const transport = new StreamableHTTPClientTransport(new URL('http://localhost/mcp'), {
     fetch: (input, init) => handler.fetch(new Request(input, init)),
   });

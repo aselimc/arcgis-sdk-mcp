@@ -36,13 +36,24 @@ export function compileHost(policy: HostPolicy): CompiledHost {
 }
 
 /**
- * The owner segment of a GitHub URL path, whatever the host:
- * `/repos/<owner>/<repo>/...` (API), `/wiki/<owner>/<repo>/<page>` (raw wiki) or
- * `/<owner>/<repo>/<ref>/<path>` (raw content).
+ * The owner segment of a GitHub URL path. Its position depends on the host, and a prefix that
+ * names a route on one host is an ordinary account name on the other:
+ *
+ * - `api.github.com`: `/repos/<owner>/<repo>/...`, the only API route that is read;
+ * - `raw.githubusercontent.com`: `/wiki/<owner>/<repo>/<page>` for a wiki page, otherwise
+ *   `/<owner>/<repo>/<ref>/<path>`.
+ *
+ * Reading `/repos/<owner>/` on the raw host would take the owner from the repository position
+ * of an account called `repos`, and so let a foreign repository through the owner check.
+ *
+ * @returns the owner in lower case; `undefined` when the path has no owner in the position
+ *   this host uses.
  */
-function githubOwner(pathname: string): string | undefined {
+function githubOwner(host: string, pathname: string): string | undefined {
   const [first, second] = pathname.split('/').filter((segment) => segment.length > 0);
-  const owner = first === 'repos' || first === 'wiki' ? second : first;
+  let owner: string | undefined;
+  if (host === 'api.github.com') owner = first === 'repos' ? second : undefined;
+  else owner = first === 'wiki' ? second : first;
   return owner?.toLowerCase();
 }
 
@@ -63,7 +74,7 @@ export function pathViolation(host: CompiledHost, url: URL): string | undefined 
     return `Only selected paths of ${host.policy.host} are read, and ${url.pathname} is not one of them`;
   }
   if (host.githubOwners !== undefined) {
-    const owner = githubOwner(url.pathname);
+    const owner = githubOwner(host.policy.host.toLowerCase(), url.pathname);
     if (owner === undefined || !host.githubOwners.has(owner)) {
       return `Only repositories of ${(host.policy.githubOwners ?? []).join(', ')} are read`;
     }

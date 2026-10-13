@@ -30,18 +30,45 @@ function linkOnly(name: string): HostPolicy {
   return host(name, null, 'none', { robotsDisallow: ['/'] });
 }
 
-/** Path prefixes on jsDelivr that hold Esri-published npm packages. */
-const ESRI_NPM_PATHS = ['^/npm/@arcgis/', '^/npm/@esri/', '^/npm/esri-leaflet'];
+/**
+ * Unscoped npm packages that Esri publishes. The `@arcgis` and `@esri` scopes are owned by
+ * Esri, so any package under them is Esri's; an unscoped name proves nothing (anyone can
+ * publish `esri-leaflet-<anything>`), so each one is listed by its full name and checked
+ * against the publishing repository when it is added. The registry tests keep this list equal
+ * to the unscoped npm packages the products declare.
+ */
+export const ESRI_UNSCOPED_NPM_PACKAGES = [
+  'esri-leaflet',
+  'esri-leaflet-geocoder',
+  'esri-leaflet-vector',
+] as const;
+
+/** Longest name first, so the alternation never stops at a shorter name that is a prefix. */
+const UNSCOPED_NAMES = [...ESRI_UNSCOPED_NPM_PACKAGES]
+  .sort((a, b) => b.length - a.length)
+  .join('|');
+
+/**
+ * An unscoped package in a CDN path: the whole name, then a version (`@3.0.0`), a file path
+ * or the end. Without that boundary `esri-leaflet` would also admit `esri-leaflet-evil`.
+ */
+const UNSCOPED_ON_CDN = `(?:${UNSCOPED_NAMES})(?:@[^/]+)?(?:/|$)`;
+
+/** Paths on jsDelivr that hold Esri-published npm packages. */
+const ESRI_NPM_PATHS = ['^/npm/@arcgis/', '^/npm/@esri/', `^/npm/${UNSCOPED_ON_CDN}`];
 
 /** The same packages on the jsDelivr metadata API (`/v1/packages/npm/<pkg>@<version>`). */
 const ESRI_NPM_API_PATHS = [
   '^/v1/packages?/npm/@arcgis/',
   '^/v1/packages?/npm/@esri/',
-  '^/v1/packages?/npm/esri-leaflet',
+  `^/v1/packages?/npm/${UNSCOPED_ON_CDN}`,
 ];
 
-/** An Esri package name in a registry path; the scope separator may be percent-encoded. */
-const ESRI_NPM_NAME = '(?:(?:@arcgis|@esri)(?:/|%2[fF])[^/]+|esri-leaflet[^/]*)';
+/**
+ * An Esri package name in a registry path; the scope separator may be percent-encoded. The
+ * patterns that use it continue with `/` or the end, which bounds an unscoped name.
+ */
+const ESRI_NPM_NAME = `(?:(?:@arcgis|@esri)(?:/|%2[fF])[^/]+|${UNSCOPED_NAMES})`;
 
 /** npm metadata of Esri packages: dist-tags, and the manifest of a package or of one version. */
 const NPM_METADATA_PATHS = [

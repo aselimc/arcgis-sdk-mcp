@@ -151,6 +151,32 @@ describe('resources', () => {
     });
   });
 
+  it('leaves local paths and the project out of the status in HTTP mode', async () => {
+    const http = makeHarness({
+      config: { mode: 'http', projectDir: '/home/someone/project' },
+      workspace: [
+        { product: 'js-maps-sdk', package: '@arcgis/core', version: '4.31.0', file: 'p.json' },
+      ],
+    });
+    const { dir } = await http.ctx.cache.info();
+    const served = await connectLegacy(http);
+    try {
+      const { contents } = await served.client.readResource({ uri: STATUS_URI });
+      const text = (contents[0] as { text: string }).text;
+      expect(dir.length).toBeGreaterThan(0);
+      expect(text).not.toContain(dir);
+      expect(text).not.toContain('/home/someone/project');
+      expect(text).not.toContain(process.cwd());
+      expect(text).not.toContain(JSON.stringify(process.cwd()).slice(1, -1));
+      const status = JSON.parse(text) as Record<string, unknown>;
+      expect(Object.keys(status)).toEqual(['server', 'asOf', 'policy', 'cache', 'github', 'hosts', 'sources']);
+      expect(status.server).toMatchObject({ mode: 'http' });
+      expect(status.cache).toEqual({ bytes: expect.any(Number), entries: expect.any(Number), maxMb: 500 });
+    } finally {
+      await served.close();
+    }
+  });
+
   it('collects the status without issuing a request', async () => {
     const status = await collectStatus(harness);
     expect(Object.keys(status)).toEqual([

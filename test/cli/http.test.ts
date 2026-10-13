@@ -1,9 +1,13 @@
-import { request } from 'node:http';
-import { afterEach, describe, expect, it } from 'vitest';
+import { createServer, request } from 'node:http';
+import { connect, type AddressInfo } from 'node:net';
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  createHttpApp,
   guardsFor,
   HEALTH_PATH,
   MCP_PATH,
+  requestPath,
   startHttp,
   type HttpHandle,
 } from '../../src/cli/http.js';
@@ -58,6 +62,27 @@ function send(
     );
     req.on('error', reject);
     req.end(payload);
+  });
+}
+
+/**
+ * Sends one request line exactly as given and resolves with the status code of the answer.
+ * `node:http` normalises or refuses some request targets; a socket sends what an attacker can.
+ */
+function sendRaw(port: number, requestLine: string): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const socket = connect(port, '127.0.0.1');
+    let answer = '';
+    socket.on('connect', () => {
+      socket.write(`${requestLine}\r\nHost: 127.0.0.1:${port}\r\nConnection: close\r\n\r\n`);
+    });
+    socket.on('data', (chunk: Buffer) => (answer += chunk.toString('latin1')));
+    socket.on('error', reject);
+    socket.on('close', () => {
+      const status = /^HTTP\/1\.1 (\d{3})/.exec(answer)?.[1];
+      if (status === undefined) reject(new Error(`no HTTP answer: ${JSON.stringify(answer)}`));
+      else resolve(Number(status));
+    });
   });
 }
 
@@ -134,6 +159,25 @@ describe('startHttp', () => {
     expect(reply.body).toContain(MCP_PATH);
   });
 
+  it('answers a request target that is not a URL and keeps serving (regression: `GET //[` ended the process)', async () => {
+    const { port } = await start();
+    // "//[" resolves, as a relative reference, to the unparsable host "[".
+    expect(await sendRaw(port, 'GET //[ HTTP/1.1')).toBe(404);
+    expect(await sendRaw(port, 'GET //[::1/mcp HTTP/1.1')).toBe(404);
+    expect(await sendRaw(port, 'OPTIONS * HTTP/1.1')).toBe(400);
+    expect(await sendRaw(port, 'GET http://[/mcp HTTP/1.1')).toBe(400);
+    expect((await send(port, { path: HEALTH_PATH })).status).toBe(200);
+    expect(created).toBe(0);
+  });
+
+  it('routes on the path of the target, with or without a query, in either form', async () => {
+    const { port } = await start();
+    expect(await sendRaw(port, `GET ${HEALTH_PATH}?probe=1 HTTP/1.1`)).toBe(200);
+    expect(await sendRaw(port, `GET http://127.0.0.1:${port}${HEALTH_PATH} HTTP/1.1`)).toBe(200);
+    // A second slash is part of the path, not the start of a host name.
+    expect(await sendRaw(port, `GET //attacker.example${HEALTH_PATH} HTTP/1.1`)).toBe(404);
+  });
+
   it('serves the 2025 handshake statelessly at /mcp', async () => {
     const { port } = await start();
     const reply = await send(port, { path: MCP_PATH, method: 'POST', body: initialize });
@@ -141,6 +185,39 @@ describe('startHttp', () => {
     expect(rpc(reply).result).toMatchObject({ serverInfo: { name: 'echo' } });
     expect(reply.headers['mcp-session-id']).toBeUndefined();
     expect(created).toBe(1);
+  });
+
+  it('answers a 2026-07-28 client with one JSON body per request', async () => {
+    const { url } = await start();
+    const types: Array<string | null> = [];
+    const transport = new StreamableHTTPClientTransport(new URL(url), {
+      fetch: async (input, init) => {
+        const response = await fetch(input, init);
+        if (init?.method === 'POST') types.push(response.headers.get('content-type'));
+        return response;
+      },
+    });
+    const client = new Client(
+      { name: 'http-test', version: '0.0.0' },
+      { versionNegotiation: { mode: 'auto' } },
+    );
+    await client.connect(transport);
+    try {
+      expect(client.getProtocolEra()).toBe('modern');
+      const result = await client.callTool({ name: TOOLS.search, arguments: { query: 'web map' } });
+      expect(result.content).toEqual([{ type: 'text', text: 'echo: web map' }]);
+      expect(types.length).toBeGreaterThan(1);
+      expect(new Set(types)).toEqual(new Set(['application/json']));
+    } finally {
+      await client.close();
+    }
+  });
+
+  it('frames the answer to a 2025-era client as one event of an event stream', async () => {
+    const { port } = await start();
+    const reply = await send(port, { path: MCP_PATH, method: 'POST', body: initialize });
+    expect(reply.headers['content-type']).toBe('text/event-stream');
+    expect(reply.body.match(/^event: message$/gm)).toHaveLength(1);
   });
 
   it('runs a tool call on a fresh instance per request', async () => {
@@ -173,6 +250,12 @@ describe('startHttp', () => {
       expect(reply.status).toBe(403);
     }
     expect(created).toBe(0);
+  });
+
+  it('validates Host before it says anything about the path', async () => {
+    const { port } = await start();
+    const reply = await send(port, { path: '/admin', headers: { host: 'attacker.example' } });
+    expect(reply.status).toBe(403);
   });
 
   it('rejects a cross-site Origin and accepts a loopback one', async () => {
@@ -213,6 +296,55 @@ describe('startHttp', () => {
     await expect(
       startHttp({ factory: makeEchoServer, logger, version: '1', host: '127.0.0.1', port }),
     ).rejects.toThrow(/EADDRINUSE/);
+  });
+});
+
+describe('createHttpApp', () => {
+  const options = { factory: makeEchoServer, logger: new FakeLogger(), version: '1', host: '::' };
+
+  it('answers 500 and survives when handling a request throws', async () => {
+    const app = createHttpApp(options);
+    const server = createServer((req, res) => {
+      // Stands in for any failure inside the listener: reading the request target throws.
+      Object.defineProperty(req, 'url', {
+        get: () => {
+          throw new Error('boom');
+        },
+      });
+      app.listener(req, res);
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address() as AddressInfo;
+    try {
+      const first = await send(port, { path: HEALTH_PATH });
+      const second = await send(port, { path: HEALTH_PATH });
+      expect([first.status, second.status]).toEqual([500, 500]);
+      expect(JSON.parse(first.body)).toEqual({ error: 'Internal error' });
+    } finally {
+      server.closeAllConnections();
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+      await app.close();
+    }
+  });
+
+  it('prints nothing while it is built (regression: an SDK warning preceded the listening line)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const app = createHttpApp(options);
+    await app.close();
+    expect(warn).not.toHaveBeenCalled();
+  });
+});
+
+describe('requestPath', () => {
+  it('returns the path of an origin-form or absolute-form target and never throws', () => {
+    expect(requestPath(undefined)).toBe('/');
+    expect(requestPath('/mcp')).toBe('/mcp');
+    expect(requestPath('/mcp?session=1#top')).toBe('/mcp');
+    expect(requestPath('//[')).toBe('//[');
+    expect(requestPath('http://localhost:3333/healthz?x=1')).toBe('/healthz');
+    expect(requestPath('*')).toBeUndefined();
+    expect(requestPath('http://[/mcp')).toBeUndefined();
+    expect(requestPath('')).toBeUndefined();
   });
 });
 

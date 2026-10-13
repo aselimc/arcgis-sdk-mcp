@@ -282,6 +282,12 @@ describe('GitHub owners', () => {
     'https://api.github.com/search/code?q=org:Esri',
     'https://api.github.com/repos',
     'https://api.github.com/',
+    // The owner is read where this host puts it: `repos` and `wiki` are route prefixes on
+    // one host each and plain account names on the other.
+    'https://raw.githubusercontent.com/repos/Esri/main/README.md',
+    'https://raw.githubusercontent.com/repos/esri/HEAD/anything/at/all.md',
+    'https://api.github.com/wiki/Esri/whatever',
+    'https://api.github.com/Esri/widget-kit',
   ])('refuses %s', (url) => {
     const error = refusal(everything, url);
     expect(error.code).toBe('HOST_NOT_ALLOWED');
