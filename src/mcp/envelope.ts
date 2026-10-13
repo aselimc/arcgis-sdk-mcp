@@ -38,10 +38,7 @@ const NEXT_PREFIX = 'Next: ';
  * Joins the facts of a status line with ` | `, skipping absent ones. A lower rung of a
  * degradation ladder (design section 6.6) is stated last, as `degraded: <reason>`.
  */
-export function statusLine(
-  parts: ReadonlyArray<string | undefined>,
-  degraded?: string | undefined,
-): string {
+export function statusLine(parts: ReadonlyArray<string | undefined>, degraded?: string): string {
   const shown = parts.filter((part): part is string => part !== undefined && part.length > 0);
   if (degraded !== undefined && degraded.length > 0) shown.push(`degraded: ${degraded}`);
   return shown.join(' | ');

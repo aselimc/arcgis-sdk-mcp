@@ -46,17 +46,21 @@ export function registerDocTool<I extends z.ZodObject, O extends z.ZodObject>(
   definition: ToolDefinition<I, O>,
   handler: ToolHandler<I>,
 ): void {
+  // The SDK infers the callback's argument type from the schema, which it cannot do through
+  // a type parameter: register with the widened schema types and narrow the arguments below.
+  const inputSchema: z.ZodObject = definition.inputSchema;
+  const outputSchema: z.ZodObject | undefined = definition.outputSchema;
   server.registerTool(
     definition.name,
     {
       title: definition.title,
       description: definition.description,
-      inputSchema: definition.inputSchema,
-      ...(definition.outputSchema === undefined ? {} : { outputSchema: definition.outputSchema }),
+      inputSchema,
+      ...(outputSchema === undefined ? {} : { outputSchema }),
       annotations: READ_ONLY_ANNOTATIONS,
       ...(definition.meta === undefined ? {} : { _meta: definition.meta }),
     },
-    async (args: z.output<I>, request): Promise<CallToolResult> => {
+    async (args, request): Promise<CallToolResult> => {
       const { ctx } = container;
       const call: CallOptions = {
         budget: newBudget(
@@ -67,11 +71,12 @@ export function registerDocTool<I extends z.ZodObject, O extends z.ZodObject>(
         signal: request.mcpReq.signal,
       };
       try {
-        return await handler(args, call, container);
+        // Validated by the SDK against `definition.inputSchema` before this callback runs.
+        return await handler(args as z.output<I>, call, container);
       } catch (thrown) {
         return renderError(
           thrown,
-          { tool: definition.name, args: args as Record<string, unknown> },
+          { tool: definition.name, args },
           { logger: ctx.logger, clock: ctx.clock, repoUrl: ctx.config.repoUrl },
         );
       }

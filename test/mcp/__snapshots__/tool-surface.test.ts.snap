@@ -1,0 +1,1267 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`tools/list > matches the snapshot of names, titles, annotations and schemas 1`] = `
+[
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "category": {
+          "description": "Limit the list to one category. Default: all developer categories (not product-help).",
+          "enum": [
+            "web",
+            "native",
+            "game-engine",
+            "python",
+            "desktop-enterprise",
+            "rest-services",
+            "ai",
+            "specs",
+            "devops-oss",
+            "support",
+            "product-help",
+            "all",
+          ],
+          "type": "string",
+        },
+        "cursor": {
+          "description": "Opaque cursor from a previous call.",
+          "maxLength": 600,
+          "type": "string",
+        },
+        "include_legacy": {
+          "default": false,
+          "description": "Include retired and deprecated products (shown with their successor).",
+          "type": "boolean",
+        },
+        "limit": {
+          "default": 80,
+          "maximum": 200,
+          "minimum": 1,
+          "type": "integer",
+        },
+        "product": {
+          "description": "Product id, name, package or alias, e.g. "js-maps-sdk", "javascript", "@arcgis/core", "arcpy". Omit to list products.",
+          "maxLength": 80,
+          "type": "string",
+        },
+        "query": {
+          "description": "Words to filter the product list, e.g. "offline mobile", "webhooks", "3D game engine".",
+          "maxLength": 120,
+          "type": "string",
+        },
+        "section": {
+          "description": "With product: a source id from its profile (e.g. "tutorials", "portal", "tools") to get that source's table of contents.",
+          "maxLength": 120,
+          "type": "string",
+        },
+      },
+      "type": "object",
+    },
+    "name": "arcgis_docs_list_products",
+    "outputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "list",
+            "profile",
+            "toc",
+          ],
+          "type": "string",
+        },
+        "nextCursor": {
+          "type": "string",
+        },
+        "notes": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "product": {
+          "additionalProperties": false,
+          "properties": {
+            "aliases": {
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "capabilities": {
+              "additionalProperties": false,
+              "properties": {
+                "releaseNotes": {
+                  "type": "boolean",
+                },
+                "samples": {
+                  "type": "boolean",
+                },
+                "search": {
+                  "enum": [
+                    "local",
+                    "local+site",
+                  ],
+                  "type": "string",
+                },
+                "symbols": {
+                  "type": "boolean",
+                },
+              },
+              "required": [
+                "symbols",
+                "samples",
+                "releaseNotes",
+                "search",
+              ],
+              "type": "object",
+            },
+            "homepage": {
+              "type": "string",
+            },
+            "id": {
+              "type": "string",
+            },
+            "languages": {
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "licenseTier": {
+              "type": "string",
+            },
+            "lines": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "access": {
+                    "enum": [
+                      "live",
+                      "link-only",
+                    ],
+                    "type": "string",
+                  },
+                  "current": {
+                    "type": "boolean",
+                  },
+                  "id": {
+                    "type": "string",
+                  },
+                  "label": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "id",
+                  "label",
+                  "current",
+                  "access",
+                ],
+                "type": "object",
+              },
+              "type": "array",
+            },
+            "name": {
+              "type": "string",
+            },
+            "packages": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                  },
+                  "registry": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "registry",
+                  "name",
+                ],
+                "type": "object",
+              },
+              "type": "array",
+            },
+            "pitfalls": {
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "related": {
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "repos": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "license": {
+                    "type": "string",
+                  },
+                  "repo": {
+                    "type": "string",
+                  },
+                  "role": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "repo",
+                  "role",
+                  "license",
+                ],
+                "type": "object",
+              },
+              "type": "array",
+            },
+            "sources": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                  },
+                  "health": {
+                    "enum": [
+                      "ok",
+                      "degraded",
+                      "failing",
+                      "unknown",
+                    ],
+                    "type": "string",
+                  },
+                  "id": {
+                    "type": "string",
+                  },
+                  "kinds": {
+                    "items": {
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                  "pages": {
+                    "maximum": 9007199254740991,
+                    "minimum": -9007199254740991,
+                    "type": "integer",
+                  },
+                  "ref": {
+                    "type": "string",
+                  },
+                  "title": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "kinds",
+                  "ref",
+                  "enabled",
+                  "health",
+                ],
+                "type": "object",
+              },
+              "type": "array",
+            },
+            "startHere": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "ref": {
+                    "type": "string",
+                  },
+                  "title": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "title",
+                  "ref",
+                ],
+                "type": "object",
+              },
+              "type": "array",
+            },
+            "status": {
+              "type": "string",
+            },
+            "successor": {
+              "type": "string",
+            },
+            "summary": {
+              "type": "string",
+            },
+            "verifiedOn": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "id",
+            "name",
+            "status",
+            "summary",
+            "aliases",
+            "languages",
+            "homepage",
+            "packages",
+            "repos",
+            "lines",
+            "sources",
+            "capabilities",
+            "startHere",
+            "pitfalls",
+            "related",
+            "licenseTier",
+            "verifiedOn",
+          ],
+          "type": "object",
+        },
+        "products": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "category": {
+                "type": "string",
+              },
+              "currentLine": {
+                "type": "string",
+              },
+              "id": {
+                "type": "string",
+              },
+              "name": {
+                "type": "string",
+              },
+              "status": {
+                "enum": [
+                  "active",
+                  "beta",
+                  "deprecated",
+                  "retired",
+                ],
+                "type": "string",
+              },
+              "successor": {
+                "type": "string",
+              },
+              "summary": {
+                "type": "string",
+              },
+              "tier": {
+                "enum": [
+                  "developer",
+                  "help",
+                  "link",
+                ],
+                "type": "string",
+              },
+            },
+            "required": [
+              "id",
+              "name",
+              "category",
+              "status",
+              "tier",
+              "summary",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "toc": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "depth": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer",
+              },
+              "kind": {
+                "type": "string",
+              },
+              "ref": {
+                "type": "string",
+              },
+              "title": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "title",
+              "depth",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "total": {
+          "maximum": 9007199254740991,
+          "minimum": -9007199254740991,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "mode",
+        "total",
+        "notes",
+      ],
+      "type": "object",
+    },
+    "title": "List ArcGIS products and documentation sections",
+  },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "product": {
+          "description": "Product id, name or package. Omit to report every Esri SDK detected in the current project.",
+          "maxLength": 80,
+          "type": "string",
+        },
+        "version": {
+          "description": "A specific version to check, e.g. "4.33", "200.8", "3.6", "11.5", "2.4.3".",
+          "maxLength": 24,
+          "type": "string",
+        },
+      },
+      "type": "object",
+    },
+    "name": "arcgis_docs_get_versions",
+    "outputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "asOf": {
+          "type": "string",
+        },
+        "notes": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "products": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "compatibility": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "source": {
+                      "type": "string",
+                    },
+                    "unreleased": {
+                      "type": "boolean",
+                    },
+                    "value": {
+                      "type": "string",
+                    },
+                    "with": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "with",
+                    "value",
+                    "unreleased",
+                    "source",
+                  ],
+                  "type": "object",
+                },
+                "type": "array",
+              },
+              "documented": {
+                "additionalProperties": false,
+                "properties": {
+                  "released": {
+                    "type": "string",
+                  },
+                  "source": {
+                    "type": "string",
+                  },
+                  "version": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "version",
+                  "source",
+                ],
+                "type": "object",
+              },
+              "id": {
+                "type": "string",
+              },
+              "install": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "installable": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "package": {
+                      "type": "string",
+                    },
+                    "published": {
+                      "type": "string",
+                    },
+                    "registry": {
+                      "type": "string",
+                    },
+                    "source": {
+                      "type": "string",
+                    },
+                    "tag": {
+                      "type": "string",
+                    },
+                    "version": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "registry",
+                    "package",
+                    "version",
+                    "source",
+                  ],
+                  "type": "object",
+                },
+                "type": "array",
+              },
+              "lifecycle": {
+                "additionalProperties": false,
+                "properties": {
+                  "ga": {
+                    "type": "string",
+                  },
+                  "mature": {
+                    "type": "string",
+                  },
+                  "retirement": {
+                    "type": "string",
+                  },
+                  "source": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "source",
+                ],
+                "type": "object",
+              },
+              "lines": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "access": {
+                      "enum": [
+                        "live",
+                        "link-only",
+                      ],
+                      "type": "string",
+                    },
+                    "docsUrl": {
+                      "type": "string",
+                    },
+                    "id": {
+                      "type": "string",
+                    },
+                    "label": {
+                      "type": "string",
+                    },
+                    "symbols": {
+                      "enum": [
+                        "live",
+                        "npm-any-version",
+                        "none",
+                      ],
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "id",
+                    "label",
+                    "docsUrl",
+                    "access",
+                    "symbols",
+                  ],
+                  "type": "object",
+                },
+                "type": "array",
+              },
+              "mismatches": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "name": {
+                "type": "string",
+              },
+              "notices": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "prerelease": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "tag": {
+                      "type": "string",
+                    },
+                    "version": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "tag",
+                    "version",
+                  ],
+                  "type": "object",
+                },
+                "type": "array",
+              },
+              "project": {
+                "additionalProperties": false,
+                "properties": {
+                  "behind": {
+                    "type": "string",
+                  },
+                  "file": {
+                    "type": "string",
+                  },
+                  "version": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "version",
+                  "file",
+                ],
+                "type": "object",
+              },
+              "releaseNotes": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref": {
+                      "type": "string",
+                    },
+                    "version": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "version",
+                    "ref",
+                  ],
+                  "type": "object",
+                },
+                "type": "array",
+              },
+              "status": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "id",
+              "name",
+              "status",
+              "installable",
+              "prerelease",
+              "lines",
+              "install",
+              "compatibility",
+              "releaseNotes",
+              "notices",
+              "mismatches",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+      },
+      "required": [
+        "asOf",
+        "products",
+        "notes",
+      ],
+      "type": "object",
+    },
+    "title": "Get ArcGIS product versions and compatibility",
+  },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "cursor": {
+          "description": "Opaque cursor from a previous call for the next page.",
+          "maxLength": 600,
+          "type": "string",
+        },
+        "kind": {
+          "description": "Restrict to one content type. "api" includes REST operations, tools and spec objects.",
+          "enum": [
+            "guide",
+            "tutorial",
+            "api",
+            "sample",
+            "release-notes",
+            "spec",
+            "help",
+            "troubleshooting",
+          ],
+          "type": "string",
+        },
+        "limit": {
+          "default": 8,
+          "description": "Number of hits.",
+          "maximum": 20,
+          "minimum": 1,
+          "type": "integer",
+        },
+        "product": {
+          "description": "Product id, name, package, or "product/section". Omit to search the project's SDKs or the most likely products.",
+          "maxLength": 80,
+          "type": "string",
+        },
+        "query": {
+          "description": "What to find, in plain words or API names, e.g. "cluster points with popups", "applyEdits attachments", "OAuth PKCE". No boolean operators.",
+          "maxLength": 300,
+          "minLength": 2,
+          "type": "string",
+        },
+        "version": {
+          "description": "Version line when the product has several, e.g. "v200" for native SDK 200.x, "2.3" for Python. Default: current line.",
+          "maxLength": 24,
+          "type": "string",
+        },
+      },
+      "required": [
+        "query",
+      ],
+      "type": "object",
+    },
+    "name": "arcgis_docs_search",
+    "outputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "local",
+            "local+site",
+          ],
+          "type": "string",
+        },
+        "nextCursor": {
+          "type": "string",
+        },
+        "notes": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "query": {
+          "type": "string",
+        },
+        "results": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "breadcrumb": {
+                "type": "string",
+              },
+              "excerpt": {
+                "type": "string",
+              },
+              "kind": {
+                "enum": [
+                  "guide",
+                  "tutorial",
+                  "api",
+                  "sample",
+                  "release-notes",
+                  "spec",
+                  "help",
+                  "troubleshooting",
+                  "brief",
+                ],
+                "type": "string",
+              },
+              "licenseTier": {
+                "type": "string",
+              },
+              "match": {
+                "enum": [
+                  "symbol",
+                  "title",
+                  "heading",
+                  "keyword",
+                  "description",
+                  "body",
+                  "site",
+                ],
+                "type": "string",
+              },
+              "product": {
+                "type": "string",
+              },
+              "rank": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer",
+              },
+              "ref": {
+                "type": "string",
+              },
+              "source": {
+                "type": "string",
+              },
+              "symbolKind": {
+                "type": "string",
+              },
+              "title": {
+                "type": "string",
+              },
+              "version": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "rank",
+              "title",
+              "ref",
+              "product",
+              "source",
+              "kind",
+              "match",
+              "licenseTier",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "scope": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "type": "string",
+            },
+            "line": {
+              "type": "string",
+            },
+            "products": {
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "resolvedFrom": {
+              "type": "string",
+            },
+            "sources": {
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+          },
+          "required": [
+            "products",
+            "line",
+          ],
+          "type": "object",
+        },
+        "total": {
+          "maximum": 9007199254740991,
+          "minimum": -9007199254740991,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "query",
+        "scope",
+        "mode",
+        "total",
+        "results",
+        "notes",
+      ],
+      "type": "object",
+    },
+    "title": "Search ArcGIS developer documentation",
+  },
+  {
+    "_meta": {
+      "anthropic/maxResultSizeChars": 100000,
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "cursor": {
+          "description": "Opaque cursor from a truncated response to continue it.",
+          "maxLength": 600,
+          "type": "string",
+        },
+        "max_tokens": {
+          "default": 6000,
+          "description": "Upper bound for this response.",
+          "maximum": 20000,
+          "minimum": 500,
+          "type": "integer",
+        },
+        "ref": {
+          "description": "Doc URL (or brief:<slug>) returned by another tool, or any URL on an Esri documentation host. May include "#section".",
+          "maxLength": 600,
+          "minLength": 3,
+          "type": "string",
+        },
+        "section": {
+          "description": "One part of the document: a section id or heading text from the outline, a member name on an API page, or "source" on a sample.",
+          "maxLength": 200,
+          "type": "string",
+        },
+        "view": {
+          "default": "auto",
+          "description": "auto: whole doc if it fits, else opening + outline. outline: structure only. full: sequential pages via cursor.",
+          "enum": [
+            "auto",
+            "outline",
+            "full",
+          ],
+          "type": "string",
+        },
+      },
+      "required": [
+        "ref",
+      ],
+      "type": "object",
+    },
+    "name": "arcgis_docs_read",
+    "outputSchema": undefined,
+    "title": "Read an ArcGIS documentation page",
+  },
+  {
+    "_meta": {
+      "anthropic/maxResultSizeChars": 100000,
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "detail": {
+          "default": "summary",
+          "description": "How much to return.",
+          "enum": [
+            "signature",
+            "summary",
+            "full",
+          ],
+          "type": "string",
+        },
+        "max_tokens": {
+          "default": 3000,
+          "description": "Upper bound for this response.",
+          "maximum": 20000,
+          "minimum": 300,
+          "type": "integer",
+        },
+        "product": {
+          "description": "Product id, name or package. Optional when the symbol is qualified or one Esri SDK is detected in the project.",
+          "maxLength": 80,
+          "type": "string",
+        },
+        "symbol": {
+          "description": "Name of a class, member, component, REST operation, function, tool or spec object. Qualified names and "Type.member" are accepted.",
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string",
+        },
+        "version": {
+          "description": "Version to read where versioned reference sources exist (any npm version for JavaScript; "v200" for native SDKs).",
+          "maxLength": 24,
+          "type": "string",
+        },
+      },
+      "required": [
+        "symbol",
+      ],
+      "type": "object",
+    },
+    "name": "arcgis_docs_lookup_symbol",
+    "outputSchema": undefined,
+    "title": "Look up an ArcGIS API symbol",
+  },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "limit": {
+          "default": 5,
+          "description": "Number of hits.",
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer",
+        },
+        "max_tokens": {
+          "default": 4000,
+          "description": "Upper bound for this response.",
+          "maximum": 20000,
+          "minimum": 500,
+          "type": "integer",
+        },
+        "platform": {
+          "description": "Platform or framework variant when the product has several, e.g. "maui", "wpf", "winui", "react".",
+          "maxLength": 40,
+          "type": "string",
+        },
+        "product": {
+          "description": "Product id, name or package. Omit to use the SDKs detected in the project.",
+          "maxLength": 80,
+          "type": "string",
+        },
+        "query": {
+          "description": "The task the sample should show, e.g. "offline map download", "3D tiles layer", "custom agent with tools".",
+          "maxLength": 300,
+          "minLength": 2,
+          "type": "string",
+        },
+        "uses_api": {
+          "description": "Class, method or component the sample must use, e.g. "OGC3DTilesLayer", "FeatureLayer.applyEdits".",
+          "maxLength": 120,
+          "type": "string",
+        },
+        "with_code": {
+          "default": false,
+          "description": "Also return the main source file of the top hit.",
+          "type": "boolean",
+        },
+      },
+      "required": [
+        "query",
+      ],
+      "type": "object",
+    },
+    "name": "arcgis_docs_find_samples",
+    "outputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string",
+            },
+            "language": {
+              "type": "string",
+            },
+            "ref": {
+              "type": "string",
+            },
+            "text": {
+              "type": "string",
+            },
+            "truncated": {
+              "type": "boolean",
+            },
+          },
+          "required": [
+            "ref",
+            "file",
+            "language",
+            "text",
+            "truncated",
+          ],
+          "type": "object",
+        },
+        "notes": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "results": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "apiConfirmed": {
+                "type": "boolean",
+              },
+              "category": {
+                "type": "string",
+              },
+              "files": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "bytes": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer",
+                    },
+                    "name": {
+                      "type": "string",
+                    },
+                    "ref": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "name",
+                    "ref",
+                  ],
+                  "type": "object",
+                },
+                "type": "array",
+              },
+              "language": {
+                "type": "string",
+              },
+              "legacyPattern": {
+                "type": "boolean",
+              },
+              "license": {
+                "type": "string",
+              },
+              "origin": {
+                "enum": [
+                  "esri-site",
+                  "github",
+                ],
+                "type": "string",
+              },
+              "platform": {
+                "type": "string",
+              },
+              "product": {
+                "type": "string",
+              },
+              "rank": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer",
+              },
+              "ref": {
+                "type": "string",
+              },
+              "relevantApis": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "summary": {
+                "type": "string",
+              },
+              "title": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "rank",
+              "title",
+              "ref",
+              "product",
+              "language",
+              "summary",
+              "origin",
+              "license",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "scope": {
+          "additionalProperties": false,
+          "properties": {
+            "line": {
+              "type": "string",
+            },
+            "pinnedTo": {
+              "type": "string",
+            },
+            "platform": {
+              "type": "string",
+            },
+            "product": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "product",
+            "line",
+          ],
+          "type": "object",
+        },
+        "total": {
+          "maximum": 9007199254740991,
+          "minimum": -9007199254740991,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "scope",
+        "total",
+        "results",
+        "notes",
+      ],
+      "type": "object",
+    },
+    "title": "Find ArcGIS samples",
+  },
+]
+`;

@@ -25,9 +25,7 @@ const Input = z.object({
     .describe(
       'The task the sample should show, e.g. "offline map download", "3D tiles layer", "custom agent with tools".',
     ),
-  product: productArg(
-    'Product id, name or package. Omit to use the SDKs detected in the project.',
-  ),
+  product: productArg('Product id, name or package. Omit to use the SDKs detected in the project.'),
   uses_api: z
     .string()
     .max(120)
@@ -42,7 +40,10 @@ const Input = z.object({
     .describe(
       'Platform or framework variant when the product has several, e.g. "maui", "wpf", "winui", "react".',
     ),
-  with_code: z.boolean().default(false).describe('Also return the main source file of the top hit.'),
+  with_code: z
+    .boolean()
+    .default(false)
+    .describe('Also return the main source file of the top hit.'),
   limit: z.number().int().min(1).max(10).default(5).describe('Number of hits.'),
   max_tokens: maxTokensArg(500, 4000),
 });

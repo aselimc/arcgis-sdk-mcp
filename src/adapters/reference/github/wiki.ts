@@ -248,7 +248,8 @@ async function fetchPage(
   for (const path of new Set(paths)) {
     const res = await attempt(path);
     if (res === undefined) continue;
-    if (path !== page && path !== known?.path) await ctx.cache.putDerived('misc', cacheKey, { path });
+    if (path !== page && path !== known?.path)
+      await ctx.cache.putDerived('misc', cacheKey, { path });
     return { res };
   }
   throw notFound(

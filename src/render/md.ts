@@ -108,11 +108,16 @@ export function table(headers: readonly string[], rows: ReadonlyArray<readonly s
   );
 }
 
+/** Indents every non-empty line after the first, so the text continues a list item. */
+export function hang(text: string, indent: string): string {
+  return text.replace(/\n(?=[^\n])/g, `\n${indent}`);
+}
+
 /** A `-` bullet list; continuation lines of an item are indented under it. */
 export function bullets(items: readonly string[]): string {
   return items
     .filter((item) => item.trim() !== '')
-    .map((item) => `- ${item.trim().replace(/\n/g, '\n  ')}`)
+    .map((item) => `- ${hang(item.trim(), '  ')}`)
     .join('\n');
 }
 

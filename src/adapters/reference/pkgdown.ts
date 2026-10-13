@@ -107,9 +107,11 @@ export function pkgdownRecords(
     const cut = page.title.lastIndexOf(TOPIC_SEPARATOR);
     const file = page.relative.replace(/^.*\//, '').replace(/\.html$/, '');
     const topic = cut < 0 ? file : page.title.slice(cut + TOPIC_SEPARATOR.length).trim();
-    return recordOf(src, ref, topic === '' ? page.title : topic, {
+    // The reference index has no topic of its own.
+    if (topic === '') return recordOf(src, ref, page.title, { breadcrumb });
+    return recordOf(src, ref, topic, {
       symbol: topic,
-      qualified: topic === '' ? undefined : `${pkg}::${topic}`,
+      qualified: `${pkg}::${topic}`,
       symbolKind: 'function',
       breadcrumb,
       description: oneLine(cut < 0 ? page.title : page.title.slice(0, cut)),

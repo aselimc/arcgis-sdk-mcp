@@ -1,0 +1,347 @@
+{
+  "schema": 1,
+  "about": "URLs that scripts/record-fixtures.ts downloads into test/fixtures/recorded (git-ignored) for the live-recorded test suite. Recorded bodies are Esri-authored and are never committed; only this list of addresses is. Each entry names the page family, renderer or adapter it exercises.",
+  "entries": [
+    {
+      "id": "astro-tutorial",
+      "url": "https://developers.arcgis.com/javascript/latest/tutorials/add-a-feature-layer/",
+      "expect": "html",
+      "family": "astro",
+      "covers": "extract: astro tutorial with expressive-code steps"
+    },
+    {
+      "id": "astro-js-ref-featurelayer",
+      "url": "https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/",
+      "expect": "html",
+      "family": "astro-js-ref",
+      "covers": "extract: JS API class page with nested member cards; member slice size bands"
+    },
+    {
+      "id": "astro-js-ref-types",
+      "url": "https://developers.arcgis.com/javascript/latest/references/core/editing/types/",
+      "expect": "html",
+      "family": "astro-js-ref",
+      "covers": "extract: JS API type-alias page"
+    },
+    {
+      "id": "astro-sample",
+      "url": "https://developers.arcgis.com/javascript/latest/sample-code/intro-mapview/",
+      "expect": "html",
+      "family": "astro-sample",
+      "covers": "extract: sample page with hidden source block"
+    },
+    {
+      "id": "astro-sitemap",
+      "url": "https://developers.arcgis.com/javascript/latest/sitemap-0.xml",
+      "expect": "xml",
+      "adapter": "astro",
+      "covers": "adapter astro: sitemap enumeration"
+    },
+    {
+      "id": "gatsby-arcade-functions",
+      "url": "https://developers.arcgis.com/arcade/function-reference/text_functions/",
+      "expect": "html",
+      "family": "gatsby",
+      "covers": "extract: Gatsby reference page"
+    },
+    {
+      "id": "gatsby-python-guide",
+      "url": "https://developers.arcgis.com/python/latest/guide/install-and-set-up/intro/",
+      "expect": "html",
+      "family": "gatsby",
+      "covers": "extract: Gatsby guide page with tabs and code blocks"
+    },
+    {
+      "id": "gatsby-rest-query",
+      "url": "https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer/",
+      "expect": "html",
+      "family": "gatsby-rest",
+      "covers": "extract: REST operation page with dl.grid header and parameter tables"
+    },
+    {
+      "id": "gatsby-sitemap",
+      "url": "https://developers.arcgis.com/calcite-design-system/sitemap-0.xml",
+      "expect": "xml",
+      "adapter": "gatsby",
+      "covers": "adapter gatsby: sitemap enumeration"
+    },
+    {
+      "id": "openapi-operation-page-data",
+      "url": "https://developers.arcgis.com/rest/page-data/places/near-point-get/page-data.json",
+      "expect": "json",
+      "adapter": "gatsby",
+      "covers": "render openapi: operation from Gatsby page-data"
+    },
+    {
+      "id": "openapi-schemas-page-data",
+      "url": "https://developers.arcgis.com/rest/page-data/places/types/page-data.json",
+      "expect": "json",
+      "adapter": "gatsby",
+      "covers": "render openapi: schema list from Gatsby page-data"
+    },
+    {
+      "id": "openapi-document",
+      "url": "https://hub.arcgis.com/api/newsletters/v1/docs-json",
+      "expect": "json",
+      "adapter": "openapi",
+      "covers": "adapter openapi: a published OpenAPI document"
+    },
+    {
+      "id": "typedoc-rest-js-page-data",
+      "url": "https://developers.arcgis.com/arcgis-rest-js/page-data/api-reference/arcgis-rest-request/ArcGISIdentityManager/page-data.json",
+      "expect": "json",
+      "adapter": "gatsby",
+      "covers": "render typedoc: ArcGIS REST JS class"
+    },
+    {
+      "id": "typedoc-rest-js-html",
+      "url": "https://developers.arcgis.com/arcgis-rest-js/api-reference/arcgis-rest-request/ArcGISIdentityManager/",
+      "expect": "html",
+      "family": "gatsby",
+      "covers": "render typedoc: anchor ids of the public page"
+    },
+    {
+      "id": "typedoc-experience-builder-page-data",
+      "url": "https://developers.arcgis.com/experience-builder/page-data/api-reference/jimu-core/DataSourceManager/page-data.json",
+      "expect": "json",
+      "adapter": "gatsby",
+      "covers": "render typedoc: Experience Builder class"
+    },
+    {
+      "id": "enterprise-sdk-net-page-data",
+      "url": "https://developers.arcgis.com/enterprise-sdk/page-data/api-reference/net/CenterAndScale/page-data.json",
+      "expect": "json",
+      "adapter": "gatsby",
+      "covers": "adapter gatsby: api-reference body variant"
+    },
+    {
+      "id": "cem-api",
+      "url": "https://cdn.jsdelivr.net/npm/@arcgis/map-components@5.1.27/dist/docs/api.json",
+      "expect": "json",
+      "adapter": "npm-cem",
+      "covers": "render cem: Custom Elements Manifest of the map components"
+    },
+    {
+      "id": "cem-docs",
+      "url": "https://cdn.jsdelivr.net/npm/@arcgis/map-components@5.1.27/dist/docs/docs.json",
+      "expect": "json",
+      "adapter": "npm-cem",
+      "covers": "render cem: component documentation JSON"
+    },
+    {
+      "id": "dts-featurelayer",
+      "url": "https://cdn.jsdelivr.net/npm/@arcgis/core@5.1.27/layers/FeatureLayer.d.ts",
+      "expect": "text",
+      "adapter": "npm-dts",
+      "covers": "render dts: scanner member list compared with the TypeScript compiler API"
+    },
+    {
+      "id": "dts-map",
+      "url": "https://cdn.jsdelivr.net/npm/@arcgis/core@5.1.27/Map.d.ts",
+      "expect": "text",
+      "adapter": "npm-dts",
+      "covers": "render dts: scanner member list compared with the TypeScript compiler API"
+    },
+    {
+      "id": "npm-dist-tags",
+      "url": "https://registry.npmjs.org/-/package/@arcgis/coding-components/dist-tags",
+      "expect": "json",
+      "adapter": "npm-json",
+      "covers": "adapter npm-json: version resolution through dist-tags"
+    },
+    {
+      "id": "docc-map",
+      "url": "https://developers.arcgis.com/swift/api-reference/data/documentation/arcgis/map.json",
+      "expect": "json",
+      "adapter": "docc",
+      "covers": "render docc: class render JSON"
+    },
+    {
+      "id": "docc-index",
+      "url": "https://developers.arcgis.com/swift/api-reference/index/index.json",
+      "expect": "json",
+      "adapter": "docc",
+      "covers": "adapter docc: navigator index enumeration"
+    },
+    {
+      "id": "dokka-class",
+      "url": "https://developers.arcgis.com/kotlin/api-reference/arcgis-maps-kotlin/com.arcgismaps.mapping/-arc-g-i-s-map/index.html",
+      "expect": "html",
+      "family": "dokka",
+      "covers": "extract: Dokka class page"
+    },
+    {
+      "id": "dokka-pages",
+      "url": "https://developers.arcgis.com/kotlin/api-reference/scripts/pages.json",
+      "expect": "json",
+      "adapter": "dokka",
+      "covers": "adapter dokka: pages.json enumeration"
+    },
+    {
+      "id": "dartdoc-class",
+      "url": "https://developers.arcgis.com/flutter/api-reference/reference/arcgis_maps/ArcGISMap-class.html",
+      "expect": "html",
+      "family": "dartdoc",
+      "covers": "extract: dartdoc class page"
+    },
+    {
+      "id": "dartdoc-index",
+      "url": "https://developers.arcgis.com/flutter/api-reference/reference/index.json",
+      "expect": "json",
+      "adapter": "dartdoc",
+      "covers": "adapter dartdoc: index.json enumeration"
+    },
+    {
+      "id": "docfx-net-class",
+      "url": "https://developers.arcgis.com/net/api-reference/api/net/Esri.ArcGISRuntime/Esri.ArcGISRuntime.Mapping.Map.html",
+      "expect": "html",
+      "family": "docfx-net",
+      "covers": "extract: DocFX .NET class page"
+    },
+    {
+      "id": "docfx-net-xrefmap",
+      "url": "https://developers.arcgis.com/net/api-reference/net.xrefmap.yml",
+      "expect": "yaml",
+      "adapter": "docfx-net",
+      "covers": "adapter docfx-net: xrefmap line parser"
+    },
+    {
+      "id": "docfx-esri-gp-tool",
+      "url": "https://doc.esri.com/en/arcgis-pro/latest/tool-reference/analysis/buffer.html",
+      "expect": "html",
+      "family": "docfx-esri",
+      "covers": "extract: geoprocessing tool reference page"
+    },
+    {
+      "id": "docfx-esri-toc",
+      "url": "https://doc.esri.com/en/arcgis-pro/latest/arcpy/toc.json",
+      "expect": "json",
+      "adapter": "docfx-esri",
+      "covers": "adapter docfx-esri: toc.json tree"
+    },
+    {
+      "id": "documentx-property",
+      "url": "https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic27442.html",
+      "expect": "html",
+      "family": "documentx",
+      "covers": "extract: Document! X property topic of the Pro SDK"
+    },
+    {
+      "id": "javadoc-class",
+      "url": "https://developers.arcgis.com/java/v200/api-reference/reference/com.esri.arcgisruntime/com/esri/arcgisruntime/mapping/ArcGISMap.html",
+      "expect": "html",
+      "family": "javadoc",
+      "covers": "extract: modern javadoc class page"
+    },
+    {
+      "id": "javadoc-type-index",
+      "url": "https://developers.arcgis.com/java/v200/api-reference/reference/type-search-index.js",
+      "expect": "text",
+      "adapter": "javadoc",
+      "covers": "adapter javadoc: type search index"
+    },
+    {
+      "id": "javadoc-legacy-interface",
+      "url": "https://developers.arcgis.com/enterprise-sdk/api-reference/java/com/esri/arcgis/carto/IMapServer.html",
+      "expect": "html",
+      "family": "javadoc-legacy",
+      "covers": "extract: javadoc 1.8 interface page"
+    },
+    {
+      "id": "qdoc-class",
+      "url": "https://developers.arcgis.com/qt/cpp/api-reference/esri-arcgisruntime-map.html",
+      "expect": "html",
+      "family": "qdoc",
+      "covers": "extract: QDoc class page"
+    },
+    {
+      "id": "sphinx-inventory",
+      "url": "https://developers.arcgis.com/geoanalytics/api-reference/objects.inv",
+      "expect": "text",
+      "encoding": "base64",
+      "adapter": "sphinx",
+      "covers": "adapter sphinx: objects.inv reader (binary body)"
+    },
+    {
+      "id": "sphinx-module-page",
+      "url": "https://developers.arcgis.com/python/latest/api-reference/arcgis.geocoding.html",
+      "expect": "html",
+      "adapter": "sphinx",
+      "covers": "render sphinx: anchor to enclosing dl.py slice on a public page"
+    },
+    {
+      "id": "legacy-help-topic",
+      "url": "https://doc.arcgis.com/en/survey123/analyze/webhooks.htm",
+      "expect": "html",
+      "family": "legacy-help",
+      "covers": "extract: legacy help topic"
+    },
+    {
+      "id": "support-kb-article",
+      "url": "https://support.esri.com/en-us/knowledge-base/run-multiple-python-scripts-from-a-single-parent-script-000010647",
+      "expect": "html",
+      "family": "support-kb",
+      "covers": "extract: knowledge-base article"
+    },
+    {
+      "id": "support-kb-sitemap",
+      "url": "https://support.esri.com/en-us/knowledge-base/sitemap-articles.xml",
+      "expect": "xml",
+      "adapter": "sitemap",
+      "covers": "adapter sitemap: plain sitemap floor"
+    },
+    {
+      "id": "pkgdown-search",
+      "url": "https://r.esri.com/arcgislayers/search.json",
+      "expect": "json",
+      "adapter": "pkgdown",
+      "covers": "adapter pkgdown: search.json enumeration"
+    },
+    {
+      "id": "static-migration-page",
+      "url": "https://developers.arcgis.com/kotlin/reference/migrate-from-100-x-to-200-x/",
+      "expect": "html",
+      "family": "astro",
+      "adapter": "static",
+      "covers": "adapter static: fixed entry page"
+    },
+    {
+      "id": "github-readme",
+      "url": "https://raw.githubusercontent.com/Esri/arcgis-rest-js/main/README.md",
+      "expect": "text",
+      "adapter": "github-repo",
+      "covers": "render markdown: Apache-2.0 repository README"
+    },
+    {
+      "id": "github-repo-meta",
+      "url": "https://api.github.com/repos/Esri/arcgis-pro-sdk",
+      "expect": "json",
+      "adapter": "xmldoc",
+      "covers": "adapters github-repo and xmldoc: repository metadata and licence detection"
+    },
+    {
+      "id": "meta-refresh-a",
+      "url": "https://developers.arcgis.com/javascript/latest/api-reference/esri-Map.html",
+      "expect": "html",
+      "covers": "meta-refresh shape A: bare doctype and meta tag; the recorded body is the target page"
+    },
+    {
+      "id": "meta-refresh-b",
+      "url": "https://location.arcgis.com/help/release-notes/",
+      "expect": "html",
+      "covers": "meta-refresh shape B: quoted URL= value"
+    },
+    {
+      "id": "meta-refresh-c",
+      "url": "https://doc.arcgis.com/en/arcgis-online/reference/what-is-agol.htm",
+      "expect": "html",
+      "covers": "meta-refresh shape C: full head with other meta tags"
+    },
+    {
+      "id": "meta-refresh-d",
+      "url": "https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/",
+      "expect": "html",
+      "covers": "meta-refresh shape D: byte-order mark and trailing space in the value"
+    }
+  ]
+}

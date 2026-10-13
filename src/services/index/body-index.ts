@@ -160,6 +160,10 @@ export function createBodyIndex(ctx: Ctx): BodyIndex {
         .slice(0, MAX_BODY_SECTIONS);
       if (sections.length === 0) return;
       const bodies = bodiesOf(page.product);
+      // A read of one section must not forget the other sections of the page read earlier.
+      const fresh = new Set(sections.map((section) => section.id));
+      const earlier = bodies.pages.get(page.url)?.sections ?? [];
+      sections.push(...earlier.filter((section) => !fresh.has(section.id)));
       insert(bodies, {
         url: page.url,
         title: page.title,

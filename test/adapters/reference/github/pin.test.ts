@@ -11,7 +11,7 @@ import {
   versionOfTag,
 } from '../../../../src/adapters/reference/github/pin.js';
 import { McpDocError } from '../../../../src/core/errors.js';
-import { githubCtx, githubProduct, bound } from './support.js';
+import { bound, githubCtx, githubProduct, lineOf } from './support.js';
 
 const REPO = 'Esri/widget-samples';
 const files = { 'README.md': '# Widget samples' };
@@ -58,7 +58,9 @@ describe('version and tag helpers', () => {
 describe('openRepo', () => {
   it('takes the default branch and licence GitHub reports', async () => {
     const { product, source } = githubProduct({ repo: REPO, preset: 'samples-metadata' });
-    const ctx = githubCtx({ [REPO]: { defaultBranch: 'develop', license: 'unlicensed', files: { '*': files } } });
+    const ctx = githubCtx({
+      [REPO]: { defaultBranch: 'develop', license: 'unlicensed', files: { '*': files } },
+    });
     const scope = await openRepo(ctx, bound(ctx, product, source));
     expect(scope).toMatchObject({
       repo: REPO,
@@ -92,7 +94,14 @@ describe('openRepo', () => {
     const { product, source } = githubProduct({ repo: REPO, preset: 'samples-metadata' });
     const hinted = {
       ...product,
-      repos: [{ repo: 'esri/WIDGET-samples', role: 'samples' as const, license: 'apache-2.0' as const, defaultBranch: 'master' }],
+      repos: [
+        {
+          repo: 'esri/WIDGET-samples',
+          role: 'samples' as const,
+          license: 'apache-2.0' as const,
+          defaultBranch: 'master',
+        },
+      ],
     };
     const ctx = githubCtx({ [REPO]: { defaultBranch: 'develop', license: 'unlicensed' } });
     ctx.github.exhaustQuota('2026-10-13T13:00:00Z');
@@ -128,7 +137,12 @@ describe('openRepo', () => {
 describe('chooseRef', () => {
   const release = { tag: 'v300.1.0', publishedAt: '2026-08-20T00:00:00Z' };
   const pinnedSource = () =>
-    githubProduct({ repo: REPO, preset: 'samples-metadata', pin: 'release-tag', tagTemplate: 'v{version}' });
+    githubProduct({
+      repo: REPO,
+      preset: 'samples-metadata',
+      pin: 'release-tag',
+      tagTemplate: 'v{version}',
+    });
 
   it('pins the current line to the latest release', async () => {
     const { product, source } = pinnedSource();
@@ -159,7 +173,7 @@ describe('chooseRef', () => {
   it('reads the branch for a non-current line whose release is unknown, and says so', async () => {
     const { product, source } = pinnedSource();
     const ctx = githubCtx({ [REPO]: { release, files: { '*': files } } });
-    const lts = product.lines[1];
+    const lts = lineOf(product, 'v200');
     const scope = await openScope(ctx, bound(ctx, product, source, { line: lts }));
     expect(scope).toMatchObject({ ref: 'main', pinned: false });
     expect(scope.notices).toEqual([
@@ -168,7 +182,11 @@ describe('chooseRef', () => {
   });
 
   it('reads the default branch for pin "branch" and never asks for releases', async () => {
-    const { product, source } = githubProduct({ repo: REPO, preset: 'samples-metadata', pin: 'branch' });
+    const { product, source } = githubProduct({
+      repo: REPO,
+      preset: 'samples-metadata',
+      pin: 'branch',
+    });
     const ctx = githubCtx({ [REPO]: { defaultBranch: 'develop', release, files: { '*': files } } });
     const scope = await openScope(ctx, bound(ctx, product, source, { version: '300.1.0' }));
     expect(scope).toMatchObject({ ref: 'develop', pinned: false });
@@ -178,7 +196,10 @@ describe('chooseRef', () => {
   it('reads the branch when the repository has no release or the lookup fails', async () => {
     const { product, source } = pinnedSource();
     const none = githubCtx({ [REPO]: { files: { '*': files } } });
-    expect(await openScope(none, bound(none, product, source))).toMatchObject({ ref: 'main', pinned: false });
+    expect(await openScope(none, bound(none, product, source))).toMatchObject({
+      ref: 'main',
+      pinned: false,
+    });
 
     const limited = githubCtx({ [REPO]: { release, files: { '*': files } } });
     limited.github.exhaustQuota('2026-10-13T13:00:00Z');
@@ -199,7 +220,12 @@ describe('chooseRef', () => {
   });
 
   it('honours a ref fixed in the registry', async () => {
-    const fixed = githubProduct({ repo: REPO, preset: 'markdown-docs', ref: 'gh-pages', pin: 'release-tag' });
+    const fixed = githubProduct({
+      repo: REPO,
+      preset: 'markdown-docs',
+      ref: 'gh-pages',
+      pin: 'release-tag',
+    });
     const ctx = githubCtx({ [REPO]: { release } });
     expect(await openScope(ctx, bound(ctx, fixed.product, fixed.source))).toMatchObject({
       ref: 'gh-pages',
@@ -215,10 +241,17 @@ describe('chooseRef', () => {
 
 describe('openScopeAt', () => {
   it('reads at the ref of the URL and recognises a release tag', async () => {
-    const { product, source } = githubProduct({ repo: REPO, preset: 'samples-metadata', pin: 'branch' });
+    const { product, source } = githubProduct({
+      repo: REPO,
+      preset: 'samples-metadata',
+      pin: 'branch',
+    });
     const ctx = githubCtx({ [REPO]: {} });
     const src = bound(ctx, product, source);
-    expect(await openScopeAt(ctx, src, 'feature-x')).toMatchObject({ ref: 'feature-x', pinned: false });
+    expect(await openScopeAt(ctx, src, 'feature-x')).toMatchObject({
+      ref: 'feature-x',
+      pinned: false,
+    });
     expect(await openScopeAt(ctx, src, 'v300.1.0')).toMatchObject({
       ref: 'v300.1.0',
       pinned: true,
@@ -228,7 +261,11 @@ describe('openScopeAt', () => {
   });
 
   it('prefers the requested version over the ref of the URL where tags are reliable', async () => {
-    const { product, source } = githubProduct({ repo: REPO, preset: 'samples-metadata', pin: 'release-tag' });
+    const { product, source } = githubProduct({
+      repo: REPO,
+      preset: 'samples-metadata',
+      pin: 'release-tag',
+    });
     const ctx = githubCtx({ [REPO]: {} });
     const src = bound(ctx, product, source, { version: '200.8.0' });
     const fromTag = await openScopeAt(ctx, src, 'v300.1.0');
@@ -241,7 +278,11 @@ describe('openScopeAt', () => {
 
 describe('atRef', () => {
   const setup = async (tagExists: boolean) => {
-    const { product, source } = githubProduct({ repo: REPO, preset: 'samples-metadata', pin: 'release-tag' });
+    const { product, source } = githubProduct({
+      repo: REPO,
+      preset: 'samples-metadata',
+      pin: 'release-tag',
+    });
     const ctx = githubCtx({
       [REPO]: { files: tagExists ? { 'v300.1.0': files, main: files } : { main: files } },
     });
@@ -281,7 +322,9 @@ describe('atRef', () => {
 
   it('keeps the first error when the path is missing on the branch too', async () => {
     const { ctx, src, scope } = await setup(false);
-    const failure = atRef(ctx, src, scope, (ref, opts) => ctx.github.raw(REPO, ref, 'nope.md', opts));
+    const failure = atRef(ctx, src, scope, (ref, opts) =>
+      ctx.github.raw(REPO, ref, 'nope.md', opts),
+    );
     await expect(failure).rejects.toMatchObject({ code: 'DOC_NOT_FOUND' });
     await expect(failure).rejects.toThrow(/v300\.1\.0/);
     expect(scope).toMatchObject({ ref: 'v300.1.0', pinned: true });

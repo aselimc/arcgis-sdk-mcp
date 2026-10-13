@@ -10,6 +10,10 @@ _since 1.4_
 
 Shows the water level of a harbour as a dial.
 
+**See also**
+
+- [Docs](https://example.com/components/harbour-gauge/)
+
 ## Placing the gauge
 
 Put it inside any container:
@@ -17,10 +21,6 @@ Put it inside any container:
 ```html
 <harbour-gauge harbour="brest"></harbour-gauge>
 ```
-
-**See also**
-
-- [Docs](https://example.com/components/harbour-gauge/)
 
 ## Properties
 

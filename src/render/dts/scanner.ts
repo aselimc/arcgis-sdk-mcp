@@ -264,7 +264,15 @@ function declaration(source: string, tokens: readonly Token[], range: Range): Dt
     return result;
   }
 
-  const open = own.findIndex((token, index) => index > cursor && token.text === '{');
+  // The body opens at the first brace outside type arguments: `<T = {}>` and
+  // `extends Base<{ a: 1 }>` have braces of their own.
+  let angle = 0;
+  const open = own.findIndex((token, index) => {
+    if (index <= cursor) return false;
+    if (token.text === '<') angle += 1;
+    else if (token.text === '>') angle -= 1;
+    return angle <= 0 && token.text === '{';
+  });
   const openToken = own[open];
   if (openToken === undefined) return result;
   result.head = source.slice(first?.start, openToken.start).trim();

@@ -242,13 +242,13 @@ export function mainFiles(tree: readonly TreeFile[], dir: string): string[] {
         file.path.startsWith(prefix) &&
         isCode(file.path) &&
         !BOILERPLATE.test(file.path) &&
-        !/(?:^|\/)(?:bin|obj|build|Properties|node_modules)\//.test(file.path.slice(prefix.length)) &&
+        !/(?:^|\/)(?:bin|obj|build|Properties|node_modules)\//.test(
+          file.path.slice(prefix.length),
+        ) &&
         (file.size ?? 0) <= MAX_FILE_BYTES,
     )
     .map((file) => file.path)
-    .sort(
-      (a, b) => depth(a) - depth(b) || named(a) - named(b) || (a < b ? -1 : a > b ? 1 : 0),
-    );
+    .sort((a, b) => depth(a) - depth(b) || named(a) - named(b) || (a < b ? -1 : a > b ? 1 : 0));
 }
 
 /**
@@ -295,8 +295,7 @@ export async function readSample(
     primary = await atRef(ctx, src, scope, (ref, opts) => ctx.github.raw(repo, ref, other, opts));
   }
   const readme = primaryPath === sample.readme ? primary : undefined;
-  const metadataRes =
-    primaryPath === sample.metadata ? primary : await optional(sample.metadata);
+  const metadataRes = primaryPath === sample.metadata ? primary : await optional(sample.metadata);
   const metadata = metadataRes === undefined ? undefined : parseMetadata(metadataRes.text);
 
   const notices: string[] = [];

@@ -163,9 +163,7 @@ export const githubRepoAdapter: SourceAdapter<'github-repo'> = {
   read: (ctx, src, target) => typed(() => read(ctx, src, target)),
 
   symbol: (ctx, src, record, detail) =>
-    typed(() =>
-      read(ctx, src, { url: new URL(record.ref), record, detail, ...sectionOf(record) }),
-    ),
+    typed(() => read(ctx, src, { url: new URL(record.ref), record, detail, ...sectionOf(record) })),
 
   sample: (ctx, src, record) =>
     typed(() => read(ctx, src, { url: new URL(record.ref), record, ...sectionOf(record) })),

@@ -225,6 +225,11 @@ export async function readHtmlPage(
 
 /** Options of {@link probeSource}. */
 export interface ProbeOptions {
+  /**
+   * Whether the canary is a site-published index file, which needs `site-index`. Default:
+   * every canary that is not an HTML page.
+   */
+  siteIndex?: boolean;
   /** Counts the records of the canary body; default: entries of a JSON array or object. */
   count?: (text: string) => number | undefined;
   /**
@@ -246,8 +251,7 @@ function jsonCount(text: string): number | undefined {
 
 /**
  * Runs the canary a source declares in the registry with one request and checks what it
- * promises: record count, length, HTML family and a marker string. A canary that is not an
- * HTML page is an index file and needs `site-index`. Never rejects.
+ * promises: record count, length, HTML family and a marker string. Never rejects.
  */
 export async function probeSource(
   ctx: Ctx,
@@ -269,7 +273,7 @@ export async function probeSource(
         : src.url(expanded);
     assertLive(src, url);
     const page = probe.expect === 'html';
-    if (!page && !ctx.policy.enabled('site-index')) {
+    if ((options.siteIndex ?? !page) && !ctx.policy.enabled('site-index')) {
       return finish({ ok: false, error: 'Capability "site-index" is switched off' });
     }
     const res = await ctx.http.get({

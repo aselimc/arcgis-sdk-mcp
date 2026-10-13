@@ -12,6 +12,7 @@ import type {
 import { makeLine, makeProduct, makeSource } from '../../../support/builders.js';
 import { FakeClock } from '../../../support/fake-clock.js';
 import { FakeGithub, type FakeRepo } from '../../../support/fake-github.js';
+import { FakeRenderer } from '../../../support/fake-render.js';
 import { fixturePath } from '../../../support/fixtures.js';
 import { makeCtx, type TestCtx } from '../../../support/make-ctx.js';
 
@@ -98,8 +99,21 @@ export function bound(
   return bindSource(product, source, line, options.version, budget);
 }
 
+/** A test context whose renderer is known to be the recording fake. */
+export interface GithubTestCtx extends TestCtx {
+  render: FakeRenderer;
+}
+
 /** A context whose GitHub fake knows the given repositories. */
-export function githubCtx(repos: Record<string, FakeRepo>): TestCtx {
+export function githubCtx(repos: Record<string, FakeRepo>): GithubTestCtx {
   const clock = new FakeClock();
-  return makeCtx({ clock, github: new FakeGithub(repos, clock) });
+  const render = new FakeRenderer();
+  return { ...makeCtx({ clock, github: new FakeGithub(repos, clock), render }), render };
+}
+
+/** The version line of a test product with the given id. */
+export function lineOf(product: Product, id: string): VersionLine {
+  const line = product.lines.find((candidate) => candidate.id === id);
+  if (line === undefined) throw new Error(`the test product has no line "${id}"`);
+  return line;
 }

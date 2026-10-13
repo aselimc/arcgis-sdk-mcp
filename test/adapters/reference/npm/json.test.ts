@@ -162,6 +162,8 @@ describe('npm-json enumerate, mapper arcade-api', () => {
     expect(ctx.render.calls[0]?.opts).toEqual({ select: { member: 'noop' } });
     await npmJsonAdapter.read(ctx, bindTo(source), { url: new URL(`${file}#misc`) });
     expect(ctx.render.calls[1]?.meta.url).toBe(`${file}#misc`);
+    // The fragment is the address of the category, so nothing is selected inside it.
+    expect(ctx.render.calls[1]?.opts).toBeUndefined();
   });
 
   it.each([

@@ -199,7 +199,8 @@ export function describeReferenceContract<A extends AdapterType>(
       for (const file of c.siteIndexFiles) {
         expect(ctx.http.count(file), `index file requested: ${String(file)}`).toBe(0);
       }
-      if (c.source.probe.expect !== 'html') expect(probe.ok).toBe(false);
+      expect(probe.ok).toBe(false);
+      expect(probe.error).toMatch(/site-index/);
     });
 
     it('reports a failing probe within two requests', async () => {

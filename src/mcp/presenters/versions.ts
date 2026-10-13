@@ -43,8 +43,7 @@ function lineRow(product: Product, line: VersionLine): VersionsProduct['lines'][
     label: line.label,
     docsUrl: docs === undefined ? product.homepage : sourceRootUrl(docs, line, product.homepage),
     access: line.access,
-    symbols:
-      line.access === 'live' && reference ? 'live' : anyVersion ? 'npm-any-version' : 'none',
+    symbols: line.access === 'live' && reference ? 'live' : anyVersion ? 'npm-any-version' : 'none',
   };
 }
 
@@ -52,8 +51,7 @@ function lifecycleOf(facts: readonly VersionFact[]): VersionsProduct['lifecycle'
   const phases = facts.filter((fact) => fact.role === 'lifecycle');
   const first = phases[0];
   if (first === undefined) return undefined;
-  const phase = (tag: string): string | undefined =>
-    phases.find((fact) => fact.tag === tag)?.value;
+  const phase = (tag: string): string | undefined => phases.find((fact) => fact.tag === tag)?.value;
   return compact({
     ga: phase('ga'),
     mature: phase('mature'),

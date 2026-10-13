@@ -154,9 +154,7 @@ export function extractRegions(source: string): Region[] {
     });
   while (open.length > 0) close();
 
-  return done
-    .sort((a, b) => a.order - b.order)
-    .map(({ order: _order, ...region }) => region);
+  return done.sort((a, b) => a.order - b.order).map(({ order: _order, ...region }) => region);
 }
 
 /** Heading text with Markdown's special characters escaped, so `List<T>` stays `List<T>`. */
@@ -169,6 +167,13 @@ function fenced(code: string, language: string): string {
   const longest = (code.match(/`+/g) ?? []).reduce((max, run) => Math.max(max, run.length), 0);
   const fence = '`'.repeat(Math.max(3, longest + 1));
   return `${fence}${language}\n${code}\n${fence}`;
+}
+
+/** An inline code span; generic names in doc-comment syntax (``Get``1``) contain backticks. */
+function inlineCode(text: string): string {
+  const longest = (text.match(/`+/g) ?? []).reduce((max, run) => Math.max(max, run.length), 0);
+  const ticks = '`'.repeat(longest + 1);
+  return longest === 0 ? `\`${text}\`` : `${ticks} ${text} ${ticks}`;
 }
 
 /** One heading of a snippets page and the region it introduces (none for a group). */
@@ -187,7 +192,6 @@ export function snippetsMarkdown(
   regions: readonly Region[],
   language: string,
 ): { markdown: string; headings: Heading[] } {
-  const grouped = regions.some((region) => region.group !== undefined);
   const parts = [`# ${headingText(title)}`];
   const headings: Heading[] = [{ title }];
   let group: string | undefined;
@@ -197,10 +201,11 @@ export function snippetsMarkdown(
       parts.push(`## ${headingText(group)}`);
       headings.push({ title: group });
     }
-    parts.push(`${grouped && region.group !== undefined ? '###' : '##'} ${headingText(region.title)}`);
+    // A region of a group sits one level below the group's heading.
+    parts.push(`${region.group === undefined ? '##' : '###'} ${headingText(region.title)}`);
     headings.push({ title: region.title, region });
     if (region.apis.length > 0) {
-      parts.push(`Relevant API: ${region.apis.map((api) => `\`${api}\``).join(', ')}`);
+      parts.push(`Relevant API: ${region.apis.map(inlineCode).join(', ')}`);
     }
     parts.push(fenced(region.code, language));
   }
@@ -220,7 +225,7 @@ function languageOf(path: string): string {
 function apiKeywords(apis: readonly string[]): string[] {
   const terms = new Set<string>();
   for (const api of apis) {
-    const name = api.replace(/\(.*$/, '').replace(/`\d+/g, '');
+    const name = api.replace(/\(.*$/, '').replace(/`+\d+/g, '');
     const segments = name.split('.');
     terms.add(segments.slice(-2).join('.'));
     terms.add(segments.at(-1) ?? name);

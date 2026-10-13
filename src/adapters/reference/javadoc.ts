@@ -93,5 +93,10 @@ export const javadocAdapter: SourceAdapter<'javadoc'> = {
   read: (ctx, src, target) => readHtmlPage(ctx, src, target, familyOf(src)),
   symbol: (ctx, src, record, detail) =>
     readHtmlPage(ctx, src, symbolTarget(record, detail), familyOf(src)),
-  probe: (ctx, src) => probeSource(ctx, src, { count: countEntries }),
+  probe: (ctx, src) =>
+    probeSource(ctx, src, {
+      count: countEntries,
+      // The class list is an HTML file, but it is the index of the site, not a page of it.
+      ...(src.source.probe.url.endsWith(LEGACY_CLASS_LIST) ? { siteIndex: true } : {}),
+    }),
 };

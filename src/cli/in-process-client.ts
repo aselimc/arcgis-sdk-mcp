@@ -101,7 +101,8 @@ export async function withInProcessClient<T>(
     await client.send({ jsonrpc: '2.0', method: 'notifications/initialized' });
     return await use(request);
   } finally {
-    client.onclose = undefined;
+    // Closing below is expected; only an early close is a failure worth reporting.
+    delete client.onclose;
     await server.close();
     await client.close();
   }

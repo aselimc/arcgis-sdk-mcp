@@ -85,7 +85,7 @@ async function enumerate(ctx: Ctx, src: Src): Promise<CatalogRecord[]> {
 }
 
 /** The declaration file a read names: by the record that led here, else by the shape of the URL. */
-function fileOf(src: Src, target: ReadTarget, template: string): string | undefined {
+function fileOf(target: ReadTarget, template: string): string | undefined {
   const located = target.record?.locator?.path;
   const file =
     located ?? addSuffix(matchTemplate(template, target.url.href)?.path?.replace(/\/+$/, ''));
@@ -99,7 +99,7 @@ function addSuffix(module: string | undefined): string | undefined {
 async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
   const { config } = src.source;
   const template = docTemplate(src, config.docUrl);
-  const file = fileOf(src, target, template);
+  const file = fileOf(target, template);
   if (file === undefined) {
     throw notFound(
       target.url.href,

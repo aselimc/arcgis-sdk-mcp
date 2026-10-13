@@ -6,7 +6,7 @@
  * module does not know is rendered as its plain text and reported, never dropped silently.
  */
 import { asRecord, list, records, str, strings, type Json } from './json.js';
-import { blocks, bullets, fence, inlineCode, oneLine, table } from './md.js';
+import { blocks, bullets, fence, hang, inlineCode, oneLine, table } from './md.js';
 
 /** What content rendering needs from the page. */
 export interface DoccContext {
@@ -141,7 +141,7 @@ function block(node: Json, context: DoccContext): string {
       return bullets(listItems(node, context));
     case 'orderedList':
       return listItems(node, context)
-        .map((item, index) => `${index + 1}. ${item.replace(/\n/g, '\n   ')}`)
+        .map((item, index) => `${index + 1}. ${hang(item, '   ')}`)
         .join('\n');
     case 'aside':
       return aside(node, context);

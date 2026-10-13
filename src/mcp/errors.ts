@@ -57,15 +57,13 @@ function slugQuery(ref: string | undefined): string | undefined {
   const path = ref.toLowerCase().startsWith(BRIEF_PREFIX)
     ? ref.slice(BRIEF_PREFIX.length)
     : ref.replace(/^[a-z]+:\/\/[^/]*/i, '');
-  const segments = path
+  const last = path
     .replace(/[?#].*$/, '')
     .split('/')
-    .filter((segment) => segment.length > 0 && !/^(latest|index\.html?)$/i.test(segment));
-  const words = segments
-    .slice(-2)
-    .map((segment) => humanizeSlug(segment))
-    .join(' ')
-    .trim();
+    .filter((segment) => segment.length > 0 && !/^(latest|index\.html?)$/i.test(segment))
+    .at(-1);
+  if (last === undefined) return undefined;
+  const words = humanizeSlug(last).trim();
   return words.length > 0 ? words : undefined;
 }
 

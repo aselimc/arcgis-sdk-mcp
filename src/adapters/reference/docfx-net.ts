@@ -43,6 +43,7 @@ function bareName(name: string): string {
  * Catalogue records of one xrefmap.
  *
  * - Overload groups (`Overload:` ids) are skipped: their members are listed one by one.
+ * - An entry without a documentation id is a page of the reference, not a symbol.
  * - A member's parent is its uid without the parameter list and the last segment; a nested
  *   type is a member of its outer type.
  * - Qualified names drop the generic arity (`` List`1 `` becomes `List`), as in code.
@@ -68,18 +69,24 @@ export function xrefRecords(
     const ref = new URL(entry.href, base).href;
     if (!ref.startsWith(base) || records.has(ref)) continue;
     seen.add(entry.uid);
+    const title = entry.nameWithType ?? entry.name ?? entry.uid;
+    if (KINDS[prefix] === undefined) {
+      // A conceptual page of the site has a uid but documents no symbol.
+      records.set(ref, recordOf(src, ref, title, { locator: { uid: entry.uid }, platform }));
+      continue;
+    }
 
     const path = entry.uid.replace(/\(.*$/s, '');
     const cut = path.lastIndexOf('.');
     const container = cut < 0 ? '' : path.slice(0, cut);
-    const member = 'MPFE'.includes(prefix) && prefix !== '';
+    const member = prefix !== 'T' && prefix !== 'N';
     const owned = container !== '' && (member || (prefix === 'T' && types.has(container)));
     const parent = owned ? container.replace(/`+\d+/g, '') : undefined;
     const symbol = bareName(entry.name ?? path.slice(cut + 1));
     const constructor = prefix === 'M' && path.endsWith('#ctor');
     records.set(
       ref,
-      recordOf(src, ref, entry.nameWithType ?? entry.name ?? entry.uid, {
+      recordOf(src, ref, title, {
         symbol,
         qualified:
           member && parent !== undefined ? `${parent}.${symbol}` : path.replace(/`+\d+/g, ''),

@@ -109,27 +109,33 @@ export function isCode(token: Token): boolean {
   return token.kind !== 'comment' && token.kind !== 'jsdoc';
 }
 
-const OPENERS = new Set(['{', '(', '[']);
-const CLOSERS = new Set(['}', ')', ']']);
+const CLOSER_OF: Record<string, string> = { '{': '}', '(': ')', '[': ']' };
+const CLOSERS = new Set(Object.values(CLOSER_OF));
 
 /** How a punctuation token changes bracket depth: +1, -1 or 0. */
 export function depthChange(token: Token): number {
   if (token.kind !== 'punct') return 0;
-  if (OPENERS.has(token.text)) return 1;
+  if (token.text in CLOSER_OF) return 1;
   return CLOSERS.has(token.text) ? -1 : 0;
 }
 
 /**
  * Index of the token that closes the bracket opened at `open`, or -1 when the brackets do
- * not balance before `limit` (a truncated or malformed file).
+ * not pair up before `limit` (a truncated or malformed file): a bracket closed by one of
+ * another kind is as unbalanced as one that is never closed.
  */
 export function matchingClose(tokens: readonly Token[], open: number, limit: number): number {
-  let depth = 0;
+  const expected: string[] = [];
   for (let index = open; index < limit; index += 1) {
     const token = tokens[index];
     if (token === undefined) break;
-    depth += depthChange(token);
-    if (depth === 0) return index;
+    if (token.kind !== 'punct') continue;
+    const closer = CLOSER_OF[token.text];
+    if (closer !== undefined) expected.push(closer);
+    else if (CLOSERS.has(token.text)) {
+      if (expected.pop() !== token.text) return -1;
+      if (expected.length === 0) return index;
+    }
   }
   return -1;
 }

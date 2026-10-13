@@ -240,6 +240,10 @@ export async function readDirectory(
   if (sample?.readme !== undefined) return readFile(ctx, src, scope, sample.readme, target);
   const url = treeUrl(scope.repo, scope.ref, dir);
   throw tree.some((file) => file.path.startsWith(prefix))
-    ? notFound(url, `${dir === '' ? scope.repo : dir} has no README`, 'Open one of its files instead')
+    ? notFound(
+        url,
+        `${dir === '' ? scope.repo : dir} has no README`,
+        'Open one of its files instead',
+      )
     : notFound(url, `${scope.repo} has no directory "${dir}"`, `It does not exist at ${scope.ref}`);
 }

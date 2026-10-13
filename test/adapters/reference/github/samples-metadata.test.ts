@@ -224,7 +224,8 @@ describe('samples-readme', () => {
     const ctx = githubCtx({
       'Esri/pro-samples': { defaultBranch: 'master', files: { '*': repoFiles('samples-pro') } },
     });
-    const url = 'https://github.com/Esri/pro-samples/blob/master/Framework/SimpleDockpane/ReadMe.md';
+    const url =
+      'https://github.com/Esri/pro-samples/blob/master/Framework/SimpleDockpane/ReadMe.md';
     const page = await githubRepoAdapter.read(ctx, bound(ctx, product, source), {
       url: new URL(url),
     });
@@ -278,7 +279,9 @@ describe('sample lookups', () => {
     expect(sampleOfRecord(makeRecord())).toBeUndefined();
     expect(sampleOfRecord(makeRecord({ locator: { path: 'a' } }))).toBeUndefined();
     expect(
-      sampleOfRecord(makeRecord({ locator: { path: 'a', readme: 'a/R.md', metadata: 'a/m.json' } })),
+      sampleOfRecord(
+        makeRecord({ locator: { path: 'a', readme: 'a/R.md', metadata: 'a/m.json' } }),
+      ),
     ).toEqual({ dir: 'a', readme: 'a/R.md', metadata: 'a/m.json' });
     expect(sampleOfRecord(makeRecord({ locator: { path: 'a', metadata: 'a/m.json' } }))).toEqual({
       dir: 'a',

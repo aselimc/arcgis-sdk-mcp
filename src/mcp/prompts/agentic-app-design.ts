@@ -103,9 +103,6 @@ export function registerAgenticAppDesignPrompt(server: McpServer): void {
       argsSchema: Args,
     },
     (args) =>
-      userMessage(
-        `Agentic ArcGIS app design (${args.runtime})`,
-        agenticAppDesignMessage(args),
-      ),
+      userMessage(`Agentic ArcGIS app design (${args.runtime})`, agenticAppDesignMessage(args)),
   );
 }

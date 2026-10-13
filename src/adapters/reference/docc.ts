@@ -43,8 +43,13 @@ const OWNERS: ReadonlySet<string> = new Set([
   'namespace',
 ]);
 
-/** Node types that are prose rather than symbols. */
-const PROSE: Readonly<Record<string, DocKind>> = {
+/**
+ * Node types that are pages rather than symbols: prose, and the collection pages (`symbol`)
+ * that group what a type inherits from elsewhere. Render JSON states the same kinds.
+ */
+const PAGES: Readonly<Record<string, DocKind>> = {
+  symbol: 'api',
+  collection: 'api',
   article: 'guide',
   overview: 'guide',
   learn: 'guide',
@@ -113,14 +118,14 @@ export function doccRecords(
         visit(children, { ...below, owners: at.owners });
         continue;
       }
-      const prose = PROSE[type];
-      if (prose !== undefined || type === 'module') {
+      const page = PAGES[type];
+      if (page !== undefined || type === 'module') {
         const extras =
-          prose === undefined
+          page === undefined
             ? { symbol: title, qualified: title, symbolKind: 'module' }
-            : { kind: prose };
+            : { kind: page };
         records.set(ref, recordOf(src, ref, title, { ...extras, breadcrumb: at.trail }));
-        visit(children, { ...below, owners: prose === undefined ? [] : at.owners });
+        visit(children, { ...below, owners: page === undefined ? [] : at.owners });
         continue;
       }
       const owner = OWNERS.has(type);
@@ -190,11 +195,11 @@ async function read(ctx: Ctx, src: BoundSource, target: ReadTarget): Promise<Doc
     ttl: 'page',
     ...budgetOf(src),
   });
-  const prose = PROSE[String((data as { kind?: unknown } | null)?.kind)];
+  const kind = PAGES[String((data as { kind?: unknown } | null)?.kind)];
   return ctx.render.render(
     'docc',
     { json: data },
-    renderMeta(src, target, `${location.page}${target.url.hash}`, res, prose),
+    renderMeta(src, target, `${location.page}${target.url.hash}`, res, kind),
     renderOptionsOf(target),
   );
 }

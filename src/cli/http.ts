@@ -12,6 +12,7 @@ import {
   localhostOriginValidation,
   originValidation,
   toNodeHandler,
+  type NodeIncomingMessageLike,
 } from '@modelcontextprotocol/node';
 import { createMcpHandler, type McpServerFactory } from '@modelcontextprotocol/server';
 import { SERVER_NAME } from '../core/names.js';
@@ -120,7 +121,9 @@ export function createHttpApp(options: HttpAppOptions): {
       sendJson(res, 200, { status: 'ok', server: SERVER_NAME, version: options.version });
       return;
     }
-    mcp(req, res).catch((error: unknown) => {
+    // Node declares optional members as `T | undefined`, the SDK's structural request type
+    // as `T`; under exactOptionalPropertyTypes that needs stating, the shapes are the same.
+    mcp(req as NodeIncomingMessageLike, res).catch((error: unknown) => {
       logger.error('http handler failed', { error });
       if (!res.headersSent) sendJson(res, 500, { error: 'Internal error' });
       else res.end();

@@ -220,11 +220,7 @@ const handle: ToolHandler<typeof Input> = async (args, call, { ctx, services }) 
     const firstRef = rows.find((row) => row.ref !== undefined)?.ref;
     return structuredResult(
       {
-        status: statusLine([
-          echo,
-          `section: ${section}`,
-          `${rows.length} of ${toc.total} entries`,
-        ]),
+        status: statusLine([echo, `section: ${section}`, `${rows.length} of ${toc.total} entries`]),
         notes,
         body: renderToc(rows),
         next:

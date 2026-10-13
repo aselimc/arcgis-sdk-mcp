@@ -101,9 +101,7 @@ const handle: ToolHandler<typeof Input> = async (args, call, { services }) => {
   const products = report.products.map(versionsProduct);
   const notes = [...report.notes];
   if (products.length === 0 && args.product === undefined) {
-    notes.push(
-      'No Esri SDK was detected in the current project. Pass `product` to report on one.',
-    );
+    notes.push('No Esri SDK was detected in the current project. Pass `product` to report on one.');
   }
   const result: Result = { asOf: report.asOf, products, notes };
   const firstNotes = products.flatMap((product) => product.releaseNotes)[0];
@@ -112,9 +110,7 @@ const handle: ToolHandler<typeof Input> = async (args, call, { services }) => {
       status: statusLine([
         `Versions as of ${report.asOf.slice(0, 10)}`,
         args.version === undefined ? undefined : `checked version: ${args.version}`,
-        products.length === 0
-          ? 'no product'
-          : products.map((product) => product.id).join(', '),
+        products.length === 0 ? 'no product' : products.map((product) => product.id).join(', '),
       ]),
       notes,
       body: products.map(renderVersionsProduct).join('\n\n'),
