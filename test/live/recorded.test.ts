@@ -13,12 +13,15 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
+import { bodyVariantOf } from '../../src/adapters/site/gatsby/body.js';
 import { joinSections } from '../../src/core/budget.js';
+import type { RenderMeta } from '../../src/core/ports.js';
 import { parseSitemap } from '../../src/core/sitemap.js';
 import type { DocKind, DocPage } from '../../src/core/types.js';
 import { measureMarkdown } from '../../src/extract/diagnostics.js';
 import { createHtmlExtractor } from '../../src/extract/index.js';
 import { scanDts } from '../../src/render/dts/scanner.js';
+import { createRenderer } from '../../src/render/index.js';
 import {
   fileNameFor,
   parseManifest,
@@ -198,5 +201,111 @@ describe('the .d.ts scanner agrees with the TypeScript compiler', () => {
     for (const [name, members] of expected) {
       expect([...(scanned.get(name) ?? [])].sort(), name).toEqual([...members].sort());
     }
+  });
+});
+
+/**
+ * Structured sources: the recorded JSON is handed to the renderer in the shape the adapter
+ * hands it over (the selection of a page-data body is the adapter's own function), so a
+ * renamed field upstream or a mismatch between adapter and renderer fails here.
+ */
+describe('recorded structured sources render', () => {
+  const renderer = createRenderer(extractor);
+  const json = (entry: ManifestEntry): unknown => JSON.parse(body(entry)) as unknown;
+  const metaOf = (entry: ManifestEntry): RenderMeta => ({
+    url: provenance.get(entry.id)?.finalUrl ?? entry.url,
+    kind: 'api',
+    license: 'esri-website-terms',
+    retrievedAt: provenance.get(entry.id)?.fetchedAt ?? new Date(0).toISOString(),
+  });
+  const expectClean = (page: DocPage, minChars = 200): void => {
+    const markdown = markdownOf(page);
+    const metrics = measureMarkdown(markdown);
+    expect(page.title.trim()).not.toBe('');
+    expect(page.diagnostics.family).toBe('structured');
+    expect(markdown.length).toBeGreaterThan(minChars);
+    expect(metrics.leftoverHtmlTags).toBe(0);
+    expect(metrics.unclosedFence).toBe(false);
+    const ids = page.sections.map((section) => section.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  };
+
+  const pageData = [
+    ['openapi-operation-page-data', 'openapi'],
+    ['openapi-schemas-page-data', 'openapi'],
+    ['typedoc-rest-js-page-data', 'typedoc'],
+    ['typedoc-experience-builder-page-data', 'typedoc'],
+  ] as const;
+
+  it.each(pageData)('%s: the page-data body is found and rendered by %s', (id, kind) => {
+    const entry = entryOf(id);
+    if (!isRecorded(entry)) return;
+    const data = (json(entry) as { result?: { data?: Record<string, unknown> } }).result?.data;
+    expect(data).toBeDefined();
+    const variant = bodyVariantOf(data ?? {}, 'auto');
+    expect(variant?.renderer).toBe(kind);
+    if (variant?.renderer === 'openapi') {
+      const { operation, schemas } = variant;
+      expectClean(
+        renderer.render(
+          'openapi',
+          {
+            ...(operation === undefined ? {} : { operation }),
+            ...(schemas === undefined ? {} : { schemas }),
+          },
+          metaOf(entry),
+        ),
+      );
+    } else if (variant?.renderer === 'typedoc') {
+      const page = renderer.render('typedoc', { raw: variant.raw }, metaOf(entry));
+      expectClean(page);
+      expect(page.members?.length ?? 0).toBeGreaterThan(0);
+    }
+  });
+
+  it('openapi-document: every operation and schema of a published document renders', () => {
+    const entry = entryOf('openapi-document');
+    if (!isRecorded(entry)) return;
+    const spec = json(entry);
+    const overview = renderer.render('openapi', { spec }, metaOf(entry));
+    const operations = (overview.members ?? []).filter((member) => member.kind === 'operation');
+    const others = (overview.members ?? []).filter((member) => member.kind !== 'operation');
+    expect(operations.length).toBeGreaterThan(0);
+    for (const operation of operations) {
+      // `METHOD path` is how the adapter names an operation to the renderer.
+      const page = renderer.render('openapi', { spec, target: operation.name }, metaOf(entry));
+      expect(page.title).toBe(operation.name);
+      expectClean(page, operation.name.length + 20);
+    }
+    for (const schema of others) {
+      const page = renderer.render('openapi', { spec, target: schema.name }, metaOf(entry));
+      expect(markdownOf(page)).toContain(schema.name);
+      expect(page.sections).toHaveLength(1);
+    }
+  });
+
+  it('cem-api: a component of the manifest renders with its members', () => {
+    const entry = entryOf('cem-api');
+    if (!isRecorded(entry)) return;
+    const input = {
+      manifest: json(entry),
+      tag: 'arcgis-map',
+      packageName: '@arcgis/map-components',
+    };
+    const page = renderer.render('cem', input, metaOf(entry));
+    expectClean(page);
+    expect(page.members?.some((member) => member.name === 'goTo')).toBe(true);
+    const member = renderer.render('cem', { ...input, member: 'goTo' }, metaOf(entry));
+    expect(markdownOf(member)).toContain('goTo(');
+    expect(member.sections.length).toBeLessThan(page.sections.length);
+  });
+
+  it('docc-map: a class of the Swift reference renders with its declaration', () => {
+    const entry = entryOf('docc-map');
+    if (!isRecorded(entry)) return;
+    const page = renderer.render('docc', { json: json(entry) }, metaOf(entry));
+    expectClean(page);
+    expect(page.title).toBe('Map');
+    expect(markdownOf(page)).toContain('```swift');
   });
 });

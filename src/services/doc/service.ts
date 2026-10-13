@@ -185,7 +185,7 @@ export function createDocService(
         response.next = formatCall(TOOLS.read, {
           ...continuation,
           view: 'full',
-          ...(req.maxTokens === ctx.config.defaultMaxTokens ? {} : { max_tokens: req.maxTokens }),
+          ...(req.callerMaxTokens === undefined ? {} : { max_tokens: req.callerMaxTokens }),
           cursor: response.nextCursor,
         });
       } else if (view.suggest !== undefined) {

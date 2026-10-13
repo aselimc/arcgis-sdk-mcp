@@ -95,6 +95,7 @@ describe('read: views', () => {
         ref: GUIDE_URL,
         view: 'full',
         maxTokens: 500,
+        callerMaxTokens: 700,
         ...(cursor === undefined ? {} : { cursor }),
       });
       pages.push(response.text);
@@ -104,12 +105,23 @@ describe('read: views', () => {
         break;
       }
       expect(response.truncated).toBe(true);
+      // Regression: the continuation repeated the budget of the text, which is the caller's
+      // `max_tokens` less the envelope, so every page of a paged read was smaller than the last.
       expect(response.next).toBe(
-        `arcgis_docs_read(${JSON.stringify({ ref: GUIDE_URL, view: 'full', max_tokens: 500, cursor })})`,
+        `arcgis_docs_read(${JSON.stringify({ ref: GUIDE_URL, view: 'full', max_tokens: 700, cursor })})`,
       );
     }
     expect(pages.length).toBeGreaterThan(2);
     expect(pages.join('\n\n')).toBe(joinSections(longPage().sections));
+  });
+
+  it('leaves max_tokens out of a continuation when the caller relied on the default', async () => {
+    const h = harness();
+    h.adapter('gatsby').addPage(longPage());
+    const response = await read(h, { ref: GUIDE_URL, view: 'full', maxTokens: 500 });
+    expect(response.next).toBe(
+      `arcgis_docs_read(${JSON.stringify({ ref: GUIDE_URL, view: 'full', cursor: response.nextCursor })})`,
+    );
   });
 
   it('pages inside one oversized section and reassembles it exactly', async () => {

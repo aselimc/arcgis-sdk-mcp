@@ -76,6 +76,29 @@ describe('document tools', () => {
       expect(seen).toEqual([1800]);
     });
 
+    // Regression: a continuation repeated the budget of the text (max_tokens less the
+    // envelope), so each page of a paged read was 200 tokens smaller than the one before;
+    // and ARCGIS_DOCS_MAX_TOKENS was read into the configuration but never applied.
+    it('tells the service which max_tokens the caller passed, and uses the configured default otherwise', async () => {
+      const read = suite.harness.services.docs.read.bind(suite.harness.services.docs);
+      const seen: Array<[number, number | undefined]> = [];
+      suite.harness.services.docs.read = async (req, options) => {
+        seen.push([req.maxTokens, req.callerMaxTokens]);
+        return read(req, options);
+      };
+      const configured = suite.harness.ctx.config.defaultMaxTokens;
+      await call(TOOLS.read, { ref: REFS.page, max_tokens: 2000 });
+      await call(TOOLS.read, { ref: REFS.page });
+      suite.harness.ctx.config.defaultMaxTokens = 3000;
+      await call(TOOLS.read, { ref: REFS.page });
+      suite.harness.ctx.config.defaultMaxTokens = configured;
+      expect(seen).toEqual([
+        [1800, 2000],
+        [configured - 200, undefined],
+        [2800, undefined],
+      ]);
+    });
+
     it('falls back to the line label, the bare product id or no version at all', async () => {
       const read = suite.harness.services.docs.read.bind(suite.harness.services.docs);
       const withPage = (patch: Record<string, unknown>): void => {

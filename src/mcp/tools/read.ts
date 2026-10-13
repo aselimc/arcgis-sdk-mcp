@@ -17,6 +17,9 @@ import { registerDocTool, type ToolDefinition, type ToolHandler } from '../tool.
 const DESCRIPTION =
   'Reads one documentation page, API reference page, sample, release-notes page, GitHub file or curated brief and returns clean Markdown with code fences and absolute links. `ref` is a URL from another tool or any URL on Esri\'s documentation hosts; a "#fragment" selects that section. By default (`view: "auto"`) a document that fits `max_tokens` is returned whole; a larger one returns its opening section plus an outline listing every section id with its size, so the next call can ask for one `section`. `view: "outline"` returns only the outline; `view: "full"` pages through the whole document with `cursor`. On API pages `section` may be a member name; on samples `section: "source"` returns only the code. States the product, version and retrieval date. Does not search: use arcgis_docs_search or arcgis_docs_lookup_symbol to find a ref.';
 
+/** Default of `max_tokens` in the published schema (design section 3.5). */
+const DEFAULT_MAX_TOKENS = 6000;
+
 const Input = z.object({
   ref: z
     .string()
@@ -38,7 +41,7 @@ const Input = z.object({
     .describe(
       'auto: whole doc if it fits, else opening + outline. outline: structure only. full: sequential pages via cursor.',
     ),
-  max_tokens: maxTokensArg(500, 6000),
+  max_tokens: maxTokensArg(500, DEFAULT_MAX_TOKENS),
   cursor: cursorArg('Opaque cursor from a truncated response to continue it.'),
 });
 
@@ -55,12 +58,17 @@ export const readTool = {
 } satisfies ToolDefinition<typeof Input>;
 
 const handle: ToolHandler<typeof Input> = async (args, call, container) => {
+  // The schema is the same in every configuration, so its default cannot follow
+  // ARCGIS_DOCS_MAX_TOKENS: a call at the schema default takes the configured size instead.
+  const defaulted = args.max_tokens === DEFAULT_MAX_TOKENS;
+  const maxTokens = defaulted ? container.ctx.config.defaultMaxTokens : args.max_tokens;
   const response = await container.services.docs.read(
     compact({
       ref: args.ref,
       section: args.section,
       view: args.view,
-      maxTokens: bodyBudget(args.max_tokens),
+      maxTokens: bodyBudget(maxTokens),
+      callerMaxTokens: defaulted ? undefined : args.max_tokens,
       cursor: args.cursor,
     }),
     call,
@@ -78,6 +86,7 @@ const handle: ToolHandler<typeof Input> = async (args, call, container) => {
             ref: args.ref,
             section: args.section,
             view: args.view === 'auto' ? undefined : args.view,
+            max_tokens: defaulted ? undefined : args.max_tokens,
             cursor: response.nextCursor,
           }),
         ));

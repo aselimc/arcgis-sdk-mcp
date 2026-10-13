@@ -591,7 +591,13 @@ export interface ReadRequest {
   ref: string;
   section?: string;
   view: 'auto' | 'outline' | 'full';
+  /** Budget of the text of the page: what is left of the response once its envelope is paid. */
   maxTokens: number;
+  /**
+   * The `max_tokens` the caller passed, which a continuation repeats so that every page of a
+   * paged read has the size that was asked for. Absent when the caller relied on the default.
+   */
+  callerMaxTokens?: number;
   cursor?: string;
 }
 

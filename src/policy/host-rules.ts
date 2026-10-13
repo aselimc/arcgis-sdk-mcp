@@ -72,14 +72,13 @@ export function pathViolation(host: CompiledHost, url: URL): string | undefined 
 }
 
 /**
- * Why a method is refused on a host, or `undefined` when it is accepted. `POST` exists for
- * exactly one purpose, the opt-in search backend, which in turn accepts nothing else; every
- * other host is read with `GET` only.
+ * Why a method is refused on a host, or `undefined` when it is accepted. A host is used
+ * with the one method its policy names (`GET` unless it says otherwise) and no other.
  */
 export function methodViolation(host: CompiledHost, method: Method): string | undefined {
-  const postOnly = host.policy.capability === 'site-search';
-  if (postOnly === (method === 'POST')) return undefined;
-  return postOnly
+  const accepted = host.policy.method ?? 'GET';
+  if (method === accepted) return undefined;
+  return accepted === 'POST'
     ? `${host.policy.host} accepts POST requests only`
     : `${host.policy.host} is read with GET requests only`;
 }

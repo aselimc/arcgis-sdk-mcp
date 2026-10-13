@@ -121,6 +121,7 @@ export const read = (
     section?: string;
     view?: 'auto' | 'outline' | 'full';
     maxTokens?: number;
+    callerMaxTokens?: number;
     cursor?: string;
   },
 ) => h.services.docs.read({ view: 'auto', maxTokens: 6000, ...request }, h.call());
