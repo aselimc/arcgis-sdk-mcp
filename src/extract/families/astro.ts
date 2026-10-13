@@ -1,9 +1,10 @@
+import { escapeHtml, squash, tagged } from '../dom.js';
 import { stampOutline } from '../outline.js';
 import type { FamilyProfile, Pass } from '../types.js';
 import { themeRoot, themeTitle } from './shared.js';
 
 /** The strips of "View in CodePen" links under code blocks are interface, not content. */
-export const dropCodePenStrips: Pass = ($) => {
+const dropCodePenStrips: Pass = ($) => {
   $('ul.list-none')
     .filter((_, list) => $(list).find('astro-island').length > 0)
     .remove();
@@ -14,7 +15,7 @@ export const dropCodePenStrips: Pass = ($) => {
  * one or two links, each made of a `small` label and a `span` title. It is navigation, and
  * left in place it ends every page with two run-together links.
  */
-export const dropPager: Pass = ($) => {
+const dropPager: Pass = ($) => {
   $('div')
     .filter((_, block) => {
       const children = $(block).children();
@@ -29,10 +30,41 @@ export const dropPager: Pass = ($) => {
     .remove();
 };
 
+/**
+ * The button row that opens a native sample page: a platform switcher ("View in MAUI / WinUI
+ * / WPF") and buttons to the repository and the app stores. The switcher's items print as
+ * one run of words; the row becomes a line of links to the other platforms' pages and to
+ * the source on GitHub, which are refs a reader can follow.
+ */
+const linkButtonRows: Pass = ($) => {
+  $('div.button-group').each((_, el) => {
+    const row = $(el);
+    const platforms = row
+      .find('calcite-segmented-control-item[data-url]')
+      .filter((__, item) => $(item).attr('checked') === undefined)
+      .map((__, item) =>
+        tagged('a', squash($(item).text()), `href="${escapeHtml($(item).attr('data-url') ?? '')}"`),
+      )
+      .get();
+    const source = row
+      .find('calcite-button[href*="github.com"]')
+      .map((__, button) =>
+        tagged('a', squash($(button).text()), `href="${escapeHtml($(button).attr('href') ?? '')}"`),
+      )
+      .get();
+    const parts = [
+      platforms.length === 0 ? '' : `Also available for: ${platforms.join(', ')}`,
+      ...source,
+    ].filter((part) => part !== '');
+    row.replaceWith(parts.length === 0 ? '' : `<p>${parts.join(' · ')}</p>`);
+  });
+};
+
 /** Interface elements of the Astro theme that sit inside the content root. */
 export const dropAstroChrome: Pass = ($, env) => {
   dropCodePenStrips($, env);
   dropPager($, env);
+  linkButtonRows($, env);
 };
 
 /**

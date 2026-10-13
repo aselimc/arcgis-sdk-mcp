@@ -1,7 +1,8 @@
 /**
- * TTL classes of cached HTTP entries (design section 6.2): how long each class is fresh, how
- * long a copy may still be served when the upstream fails, and which class a URL gets when
- * the caller names none.
+ * TTL classes of cached HTTP entries (design section 6.2): how long each class is fresh and
+ * how long a copy may still be served when the upstream fails. Which class a request gets
+ * when the caller names none is decided where the host table is known
+ * (`src/net/freshness.ts`).
  */
 import type { TtlClass } from '../core/types.js';
 
@@ -34,20 +35,12 @@ export const STALE_IF_ERROR_MS = 30 * DAY;
 export const TTL_CLASSES = Object.keys(TTL_MS) as TtlClass[];
 
 /**
- * The stale-if-error window of a class. Remote search results are never served stale: an
- * outdated hit list is worse than falling back to the local index.
+ * The stale-if-error window of a class. Remote search results are never served stale (an
+ * outdated hit list is worse than falling back to the local index), and neither is a
+ * remembered miss: "it was not there an hour ago" is no answer for a host that is down now.
  */
 export function staleIfErrorMs(ttl: TtlClass): number {
-  return ttl === 'remote-search' ? 0 : STALE_IF_ERROR_MS;
-}
-
-/**
- * True when an expired entry of this class is refreshed with a conditional request
- * (`If-None-Match` / `If-Modified-Since`, as the host row says). Immutable entries are never
- * revalidated, and search results and remembered misses have no validator worth sending.
- */
-export function revalidates(ttl: TtlClass): boolean {
-  return ttl !== 'immutable' && ttl !== 'remote-search' && ttl !== 'negative';
+  return ttl === 'remote-search' || ttl === 'negative' ? 0 : STALE_IF_ERROR_MS;
 }
 
 /** Options of {@link freshness}. */
@@ -57,7 +50,8 @@ export interface FreshnessOptions {
 }
 
 /**
- * The freshness window of an entry fetched or revalidated at `now` (epoch milliseconds).
+ * The freshness window of an entry fetched or revalidated at `now` (epoch milliseconds). The
+ * `Cache` port stores the instants it is given, so the gateway computes them here.
  *
  * `staleUntil` is never earlier than `freshUntil`; for an immutable entry they coincide,
  * because its year of freshness already exceeds the stale-if-error window.
@@ -86,67 +80,4 @@ export function freshnessAt(
 ): Freshness {
   if (now < entry.freshUntil) return 'fresh';
   return now < entry.staleUntil ? 'stale' : 'expired';
-}
-
-const COMMIT_SHA = /^[0-9a-f]{40}$/i;
-/** An exact npm version after the last `@`: `4.31.6`, `5.0.0-next.12`; not `4`, `latest`, `^5`. */
-const PINNED_NPM = /@\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.+-]+)?(?:\/|$)/;
-const REGISTRY_HOSTS = new Set([
-  'registry.npmjs.org',
-  'pypi.org',
-  'api.nuget.org',
-  'pub.dev',
-  'www.arcgis.com',
-  'plc-api.esri.com',
-]);
-const SPEC_HOSTS = new Set(['hub.arcgis.com', 'sitescan-api.arcgis.com']);
-/** A file named like an OpenAPI document; a guide page about OpenAPI is still a page. */
-const SPEC_PATH = /(?:(?:openapi|swagger|apidocs)[^/]*\.(?:json|ya?ml)|\/docs-json)$/i;
-const INDEX_PATH = /(?:\.(?:json|xml|ya?ml|inv|js)|\/sitemap[^/]*)$/i;
-
-function githubRawClass(segments: string[]): TtlClass {
-  // /<owner>/<repo>/<ref>/<path>, or /<owner>/<repo>/refs/tags/<tag>/<path>.
-  const [, , ref, kind] = segments;
-  if (ref !== undefined && COMMIT_SHA.test(ref)) return 'immutable';
-  return ref === 'refs' && kind === 'tags' ? 'immutable' : 'volatile';
-}
-
-function githubApiClass(segments: string[]): TtlClass {
-  // /repos/<owner>/<repo>[/<resource>...]
-  const [, , , resource, sub, ref] = segments;
-  if (resource === undefined || resource === 'license') return 'github-meta';
-  if (resource === 'git' && sub === 'trees' && ref !== undefined && COMMIT_SHA.test(ref)) {
-    return 'immutable';
-  }
-  return 'volatile';
-}
-
-/**
- * The TTL class of a request that names none.
- *
- * Only what the URL itself proves is treated as immutable: an exact npm version on jsDelivr,
- * a commit SHA or `refs/tags/` on GitHub. A bare ref such as `v1.2.0` could be a branch, so
- * callers that resolved a release tag pass `ttl: 'immutable'` themselves.
- *
- * @param expect the body shape the caller asked for; structured bodies on documentation
- *   hosts are index files, everything else is a page.
- */
-export function defaultTtlClass(
-  url: URL,
-  expect?: 'html' | 'json' | 'xml' | 'text' | 'yaml',
-): TtlClass {
-  const host = url.hostname;
-  const segments = url.pathname.split('/').filter((segment) => segment.length > 0);
-
-  if (host === 'cdn.jsdelivr.net' || host === 'data.jsdelivr.com') {
-    return PINNED_NPM.test(url.pathname) ? 'immutable' : 'volatile';
-  }
-  if (host === 'raw.githubusercontent.com') return githubRawClass(segments);
-  if (host === 'api.github.com') return githubApiClass(segments);
-  if (host === 'esearchapi.esri.com') return 'remote-search';
-  if (REGISTRY_HOSTS.has(host)) return 'volatile';
-  if (SPEC_HOSTS.has(host) || SPEC_PATH.test(url.pathname)) return 'spec';
-  if (expect === 'json' || expect === 'xml' || expect === 'yaml') return 'index';
-  if (expect === undefined && INDEX_PATH.test(url.pathname)) return 'index';
-  return 'page';
 }

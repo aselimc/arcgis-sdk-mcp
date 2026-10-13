@@ -3,41 +3,34 @@ import { stampOutline } from '../outline.js';
 import type { FamilyProfile, Pass } from '../types.js';
 import { themeRoot, themeTitle } from './shared.js';
 
-/** Marks a list made from a card, so that only such lists are merged. */
-const CARD_LIST = 'data-md-cards';
+const ARROW = ' → ';
 
 /**
- * Illustration cards (`a.group` wrapping an icon, an `h3` and a description) become list
- * items `[title](href): description`. As links they would each open a section of their own.
+ * The class pages of the generated API references (Survey123 web app API) show the base
+ * classes as a row of names with arrow icons between them. Without the icons the names run
+ * together (`Survey123WebFormSurvey123JsApiCommon`): the arrow is written as text.
  */
-export const cardsToList: Pass = ($) => {
-  $('a.group')
-    .filter((_, card) => $(card).children('h3').length > 0)
-    .each((_, el) => {
-      const card = $(el);
-      const href = card.attr('href');
-      const name = squash(card.children('h3').first().text());
-      const title =
-        href === undefined ? escapeHtml(name) : tagged('a', name, `href="${escapeHtml(href)}"`);
-      const description = squash(card.find('p').text());
-      const text = description === '' ? '' : `: ${escapeHtml(description)}`;
-      card.replaceWith(`<ul ${CARD_LIST}=""><li>${title}${text}</li></ul>`);
+const inheritanceChains: Pass = ($) => {
+  $('div > b:first-child')
+    .filter((_, label) => /^inheritance:?$/i.test(squash($(label).text())))
+    .each((_, label) => {
+      const row = $(label).parent();
+      const names = row
+        .children('span')
+        .map((__, name) => squash($(name).text()))
+        .get()
+        .filter((name) => name !== '');
+      if (names.length === 0) return;
+      const chain = names.map((name) => tagged('code', name)).join(escapeHtml(ARROW));
+      row.replaceWith(`<p>${tagged('strong', 'Inheritance:')} ${chain}</p>`);
     });
-};
-
-/** Consecutive one-card lists (see {@link cardsToList}) are merged into one list. */
-export const mergeCardLists: Pass = ($) => {
-  $(`ul[${CARD_LIST}] + ul[${CARD_LIST}]`).each((_, el) => {
-    const list = $(el);
-    list.prev().append(list.children());
-    list.remove();
-  });
 };
 
 /**
  * Gatsby MDX guides on developers.arcgis.com (Arcade, the Python guide, Calcite,
  * `/documentation`). Same shell as the Astro sites; code blocks are react-syntax-highlighter
- * blocks, handled by the shared `fixGatsbyCode` pass.
+ * blocks, handled by the shared `fixGatsbyCode` pass, and illustration cards by the shared
+ * link pass.
  */
 export const gatsby: FamilyProfile = {
   id: 'gatsby',
@@ -45,6 +38,5 @@ export const gatsby: FamilyProfile = {
   root: themeRoot,
   title: themeTitle,
   outline: (page) => stampOutline(page),
-  prepare: cardsToList,
-  clean: mergeCardLists,
+  prepare: inheritanceChains,
 };

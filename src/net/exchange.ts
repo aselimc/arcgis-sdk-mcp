@@ -4,13 +4,12 @@
  * and body validation are the caller's business (`http-client.ts`).
  */
 import { budgetExhausted, consumeBudget } from '../core/async.js';
-import type { McpDocError } from '../core/errors.js';
 import type { Clock, Logger, RequestBudget } from '../core/ports.js';
 import type { HostPolicy } from '../core/types.js';
 import type { CircuitBreakers } from './circuit-breaker.js';
-import { blocked, unavailable } from './errors.js';
+import { blocked, declined, paused, unavailable } from './errors.js';
 import { TransportError, send, type TransportResponse } from './fetch-transport.js';
-import { readRateLimit, type RateLimitSnapshot } from './rate-limit-info.js';
+import { readRateLimit, type HostQuotas } from './rate-limit-info.js';
 import type { RateLimiter } from './rate-limiter.js';
 import { parseRetryAfter, retryDelay } from './retry.js';
 
@@ -42,8 +41,8 @@ export interface ExchangeDeps {
   random: () => number;
   breakers: CircuitBreakers;
   limiter: RateLimiter;
-  /** Receives the quota headers of every response that carries any. */
-  onRateLimit: (host: string, snapshot: RateLimitSnapshot) => void;
+  /** Receives the quota headers of every response, and says when a host asked for a pause. */
+  quotas: HostQuotas;
 }
 
 /** Sends a hop and resolves with any response that is neither a refusal nor a server error. */
@@ -52,9 +51,15 @@ export type Exchange = (hop: Hop) => Promise<TransportResponse>;
 /**
  * Builds the {@link Exchange} function.
  *
- * It rejects with `UPSTREAM_BLOCKED` for a refusal and `UPSTREAM_UNAVAILABLE` for everything
- * else: `retryable: true` when the request budget is spent, the breaker is open or the host
- * kept failing through the retries; `retryable: false` for an oversized body.
+ * It rejects with `UPSTREAM_BLOCKED` for a refusal (also the local one while a pause the host
+ * asked for is running) and `UPSTREAM_UNAVAILABLE` for everything else: `retryable: true`
+ * when the breaker is open, the host kept failing through the retries, or the gateway gave up
+ * itself (`declined` in `errors.ts`: budget, pacing, cancellation); `retryable: false` for an
+ * oversized body.
+ *
+ * Only what the host did counts towards its circuit breaker. A request that was cancelled,
+ * that found no start time, or that the caller's deadline cut short says nothing about the
+ * host and is abandoned instead.
  */
 export function createExchange(deps: ExchangeDeps): Exchange {
   const { clock, breakers, limiter, logger } = deps;
@@ -66,22 +71,37 @@ export function createExchange(deps: ExchangeDeps): Exchange {
     const url = hop.url.href;
     const host = hop.host.host;
     const deadline = hop.budget?.deadline;
-    if (hop.signal?.aborted === true) throw unavailable(url, 'cancelled by the caller');
+    // Asked afresh each time: the caller can cancel during any of the waits below.
+    const cancelled = (): boolean => hop.signal?.aborted === true;
+    if (cancelled()) throw declined(url, 'cancelled');
     if (hop.budget !== undefined && budgetExhausted(hop.budget, clock)) {
-      throw unavailable(url, 'request budget');
+      throw declined(url, 'budget');
     }
+    const pausedUntil = deps.quotas.pausedUntil(host);
+    if (pausedUntil !== undefined) throw paused(url, pausedUntil);
     if (!breakers.allow(host)) throw unavailable(url, `circuit open for ${host}`);
 
-    const release = await limiter.acquire(host, hop.host, { deadline });
-    // Counted only now: the budget is for requests that reach the network.
-    if (release === undefined || (hop.budget !== undefined && !consumeBudget(hop.budget, clock))) {
-      release?.();
+    const release = await limiter.acquire(host, hop.host, { deadline, signal: hop.signal });
+    if (release === undefined) {
       breakers.abandon(host);
-      throw unavailable(url, 'request budget');
+      if (cancelled()) throw declined(url, 'cancelled');
+      // Still inside the budget: the host's pacing, not the budget, kept the request back.
+      const spent = hop.budget !== undefined && budgetExhausted(hop.budget, clock);
+      throw declined(url, spent ? 'budget' : 'pacing');
+    }
+    // Counted only now: the budget is for requests that reach the network.
+    if (hop.budget !== undefined && !consumeBudget(hop.budget, clock)) {
+      release();
+      breakers.abandon(host);
+      throw declined(url, 'budget');
     }
 
     const wanted = hop.timeoutMs ?? hop.host.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-    const timeoutMs = deadline === undefined ? wanted : Math.min(wanted, deadline - clock.now());
+    const left = deadline === undefined ? Number.POSITIVE_INFINITY : deadline - clock.now();
+    // A timeout shorter than the host is normally given is the caller's deadline, not the
+    // host's failure to answer in time.
+    const cutShort = left < wanted;
+    const timeoutMs = Math.min(wanted, left);
     const startedAt = clock.now();
     let response: TransportResponse;
     try {
@@ -100,7 +120,11 @@ export function createExchange(deps: ExchangeDeps): Exchange {
       logger.debug('http failure', { url, kind: failure.kind });
       if (failure.kind === 'aborted') {
         breakers.abandon(host);
-        throw unavailable(url, failure.message);
+        throw declined(url, 'cancelled');
+      }
+      if (failure.kind === 'timeout' && cutShort) {
+        breakers.abandon(host);
+        throw declined(url, 'budget');
       }
       if (failure.kind === 'oversized') {
         // The host answered; the document is simply too large to be one of ours.
@@ -118,7 +142,7 @@ export function createExchange(deps: ExchangeDeps): Exchange {
     const retryAfterMs = parseRetryAfter(headers.get('retry-after'), clock.now());
     const refusedByHost = REFUSALS.has(status);
     const quota = readRateLimit(headers, clock.now(), refusedByHost ? retryAfterMs : undefined);
-    if (quota !== undefined) deps.onRateLimit(host, quota);
+    if (quota !== undefined) deps.quotas.record(host, quota);
 
     if (refusedByHost) {
       breakers.failure(host, `HTTP ${status}`);
@@ -139,7 +163,7 @@ export function createExchange(deps: ExchangeDeps): Exchange {
       const outcome = await attempt(hop);
       if (!('transient' in outcome)) return outcome;
 
-      const failure: McpDocError = unavailable(hop.url.href, outcome.transient);
+      const failure = unavailable(hop.url.href, outcome.transient);
       // A POST is not repeated here: the gateway cannot know that it is safe to send twice.
       if (hop.method === 'POST') throw failure;
       const delay = retryDelay({

@@ -53,10 +53,30 @@ function inlineParagraphLinks($: CheerioAPI): void {
   });
 }
 
+const BLOCKS = 'p, div, section, article, header, footer, figure, ul, ol, li, blockquote';
+
+/**
+ * A link around any other block content (`<a><div><img></div><div>text</div></a>`) would
+ * print as `[`, the blocks on lines of their own, and `](url)`. Its blocks are opened, with
+ * a space where one ended, so the link is one line again.
+ */
+function inlineBlockLinks($: CheerioAPI): void {
+  $('a[href]')
+    .filter((_, link) => $(link).find(BLOCKS).length > 0)
+    .each((_, link) => {
+      // Innermost first: an outer block is replaced by contents that are already inline.
+      for (const block of $(link).find(BLOCKS).get().reverse()) {
+        const $block = $(block);
+        if (block.next !== null) $block.after(' ');
+        $block.replaceWith($block.contents());
+      }
+    });
+}
+
 /**
  * Inline elements wrapped around block content cannot be written in Markdown. Emphasis
  * around blocks (`<em><p>...</p></em>`) leaves stray `_` lines, so the emphasis is dropped
- * and the blocks stay; a link around paragraphs keeps the link and loses the paragraphs.
+ * and the blocks stay; a link around blocks keeps the link and loses the blocks.
  */
 export const unwrapBlockyInline: Pass = ($) => {
   unwrap(
@@ -66,4 +86,5 @@ export const unwrapBlockyInline: Pass = ($) => {
     ),
   );
   inlineParagraphLinks($);
+  inlineBlockLinks($);
 };

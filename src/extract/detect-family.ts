@@ -6,11 +6,18 @@
 import { load, type CheerioAPI } from 'cheerio';
 import type { HtmlFamily } from '../core/types.js';
 
+/**
+ * The source of a native SDK sample page (Kotlin, Swift, .NET, Flutter, Qt): a file switcher
+ * right under the "Sample code" heading. JavaScript samples keep theirs in a hidden
+ * `div.sample-code-source`. A switcher anywhere else is a tutorial step, not a sample.
+ */
+export const NATIVE_SAMPLE_SOURCE = 'h2#sample-code + starship-code-switcher-dropdown';
+
 /** The generator comment of javadoc sits in the first lines of the document. */
 const JAVADOC_HEAD_BYTES = 3072;
 
 /** Family of an already parsed page. `html` is the same document as text. */
-export function detectFamilyOf($: CheerioAPI, html: string): HtmlFamily {
+function detectFamilyOf($: CheerioAPI, html: string): HtmlFamily {
   const has = (selector: string): boolean => $(selector).length > 0;
   const head = html.slice(0, JAVADOC_HEAD_BYTES);
 
@@ -36,7 +43,7 @@ export function detectFamilyOf($: CheerioAPI, html: string): HtmlFamily {
     const generator = ($('meta[name=generator]').attr('content') ?? '').toLowerCase();
     if (generator.startsWith('gatsby')) return has('main#main dl.grid') ? 'gatsby-rest' : 'gatsby';
     if (has('astro-island') || html.includes('/_astro/')) {
-      if (has('div.sample-code-source')) return 'astro-sample';
+      if (has('div.sample-code-source') || has(NATIVE_SAMPLE_SOURCE)) return 'astro-sample';
       if (has('div.lumina-detail')) return 'astro-js-ref';
       return 'astro';
     }

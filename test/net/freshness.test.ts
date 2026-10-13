@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { CachedHttpEntry, HttpRequest } from '../../src/core/ports.js';
 import type { HostPolicy, TtlClass } from '../../src/core/types.js';
-import { STALE_IF_ERROR_MS, TTL_MS } from '../../src/cache/ttl.js';
+import { STALE_IF_ERROR_MS, TTL_MS, freshness } from '../../src/cache/ttl.js';
 import {
   cacheKey,
   conditionalHeaders,
   defaultTtl,
-  freshnessWindow,
   isFresh,
   usableEntry,
 } from '../../src/net/freshness.js';
@@ -27,17 +26,17 @@ describe('TTL table (design section 6.2)', () => {
     ['negative', HOUR],
   ])('%s is fresh for the specified time', (ttl, ms) => {
     expect(TTL_MS[ttl]).toBe(ms);
-    expect(freshnessWindow(ttl, NOW).freshUntil).toBe(NOW + ms);
+    expect(freshness(ttl, NOW).freshUntil).toBe(NOW + ms);
   });
 
   it('allows stale-if-error for 30 days, except for misses and remote search', () => {
     expect(STALE_IF_ERROR_MS).toBe(30 * DAY);
-    expect(freshnessWindow('page', NOW).staleUntil).toBe(NOW + 30 * DAY);
-    expect(freshnessWindow('volatile', NOW).staleUntil).toBe(NOW + 30 * DAY);
+    expect(freshness('page', NOW).staleUntil).toBe(NOW + 30 * DAY);
+    expect(freshness('volatile', NOW).staleUntil).toBe(NOW + 30 * DAY);
     // An immutable entry is fresh for longer than the stale window.
-    expect(freshnessWindow('immutable', NOW).staleUntil).toBe(NOW + 365 * DAY);
-    expect(freshnessWindow('negative', NOW).staleUntil).toBe(NOW + HOUR);
-    expect(freshnessWindow('remote-search', NOW).staleUntil).toBe(NOW + DAY);
+    expect(freshness('immutable', NOW).staleUntil).toBe(NOW + 365 * DAY);
+    expect(freshness('negative', NOW).staleUntil).toBe(NOW + HOUR);
+    expect(freshness('remote-search', NOW).staleUntil).toBe(NOW + DAY);
   });
 });
 
@@ -89,19 +88,27 @@ describe('cacheKey', () => {
 
   it('separates method, body and encoding', () => {
     const keys = new Set([
-      cacheKey('GET', url, undefined, undefined),
-      cacheKey('GET', url, undefined, 'base64'),
-      cacheKey('POST', url, '{"q":1}', undefined),
-      cacheKey('POST', url, '{"q":2}', undefined),
+      cacheKey('GET', url, undefined, undefined, 'json'),
+      cacheKey('GET', url, undefined, 'base64', 'json'),
+      cacheKey('POST', url, '{"q":1}', undefined, 'json'),
+      cacheKey('POST', url, '{"q":2}', undefined, 'json'),
     ]);
     expect(keys.size).toBe(4);
-    expect(cacheKey('GET', url, undefined, 'utf8')).toBe(
-      cacheKey('GET', url, undefined, undefined),
+    expect(cacheKey('GET', url, undefined, 'utf8', 'json')).toBe(
+      cacheKey('GET', url, undefined, undefined, 'json'),
     );
   });
 
+  it('separates the shapes a body is validated as', () => {
+    const key = (expectation: HttpRequest['expect']) =>
+      cacheKey('GET', url, undefined, undefined, expectation);
+    expect(new Set([key('html'), key('json'), key('xml'), key('text')]).size).toBe(4);
+    // yaml and text pass the same check, so one stored copy serves both.
+    expect(key('yaml')).toBe(key('text'));
+  });
+
   it('does not put the body itself into the key', () => {
-    expect(cacheKey('POST', url, 'secret-query', undefined)).not.toContain('secret-query');
+    expect(cacheKey('POST', url, 'secret-query', undefined, 'json')).not.toContain('secret-query');
   });
 });
 

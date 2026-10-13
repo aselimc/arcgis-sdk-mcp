@@ -152,6 +152,48 @@ function produce(reply: Reply, call: OriginCall): Response {
   return produced.clone();
 }
 
+/**
+ * An origin that answers when the test says so. Every document request waits in `waiting`
+ * until the test answers it, and is rejected with the reason of its signal when that fires
+ * first, as the built-in `fetch` does. `robots.txt` answers 404 at once.
+ */
+export class GatedOrigin {
+  /** Requests that have reached the origin and are not answered yet, oldest first. */
+  readonly waiting: Array<{ url: string; answer: (reply: Response) => void }> = [];
+  /** URL of every document request, in order. */
+  readonly urls: string[] = [];
+
+  /** The injected `fetch`. */
+  readonly fetch: typeof fetch = (input, init) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    if (new URL(url).pathname === '/robots.txt') return Promise.resolve(status(404));
+    this.urls.push(url);
+    return new Promise<Response>((resolve, reject) => {
+      const signal = init?.signal ?? undefined;
+      const entry = { url, answer: resolve };
+      this.waiting.push(entry);
+      signal?.addEventListener('abort', () => {
+        this.waiting.splice(this.waiting.indexOf(entry), 1);
+        // The rejection reason is whatever the caller aborted with: that is the point.
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        reject(signal.reason);
+      });
+    });
+  };
+
+  /** Resolves once `count` requests are waiting at the origin. */
+  async reached(count = 1): Promise<void> {
+    while (this.waiting.length < count) await new Promise((resolve) => setImmediate(resolve));
+  }
+
+  /** Answers the oldest waiting request. */
+  answer(reply: Response): void {
+    const next = this.waiting.shift();
+    if (next === undefined) throw new Error('no request is waiting at the origin');
+    next.answer(reply);
+  }
+}
+
 /** A host row for the test table: generous limits, ETag revalidation, capability `website`. */
 export function hostRow(host: string, overrides: Partial<HostPolicy> = {}): HostPolicy {
   return { ...permissiveHost(host), ...overrides };
@@ -192,6 +234,8 @@ export interface RigOptions {
   origin?: FakeOrigin;
   /** Jitter source; the default 0.5 gives the unjittered delays. */
   random?: () => number;
+  /** Replaces the scripted origin's `fetch`, for tests that control when an answer arrives. */
+  fetchImpl?: typeof fetch;
 }
 
 /** Builds a gateway over fakes. Waiting advances the fake clock instead of real time. */
@@ -213,7 +257,7 @@ export function makeRig(options: RigOptions = {}): Rig {
     cache,
     policy,
     detectMetaRefresh,
-    fetchImpl: origin.fetch,
+    fetchImpl: options.fetchImpl ?? origin.fetch,
     sleep: async (ms) => {
       sleeps.push(ms);
       clock.advance(ms);

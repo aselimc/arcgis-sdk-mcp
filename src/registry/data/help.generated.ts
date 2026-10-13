@@ -3373,77 +3373,77 @@ export const helpProducts: readonly Product[] = [
       },
       {
         "id": "3.6",
-        "label": "Pro 3.6",
+        "label": "3.6",
         "current": false,
         "access": "live",
         "vars": {}
       },
       {
         "id": "3.5",
-        "label": "Pro 3.5",
+        "label": "3.5",
         "current": false,
         "access": "live",
         "vars": {}
       },
       {
         "id": "3.4",
-        "label": "Pro 3.4",
+        "label": "3.4",
         "current": false,
         "access": "link-only",
         "vars": {}
       },
       {
         "id": "3.3",
-        "label": "Pro 3.3",
+        "label": "3.3",
         "current": false,
         "access": "link-only",
         "vars": {}
       },
       {
         "id": "3.2",
-        "label": "Pro 3.2",
+        "label": "3.2",
         "current": false,
         "access": "link-only",
         "vars": {}
       },
       {
         "id": "3.1",
-        "label": "Pro 3.1",
+        "label": "3.1",
         "current": false,
         "access": "link-only",
         "vars": {}
       },
       {
         "id": "3.0",
-        "label": "Pro 3.0",
+        "label": "3.0",
         "current": false,
         "access": "link-only",
         "vars": {}
       },
       {
         "id": "2.9",
-        "label": "Pro 2.9",
+        "label": "2.9",
         "current": false,
         "access": "link-only",
         "vars": {}
       },
       {
         "id": "2.8",
-        "label": "Pro 2.8",
+        "label": "2.8",
         "current": false,
         "access": "link-only",
         "vars": {}
       },
       {
         "id": "2.7",
-        "label": "Pro 2.7",
+        "label": "2.7",
         "current": false,
         "access": "link-only",
         "vars": {}
       },
       {
         "id": "2.6",
-        "label": "Pro 2.6",
+        "label": "2.6",
         "current": false,
         "access": "link-only",
         "vars": {}
@@ -3477,7 +3477,7 @@ export const helpProducts: readonly Product[] = [
       },
       {
         "id": "legacy",
-        "title": "ArcGIS Pro help, earlier versions",
+        "title": "ArcGIS Pro help, earlier versions (get started and the main help books)",
         "kinds": [
           "help"
         ],
@@ -3487,10 +3487,108 @@ export const helpProducts: readonly Product[] = [
           "base": "/en/pro-app/{line}/",
           "books": [
             {
-              "path": "get-started"
+              "path": "get-started",
+              "tocScript": "/en/pro-app/{line}/get-started/2417.js"
             },
             {
-              "path": "help"
+              "path": "help",
+              "tocScript": "/en/pro-app/{line}/help/main/1868.js"
+            },
+            {
+              "path": "help/projects",
+              "tocScript": "/en/pro-app/{line}/help/projects/1157.js"
+            },
+            {
+              "path": "help/mapping/introduction",
+              "tocScript": "/en/pro-app/{line}/help/mapping/introduction/2000.js"
+            },
+            {
+              "path": "help/mapping/map-authoring",
+              "tocScript": "/en/pro-app/{line}/help/mapping/map-authoring/1278.js"
+            },
+            {
+              "path": "help/mapping/layer-properties",
+              "tocScript": "/en/pro-app/{line}/help/mapping/layer-properties/1516.js"
+            },
+            {
+              "path": "help/mapping/navigation",
+              "tocScript": "/en/pro-app/{line}/help/mapping/navigation/1117.js"
+            },
+            {
+              "path": "help/mapping/text",
+              "tocScript": "/en/pro-app/{line}/help/mapping/text/1108.js"
+            },
+            {
+              "path": "help/editing",
+              "tocScript": "/en/pro-app/{line}/help/editing/36.js"
+            },
+            {
+              "path": "help/data/main",
+              "tocScript": "/en/pro-app/{line}/help/data/main/1915.js"
+            },
+            {
+              "path": "help/data/introduction",
+              "tocScript": "/en/pro-app/{line}/help/data/introduction/2243.js"
+            },
+            {
+              "path": "help/data/geodatabases/overview",
+              "tocScript": "/en/pro-app/{line}/help/data/geodatabases/overview/1778.js"
+            },
+            {
+              "path": "help/data/geodatabases/introduction",
+              "tocScript": "/en/pro-app/{line}/help/data/geodatabases/introduction/2195.js"
+            },
+            {
+              "path": "help/data/feature-classes",
+              "tocScript": "/en/pro-app/{line}/help/data/feature-classes/42.js"
+            },
+            {
+              "path": "help/data/tables",
+              "tocScript": "/en/pro-app/{line}/help/data/tables/1372.js"
+            },
+            {
+              "path": "help/data/databases",
+              "tocScript": "/en/pro-app/{line}/help/data/databases/597.js"
+            },
+            {
+              "path": "help/data/services",
+              "tocScript": "/en/pro-app/{line}/help/data/services/1767.js"
+            },
+            {
+              "path": "help/data/imagery",
+              "tocScript": "/en/pro-app/{line}/help/data/imagery/1242.js"
+            },
+            {
+              "path": "help/analysis/introduction",
+              "tocScript": "/en/pro-app/{line}/help/analysis/introduction/2208.js"
+            },
+            {
+              "path": "help/analysis/geoprocessing/basics",
+              "tocScript": "/en/pro-app/{line}/help/analysis/geoprocessing/basics/1243.js"
+            },
+            {
+              "path": "help/analysis/geoprocessing/modelbuilder",
+              "tocScript": "/en/pro-app/{line}/help/analysis/geoprocessing/modelbuilder/1405.js"
+            },
+            {
+              "path": "help/analysis/geoprocessing/share-analysis",
+              "tocScript": "/en/pro-app/{line}/help/analysis/geoprocessing/share-analysis/1992.js"
+            },
+            {
+              "path": "help/layouts",
+              "tocScript": "/en/pro-app/{line}/help/layouts/1222.js"
+            },
+            {
+              "path": "help/sharing/overview",
+              "tocScript": "/en/pro-app/{line}/help/sharing/overview/1444.js"
+            },
+            {
+              "path": "help/metadata",
+              "tocScript": "/en/pro-app/{line}/help/metadata/1511.js"
+            },
+            {
+              "path": "help/tasks",
+              "tocScript": "/en/pro-app/{line}/help/tasks/1407.js"
             }
           ],
           "lines": [
@@ -3549,7 +3647,7 @@ export const helpProducts: readonly Product[] = [
     ],
     "pitfalls": [
       "ArcPy and the geoprocessing tool reference are product arcpy; the .NET SDK is arcgis-pro-sdk. This product holds the remaining help.",
-      "Help of earlier versions is read on demand for the two previous releases; older versions are links only."
+      "Of releases 3.6 and 3.5 only get started and the main help books are indexed; other pages are read by URL. Older releases are links only."
     ],
     "related": [
       "arcpy",
@@ -8503,7 +8601,7 @@ export const helpDeveloperSources: Readonly<Record<string, AnySourceDef>> = {
   },
   "arcpy/legacy": {
     "id": "legacy",
-    "title": "ArcGIS Pro (arcpy, tool-reference), earlier versions",
+    "title": "ArcPy reference of earlier ArcGIS Pro releases",
     "kinds": [
       "help"
     ],
@@ -8513,10 +8611,64 @@ export const helpDeveloperSources: Readonly<Record<string, AnySourceDef>> = {
       "base": "/en/pro-app/{line}/",
       "books": [
         {
-          "path": "arcpy"
+          "path": "arcpy",
+          "tocScript": "/en/pro-app/{line}/arcpy/main/1520.js"
         },
         {
-          "path": "tool-reference"
+          "path": "arcpy/get-started",
+          "tocScript": "/en/pro-app/{line}/arcpy/get-started/1457.js"
+        },
+        {
+          "path": "arcpy/geoprocessing_and_python",
+          "tocScript": "/en/pro-app/{line}/arcpy/geoprocessing_and_python/1542.js"
+        },
+        {
+          "path": "arcpy/functions",
+          "tocScript": "/en/pro-app/{line}/arcpy/functions/577.js"
+        },
+        {
+          "path": "arcpy/classes",
+          "tocScript": "/en/pro-app/{line}/arcpy/classes/1462.js"
+        },
+        {
+          "path": "arcpy/charts",
+          "tocScript": "/en/pro-app/{line}/arcpy/charts/2773.js"
+        },
+        {
+          "path": "arcpy/data-access",
+          "tocScript": "/en/pro-app/{line}/arcpy/data-access/1461.js"
+        },
+        {
+          "path": "arcpy/geocoding",
+          "tocScript": "/en/pro-app/{line}/arcpy/geocoding/2557.js"
+        },
+        {
+          "path": "arcpy/image-analyst",
+          "tocScript": "/en/pro-app/{line}/arcpy/image-analyst/2436.js"
+        },
+        {
+          "path": "arcpy/mapping",
+          "tocScript": "/en/pro-app/{line}/arcpy/mapping/1251.js"
+        },
+        {
+          "path": "arcpy/metadata",
+          "tocScript": "/en/pro-app/{line}/arcpy/metadata/2481.js"
+        },
+        {
+          "path": "arcpy/network-analyst",
+          "tocScript": "/en/pro-app/{line}/arcpy/network-analyst/1459.js"
+        },
+        {
+          "path": "arcpy/sharing",
+          "tocScript": "/en/pro-app/{line}/arcpy/sharing/2278.js"
+        },
+        {
+          "path": "arcpy/spatial-analyst",
+          "tocScript": "/en/pro-app/{line}/arcpy/spatial-analyst/1460.js"
+        },
+        {
+          "path": "arcpy/utility-network",
+          "tocScript": "/en/pro-app/{line}/arcpy/utility-network/3559.js"
         }
       ],
       "lines": [
@@ -8540,7 +8692,283 @@ export const helpDeveloperSources: Readonly<Record<string, AnySourceDef>> = {
       "2.6"
     ],
     "probe": {
-      "url": "https://pro.arcgis.com/en/pro-app/3.6/arcpy/flisting.htm",
+      "url": "https://pro.arcgis.com/en/pro-app/3.6/arcpy/functions/flisting.htm",
+      "expect": "html",
+      "family": "legacy-help",
+      "minChars": 200,
+      "mustContain": ".htm"
+    }
+  },
+  "arcpy/legacy-tools": {
+    "id": "legacy-tools",
+    "title": "Geoprocessing tools of earlier ArcGIS Pro releases: core toolboxes",
+    "kinds": [
+      "help"
+    ],
+    "adapter": "legacy-help",
+    "config": {
+      "host": "pro.arcgis.com",
+      "base": "/en/pro-app/{line}/",
+      "books": [
+        {
+          "path": "tool-reference",
+          "tocScript": "/en/pro-app/{line}/tool-reference/main/1518.js"
+        },
+        {
+          "path": "tool-reference/modelbuilder-toolbox",
+          "tocScript": "/en/pro-app/{line}/tool-reference/modelbuilder-toolbox/1549.js"
+        },
+        {
+          "path": "tool-reference/introduction-anatomy",
+          "tocScript": "/en/pro-app/{line}/tool-reference/introduction-anatomy/1902.js"
+        },
+        {
+          "path": "tool-reference/analysis",
+          "tocScript": "/en/pro-app/{line}/tool-reference/analysis/1484.js"
+        },
+        {
+          "path": "tool-reference/cartography",
+          "tocScript": "/en/pro-app/{line}/tool-reference/cartography/1490.js"
+        },
+        {
+          "path": "tool-reference/conversion",
+          "tocScript": "/en/pro-app/{line}/tool-reference/conversion/1491.js"
+        },
+        {
+          "path": "tool-reference/crime-analysis",
+          "tocScript": "/en/pro-app/{line}/tool-reference/crime-analysis/2588.js"
+        },
+        {
+          "path": "tool-reference/data-management",
+          "tocScript": "/en/pro-app/{line}/tool-reference/data-management/1493.js"
+        },
+        {
+          "path": "tool-reference/editing",
+          "tocScript": "/en/pro-app/{line}/tool-reference/editing/1492.js"
+        },
+        {
+          "path": "tool-reference/geoai",
+          "tocScript": "/en/pro-app/{line}/tool-reference/geoai/2978.js"
+        },
+        {
+          "path": "tool-reference/geoanalytics-desktop",
+          "tocScript": "/en/pro-app/{line}/tool-reference/geoanalytics-desktop/2428.js"
+        },
+        {
+          "path": "tool-reference/big-data-analytics",
+          "tocScript": "/en/pro-app/{line}/tool-reference/big-data-analytics/1869.js"
+        },
+        {
+          "path": "tool-reference/geocoding",
+          "tocScript": "/en/pro-app/{line}/tool-reference/geocoding/1494.js"
+        },
+        {
+          "path": "tool-reference/linear-referencing",
+          "tocScript": "/en/pro-app/{line}/tool-reference/linear-referencing/1496.js"
+        },
+        {
+          "path": "tool-reference/multidimension",
+          "tocScript": "/en/pro-app/{line}/tool-reference/multidimension/1498.js"
+        },
+        {
+          "path": "tool-reference/parcel",
+          "tocScript": "/en/pro-app/{line}/tool-reference/parcel/2341.js"
+        },
+        {
+          "path": "tool-reference/public-transit",
+          "tocScript": "/en/pro-app/{line}/tool-reference/public-transit/2828.js"
+        },
+        {
+          "path": "tool-reference/raster-analysis",
+          "tocScript": "/en/pro-app/{line}/tool-reference/raster-analysis/1892.js"
+        },
+        {
+          "path": "tool-reference/ready-to-use",
+          "tocScript": "/en/pro-app/{line}/tool-reference/ready-to-use/2186.js"
+        },
+        {
+          "path": "tool-reference/server",
+          "tocScript": "/en/pro-app/{line}/tool-reference/server/1508.js"
+        },
+        {
+          "path": "tool-reference/space-time-pattern-mining",
+          "tocScript": "/en/pro-app/{line}/tool-reference/space-time-pattern-mining/1535.js"
+        },
+        {
+          "path": "tool-reference/spatial-statistics",
+          "tocScript": "/en/pro-app/{line}/tool-reference/spatial-statistics/1500.js"
+        },
+        {
+          "path": "tool-reference/feature-analysis",
+          "tocScript": "/en/pro-app/{line}/tool-reference/feature-analysis/1920.js"
+        },
+        {
+          "path": "tool-reference/environment-settings",
+          "tocScript": "/en/pro-app/{line}/tool-reference/environment-settings/1404.js"
+        },
+        {
+          "path": "tool-reference/appendices",
+          "tocScript": "/en/pro-app/{line}/tool-reference/appendices/1521.js"
+        }
+      ],
+      "lines": [
+        "3.6",
+        "3.5"
+      ],
+      "enumerate": "on-demand"
+    },
+    "capability": "website",
+    "lines": [
+      "3.6",
+      "3.5",
+      "3.4",
+      "3.3",
+      "3.2",
+      "3.1",
+      "3.0",
+      "2.9",
+      "2.8",
+      "2.7",
+      "2.6"
+    ],
+    "probe": {
+      "url": "https://pro.arcgis.com/en/pro-app/3.6/tool-reference/analysis/flisting.htm",
+      "expect": "html",
+      "family": "legacy-help",
+      "minChars": 200,
+      "mustContain": ".htm"
+    }
+  },
+  "arcpy/legacy-tools-extensions": {
+    "id": "legacy-tools-extensions",
+    "title": "Geoprocessing tools of earlier ArcGIS Pro releases: extension and industry toolboxes",
+    "kinds": [
+      "help"
+    ],
+    "adapter": "legacy-help",
+    "config": {
+      "host": "pro.arcgis.com",
+      "base": "/en/pro-app/{line}/",
+      "books": [
+        {
+          "path": "tool-reference/3d-analyst",
+          "tocScript": "/en/pro-app/{line}/tool-reference/3d-analyst/1489.js"
+        },
+        {
+          "path": "tool-reference/spatial-analyst",
+          "tocScript": "/en/pro-app/{line}/tool-reference/spatial-analyst/1499.js"
+        },
+        {
+          "path": "tool-reference/image-analyst",
+          "tocScript": "/en/pro-app/{line}/tool-reference/image-analyst/2196.js"
+        },
+        {
+          "path": "tool-reference/geostatistical-analyst",
+          "tocScript": "/en/pro-app/{line}/tool-reference/geostatistical-analyst/1495.js"
+        },
+        {
+          "path": "tool-reference/network-analyst",
+          "tocScript": "/en/pro-app/{line}/tool-reference/network-analyst/1497.js"
+        },
+        {
+          "path": "tool-reference/business-analyst",
+          "tocScript": "/en/pro-app/{line}/tool-reference/business-analyst/2107.js"
+        },
+        {
+          "path": "tool-reference/data-interoperability",
+          "tocScript": "/en/pro-app/{line}/tool-reference/data-interoperability/2197.js"
+        },
+        {
+          "path": "tool-reference/data-reviewer",
+          "tocScript": "/en/pro-app/{line}/tool-reference/data-reviewer/1509.js"
+        },
+        {
+          "path": "tool-reference/aviation",
+          "tocScript": "/en/pro-app/{line}/tool-reference/aviation/2052.js"
+        },
+        {
+          "path": "tool-reference/bathymetry",
+          "tocScript": "/en/pro-app/{line}/tool-reference/bathymetry/3105.js"
+        },
+        {
+          "path": "tool-reference/maritime",
+          "tocScript": "/en/pro-app/{line}/tool-reference/maritime/2145.js"
+        },
+        {
+          "path": "tool-reference/defense",
+          "tocScript": "/en/pro-app/{line}/tool-reference/defense/2551.js"
+        },
+        {
+          "path": "tool-reference/intelligence",
+          "tocScript": "/en/pro-app/{line}/tool-reference/intelligence/2468.js"
+        },
+        {
+          "path": "tool-reference/location-referencing",
+          "tocScript": "/en/pro-app/{line}/tool-reference/location-referencing/1747.js"
+        },
+        {
+          "path": "tool-reference/topographic-production",
+          "tocScript": "/en/pro-app/{line}/tool-reference/topographic-production/2055.js"
+        },
+        {
+          "path": "tool-reference/territory-design",
+          "tocScript": "/en/pro-app/{line}/tool-reference/territory-design/2162.js"
+        },
+        {
+          "path": "tool-reference/reality-mapping",
+          "tocScript": "/en/pro-app/{line}/tool-reference/reality-mapping/3233.js"
+        },
+        {
+          "path": "tool-reference/indoors",
+          "tocScript": "/en/pro-app/{line}/tool-reference/indoors/2352.js"
+        },
+        {
+          "path": "tool-reference/indoor-positioning",
+          "tocScript": "/en/pro-app/{line}/tool-reference/indoor-positioning/2867.js"
+        },
+        {
+          "path": "tool-reference/knowledge-graph",
+          "tocScript": "/en/pro-app/{line}/tool-reference/knowledge-graph/3653.js"
+        },
+        {
+          "path": "tool-reference/network-diagram",
+          "tocScript": "/en/pro-app/{line}/tool-reference/network-diagram/2469.js"
+        },
+        {
+          "path": "tool-reference/oriented-imagery",
+          "tocScript": "/en/pro-app/{line}/tool-reference/oriented-imagery/3300.js"
+        },
+        {
+          "path": "tool-reference/trace-network",
+          "tocScript": "/en/pro-app/{line}/tool-reference/trace-network/2497.js"
+        },
+        {
+          "path": "tool-reference/utility-networks",
+          "tocScript": "/en/pro-app/{line}/tool-reference/utility-networks/2101.js"
+        }
+      ],
+      "lines": [
+        "3.6",
+        "3.5"
+      ],
+      "enumerate": "on-demand"
+    },
+    "capability": "website",
+    "lines": [
+      "3.6",
+      "3.5",
+      "3.4",
+      "3.3",
+      "3.2",
+      "3.1",
+      "3.0",
+      "2.9",
+      "2.8",
+      "2.7",
+      "2.6"
+    ],
+    "probe": {
+      "url": "https://pro.arcgis.com/en/pro-app/3.6/tool-reference/spatial-analyst/flisting.htm",
       "expect": "html",
       "family": "legacy-help",
       "minChars": 200,

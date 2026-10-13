@@ -8,6 +8,7 @@ import { newBudget } from '../core/async.js';
 import type { ToolName } from '../core/names.js';
 import type { CallOptions } from '../core/ports.js';
 import { READ_ONLY_ANNOTATIONS } from './annotations.js';
+import { blankTolerant } from './blank-args.js';
 import type { McpContainer } from './container.js';
 import { renderError } from './errors.js';
 
@@ -39,6 +40,9 @@ export type ToolHandler<I extends z.ZodObject> = (
  * Each call gets its own `RequestBudget` from the configured limits and the request's abort
  * signal. A handler that throws yields `Error [CODE]: ...` with `isError: true`; nothing
  * propagates to the SDK, so an agent never sees a bare JSON-RPC error for a failed lookup.
+ *
+ * Arguments are normalised before validation (`blank-args.ts`): a handler never sees an
+ * empty, whitespace-only or `null` value for an argument the caller may leave out.
  */
 export function registerDocTool<I extends z.ZodObject, O extends z.ZodObject>(
   server: McpServer,
@@ -48,7 +52,7 @@ export function registerDocTool<I extends z.ZodObject, O extends z.ZodObject>(
 ): void {
   // The SDK infers the callback's argument type from the schema, which it cannot do through
   // a type parameter: register with the widened schema types and narrow the arguments below.
-  const inputSchema: z.ZodObject = definition.inputSchema;
+  const inputSchema = blankTolerant<z.ZodObject>(definition.inputSchema);
   const outputSchema: z.ZodObject | undefined = definition.outputSchema;
   server.registerTool(
     definition.name,
@@ -71,7 +75,7 @@ export function registerDocTool<I extends z.ZodObject, O extends z.ZodObject>(
         signal: request.mcpReq.signal,
       };
       try {
-        // Validated by the SDK against `definition.inputSchema` before this callback runs.
+        // Normalised and validated by the SDK against `inputSchema` before this callback runs.
         return await handler(args as z.output<I>, call, container);
       } catch (thrown) {
         return renderError(

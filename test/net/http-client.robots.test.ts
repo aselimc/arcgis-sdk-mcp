@@ -30,10 +30,17 @@ describe('gateway: live robots.txt', () => {
     rig.origin.robots(HOST, ROBOTS).on(/./, page(PAGE));
 
     const error = await mcpError(rig.http.get({ url: at('/downloads/sdk.zip'), expect: 'html' }));
-    expect(error.code).toBe('HOST_NOT_ALLOWED');
-    expect(error.details?.why).toBe(`robots.txt of ${HOST} disallows it (/downloads)`);
+    // The same error as for a rule compiled into the host table: the page exists and the
+    // host is a documentation host, it is just not fetched by a program.
+    expect(error.code).toBe('LINK_ONLY');
+    expect(error.message).toBe(`${at('/downloads/sdk.zip')} is not fetched by this server`);
+    expect(error.details).toMatchObject({
+      why: `robots rules of ${HOST} exclude this path (Disallow: /downloads)`,
+      retryable: false,
+    });
+    expect(error.details?.next).toContain(`Open ${at('/downloads/sdk.zip')} in a browser`);
     expect((await mcpError(rig.http.get({ url: at('/x/?q=map'), expect: 'html' }))).code).toBe(
-      'HOST_NOT_ALLOWED',
+      'LINK_ONLY',
     );
     expect(rig.origin.calls).toEqual([]);
 
@@ -69,7 +76,7 @@ describe('gateway: live robots.txt', () => {
     const second = makeRig({ hosts: [hostRow(HOST)], cache: first.cache, clock: first.clock });
     second.origin.on(/./, page(PAGE));
     const error = await mcpError(second.http.get({ url: at('/downloads/'), expect: 'html' }));
-    expect(error.code).toBe('HOST_NOT_ALLOWED');
+    expect(error.code).toBe('LINK_ONLY');
     expect(second.origin.robotsCalls).toEqual([]);
   });
 
@@ -94,7 +101,7 @@ describe('gateway: live robots.txt', () => {
 
     for (const start of [at('/go/'), at('/stub/')]) {
       const error = await mcpError(rig.http.get({ url: start, expect: 'html' }));
-      expect(error.code).toBe('HOST_NOT_ALLOWED');
+      expect(error.code).toBe('LINK_ONLY');
       expect(error.details?.host).toBe('doc.arcgis.com');
     }
     expect(rig.origin.urls()).toEqual([at('/go/'), at('/stub/')]);
@@ -134,7 +141,7 @@ describe('gateway: live robots.txt', () => {
     rig.origin.robots(HOST, ROBOTS);
     rig.clock.advance(31 * MINUTE);
     const error = await mcpError(rig.http.get({ url: at('/downloads/other'), expect: 'html' }));
-    expect(error.code).toBe('HOST_NOT_ALLOWED');
+    expect(error.code).toBe('LINK_ONLY');
     expect(rig.origin.robotsCalls).toHaveLength(2);
   });
 
@@ -146,7 +153,7 @@ describe('gateway: live robots.txt', () => {
     rig.origin.robots(HOST, new TypeError('fetch failed'));
     rig.clock.advance(25 * HOUR);
     const error = await mcpError(rig.http.get({ url: at('/downloads/'), expect: 'html' }));
-    expect(error.code).toBe('HOST_NOT_ALLOWED');
+    expect(error.code).toBe('LINK_ONLY');
   });
 
   it('never serves a stale copy of a path that is now disallowed', async () => {
@@ -157,7 +164,7 @@ describe('gateway: live robots.txt', () => {
     rig.origin.robots(HOST, ROBOTS);
     rig.clock.advance(25 * HOUR);
     const error = await mcpError(rig.http.get({ url: at('/downloads/'), expect: 'html' }));
-    expect(error.code).toBe('HOST_NOT_ALLOWED');
+    expect(error.code).toBe('LINK_ONLY');
     expect(rig.origin.calls).toHaveLength(1);
   });
 });

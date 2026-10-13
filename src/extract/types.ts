@@ -12,6 +12,8 @@ export interface PassCounters {
   tables: Record<string, number>;
   /** Component names of `astro-island` elements no rule knows. */
   unknownIslands: Set<string>;
+  /** Code blocks the page shows collapsed, of which its HTML holds only the first lines. */
+  collapsedCode: number;
 }
 
 /** What a pass may know about the document besides its DOM. */

@@ -3,7 +3,8 @@ import type { Pass } from '../types.js';
 /**
  * Elements that never carry documentation text. `a.anchor-link` is the heading permalink
  * (otherwise every heading ends in `[](#id)`); `wbr` is removed without inserting a space,
- * because it sits inside identifiers.
+ * because it sits inside identifiers. Form controls and menus hold choices, not text: a
+ * dropdown that is left in place prints its items run together (`GETPOST`).
  */
 export const COMMON_REMOVE = [
   'script',
@@ -17,12 +18,17 @@ export const COMMON_REMOVE = [
   'calcite-button',
   'calcite-tooltip',
   'calcite-chip',
+  'calcite-dropdown',
+  'calcite-segmented-control',
   'astro-island',
   'starship-popover',
   'a.anchor-link',
   'nav',
   'form',
   'button',
+  'textarea',
+  'select',
+  'input',
   '.table-of-contents',
   '.sidebar-container',
   'aside.supplementary-content',

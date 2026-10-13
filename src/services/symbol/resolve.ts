@@ -3,13 +3,19 @@
  * exact qualified name, an exact simple name, the longest known type plus a member, the same
  * without case, then fuzzily (prefix, edit distance at most 2). The first step that finds
  * anything decides; ranking inside it is types before members, the product order, then the
- * source order (core package first).
+ * source order (core package first), then how well the written qualifier fits, and last a
+ * declared class before a type alias or an internal namespace of the same name.
  */
 import { levenshtein } from '../../core/text-distance.js';
 import { normalizeSymbol } from '../../core/tokenize.js';
 import type { CatalogRecord } from '../../core/types.js';
 import { pageKey } from '../../core/url.js';
-import { MAX_SYMBOL_DISTANCE, simpleName, type SymbolMap } from '../index/symbol-map.js';
+import {
+  MAX_SYMBOL_DISTANCE,
+  endsWithSegment,
+  simpleName,
+  type SymbolMap,
+} from '../index/symbol-map.js';
 
 /** The step of the resolution table that produced a candidate, most exact first. */
 export const STEPS = ['qualified', 'simple', 'member', 'case-insensitive', 'fuzzy'] as const;
@@ -27,12 +33,17 @@ export interface SymbolScope {
   sourceRank(record: CatalogRecord): number;
 }
 
+/**
+ * Sort key of a candidate: member after type, then product, then source, then the distance
+ * of a fuzzy match or of the written qualifier, then {@link preference}.
+ */
+export type Rank = [member: number, product: number, source: number, distance: number, preference: number];
+
 /** A record that may be what the caller meant. */
 export interface Candidate {
   record: CatalogRecord;
   step: Step;
-  /** Sort key: member after type, then product, then source, then fuzzy distance. */
-  rank: [member: number, product: number, source: number, distance: number];
+  rank: Rank;
   /** The same symbol in other sources of the product, best first: fallbacks for reading it. */
   twins: CatalogRecord[];
 }
@@ -53,14 +64,35 @@ export function displayName(record: CatalogRecord): string {
   return record.qualified ?? simpleName(record);
 }
 
-function endsWithSegment(qualified: string, suffix: string): boolean {
-  return (
-    qualified === suffix || qualified.endsWith(`.${suffix}`) || qualified.endsWith(`#${suffix}`)
-  );
+/** A candidate for a record that was not found by {@link resolveSymbol} itself. */
+export function candidateOf(record: CatalogRecord, step: Step): Candidate {
+  return { record, step, rank: [isType(record) ? 0 : 1, 0, 0, 0, 0], twins: [] };
 }
 
 function isType(record: CatalogRecord): boolean {
   return record.parent === undefined;
+}
+
+/** A namespace segment that marks implementation detail, not public API. */
+const INTERNAL_SEGMENT = /(?:^|[.#/:])_?internal(?:[.#/:]|$)/i;
+
+/**
+ * Tie-breaker between records that are otherwise equally good answers. A type alias that
+ * shares its name with a class (`portal/jsonTypes/Point` next to `geometry/Point`) is what
+ * the caller meant far less often, and so is a namesake in an `Internal` namespace.
+ */
+function preference(record: CatalogRecord): number {
+  const alias = record.symbolKind === 'type' ? 1 : 0;
+  return alias + (INTERNAL_SEGMENT.test(record.qualified ?? '') ? 2 : 0);
+}
+
+/**
+ * REST operations of different services are peers: `generateToken` of ArcGIS Server is no
+ * better an answer than the one of the portal because its source is listed first. The source
+ * order ranks packages of one API (core before components), not services.
+ */
+function peerSources(record: CatalogRecord): boolean {
+  return record.symbolKind === 'operation';
 }
 
 /** How exactly a record returned for `joined` matches it. */
@@ -72,19 +104,29 @@ function directStep(record: CatalogRecord, joined: string, qualified: boolean): 
   return simpleName(record) === joined ? 'simple' : 'case-insensitive';
 }
 
-/** Members named by `Type.member`, trying the longest type prefix first. */
-function typeMembers(
-  parts: readonly string[],
-  scope: SymbolScope,
-): { found: Array<{ record: CatalogRecord; step: Step }>; type?: CatalogRecord } {
-  let knownType: CatalogRecord | undefined;
+/** What `Type.member` found: the members, or the type it names when it has no such member. */
+interface TypeMembers {
+  found: Array<{ record: CatalogRecord; step: Step }>;
+  /** The type written directly before the member, when it is known as written. */
+  type?: CatalogRecord;
+  /** The same, when it is known only without regard to case. */
+  loose?: CatalogRecord;
+}
+
+/**
+ * Members named by `Type.member`, trying the longest type prefix first. Only the part
+ * directly before the member can be its owner: a shorter prefix that names a module
+ * (`arcgis.gis` in `arcgis.gis.Folder.add`) says where to look, not which type has the member.
+ */
+function typeMembers(parts: readonly string[], scope: SymbolScope): TypeMembers {
+  const result: TypeMembers = { found: [] };
   for (let split = parts.length - 1; split >= 1; split--) {
     const typeName = parts.slice(0, split).join('.');
     const memberName = parts.slice(split).join('.');
     const types = scope.symbols.exact(typeName).filter(isType);
     if (types.length === 0) continue;
-    knownType ??= types[0];
     const found: Array<{ record: CatalogRecord; step: Step }> = [];
+    let exactType: CatalogRecord | undefined;
     for (const type of types) {
       const members = scope.symbols.members(displayName(type));
       const exact = members.filter((member) => simpleName(member) === memberName);
@@ -92,13 +134,20 @@ function typeMembers(
         (member) => simpleName(member).toLowerCase() === memberName.toLowerCase(),
       );
       const typeExact = endsWithSegment(displayName(type), typeName);
+      if (typeExact) exactType ??= type;
       for (const record of exact.length > 0 ? exact : loose) {
         found.push({ record, step: exact.length > 0 && typeExact ? 'member' : 'case-insensitive' });
       }
     }
-    if (found.length > 0) return { found, ...(knownType === undefined ? {} : { type: knownType }) };
+    if (found.length > 0) return { ...result, found };
+    if (split === parts.length - 1) {
+      // A directory of a module path can equal a class name but for its case
+      // (`widgets/LayerList` and the class `Widgets`): that is kept apart from a real owner.
+      if (exactType !== undefined) result.type ??= exactType;
+      else if (types[0] !== undefined) result.loose ??= types[0];
+    }
   }
-  return { found: [], ...(knownType === undefined ? {} : { type: knownType }) };
+  return result;
 }
 
 function fuzzyDistance(needle: string, record: CatalogRecord): number {
@@ -110,19 +159,75 @@ function fuzzyDistance(needle: string, record: CatalogRecord): number {
 /** Members considered when a written type has to pick one of many same-named members. */
 const OWNER_SCAN = 64;
 
-/** The type a caller wrote before the member name, when no such type is known. */
-function ownerHint(parts: readonly string[]): string | undefined {
-  return parts.length > 1 ? parts.at(-2)?.toLowerCase() : undefined;
+/** Shortest owner or hint that may match the other as a prefix or suffix. */
+const MIN_AFFIX_LENGTH = 4;
+
+/** Distance of a qualifier that fits the record's owner only loosely (`esriConfig` for `config`). */
+const LOOSE_QUALIFIER = 1;
+
+/** Distance of a qualifier that names something else. */
+const WRONG_QUALIFIER = MAX_SYMBOL_DISTANCE + 1;
+
+const SEPARATORS = /::|[.#/]/;
+
+/**
+ * What stands before a record's own name, lower-case, outermost first: the segments of its
+ * qualified name, else of its owner. A record that carries neither (a REST operation of the
+ * portal) is placed by the last entry of its breadcrumb.
+ */
+function ownSegments(record: CatalogRecord): string[] {
+  const path = record.qualified ?? (record.parent === undefined ? '' : `${record.parent}.x`);
+  const segments = path
+    .toLowerCase()
+    .split(SEPARATORS)
+    .filter((segment) => segment !== '')
+    .slice(0, -1);
+  if (segments.length > 0 || record.breadcrumb === undefined) return segments;
+  const last = record.breadcrumb.split(/\s+>\s+/).at(-1) ?? '';
+  const squashed = last.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+  return squashed === '' ? [] : [squashed];
+}
+
+function isSubsequence(written: readonly string[], segments: readonly string[]): boolean {
+  let position = 0;
+  for (const segment of segments) {
+    if (segment === written[position]) position += 1;
+  }
+  return position === written.length;
 }
 
 /**
- * How far the written type is from the type that owns a member: 0 for the same name, up to
- * `MAX_SYMBOL_DISTANCE + 1` for an unrelated one. Records without an owner are not affected.
+ * How far the qualifier a caller wrote is from where a record lives: 0 when every written
+ * part is part of the record's path in order (`arcgis.gis.Folder.add` for
+ * `arcgis.gis._impl._content_manager.Folder.add`), the edit distance of a misspelt owner,
+ * {@link LOOSE_QUALIFIER} when the written owner contains or abbreviates the real one
+ * (`esriConfig.apiKey`, `gis.content.add` for `ContentManager.add`), else
+ * {@link WRONG_QUALIFIER}. A record that says nothing about where it lives is not affected.
+ *
+ * @param written the parts before the name, lower-case; empty when the input was unqualified.
  */
-function ownerDistance(hint: string | undefined, record: CatalogRecord): number {
-  if (hint === undefined || record.parent === undefined) return 0;
-  const owner = (record.parent.split(/::|[.#/]/).at(-1) ?? record.parent).toLowerCase();
-  return levenshtein(hint, owner, MAX_SYMBOL_DISTANCE);
+function qualifierDistance(written: readonly string[], record: CatalogRecord): number {
+  const hint = written.at(-1);
+  if (hint === undefined) return 0;
+  const segments = ownSegments(record);
+  const owner = segments.at(-1);
+  if (owner === undefined) return 0;
+  if (isSubsequence(written, segments)) return 0;
+  const typo = levenshtein(hint, owner, MAX_SYMBOL_DISTANCE);
+  if (typo <= MAX_SYMBOL_DISTANCE) return Math.max(LOOSE_QUALIFIER, typo);
+  if (hint.length >= MIN_AFFIX_LENGTH && owner.length >= MIN_AFFIX_LENGTH) {
+    // A property that holds a manager is named after it in the plural: `users`, `UserManager`.
+    const singular = hint.endsWith('s') ? hint.slice(0, -1) : hint;
+    if (
+      hint.endsWith(owner) ||
+      owner.endsWith(hint) ||
+      owner.startsWith(hint) ||
+      (singular.length >= MIN_AFFIX_LENGTH && owner.startsWith(singular))
+    ) {
+      return LOOSE_QUALIFIER;
+    }
+  }
+  return WRONG_QUALIFIER;
 }
 
 function compare(a: Candidate, b: Candidate): number {
@@ -173,7 +278,8 @@ function mergeTwins(candidates: Candidate[]): Candidate[] {
  *
  * - `found`: one candidate ranks strictly before every other, or ties only with other
  *   declarations of its own name, which are then the first alternates.
- * - `ambiguous`: several rank equally; at most {@link MAX_AMBIGUOUS} are returned.
+ * - `ambiguous`: several rank equally; the winner and those that tie with it are returned,
+ *   at most {@link MAX_AMBIGUOUS}.
  * - `none`: nothing matched; when `Type.member` named a known type without such a member,
  *   that type is returned.
  */
@@ -185,50 +291,68 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
 
   const all: Candidate[] = [];
   let knownType: CatalogRecord | undefined;
+  let looseType: CatalogRecord | undefined;
   const add = (scope: SymbolScope, record: CatalogRecord, step: Step, distance = 0): void => {
     all.push({
       record,
       step,
-      rank: [isType(record) ? 0 : 1, scope.productRank, scope.sourceRank(record), distance],
+      rank: [
+        isType(record) ? 0 : 1,
+        scope.productRank,
+        peerSources(record) ? 0 : scope.sourceRank(record),
+        distance,
+        preference(record),
+      ],
       twins: [],
     });
   };
 
   for (const scope of scopes) {
+    // The whole name first: `widgets/LayerList` is a module before `widgets` is read as the
+    // class `Widgets` with a member `LayerList`.
     for (const record of scope.symbols.exact(joined)) {
       add(scope, record, directStep(record, joined, qualified));
     }
     if (qualified) {
       const viaType = typeMembers(parts, scope);
       knownType ??= viaType.type;
+      looseType ??= viaType.loose;
       for (const { record, step } of viaType.found) add(scope, record, step);
     }
   }
 
   // What stands before the name when it is not a known type: a module path, or a type that
-  // is misspelt or qualified differently (`layers/FeatureLayer.queryFeatures`). It cannot
-  // select a member, but it still says which of several same-named members was meant.
-  const hint = knownType === undefined ? ownerHint(parts) : undefined;
+  // is misspelt, abbreviated or qualified differently. It cannot select a member by itself,
+  // but it says which of several same-named symbols was meant.
+  const written =
+    knownType === undefined ? parts.slice(0, -1).map((part) => part.toLowerCase()) : [];
 
   if (all.length === 0 && qualified && knownType === undefined) {
-    // No part of the prefix is a known type, so it is a module or namespace path
-    // (`layers/FeatureLayer`): the last part is the name.
     for (const scope of scopes) {
       for (const record of scope.symbols.exact(simple)) {
-        add(scope, record, directStep(record, simple, false), ownerDistance(hint, record));
+        // Behind a prefix that is a type but for its case, only a type can be meant
+        // (`geometry/Point`); a member would be one that the type inherits (`mapview.when`).
+        if (looseType !== undefined && !isType(record)) continue;
+        const distance = qualifierDistance(written, record);
+        // A qualifier that fits is an exact reading; one that does not makes the match a guess
+        // that the answer has to own up to.
+        const step = distance === 0 ? directStep(record, simple, false) : 'case-insensitive';
+        add(scope, record, step, distance);
       }
     }
   }
+  if (all.length === 0) knownType ??= looseType;
 
   let step = STEPS.find((candidate) => all.some((entry) => entry.step === candidate));
   if (step === undefined) {
     const needle = simple.toLowerCase();
     for (const scope of scopes) {
-      const depth = hint === undefined ? MAX_AMBIGUOUS : OWNER_SCAN;
+      const depth = written.length === 0 ? MAX_AMBIGUOUS : OWNER_SCAN;
       for (const record of scope.symbols.fuzzy(simple, depth)) {
         // `Type.membr` should not match a similarly named member of another type.
         if (knownType !== undefined && record.parent !== displayName(knownType)) continue;
-        add(scope, record, 'fuzzy', fuzzyDistance(needle, record) + ownerDistance(hint, record));
+        const distance = fuzzyDistance(needle, record) + qualifierDistance(written, record);
+        add(scope, record, 'fuzzy', distance);
       }
     }
     step = all.length > 0 ? 'fuzzy' : undefined;
@@ -261,9 +385,11 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
     const alternates = [...others, ...looser];
     return { kind: 'found', winner, alternates: alternates.slice(0, MAX_ALTERNATES) };
   }
-  // One entry per name: a namesake cannot be told apart by the pair a caller copies.
+  // Only what really ties is a choice: a member that shares the name of two tied types
+  // (their constructors) ranks after both. One entry per name, since a namesake cannot be
+  // told apart by the pair a caller copies.
   const named = new Map<string, Candidate>();
-  for (const candidate of candidates) {
+  for (const candidate of [winner, ...rivals]) {
     if (!named.has(identityOf(candidate.record)))
       named.set(identityOf(candidate.record), candidate);
   }

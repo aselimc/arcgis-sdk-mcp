@@ -99,8 +99,83 @@
   "pro": {
     "product": "arcgis-pro",
     "liveLines": ["3.6", "3.5"],
-    "helpBooks": ["get-started", "help"],
-    "developerBooks": { "arcpy/legacy": ["arcpy", "tool-reference"] },
+    "sources": {
+      "arcgis-pro/legacy": {
+        "title": "ArcGIS Pro help, earlier versions (get started and the main help books)",
+        "sections": ["get-started", "help"],
+        "books": [
+          "help/projects",
+          "help/mapping/introduction",
+          "help/mapping/map-authoring",
+          "help/mapping/layer-properties",
+          "help/mapping/navigation",
+          "help/mapping/text",
+          "help/editing",
+          "help/data/main",
+          "help/data/introduction",
+          "help/data/geodatabases/overview",
+          "help/data/geodatabases/introduction",
+          "help/data/feature-classes",
+          "help/data/tables",
+          "help/data/databases",
+          "help/data/services",
+          "help/data/imagery",
+          "help/analysis/introduction",
+          "help/analysis/geoprocessing/basics",
+          "help/analysis/geoprocessing/modelbuilder",
+          "help/analysis/geoprocessing/share-analysis",
+          "help/layouts",
+          "help/sharing/overview",
+          "help/metadata",
+          "help/tasks"
+        ],
+        "probeBook": "get-started"
+      },
+      "arcpy/legacy": {
+        "title": "ArcPy reference of earlier ArcGIS Pro releases",
+        "sections": ["arcpy"],
+        "books": "rest",
+        "probeBook": "arcpy/functions"
+      },
+      "arcpy/legacy-tools": {
+        "title": "Geoprocessing tools of earlier ArcGIS Pro releases: core toolboxes",
+        "sections": ["tool-reference"],
+        "books": "rest",
+        "probeBook": "tool-reference/analysis"
+      },
+      "arcpy/legacy-tools-extensions": {
+        "title": "Geoprocessing tools of earlier ArcGIS Pro releases: extension and industry toolboxes",
+        "sections": [],
+        "books": [
+          "tool-reference/3d-analyst",
+          "tool-reference/spatial-analyst",
+          "tool-reference/image-analyst",
+          "tool-reference/geostatistical-analyst",
+          "tool-reference/network-analyst",
+          "tool-reference/business-analyst",
+          "tool-reference/data-interoperability",
+          "tool-reference/data-reviewer",
+          "tool-reference/aviation",
+          "tool-reference/bathymetry",
+          "tool-reference/maritime",
+          "tool-reference/defense",
+          "tool-reference/intelligence",
+          "tool-reference/location-referencing",
+          "tool-reference/topographic-production",
+          "tool-reference/territory-design",
+          "tool-reference/reality-mapping",
+          "tool-reference/indoors",
+          "tool-reference/indoor-positioning",
+          "tool-reference/knowledge-graph",
+          "tool-reference/network-diagram",
+          "tool-reference/oriented-imagery",
+          "tool-reference/trace-network",
+          "tool-reference/utility-networks"
+        ],
+        "probeBook": "tool-reference/spatial-analyst"
+      }
+    },
+    "completeSections": ["arcpy", "tool-reference"],
     "docfxExcludedBooks": ["arcpy", "tool-reference", "sdk", "sdk/api-reference"]
   },
   "onlineStartHere": [
@@ -136,7 +211,7 @@
     "arcgis-monitor": { "summary": "Help for ArcGIS Monitor: collecting metrics and alerts on the health of an ArcGIS deployment.", "keywords": ["monitoring", "metrics", "alerts", "health", "collection"] },
     "arcgis-notebooks": { "name": "ArcGIS Notebooks", "summary": "Help for ArcGIS Notebooks and ArcGIS Notebook Server: hosted Python notebooks, runtimes and scheduling.", "keywords": ["notebook", "jupyter", "python runtime", "schedule", "notebook server"], "related": ["python-api"] },
     "arcgis-pipeline-referencing": { "summary": "Help for ArcGIS Pipeline Referencing: linear referencing for pipeline networks.", "keywords": ["pipeline", "linear referencing", "lrs", "route", "events"] },
-    "arcgis-pro": { "name": "ArcGIS Pro", "summary": "End-user help for ArcGIS Pro: projects, mapping, editing, analysis, data management, layouts and sharing.", "keywords": ["desktop", "project", "map", "layout", "geodatabase", "editing", "symbology", "sharing", "analysis"], "related": ["arcpy", "arcgis-pro-sdk", "cim-spec"], "pitfalls": ["ArcPy and the geoprocessing tool reference are product arcpy; the .NET SDK is arcgis-pro-sdk. This product holds the remaining help.", "Help of earlier versions is read on demand for the two previous releases; older versions are links only."] },
+    "arcgis-pro": { "name": "ArcGIS Pro", "summary": "End-user help for ArcGIS Pro: projects, mapping, editing, analysis, data management, layouts and sharing.", "keywords": ["desktop", "project", "map", "layout", "geodatabase", "editing", "symbology", "sharing", "analysis"], "related": ["arcpy", "arcgis-pro-sdk", "cim-spec"], "pitfalls": ["ArcPy and the geoprocessing tool reference are product arcpy; the .NET SDK is arcgis-pro-sdk. This product holds the remaining help.", "Of releases 3.6 and 3.5 only get started and the main help books are indexed; other pages are read by URL. Older releases are links only."] },
     "arcgis-quickcapture": { "summary": "Help for ArcGIS QuickCapture: big-button field data capture projects and the mobile app.", "keywords": ["quickcapture", "field capture", "button", "project designer"] },
     "arcgis-reality-server": { "summary": "Help for ArcGIS Reality Server: reality mapping processing as an ArcGIS Enterprise server role.", "keywords": ["reality mapping", "photogrammetry", "server role", "processing"] },
     "arcgis-reality-studio": { "summary": "Help for ArcGIS Reality Studio: reality mapping from aerial and satellite imagery at city and country scale.", "keywords": ["reality mapping", "aerial imagery", "true ortho", "3d mesh", "alignment"] },

@@ -9,6 +9,7 @@ import type {
   SourceDef,
   VersionLine,
 } from '../../core/types.js';
+import { helpDeveloperSources } from './help.generated.js';
 
 const VERIFIED_ON = '2026-10-13';
 
@@ -261,7 +262,27 @@ function proSection(
   };
 }
 
-const PRO_LEGACY_LINES = ['3.6', '3.5'];
+/**
+ * The ArcPy and tool-reference books of earlier ArcGIS Pro releases on pro.arcgis.com. They
+ * are generated from the same research as the ArcGIS Pro help (`npm run gen`), so the book
+ * list and the version lines have one definition; here they only get the kinds of a
+ * developer reference.
+ */
+function proLegacySource(id: string): SourceDef<'legacy-help'> {
+  const source = helpDeveloperSources[`arcpy/${id}`];
+  if (source?.adapter !== 'legacy-help') {
+    throw new Error(`help.generated.ts has no legacy-help source arcpy/${id}`);
+  }
+  return { ...source, kinds: ['api', 'guide'] };
+}
+
+const PRO_LEGACY_SOURCES = ['legacy', 'legacy-tools', 'legacy-tools-extensions'].map(
+  proLegacySource,
+);
+
+/** Releases whose pages are fetched (`config.lines`) and every release the sources exist for. */
+const PRO_LIVE_LINES = new Set(PRO_LEGACY_SOURCES[0]?.config.lines ?? []);
+const PRO_LEGACY_LINES = PRO_LEGACY_SOURCES[0]?.lines ?? [];
 
 const arcpy: Product = {
   id: 'arcpy',
@@ -304,42 +325,24 @@ const arcpy: Product = {
   repos: [],
   lines: [
     { ...LATEST, label: 'Pro 3.7' },
-    ...PRO_LEGACY_LINES.map((id) => ({
-      id,
-      label: `Pro ${id}`,
-      current: false,
-      access: 'live' as const,
-      vars: {},
-    })),
+    // The same lines as product arcgis-pro: the two previous releases are read on demand,
+    // older ones are links only, for the help and for this reference alike.
+    ...PRO_LEGACY_LINES.map(
+      (id): VersionLine => ({
+        id,
+        label: `Pro ${id}`,
+        current: false,
+        access: PRO_LIVE_LINES.has(id) ? 'live' : 'link-only',
+        vars: {},
+      }),
+    ),
   ],
   sources: [
     proSection('arcpy', 'ArcPy reference', 'arcpy/', 1050, {}, { floor: true }),
     proSection('tools', 'Geoprocessing tool reference', 'tool-reference/', 10865, {
       gpParameters: true,
     }),
-    {
-      id: 'legacy',
-      title: 'ArcPy and tool reference of earlier ArcGIS Pro releases',
-      kinds: ['api', 'guide'],
-      adapter: 'legacy-help',
-      config: {
-        host: 'pro.arcgis.com',
-        base: '/en/pro-app/{line}/',
-        books: [{ path: 'arcpy' }, { path: 'tool-reference' }],
-        lines: PRO_LEGACY_LINES,
-        // One URL tree per release and no sitemap: pages are read by URL, books are
-        // enumerated only when a search names that release.
-        enumerate: 'on-demand',
-      },
-      capability: 'website',
-      lines: PRO_LEGACY_LINES,
-      probe: {
-        url: 'https://pro.arcgis.com/en/pro-app/3.6/tool-reference/analysis/buffer.htm',
-        expect: 'html',
-        family: 'legacy-help',
-        minChars: 500,
-      },
-    },
+    ...PRO_LEGACY_SOURCES,
   ],
   oracles: [{ type: 'docesri-sitemap', options: { slug: 'arcgis-pro' }, provides: ['documented'] }],
   compatibility: [

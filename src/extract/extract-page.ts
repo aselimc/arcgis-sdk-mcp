@@ -96,7 +96,7 @@ export function extractPage(
     title: '',
     sections: [],
     sliced: false,
-    counters: { tables: {}, unknownIslands: new Set<string>() },
+    counters: { tables: {}, unknownIslands: new Set<string>(), collapsedCode: 0 },
   };
 
   const signature = opts.detail === 'signature' ? result.selected?.signature : undefined;

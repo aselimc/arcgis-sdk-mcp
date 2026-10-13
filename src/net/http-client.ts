@@ -5,27 +5,24 @@
  * redirects and meta-refresh hops re-checked against the policy, body validation, negative
  * caching and stale-if-error.
  */
-import { singleFlight } from '../core/async.js';
-import { isMcpDocError } from '../core/errors.js';
+import { freshness } from '../cache/ttl.js';
+import { budgetExhausted } from '../core/async.js';
+import { isMcpDocError, type McpDocError } from '../core/errors.js';
 import { PACKAGE_NAME } from '../core/names.js';
 import type { CachedHttpEntry, HttpClient, HttpRequest, HttpResponse } from '../core/ports.js';
 import type { HostPolicy } from '../core/types.js';
 import { CircuitBreakers } from './circuit-breaker.js';
-import { hostOf, located, notFound, refused, staleMayAnswer, unavailable } from './errors.js';
+import { robotsDenied } from '../policy/policy-errors.js';
+import { hostOf, located, notFound, staleMayAnswer, unavailable } from './errors.js';
 import { createExchange } from './exchange.js';
-import {
-  cacheKey,
-  conditionalHeaders,
-  defaultTtl,
-  freshnessWindow,
-  isFresh,
-  isNegative,
-} from './freshness.js';
+import { Flights } from './flights.js';
+import { cacheKey, conditionalHeaders, defaultTtl, isFresh, isNegative } from './freshness.js';
 import type { GatewayDeps } from './gateway-deps.js';
 import { HttpCacheView, toResponse } from './http-cache.js';
-import { publishRateLimits, type RateLimitSnapshot } from './rate-limit-info.js';
+import { HostQuotas, type QuotaSource } from './rate-limit-info.js';
 import { createRateLimiter } from './rate-limiter.js';
 import { LiveRobots, createRobotsFetcher } from './robots-live.js';
+import { searchOutcome } from './search-result.js';
 import { parseTarget, resolveHop } from './url-guard.js';
 import { acceptHeader, decodeBody, isSoftNotFound, shapeMismatch } from './validate.js';
 
@@ -33,6 +30,16 @@ import { acceptHeader, decodeBody, isSoftNotFound, shapeMismatch } from './valid
 export const MAX_HOPS = 5;
 
 const REDIRECTS: ReadonlySet<number> = new Set([301, 302, 303, 307, 308]);
+
+/** The statuses that say "there is no such document", and are remembered as that. */
+const GONE: ReadonlySet<number> = new Set([404, 410]);
+
+/**
+ * Client-error statuses that describe the connection or the moment rather than the document:
+ * Request Timeout, Misdirected Request, Too Early. The same request may succeed a moment
+ * later, so they are a failing host (a stale copy may answer), not a missing document.
+ */
+const TRANSIENT_CLIENT_ERRORS: ReadonlySet<number> = new Set([408, 421, 425]);
 
 /** A request after the guard and the policy have accepted it. */
 interface Accepted {
@@ -43,18 +50,24 @@ interface Accepted {
   key: string;
 }
 
-/** Builds the gateway. `createHttpClient` in `index.ts` is the public factory. */
-export function createGateway(deps: GatewayDeps): HttpClient {
+/**
+ * Builds the gateway. `createHttpClient` in `index.ts` is the public factory.
+ *
+ * Besides the `HttpClient` port the object reports the quota facts of each host
+ * ({@link QuotaSource}), which the GitHub client needs to tell a spent quota from any other
+ * refusal.
+ */
+export function createGateway(deps: GatewayDeps): HttpClient & QuotaSource {
   const { config, logger, clock, policy } = deps;
   const fetchImpl = deps.fetchImpl ?? fetch;
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((done) => setTimeout(done, ms)));
   const userAgent = `${PACKAGE_NAME}/${config.version} (+${config.repoUrl})`;
 
   const store = new HttpCacheView(deps.cache, clock, logger);
-  const flights = singleFlight<string, HttpResponse>();
+  const flights = new Flights<HttpResponse>();
   const breakers = new CircuitBreakers(clock);
   const limiter = createRateLimiter({ clock, sleep });
-  const quotas = new Map<string, RateLimitSnapshot>();
+  const quotas = new HostQuotas(clock);
   const exchange = createExchange({
     fetchImpl,
     clock,
@@ -63,7 +76,7 @@ export function createGateway(deps: GatewayDeps): HttpClient {
     random: deps.random ?? Math.random,
     breakers,
     limiter,
-    onRateLimit: (host, seen) => quotas.set(host, { ...quotas.get(host), ...seen }),
+    quotas,
   });
   const robots = new LiveRobots({
     cache: deps.cache,
@@ -84,13 +97,16 @@ export function createGateway(deps: GatewayDeps): HttpClient {
     }
   }
 
-  /** Live robots apply to pages of documentation sites, not to API and registry endpoints. */
+  /**
+   * Live robots apply to pages of documentation sites, not to API and registry endpoints. A
+   * denial is the policy's own `LINK_ONLY` error: whether a rule was compiled into the host
+   * table or read from the live file makes no difference to the agent, which is told to
+   * open the page in a browser either way.
+   */
   async function robotsGate(host: HostPolicy, url: URL, method: 'GET' | 'POST'): Promise<void> {
     if (method !== 'GET' || host.capability !== 'website') return;
     const pattern = await robots.denial(host.host, url);
-    if (pattern !== undefined) {
-      throw refused(url.href, `robots.txt of ${host.host} disallows it (${pattern})`);
-    }
+    if (pattern !== undefined) throw robotsDenied(url, pattern);
   }
 
   /** Cache lookup, then the network. `stale` is the expired copy revalidation may confirm. */
@@ -130,17 +146,24 @@ export function createGateway(deps: GatewayDeps): HttpClient {
     let host = firstHost;
     const chain: string[] = [];
 
+    /**
+     * The failure for an answer that is not the document without saying it is gone (a body
+     * of another shape, a redirect that leads nowhere). Remembered as a miss, unless a copy
+     * from better days is held: a maintenance page or an interstitial in front of the origin
+     * does not disprove that copy, so it answers instead (see `load`) and stays in the cache.
+     */
+    const unusable = async (why: string): Promise<McpDocError> =>
+      stale === undefined ? store.miss(key, url, why) : unavailable(url, why);
+
     /** Moves to a redirect or meta-refresh target after re-checking it. */
     const follow = async (rawTarget: string, how: string): Promise<void> => {
       if (method !== 'GET') throw unavailable(url, `Unexpected ${how} on a ${method}`, false);
       const next = resolveHop(rawTarget, current);
-      if (next === undefined) throw await store.miss(key, url, `The ${how} target is not a URL`);
+      if (next === undefined) throw await unusable(`The ${how} target is not a URL`);
       if (next.href === url || next.href === current.href || chain.includes(next.href)) {
-        throw await store.miss(key, url, `The ${how} leads back to ${next.href}`);
+        throw await unusable(`The ${how} leads back to ${next.href}`);
       }
-      if (chain.length >= MAX_HOPS) {
-        throw await store.miss(key, url, `More than ${MAX_HOPS} redirects`);
-      }
+      if (chain.length >= MAX_HOPS) throw await unusable(`More than ${MAX_HOPS} redirects`);
       host = check(next, method, current.href);
       chain.push(current.href);
       current = next;
@@ -178,7 +201,7 @@ export function createGateway(deps: GatewayDeps): HttpClient {
         if (stale === undefined || Object.keys(validators).length === 0) {
           throw unavailable(url, 'Unexpected 304 for an unconditional request', false);
         }
-        const patch = { ...freshnessWindow(ttl, clock.now()), ...validatorsSeen };
+        const patch = { ...freshness(ttl, clock.now()), ...validatorsSeen };
         await store.touch(key, patch);
         return toResponse({ ...stale, ...patch }, 'revalidated');
       }
@@ -188,9 +211,12 @@ export function createGateway(deps: GatewayDeps): HttpClient {
         await follow(location, 'redirect');
         continue;
       }
+      if (GONE.has(status)) throw await store.miss(key, url, `The server answered ${status}`);
+      if (TRANSIENT_CLIENT_ERRORS.has(status)) throw unavailable(url, `HTTP ${status}`);
       if (status >= 400 && status < 500) {
-        // 404, 410 and the other client errors that mean "no such document here".
-        throw await store.miss(key, url, `The server answered ${status}`);
+        // The request as such was turned down (400, 405, 406, 414, ...): no document for the
+        // caller, but nothing worth remembering about the URL, and no reason to drop a copy.
+        throw notFound(url, `The server answered ${status}`);
       }
       if (status < 200 || status > 299) throw unavailable(url, `Unexpected HTTP ${status}`, false);
 
@@ -205,7 +231,12 @@ export function createGateway(deps: GatewayDeps): HttpClient {
         host,
         current.pathname,
       );
-      if (mismatch !== undefined) throw await store.miss(key, url, mismatch);
+      if (mismatch !== undefined) {
+        // The page of a catch-all prefix is that host's 404; any other odd body is not.
+        throw mismatch.missing
+          ? await store.miss(key, url, mismatch.why)
+          : await unusable(mismatch.why);
+      }
 
       const text = decodeBody(response.body, contentType, req.encoding);
       if (req.expect === 'html' && req.encoding !== 'base64') {
@@ -216,6 +247,9 @@ export function createGateway(deps: GatewayDeps): HttpClient {
         }
       }
 
+      // A search answer is judged before it is stored: an error object must not be served
+      // from the cache for a day, and "nothing found" is asked again sooner than a hit list.
+      const found = ttl === 'remote-search' ? searchOutcome(text) : undefined;
       const now = clock.now();
       const entry: CachedHttpEntry = {
         url,
@@ -226,10 +260,10 @@ export function createGateway(deps: GatewayDeps): HttpClient {
         body: text,
         ...validatorsSeen,
         fetchedAt: now,
-        ...freshnessWindow(ttl, now),
+        ...freshness(ttl, now, { empty: found === 'empty' }),
         ttl,
       };
-      await store.write(key, entry);
+      if (found !== 'error') await store.write(key, entry);
       return toResponse(entry, 'miss');
     }
   }
@@ -239,11 +273,18 @@ export function createGateway(deps: GatewayDeps): HttpClient {
       const target = parseTarget(req.url);
       const method = req.method ?? 'GET';
       const host = check(target, method);
-      const key = cacheKey(method, target, req.body, req.encoding);
+      const key = cacheKey(method, target, req.body, req.encoding, req.expect);
       if (config.offline) return await store.offline(key, target.href);
-      // Concurrent identical requests share one flight, and with it the first caller's
-      // budget and cancellation signal.
-      return await flights.run(key, () => load({ req, method, target, host, key }));
+      // Concurrent identical requests share one flight. It runs on the budget and signal of
+      // the caller that started it; a caller that joined and still has both of its own asks
+      // again when the flight ends for want of the starter's.
+      return await flights.run(
+        key,
+        () => load({ req, method, target, host, key }),
+        () =>
+          req.signal?.aborted !== true &&
+          (req.budget === undefined || !budgetExhausted(req.budget, clock)),
+      );
     } catch (error) {
       throw isMcpDocError(error) && error.details?.url !== undefined
         ? error
@@ -251,7 +292,7 @@ export function createGateway(deps: GatewayDeps): HttpClient {
     }
   }
 
-  const client: HttpClient = {
+  return {
     get,
     async getJson<J = unknown>(req: Omit<HttpRequest, 'expect'>) {
       const res = await get({ ...req, expect: 'json' });
@@ -259,14 +300,14 @@ export function createGateway(deps: GatewayDeps): HttpClient {
         return { data: JSON.parse(res.text) as J, res };
       } catch {
         // Expire the bad copy, or the retry this error invites would be answered from cache.
-        const key = cacheKey(req.method ?? 'GET', parseTarget(req.url), req.body, req.encoding);
+        const target = parseTarget(req.url);
+        const key = cacheKey(req.method ?? 'GET', target, req.body, req.encoding, 'json');
         await store.touch(key, { freshUntil: 0, staleUntil: 0 });
         const host = hostOf(res.finalUrl);
         throw unavailable(res.finalUrl, `${host} returned JSON that does not parse`);
       }
     },
     hostStates: () => breakers.states(),
+    rateLimit: (host) => quotas.of(host),
   };
-  publishRateLimits(client, (host) => quotas.get(host));
-  return client;
 }

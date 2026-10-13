@@ -8,9 +8,11 @@
  *      -> Turndown -> post-process -> sections with page ids
  * ```
  *
- * The order of the shared passes is load-bearing: code blocks and tabs read the buttons that
- * the bulk removal deletes, icon labels are read before SVGs go, and tables are rewritten
- * after everything that can sit inside a cell has its final shape.
+ * The order of the shared passes is load-bearing: code blocks, code switchers and tabs read
+ * the buttons that the bulk removal deletes, icon labels are read before SVGs go, hidden
+ * elements are removed only after the tab and code passes have revealed the panels a page
+ * hides on purpose, and tables are rewritten after everything that can sit inside a cell
+ * has its final shape.
  */
 import { load, type CheerioAPI } from 'cheerio';
 import type { AnyNode } from 'domhandler';
@@ -22,6 +24,7 @@ import { squash, tagged } from './dom.js';
 import { absolutize } from './passes/absolutize.js';
 import { fixAsides } from './passes/fix-asides.js';
 import { fixCodeLinks } from './passes/fix-code-links.js';
+import { fixCodeSwitchers } from './passes/fix-code-switchers.js';
 import { fixDetails } from './passes/fix-details.js';
 import { fixDl } from './passes/fix-dl.js';
 import { fixExpressiveCode } from './passes/fix-expressive-code.js';
@@ -29,10 +32,13 @@ import { fixGatsbyCode } from './passes/fix-gatsby-code.js';
 import { fixGenericPre } from './passes/fix-generic-pre.js';
 import { fixGlossary } from './passes/fix-glossary.js';
 import { fixIslands } from './passes/fix-islands.js';
+import { fixLinkGroups } from './passes/fix-link-groups.js';
+import { fixLists } from './passes/fix-lists.js';
 import { fixTables } from './passes/fix-tables.js';
 import { fixTabs } from './passes/fix-tabs.js';
 import { iconLabelsToText } from './passes/icon-labels.js';
 import { removeCommon } from './passes/remove-common.js';
+import { removeHidden } from './passes/remove-hidden.js';
 import { unwrapBlockyInline } from './passes/unwrap-blocky-inline.js';
 import { postProcess } from './post-process.js';
 import { sliceByHeading } from './slice.js';
@@ -42,16 +48,20 @@ import type { FamilyProfile, OutlineNode, PageView, Pass, PassCounters, PassEnv 
 /** The shared passes, in the only order in which they are correct. */
 export const SHARED_PASSES: readonly Pass[] = [
   fixGlossary,
+  fixCodeSwitchers,
   fixExpressiveCode,
   fixGatsbyCode,
   fixIslands,
   fixTabs,
   iconLabelsToText,
   removeCommon,
+  removeHidden,
   fixDetails,
   fixCodeLinks,
   fixAsides,
   fixDl,
+  fixLists,
+  fixLinkGroups,
   unwrapBlockyInline,
   fixTables,
   fixGenericPre,
@@ -143,7 +153,7 @@ export function runProfile(
   const outline = profile.outline(page);
   const selection = select(profile, page, outline, members ?? [], opts.select);
 
-  const counters: PassCounters = { tables: {}, unknownIslands: new Set() };
+  const counters: PassCounters = { tables: {}, unknownIslands: new Set(), collapsedCode: 0 };
   const env: PassEnv = {
     url: page.url,
     title,

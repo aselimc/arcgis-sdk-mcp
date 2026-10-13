@@ -3,6 +3,7 @@
  * picks the rule of an entry; the `Importer` applies it. Pure: no I/O, no clock.
  */
 import type { AnySourceDef, Product } from '../../src/core/types.js';
+import { proCatalog, proSourceBooks } from './help-registry.pro.js';
 import type { HelpRegistry, ImportRule, LedgerRow } from './help-registry.rules.js';
 import type { Entry, RulesFile, SourceFile } from './help-registry.schema.js';
 import {
@@ -343,35 +344,30 @@ export class Importer {
     this.record(entry, rule, `${productId}/${sourceId}`);
   }
 
-  /** pro.arcgis.com: two fetchable versions, older ones as links; ArcPy sections go to `arcpy`. */
+  /**
+   * pro.arcgis.com: two fetchable versions, older ones as links. The end-user help stays
+   * with the product; the ArcPy and tool-reference books go to the developer product the
+   * rules name (see `help-registry.pro.ts` for how books become sources).
+   */
   private proLegacy(entry: Entry): void {
-    const { product: productId, liveLines, helpBooks, developerBooks } = this.rules.pro;
+    const { product: productId, liveLines } = this.rules.pro;
     const product = this.product(productId, entry);
     const versions = [...entry.other_versions_on_host].sort(compareVersionsDesc);
-    const sampled = Array.isArray(entry.books) ? undefined : entry.books[liveLines[0] ?? ''];
-    const sections = (paths: string[]): Array<{ path: string }> =>
-      paths.map((path) => {
-        if (sampled === null || typeof sampled !== 'object' || !Object.hasOwn(sampled, path)) {
-          throw new Error(`${entry.id}: no section "${path}" at version ${liveLines[0]}`);
-        }
-        return { path };
-      });
-    const common = { entry, versions, liveVersions: liveLines };
-    product.sources.push(
-      legacyHelpSource({
-        ...common,
-        id: 'legacy',
-        title: `${product.name} help, earlier versions`,
-        books: sections(helpBooks),
-      }),
-    );
-    for (const [target, paths] of Object.entries(developerBooks)) {
-      this.developerSources[target] = legacyHelpSource({
-        ...common,
+    const catalog = proCatalog(entry, liveLines[0] ?? '');
+    for (const [target, books] of proSourceBooks(entry, catalog, this.rules.pro)) {
+      const rule = this.rules.pro.sources[target];
+      if (rule === undefined) continue;
+      const source = legacyHelpSource({
+        entry,
+        versions,
+        liveVersions: liveLines,
         id: sourceIdOf(target),
-        title: `${product.name} (${paths.join(', ')}), earlier versions`,
-        books: sections(paths),
+        title: rule.title,
+        books,
+        probeBook: rule.probeBook,
       });
+      if (target.startsWith(`${productId}/`)) product.sources.push(source);
+      else this.developerSources[target] = source;
     }
     this.addVersions(productId, versions, liveLines);
     this.record(entry, 'pro-legacy-lines', `${productId}/legacy`);
@@ -382,12 +378,13 @@ export class Importer {
     for (const [productId, versions] of this.versions) {
       const product = this.products.get(productId);
       if (product === undefined) continue;
-      const prefix = productId === this.rules.pro.product ? 'Pro ' : '';
+      // Labels are the bare version: messages write them after the product name
+      // ("ArcGIS Pro 3.4 pages are not fetched").
       product.lines = [
         LATEST_LINE,
         ...[...versions.keys()]
           .sort(compareVersionsDesc)
-          .map((version) => versionLine(version, versions.get(version) ?? 'link-only', prefix)),
+          .map((version) => versionLine(version, versions.get(version) ?? 'link-only')),
       ];
       product.sources = product.sources.map((source) =>
         source.lines === undefined ? { ...source, lines: [LATEST_LINE.id] } : source,

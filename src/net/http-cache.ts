@@ -2,11 +2,12 @@
  * The gateway's view of the HTTP cache: reads that treat a failing cache as empty, writes
  * that never fail a fetch, the remembered miss, and the offline lookup.
  */
+import { freshness } from '../cache/ttl.js';
 import type { McpDocError } from '../core/errors.js';
 import type { Cache, CachedHttpEntry, Clock, HttpResponse, Logger } from '../core/ports.js';
 import type { CacheState } from '../core/types.js';
 import { notFound, offlineMiss } from './errors.js';
-import { freshnessWindow, isFresh, isNegative, usableEntry } from './freshness.js';
+import { isFresh, isNegative, usableEntry } from './freshness.js';
 
 /** The response a caller sees for a cached entry. */
 export function toResponse(entry: CachedHttpEntry, cache: CacheState): HttpResponse {
@@ -70,7 +71,7 @@ export class HttpCacheView {
       contentType: '',
       body: why,
       fetchedAt: now,
-      ...freshnessWindow('negative', now),
+      ...freshness('negative', now),
       ttl: 'negative',
     });
     return notFound(url, why);

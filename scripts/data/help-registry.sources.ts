@@ -111,6 +111,11 @@ export interface LegacyHelpSpec {
   versions?: string[];
   /** Versions that are fetched; defaults to `versions`. The rest are link-only lines. */
   liveVersions?: string[];
+  /**
+   * The book whose `flisting.htm` is the canary; defaults to the first book. Needed where the
+   * first book is a directory of books, which publishes no link list of its own.
+   */
+  probeBook?: string;
 }
 
 /**
@@ -128,6 +133,7 @@ export function legacyHelpSource(spec: LegacyHelpSpec): SourceDef<'legacy-help'>
   }
   const live = spec.liveVersions ?? versions;
   const probeVersion = entry.books_sampled_at ?? live?.[0] ?? '';
+  const probeBook = spec.probeBook ?? firstBook.path;
   const pages = totalPages(books);
   return {
     id: spec.id,
@@ -149,7 +155,7 @@ export function legacyHelpSource(spec: LegacyHelpSpec): SourceDef<'legacy-help'>
     ...(pages === undefined ? {} : { pagesApprox: pages }),
     probe: {
       // Each book directory lists its live pages as plain links in flisting.htm.
-      url: `https://${entry.host}${base.replace('{line}', probeVersion)}${firstBook.path}/flisting.htm`,
+      url: `https://${entry.host}${base.replace('{line}', probeVersion)}${probeBook}/flisting.htm`,
       expect: 'html',
       family: 'legacy-help',
       minChars: 200,

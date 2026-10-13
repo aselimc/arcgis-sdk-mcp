@@ -43,14 +43,17 @@ export class TransportError extends Error {
 
 function classify(error: unknown, callerSignal: AbortSignal | undefined): TransportError {
   if (error instanceof TransportError) return error;
+  // Asked of the signal, not of the error: an aborted fetch rejects with the signal's reason,
+  // which is whatever the caller passed to abort(). The MCP SDK passes the client's reason
+  // string, so a cancelled tool call does not surface as an AbortError at all.
+  if (callerSignal?.aborted === true) {
+    return new TransportError('aborted', 'cancelled by the caller');
+  }
   const name = error instanceof Error ? error.name : '';
   const message = error instanceof Error ? error.message : String(error);
-  if (name === 'TimeoutError') return new TransportError('timeout', 'timeout');
-  if (name === 'AbortError') {
-    // Our own timeout can also surface as AbortError when it fires during the body read.
-    return callerSignal?.aborted === true
-      ? new TransportError('aborted', 'cancelled by the caller')
-      : new TransportError('timeout', 'timeout');
+  // Our own timeout surfaces as AbortError when it fires during the body read.
+  if (name === 'TimeoutError' || name === 'AbortError') {
+    return new TransportError('timeout', 'timeout');
   }
   return new TransportError('network', `network error: ${message}`);
 }

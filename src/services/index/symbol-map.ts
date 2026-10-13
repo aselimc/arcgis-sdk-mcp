@@ -41,11 +41,21 @@ function push<K>(map: Map<K, CatalogRecord[]>, key: K, record: CatalogRecord): v
   else list.push(record);
 }
 
-/** True when `qualified` ends with `suffix` on a segment boundary. */
-function endsWithSegment(qualified: string, suffix: string): boolean {
-  if (!qualified.endsWith(suffix)) return false;
-  const before = qualified.charAt(qualified.length - suffix.length - 1);
-  return before === '.' || before === '#' || before === '/' || before === ':';
+/** A qualified name with every separator (`.`, `#`, `/`, `::`) written as a dot. */
+function withDots(name: string): string {
+  return name.replace(/::|[#/]/g, '.');
+}
+
+/**
+ * True when `qualified` is `suffix` or ends with it on a segment boundary. Separators are
+ * interchangeable: a caller writes `layers.FeatureLayer.queryFeatures` for the record
+ * `@arcgis/core/layers/FeatureLayer.queryFeatures`, and that is an exact match, not a guess.
+ */
+export function endsWithSegment(qualified: string, suffix: string): boolean {
+  const whole = withDots(qualified);
+  const tail = withDots(suffix);
+  if (tail === '' || !whole.endsWith(tail)) return false;
+  return whole.length === tail.length || whole.charAt(whole.length - tail.length - 1) === '.';
 }
 
 /** Builds the sidecar over the records that name a symbol (`symbol` or `qualified` set). */

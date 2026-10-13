@@ -30,13 +30,22 @@ export interface OutlineRule {
 export const HEADINGS: OutlineRule = { selector: 'h1, h2, h3, h4, h5, h6' };
 
 /**
+ * True for the `href` of a link that wraps a heading and leads elsewhere: such a heading is
+ * the title of a card, which the link pass turns into a list item, not a section of the page.
+ */
+function isCardTitle(href: string | undefined): boolean {
+  return href !== undefined && !href.startsWith('#');
+}
+
+/**
  * Collects the outline elements below the content root, in document order, and stamps each
  * with {@link ID_ATTR} and {@link LEVEL_ATTR}. An element matches the first rule whose
  * selector fits it; without rules, plain headings are used.
  *
  * An element without an id of its own gets a slug of its text, and repeated ids are
  * numbered. The id of the page title is reserved for the opening heading the pipeline
- * writes, and the page's own title heading is not part of the outline.
+ * writes, and the page's own title heading is not part of the outline. Neither is the
+ * heading of a card (a link around a heading): it would take the id of a real section.
  */
 export function stampOutline(page: PageView, ...rules: OutlineRule[]): OutlineNode[] {
   const { $, root } = page;
@@ -51,6 +60,7 @@ export function stampOutline(page: PageView, ...rules: OutlineRule[]): OutlineNo
     const title = squash(rule.title?.(el, $) ?? $(el).text());
     if (level === 0 || title === '') return;
     if (level === 1 && title === page.title) return;
+    if (isCardTitle($(el).closest('a[href]').attr('href'))) return;
     const own = (rule.id?.(el, $) ?? $(el).attr('id') ?? '').trim();
     const id = ids.next(own === '' ? slugify(title) : own);
     $(el).attr(ID_ATTR, id).attr(LEVEL_ATTR, String(level));

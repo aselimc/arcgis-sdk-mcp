@@ -59,6 +59,17 @@ export const ProductMetaSchema = z.object({
   statusNote: z.string().max(200).optional(),
 });
 
+/** One `legacy-help` source over earlier ArcGIS Pro releases (see `help-registry.pro.ts`). */
+export const ProSourceRuleSchema = z.strictObject({
+  title: z.string().min(1),
+  /** Top-level directories of the old host the source owns as a whole. */
+  sections: z.array(z.string().min(1)),
+  /** The books it lists one by one, or `rest`: every book of its sections no other source lists. */
+  books: z.union([z.literal('rest'), z.array(z.string().min(1))]),
+  /** The book whose link list is the source's canary. */
+  probeBook: z.string().min(1),
+});
+
 /** The rules file: fixed id maps of section 4.6 plus per-product wording. */
 export const RulesFileSchema = z.object({
   /** Ids of the developer-tier products; reserved names and valid `related` targets. */
@@ -85,9 +96,10 @@ export const RulesFileSchema = z.object({
     product: z.string(),
     /** Versions on pro.arcgis.com that are read on demand; the others are link-only. */
     liveLines: z.array(z.string()).min(1),
-    helpBooks: z.array(z.string()).min(1),
-    /** `product/source` -> the sections of the old host that belong to that developer product. */
-    developerBooks: z.record(z.string(), z.array(z.string())),
+    /** `product/source` -> what that source owns and lists on the old host. */
+    sources: z.record(z.string(), ProSourceRuleSchema),
+    /** Sections whose every book some source must list: the developer reference. */
+    completeSections: z.array(z.string()),
     /** Books of the doc.esri.com entry that belong to developer products. */
     docfxExcludedBooks: z.array(z.string()),
   }),

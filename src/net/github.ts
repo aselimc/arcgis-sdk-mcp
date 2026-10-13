@@ -102,19 +102,17 @@ export function createGithubClient(deps: GithubDeps): GithubClient {
 
   /**
    * Tells a spent quota from other refusals. GitHub answers 403 or 429 for both; the quota
-   * headers the gateway saw decide. Without them (a client that is not our gateway) a refusal
-   * by the API is taken for the quota, by far its most common cause.
+   * headers the gateway saw decide. When nothing is known about the quota (the API sent no
+   * such headers, or the HTTP client reports none) a refusal stays the refusal it is: telling
+   * the agent to set a token for a failure that has nothing to do with quota would be a guess.
    */
   function translate(error: unknown, url: string): unknown {
     if (!isMcpDocError(error)) return error;
     const quota = knownQuota();
     const spent = quota.remaining === 0 || quota.pausedUntil !== undefined;
-    if (error.code === 'UPSTREAM_BLOCKED') {
-      const unknown = rateLimitOf(http, API_HOST) === undefined;
-      return spent || unknown ? rateLimited(url) : error;
-    }
-    // An open breaker or spent retries while the quota is known to be gone: same cause.
-    return error.code === 'UPSTREAM_UNAVAILABLE' && spent ? rateLimited(url) : error;
+    // A refusal, an open breaker or spent retries while the quota is known to be gone: one cause.
+    const byQuota = error.code === 'UPSTREAM_BLOCKED' || error.code === 'UPSTREAM_UNAVAILABLE';
+    return byQuota && spent ? rateLimited(url) : error;
   }
 
   async function api<J>(

@@ -32,14 +32,93 @@ export function blocked(url: string, status: number): McpDocError {
 }
 
 /**
- * `UPSTREAM_UNAVAILABLE`. `retryable` separates transient conditions (5xx, timeout, open
- * breaker, spent budget), for which a stale copy may answer instead, from permanent ones
- * (oversized body, unexpected protocol behaviour), for which it may not.
+ * `UPSTREAM_BLOCKED` without a request: the host asked for a pause (a `Retry-After` on a
+ * refusal, or a quota it reported as spent) and that pause is still running. Sending anyway
+ * is what gets a client banned, so the answer is given here.
+ *
+ * @param until `Clock.now()` value at which the pause ends.
+ */
+export function paused(url: string, until: number): McpDocError {
+  const host = hostOf(url);
+  return new McpDocError('UPSTREAM_BLOCKED', `${host} refused the request`, {
+    why: `${host} asked for no further requests until ${new Date(until).toISOString()}, so none was sent`,
+    ...where(url),
+    retryable: false,
+  });
+}
+
+/**
+ * `UPSTREAM_UNAVAILABLE` for a failure of the host. `retryable` separates transient
+ * conditions (5xx, timeout, open breaker), for which a stale copy may answer instead, from
+ * permanent ones (oversized body, unexpected protocol behaviour), for which it may not.
+ *
+ * A request this server gave up on by its own decision is {@link declined}, not this.
  */
 export function unavailable(url: string, why: string, retryable = true): McpDocError {
   const host = hostOf(url);
   const what = retryable ? `${host} is not responding` : `${host} sent an unusable response`;
   return new McpDocError('UPSTREAM_UNAVAILABLE', what, { why, ...where(url), retryable });
+}
+
+/**
+ * Why the gateway gave up on a request by its own decision, with nothing learned about the
+ * host:
+ *
+ * - `budget`: the caller's request count is used up or its deadline has passed (also when
+ *   the deadline cut a request short that was already on its way);
+ * - `pacing`: the politeness limits of the host leave no start time before the caller's
+ *   deadline, although the budget itself is not spent;
+ * - `cancelled`: the caller aborted its signal.
+ */
+export type Declined = 'budget' | 'pacing' | 'cancelled';
+
+/**
+ * Error details as the gateway fills them. `declined` tells "we did not ask" from "the host
+ * failed", which the code and `retryable` cannot: both are a retryable
+ * `UPSTREAM_UNAVAILABLE`. A caller that drops a failed input and carries on must not do so
+ * for a declined request, or it presents part of a source as the whole.
+ */
+export interface GatewayErrorDetails extends ErrorDetails {
+  declined?: Declined;
+}
+
+const DECLINED: Readonly<Record<Declined, { what: string; why: string; next?: string }>> = {
+  budget: {
+    what: 'No answer from {host} within the request budget',
+    why: 'The request budget of this call (a number of requests and a deadline) is spent',
+    next: 'Repeat the call: what it has read so far is cached, so the next one gets further',
+  },
+  pacing: {
+    what: 'The request to {host} was not sent',
+    why: 'Requests to {host} are spaced out, and the next one may only start after the deadline of this call',
+    next: 'Repeat the call after a short wait',
+  },
+  cancelled: { what: 'The request to {host} was cancelled', why: 'cancelled by the caller' },
+};
+
+/**
+ * `UPSTREAM_UNAVAILABLE` (`retryable: true`, so a stale copy may answer) for a request the
+ * gateway gave up on itself. The message does not blame the host, and `details.declined`
+ * names the reason.
+ */
+export function declined(url: string, reason: Declined): McpDocError {
+  const host = hostOf(url);
+  const { what, why, next } = DECLINED[reason];
+  const details: GatewayErrorDetails = {
+    why: why.replace('{host}', host),
+    ...(next === undefined ? {} : { next }),
+    ...where(url),
+    retryable: true,
+    declined: reason,
+  };
+  return new McpDocError('UPSTREAM_UNAVAILABLE', what.replace('{host}', host), details);
+}
+
+/** Why the gateway declined the request behind `error`; `undefined` for any other failure. */
+export function declinedBy(error: unknown): Declined | undefined {
+  if (!isMcpDocError(error)) return undefined;
+  const details: GatewayErrorDetails | undefined = error.details;
+  return details?.declined;
 }
 
 /** `OFFLINE_MISS`: offline mode and nothing usable in the cache. */

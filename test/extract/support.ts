@@ -143,7 +143,7 @@ export function passEnv(overrides: Partial<PassEnv> = {}): PassEnv {
     focusedCode: false,
     defaultLanguage: '',
     overview: false,
-    counters: { tables: {}, unknownIslands: new Set<string>() },
+    counters: { tables: {}, unknownIslands: new Set<string>(), collapsedCode: 0 },
     ...overrides,
   };
 }

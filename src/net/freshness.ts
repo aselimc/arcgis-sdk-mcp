@@ -1,30 +1,12 @@
 /**
  * Freshness decisions of the gateway: which TTL class a request gets when the caller names
- * none, how long an entry of each class stays fresh and how long it may answer for a failing
- * host (design section 6.2), and the cache key of a request.
- *
- * The durations themselves live in `src/cache/ttl.ts`; the gateway computes `freshUntil` /
- * `staleUntil` from them because the `Cache` port stores what it is given.
+ * none, the cache key of a request, and what a cached entry may still be used for. The
+ * durations and the freshness window of each class live in `src/cache/ttl.ts`.
  */
-import { STALE_IF_ERROR_MS, TTL_MS } from '../cache/ttl.js';
+import { freshnessAt } from '../cache/ttl.js';
 import { sha256Hex } from '../core/hash.js';
 import type { CachedHttpEntry, HttpRequest } from '../core/ports.js';
 import type { HostPolicy, TtlClass } from '../core/types.js';
-
-/** Classes that are never served stale: a remembered miss and third-party search results. */
-const NEVER_STALE: ReadonlySet<TtlClass> = new Set<TtlClass>(['negative', 'remote-search']);
-
-/** The freshness window of an entry of class `ttl` fetched or confirmed at `now`. */
-export function freshnessWindow(
-  ttl: TtlClass,
-  now: number,
-): Pick<CachedHttpEntry, 'freshUntil' | 'staleUntil'> {
-  const freshUntil = now + TTL_MS[ttl];
-  const staleUntil = NEVER_STALE.has(ttl)
-    ? freshUntil
-    : Math.max(freshUntil, now + STALE_IF_ERROR_MS);
-  return { freshUntil, staleUntil };
-}
 
 /** `@1.2.3` (an exact version, not a range or a dist-tag) in a jsDelivr path. */
 const PINNED_NPM_VERSION = /@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\/|$)/;
@@ -63,16 +45,30 @@ export function defaultTtl(host: HostPolicy, url: URL, expect: HttpRequest['expe
 }
 
 /**
- * The cache and single-flight key of a request: method, URL without fragment, a hash of the
- * body, and the encoding (the same bytes are stored differently as text and as base64).
+ * The check a body passed before it was stored: one per `expect` value, except that `yaml`
+ * is checked exactly like `text`.
+ */
+function validatedAs(expect: HttpRequest['expect']): 'html' | 'json' | 'xml' | 'text' {
+  return expect === 'yaml' ? 'text' : expect;
+}
+
+/**
+ * The cache and single-flight key of a request: method, URL without fragment, the shape the
+ * body is validated as, a hash of the request body, and the encoding (the same bytes are
+ * stored differently as text and as base64).
+ *
+ * The shape is part of the key because an entry is a verdict, not just bytes: "this URL
+ * holds a JSON index" and "this URL is not a page" are both true of an index file, and under
+ * one key the second would replace the first for every reader of the index.
  */
 export function cacheKey(
   method: 'GET' | 'POST',
   url: URL,
   body: string | undefined,
   encoding: HttpRequest['encoding'],
+  expect: HttpRequest['expect'],
 ): string {
-  const parts = [method, url.href];
+  const parts = [method, url.href, `as:${validatedAs(expect)}`];
   if (body !== undefined) parts.push(`body:${sha256Hex(body).slice(0, 32)}`);
   if (encoding === 'base64') parts.push('base64');
   return parts.join(' ');
@@ -86,12 +82,12 @@ export function usableEntry(
   entry: CachedHttpEntry | undefined,
   now: number,
 ): CachedHttpEntry | undefined {
-  return entry !== undefined && now < entry.staleUntil ? entry : undefined;
+  return entry !== undefined && freshnessAt(entry, now) !== 'expired' ? entry : undefined;
 }
 
 /** True while the entry may be served without contacting the origin. */
 export function isFresh(entry: CachedHttpEntry, now: number): boolean {
-  return now < entry.freshUntil;
+  return freshnessAt(entry, now) === 'fresh';
 }
 
 /** True for a remembered miss (404, soft 404, wrong body shape). */
