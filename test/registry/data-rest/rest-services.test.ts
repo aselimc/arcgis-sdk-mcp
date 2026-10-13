@@ -212,6 +212,25 @@ describe('services and platform products', () => {
   });
 });
 
+// Regression: "version 12.1", the ArcGIS Enterprise release, was stamped on the Places,
+// geocoding and routing services, which are hosted and have no version.
+describe('rest-api version oracles', () => {
+  it('limits the Enterprise release to the references that ship with Enterprise', () => {
+    const rest = byId('rest-api');
+    const [enterprise, online] = rest.oracles.map((oracle) =>
+      (oracle.options.sources ?? '').split(','),
+    );
+    expect(enterprise).toEqual(
+      expect.arrayContaining(['services-enterprise', 'admin-server', 'admin-portal']),
+    );
+    expect(online).toEqual(['portal', 'services-online']);
+    for (const hosted of ['location-services', 'geocode', 'routing', 'geoenrichment']) {
+      expect(sourceOf(rest, hosted).id).toBe(hosted);
+      expect([...(enterprise ?? []), ...(online ?? [])], hosted).not.toContain(hosted);
+    }
+  });
+});
+
 describe('ai-agents', () => {
   const ai = byId('ai-agents');
 

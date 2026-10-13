@@ -36,7 +36,7 @@ function inlineTag(part: Json, context: CommentContext): string {
 }
 
 /** Renders comment display parts (`text`, `code`, `inline-tag`) as Markdown. */
-export function renderParts(parts: unknown, context: CommentContext): string {
+function renderParts(parts: unknown, context: CommentContext): string {
   return records(parts)
     .map((part) => {
       if (part.kind === 'inline-tag') return inlineTag(part, context);

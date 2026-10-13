@@ -13,8 +13,11 @@ import { share } from '../index/minisearch-index.js';
 import { queryTerms } from '../index/query-terms.js';
 import { SYNONYMS } from './synonyms.js';
 
-/** Share of the query's words a brief's title, slug and headings must hold. */
-const MIN_SHARE = 0.6;
+/**
+ * Share of the query's words a brief's title, slug and headings must hold. Half is enough
+ * because a question carries words no title has ("which SDK should I use").
+ */
+const MIN_SHARE = 0.5;
 
 /** Fewest query words: one word is a subject, not a question a brief answers. */
 const MIN_TERMS = 2;

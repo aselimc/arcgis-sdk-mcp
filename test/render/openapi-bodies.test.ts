@@ -66,7 +66,10 @@ const spec = {
       UploadUrlRequest: {
         type: 'object',
         required: ['url'],
-        properties: { url: { type: 'string', description: 'Where the photo is.' }, name: { type: 'string' } },
+        properties: {
+          url: { type: 'string', description: 'Where the photo is.' },
+          name: { type: 'string' },
+        },
       },
       Flight: {
         type: 'object',
@@ -139,7 +142,9 @@ describe('renderOpenapi: responses of a specification', () => {
   });
 
   it('gives a property without a type a type, and marks a deprecated one', () => {
-    expect(text).toContain('| `mode` | `string` | no | How it was flown. Constraints: one of `manual`, `grid`. |');
+    expect(text).toContain(
+      '| `mode` | `string` | no | How it was flown. Constraints: one of `manual`, `grid`. |',
+    );
     expect(text).toContain('| `size` | `any` | no | Free-form. |');
     expect(text).toContain('| `vehicle` | `string` | no | Use `aircraft`. **Deprecated.** |');
   });

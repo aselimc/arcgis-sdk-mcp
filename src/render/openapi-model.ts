@@ -116,7 +116,7 @@ function exampleText(value: unknown): string | undefined {
 }
 
 /** Reads a page-data parameter or property (recursively for nested `properties`). */
-export function pageDataProperty(node: Json): OaProperty {
+function pageDataProperty(node: Json): OaProperty {
   const description = str(node.description) ?? str(node.shortDescription);
   const fallback = scalar(node.default);
   const example = exampleText(node.example);

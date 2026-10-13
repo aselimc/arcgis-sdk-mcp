@@ -18,6 +18,7 @@ import {
   isReadme,
   kindOfFile,
   presetKind,
+  readsSamples,
   type TreeFile,
 } from './presets.js';
 import { readSample, sampleOfDir } from './samples-metadata.js';
@@ -201,15 +202,75 @@ export async function readFile(
   return withNotices(page, scope);
 }
 
+/** Entries of a directory listing; a larger directory says how many more there are. */
+const MAX_LISTED_ENTRIES = 200;
+
 /**
- * Reads a directory of the repository (or its root): the sample it holds for the sample
- * presets, otherwise its README.
+ * A directory as a page: its files and subdirectories, each with the URL that reads it. This
+ * is what a directory without a README has to show, and it is written by this server (the
+ * names are the repository's, the page is not a document of it).
+ */
+function directoryListing(
+  ctx: Ctx,
+  src: GithubSource,
+  scope: RepoScope,
+  dir: string,
+  tree: readonly TreeFile[],
+  target: ReadTarget,
+): DocPage {
+  const prefix = dir === '' ? '' : `${dir}/`;
+  const directories = new Map<string, number>();
+  const files: string[] = [];
+  for (const file of tree) {
+    if (!file.path.startsWith(prefix)) continue;
+    const rest = file.path.slice(prefix.length);
+    const cut = rest.indexOf('/');
+    if (cut === -1) files.push(rest);
+    else directories.set(rest.slice(0, cut), (directories.get(rest.slice(0, cut)) ?? 0) + 1);
+  }
+  const entries = [
+    ...[...directories].map(
+      ([name, count]) =>
+        `- [${name}/](${treeUrl(scope.repo, scope.ref, `${prefix}${name}`)}) (${count} file${count === 1 ? '' : 's'})`,
+    ),
+    ...files.map((name) => `- [${name}](${blobUrl(scope.repo, scope.ref, `${prefix}${name}`)})`),
+  ];
+  const more = entries.length - MAX_LISTED_ENTRIES;
+  const url = treeUrl(scope.repo, scope.ref, dir);
+  const markdown = [
+    `# ${dir === '' ? scope.repo : dir}`,
+    `Directory of ${scope.repo} at ${scope.ref}. It has no README; read an entry by its URL.`,
+    entries.slice(0, MAX_LISTED_ENTRIES).join('\n'),
+    ...(more > 0 ? [`${more} more entries are not listed.`] : []),
+  ].join('\n\n');
+  const kind = presetKind(src.source.config.preset, src.source.kinds);
+  const page = ctx.render.render(
+    'markdown',
+    { markdown },
+    {
+      url: `${url}${target.url.hash}`,
+      product: src.product.id,
+      source: src.source.id,
+      line: src.line.id,
+      kind,
+      // A listing is this server's own text about the repository, not content of it.
+      license: 'project',
+      retrievedAt: ctx.clock.iso(),
+    },
+    repoRenderOptions(target, scope),
+  );
+  return withNotices(page, scope);
+}
+
+/**
+ * Reads a directory of the repository (or its root): the sample it holds for a source of
+ * samples, otherwise its README, and a listing of its entries when it has none.
  *
  * The file listing needs the GitHub API. When that is unavailable (a spent quota, an
  * outage) the conventional `README.md` is tried on the raw host, and the listing's error is
  * reported only if that is missing too.
  *
- * @throws McpDocError `DOC_NOT_FOUND` when the directory has nothing to show.
+ * @throws McpDocError `DOC_NOT_FOUND` when the directory does not exist.
  */
 export async function readDirectory(
   ctx: Ctx,
@@ -232,18 +293,19 @@ export async function readDirectory(
     }
   }
 
-  const preset = src.source.config.preset;
   const sample = sampleOfDir(tree, dir);
-  if (sample !== undefined && (preset === 'samples-metadata' || preset === 'samples-readme')) {
+  // The repository's own README describes the repository, not a sample.
+  if (sample !== undefined && dir !== '' && readsSamples(src.source.config, src.source.kinds)) {
     return readSample(ctx, src, scope, sample, target);
   }
   if (sample?.readme !== undefined) return readFile(ctx, src, scope, sample.readme, target);
+  if (tree.some((file) => file.path.startsWith(prefix))) {
+    return directoryListing(ctx, src, scope, dir, tree, target);
+  }
   const url = treeUrl(scope.repo, scope.ref, dir);
-  throw tree.some((file) => file.path.startsWith(prefix))
-    ? notFound(
-        url,
-        `${dir === '' ? scope.repo : dir} has no README`,
-        'Open one of its files instead',
-      )
-    : notFound(url, `${scope.repo} has no directory "${dir}"`, `It does not exist at ${scope.ref}`);
+  throw notFound(
+    url,
+    `${scope.repo} has no directory "${dir}"`,
+    `It does not exist at ${scope.ref}`,
+  );
 }

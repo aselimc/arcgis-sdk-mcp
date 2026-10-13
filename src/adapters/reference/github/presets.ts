@@ -85,6 +85,17 @@ export function presetKind(preset: Preset, declared: readonly DocKind[]): DocKin
 }
 
 /**
+ * True when the directories of a source are samples: the two sample presets, and a
+ * `markdown-docs` source the registry declares as samples (starter templates: a README that
+ * describes a directory of code). The README of such a directory stands for the directory.
+ */
+export function readsSamples(config: GithubConfig, declared: readonly DocKind[]): boolean {
+  const { preset } = config;
+  if (preset === 'samples-metadata' || preset === 'samples-readme') return true;
+  return preset === 'markdown-docs' && presetKind(preset, declared) === 'sample';
+}
+
+/**
  * True when a repository path belongs to a source: it matches the registry's `include`
  * (default: the preset's own globs), no `exclude` glob and none of the noise globs. Globs
  * follow `glob.ts`: `*` stays inside one segment, `**` crosses segments.

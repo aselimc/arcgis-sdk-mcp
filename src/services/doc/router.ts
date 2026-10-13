@@ -108,7 +108,7 @@ function briefRoute(ctx: Ctx, slug: string, fragment: string | undefined): Route
     const ordered = [...near, ...slugs.filter((candidate) => !near.includes(candidate))];
     const [first] = near;
     throw new McpDocError('DOC_NOT_FOUND', `There is no brief "${slug}"`, {
-      why: 'Briefs are a fixed set of curated notes shipped with this server',
+      why: `Briefs are a fixed set of curated notes shipped with this server: ${slugs.join(', ')}`,
       candidates: ordered.map((candidate) => `brief:${candidate}`),
       next:
         first === undefined

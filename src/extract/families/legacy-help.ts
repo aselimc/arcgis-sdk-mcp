@@ -14,7 +14,8 @@ const META_FIELDS: ReadonlyArray<[string, string]> = [
 const STEP_WRAPPERS =
   'div.stepinfo, div.stepresult, div.stepexample, div.info, div.steps, div.substeps, div.overflow-auto';
 /** Children that already separate the content of a wrapper from what surrounds it. */
-const BLOCK_CHILDREN = 'p, div, ul, ol, table, pre, blockquote, figure, section, h1, h2, h3, h4, h5, h6';
+const BLOCK_CHILDREN =
+  'p, div, ul, ol, table, pre, blockquote, figure, section, h1, h2, h3, h4, h5, h6';
 
 function root($: CheerioAPI): Cheerio<Element> {
   const inSection = $('div.content-section main').first();

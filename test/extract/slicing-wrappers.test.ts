@@ -4,7 +4,8 @@ import type { DocPage } from '../../src/core/types.js';
 import { extractHtml } from './support.js';
 
 const ids = (page: DocPage): string[] => page.sections.map((section) => section.id);
-const text = (page: DocPage): string => page.sections.map((section) => section.markdown).join('\n\n');
+const text = (page: DocPage): string =>
+  page.sections.map((section) => section.markdown).join('\n\n');
 
 /**
  * The layout of a generated class page: the class heading in a `<section>` of its own, the

@@ -3,8 +3,8 @@ import { gatsbyAdapter } from '../../../../src/adapters/site/gatsby/index.js';
 import { bindSource } from '../../../../src/core/adapter-helpers.js';
 import { isMcpDocError } from '../../../../src/core/errors.js';
 import type { RendererInputs } from '../../../../src/core/ports.js';
-import { makeLine, makeRecord } from '../../../support/builders.js';
-import type { RenderCall } from '../../../support/fake-render.js';
+import { makeDocPage, makeLine, makeRecord } from '../../../support/builders.js';
+import type { FakeRenderer, RenderCall } from '../../../support/fake-render.js';
 import type { TestCtx } from '../../../support/make-ctx.js';
 import { D, engine, guide, pythonApi, rest, typedoc, rejection } from './sites.js';
 
@@ -161,6 +161,78 @@ describe('gatsby symbol', () => {
     const call = rendered(ctx, 'sphinx');
     expect(call.opts).toEqual({ select: { section: 'geocode' }, detail: 'full' });
     expect(call.input.anchor).toBe('geocode');
+  });
+
+  // Regression: on a version line whose index has classes without members, a member is asked
+  // for on the page of its type by its bare name. A module page documents several classes:
+  // `Table.query` returned the `query` of another class, and cited `#query`, which is no
+  // anchor of the page.
+  describe('a member the catalogue does not list, on a page of several types', () => {
+    const PAGE = `${D}/pylib/latest/api-reference/pylib.geocoding.html`;
+    const members = [
+      { id: 'pylib.geocoding.Layer.query', name: 'query', kind: 'method' },
+      { id: 'pylib.geocoding.Table.query', name: 'query', kind: 'method' },
+      { id: 'pylib.geocoding.Table.rows', name: 'rows', kind: 'method' },
+    ];
+    /** The record made for `Type.member` when the type lists no members. */
+    const asked = (type: string, member: string) =>
+      makeRecord({
+        ref: `${PAGE}#${member}`,
+        kind: 'api',
+        title: member,
+        symbol: member,
+        qualified: `pylib.geocoding.${type}.${member}`,
+        parent: `pylib.geocoding.${type}`,
+        symbolKind: 'member',
+      });
+    /** A renderer that selects a member as the real one does: by id, else the first of that name. */
+    const scripted = (ctx: TestCtx): RenderCall[] => {
+      const renderer = ctx.render as FakeRenderer;
+      renderer.when('sphinx', (call) => {
+        const wanted = call.opts?.select?.member;
+        const found =
+          members.find((member) => member.id === wanted) ??
+          members.find((member) => member.name === wanted);
+        const markdown =
+          found === undefined ? '# pylib.geocoding' : `#### ${found.id} {#${found.id}}\n\nText.`;
+        return { ...makeDocPage({ markdown, url: PAGE, ref: call.meta.url }), members };
+      });
+      return renderer.calls;
+    };
+
+    it('reads the member of the type that was asked for and cites its anchor', async () => {
+      const s = pythonApi();
+      const ctx = s.ctx();
+      const calls = scripted(ctx);
+      const page = await gatsbyAdapter.symbol!(ctx, s.bound(), asked('Table', 'query'), 'full');
+
+      expect(calls.map((call) => call.opts?.select)).toEqual([
+        { member: 'query' },
+        { member: 'pylib.geocoding.Table.query' },
+      ]);
+      expect(page.sections.map((section) => section.id)).toEqual(['pylib.geocoding.Table.query']);
+      expect(page.ref).toBe(`${PAGE}#pylib.geocoding.Table.query`);
+    });
+
+    it('keeps the page the bare name found when it is the right member, under its real anchor', async () => {
+      const s = pythonApi();
+      const ctx = s.ctx();
+      const calls = scripted(ctx);
+      const page = await gatsbyAdapter.symbol!(ctx, s.bound(), asked('Table', 'rows'), 'full');
+
+      expect(calls).toHaveLength(1);
+      expect(page.ref).toBe(`${PAGE}#pylib.geocoding.Table.rows`);
+    });
+
+    it('returns what the bare name gives when the page has no member of that full name', async () => {
+      const s = pythonApi();
+      const ctx = s.ctx();
+      const calls = scripted(ctx);
+      const page = await gatsbyAdapter.symbol!(ctx, s.bound(), asked('Other', 'query'), 'full');
+
+      expect(calls).toHaveLength(1);
+      expect(page.ref).toBe(`${PAGE}#query`);
+    });
   });
 
   it('reads the whole page for a symbol documented by a page', async () => {

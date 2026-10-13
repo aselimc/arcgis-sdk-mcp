@@ -6,6 +6,7 @@ import { REGISTRIES } from './cassettes-registries.js';
 import { SITES } from './cassettes-sites.js';
 import {
   LINE_200,
+  LINE_300,
   dotnetProduct,
   javaProduct,
   jsProduct,
@@ -14,6 +15,7 @@ import {
 } from './products.js';
 import { HOUR, MINUTE } from '../support/fake-clock.js';
 import { FakeGithub } from '../support/fake-github.js';
+import { makeSource } from '../support/builders.js';
 import { makeCall, makeCtx, type TestCtx } from '../support/make-ctx.js';
 import { useProjects } from '../workspace/project.js';
 
@@ -396,6 +398,12 @@ describe('version report: a blank version', () => {
     expect(blank.products[0]?.notices).toEqual(plain.products[0]?.notices);
   });
 
+  it('treats a blank product as no product: the project decides, not an error', async () => {
+    const ctx = setup({ files: packageJson({ '@arcgis/core': '5.1.20' }) });
+    const report = await createVersionService(ctx).report({ product: ' ' }, makeCall(ctx));
+    expect(report.products.map((entry) => entry.product.id)).toEqual(['js-maps-sdk']);
+  });
+
   it('never answers one request with the cached report of another', async () => {
     const ctx = setup({ products: [templated] });
     const service = createVersionService(ctx);
@@ -558,6 +566,60 @@ describe('version label', () => {
     expect(ctx.http.count()).toBe(requests);
     ctx.clock.advance(HOUR + MINUTE);
     expect(await service.label(jsProduct, line!)).toBe('5.1');
+  });
+
+  // Regression: the ArcGIS Enterprise release number was printed on hosted location
+  // services, which have no version. An oracle can be limited to the sources it describes.
+  describe('for one source of a product made of independent references', () => {
+    const enterprise = makeSource('gatsby', { base: '/net/' }, { id: 'services-enterprise' });
+    const hosted = makeSource(
+      'gatsby',
+      { base: '/net/places/' },
+      { id: 'location-services', floor: false },
+    );
+    const rest: Product = {
+      ...dotnetProduct,
+      id: 'rest-widgets',
+      lines: [LINE_300],
+      sources: [enterprise, hosted],
+      oracles: [
+        {
+          type: 'page-regex',
+          options: { url: `${D}/net/`, sources: 'services-enterprise' },
+          provides: ['documented'],
+        },
+      ],
+    };
+
+    it('labels the sources an oracle speaks for and leaves the others without a version', async () => {
+      const ctx = setup({ products: [rest] });
+      const service = createVersionService(ctx);
+      const label = service.label as (
+        product: Product,
+        line: typeof LINE_300,
+        source?: typeof hosted,
+      ) => Promise<string | undefined>;
+      expect(await label(rest, LINE_300, enterprise)).toBe('300.1');
+      expect(await label(rest, LINE_300, hosted)).toBeUndefined();
+      // Nothing was requested for the source that no oracle describes.
+      expect(ctx.http.count()).toBe(1);
+      // Without a source the product answers as before.
+      expect(await label(rest, LINE_300)).toBe('300.1');
+    });
+
+    it('shares one label between the sources of a product whose oracles are not limited', async () => {
+      const ctx = setup();
+      const service = createVersionService(ctx);
+      const label = service.label as (
+        product: Product,
+        line: typeof LINE_300,
+        source?: typeof hosted,
+      ) => Promise<string | undefined>;
+      const [line] = jsProduct.lines;
+      expect(await label(jsProduct, line!, enterprise)).toBe('5.1');
+      expect(await label(jsProduct, line!, hosted)).toBe('5.1');
+      expect(ctx.http.count()).toBe(1);
+    });
   });
 
   it('falls back to the static registry value without any request', async () => {

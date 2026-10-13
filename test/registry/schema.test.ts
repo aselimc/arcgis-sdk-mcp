@@ -174,6 +174,8 @@ describe('productSchema', () => {
       'oracles.0.options.package: oracle nuget-flat has no option "package" (it reads id)',
     ]);
     expect(oracle('page-regex', { page: 'https://developers.arcgis.com/x/' })).toHaveLength(1);
+    // Every oracle type may be limited to some sources of its product.
+    expect(oracle('agol-rest-info', { sources: 'portal,services-online' })).toEqual([]);
   });
 
   it('rejects unknown keys and names the product', () => {

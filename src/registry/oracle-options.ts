@@ -27,15 +27,32 @@ export const ORACLE_OPTION_KEYS = {
   plc: ['category', 'productName', 'platform'],
 } as const satisfies Record<OracleType, readonly string[]>;
 
+/**
+ * The option every oracle type has. `sources` is a comma-separated list of source ids of the
+ * product: the fact describes the pages of those sources only. A product made of independent
+ * references (the REST APIs: Enterprise services next to hosted location services) states
+ * with it which of them follow the version it reads. Absent: the whole product.
+ */
+export const SHARED_OPTION_KEYS = ['sources'] as const;
+
 /** An option key of one oracle type. */
 export type OracleOptionKey<T extends OracleType = OracleType> =
-  (typeof ORACLE_OPTION_KEYS)[T][number];
+  (typeof ORACLE_OPTION_KEYS)[T][number] | (typeof SHARED_OPTION_KEYS)[number];
+
+/** The source ids an oracle is limited to; `undefined` when it speaks for the whole product. */
+export function oracleSources(options: Record<string, string>): string[] | undefined {
+  const listed = options.sources
+    ?.split(',')
+    .map((id) => id.trim())
+    .filter((id) => id !== '');
+  return listed === undefined || listed.length === 0 ? undefined : listed;
+}
 
 /** Option keys whose value is a URL or a path on developers.arcgis.com. */
 export const URL_OPTION_KEYS = ['url', 'sitemap'] as const;
 
 /** The keys of `options` that the oracle type does not read. */
 export function unknownOptionKeys(type: OracleType, options: Record<string, string>): string[] {
-  const known: readonly string[] = ORACLE_OPTION_KEYS[type];
+  const known: readonly string[] = [...ORACLE_OPTION_KEYS[type], ...SHARED_OPTION_KEYS];
   return Object.keys(options).filter((key) => !known.includes(key));
 }

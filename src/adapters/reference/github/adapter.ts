@@ -16,7 +16,7 @@ import type { CatalogRecord, DocPage } from '../../../core/types.js';
 import { parseGithubUrl } from '../../../core/url.js';
 import { MAX_HEADING_FILES, documentRecords, readDirectory, readFile } from './files.js';
 import { atRef, openRepo, openScope, openScopeAt } from './pin.js';
-import { isMarkdown } from './presets.js';
+import { isMarkdown, readsSamples } from './presets.js';
 import { readSample, sampleOfFile, sampleOfRecord, sampleRecords } from './samples-metadata.js';
 import { MAX_SCANNED_FILES, snippetRecords } from './snippets-region.js';
 import { callOptions, notFound, type GithubSource } from './shared.js';
@@ -89,8 +89,7 @@ async function read(ctx: Ctx, src: GithubSource, target: ReadTarget): Promise<Do
       : await openScopeAt(ctx, src, location.ref);
   if (location.type === 'directory') return readDirectory(ctx, src, scope, location.path, target);
 
-  const preset = src.source.config.preset;
-  if (preset === 'samples-metadata' || preset === 'samples-readme') {
+  if (readsSamples(src.source.config, src.source.kinds)) {
     // The README or metadata file of a sample stands for the whole sample. The record that
     // led here knows the exact file names; a bare URL has to assume the sibling's name.
     const known = sampleOfRecord(target.record);

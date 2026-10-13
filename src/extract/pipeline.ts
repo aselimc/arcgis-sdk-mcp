@@ -118,7 +118,7 @@ function select(
 }
 
 /** Children of one element above which they are grouped before conversion. */
-const WIDE = 512;
+export const WIDE = 512;
 /** Elements whose children mean something only as direct children. */
 const NOT_CHUNKED = new Set(
   'ul ol dl table thead tbody tfoot tr pre code select a em strong b i span'.split(' '),
@@ -131,7 +131,7 @@ const NOT_CHUNKED = new Set(
  * blocks take seconds, grouped they take milliseconds. A `div` adds nothing to the Markdown
  * of block content. Lists, tables and inline elements are left as they are.
  */
-function chunkWideElements($: CheerioAPI): void {
+export function chunkWideElements($: CheerioAPI): void {
   const wide = $('*')
     .get()
     .filter((el) => isElement(el) && el.children.length > WIDE && !NOT_CHUNKED.has(el.tagName));

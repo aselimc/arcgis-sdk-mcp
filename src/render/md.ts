@@ -24,7 +24,7 @@ export function fence(code: string, language = ''): string {
 }
 
 /** True when the text already contains a fenced code block. */
-export function hasFence(text: string): boolean {
+function hasFence(text: string): boolean {
   return /^ {0,3}(?:`{3,}|~{3,})/m.test(text);
 }
 

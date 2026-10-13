@@ -6,6 +6,11 @@
  * `samples-readme` is the layout of repositories without metadata files, such as the ArcGIS
  * Pro SDK community samples: one directory per sample with a README next to the project.
  *
+ * A game-engine project keeps the two apart: the README of a sample lies with its assets
+ * (`Content/.../Samples/Geocoding/`), which are binary, and its code in a directory of the
+ * same name under the source root (`Source/<project>/Geocoding/`). {@link codeTwin} finds
+ * that directory, so such a sample is listed and read with its code.
+ *
  * Enumeration reads the repository tree only. A sample's README, metadata and source files
  * are fetched when that sample is read.
  */
@@ -59,12 +64,51 @@ export interface SampleDir {
   metadata?: string;
 }
 
+/** `Feature Layer`, `FeatureLayer` and `feature_layer` name the same sample. */
+function nameKey(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/** Leading path segments two directories share. */
+function sharedDepth(a: string, b: string): number {
+  const [left, right] = [a.split('/'), b.split('/')];
+  let depth = 0;
+  while (depth < left.length && depth < right.length && left[depth] === right[depth]) depth += 1;
+  return depth;
+}
+
+/**
+ * The directory that holds the code of a sample whose own directory has none: a directory of
+ * the same name elsewhere in the repository that has code files of its own and no README
+ * (which would make it a sample itself). Of several, the one nearest in the tree is taken:
+ * a repository with two projects has a `Geocoding` in each.
+ */
+export function codeTwin(tree: readonly TreeFile[], dir: string): string | undefined {
+  const wanted = nameKey(baseOf(dir));
+  if (wanted === '') return undefined;
+  const described = new Set(
+    tree.filter((file) => isReadme(file.path)).map((file) => dirOf(file.path)),
+  );
+  const twins = new Set<string>();
+  for (const file of tree) {
+    if (!isCode(file.path)) continue;
+    const parent = dirOf(file.path);
+    if (parent === dir || parent.startsWith(`${dir}/`) || described.has(parent)) continue;
+    if (nameKey(baseOf(parent)) === wanted) twins.add(parent);
+  }
+  return [...twins].sort(
+    (a, b) => sharedDepth(b, dir) - sharedDepth(a, dir) || (a < b ? -1 : a > b ? 1 : 0),
+  )[0];
+}
+
 /**
  * The sample directories of a tree.
  *
  * - `samples-metadata`: every directory with a metadata file, plus README-only directories
  *   next to one (the game-engine repositories give only a few samples a metadata file).
- * - `samples-readme`: every innermost directory below the root that has a README and code.
+ * - `samples-readme`: every innermost directory below the root that has a README and code,
+ *   in itself or in its {@link codeTwin}; and the README directories next to such a sample
+ *   that hold other files (a sample built from assets alone is still a sample of the set).
  */
 export function sampleDirs(tree: readonly TreeFile[], config: GithubConfig): SampleDir[] {
   const readmes = new Map<string, string>();
@@ -87,8 +131,19 @@ export function sampleDirs(tree: readonly TreeFile[], config: GithubConfig): Sam
       if (!isCode(file.path)) continue;
       for (let dir = dirOf(file.path); dir !== ''; dir = dirOf(dir)) withCode.add(dir);
     }
-    for (const dir of leaves(readmes)) {
-      if (dir !== '' && withCode.has(dir)) chosen.add(dir);
+    const candidates = leaves(readmes).filter((dir) => dir !== '');
+    for (const dir of candidates) {
+      if (withCode.has(dir) || codeTwin(tree, dir) !== undefined) chosen.add(dir);
+    }
+    const sampleSets = new Set([...chosen].map(dirOf));
+    const withFiles = new Set(
+      tree.filter((file) => !isReadme(file.path)).map((file) => dirOf(file.path)),
+    );
+    for (const dir of candidates) {
+      // The root holds the repository's own directories (`docs`, `templates`), not samples.
+      if (dirOf(dir) !== '' && sampleSets.has(dirOf(dir)) && hasFilesBelow(withFiles, dir)) {
+        chosen.add(dir);
+      }
     }
   }
 
@@ -101,6 +156,13 @@ export function sampleDirs(tree: readonly TreeFile[], config: GithubConfig): Sam
       ...(meta === undefined ? {} : { metadata: meta }),
     };
   });
+}
+
+/** True when a directory, or one below it, holds a file that is not a README. */
+function hasFilesBelow(withFiles: ReadonlySet<string>, dir: string): boolean {
+  if (withFiles.has(dir)) return true;
+  for (const other of withFiles) if (other.startsWith(`${dir}/`)) return true;
+  return false;
 }
 
 /** The directories of a map that have no other directory of the map beneath them. */
@@ -169,6 +231,7 @@ export function sampleOfFile(path: string, config: GithubConfig): SampleDir | un
   const prefix = dir === '' ? '' : `${dir}/`;
   const lower = baseOf(path) === baseOf(path).toLowerCase();
   if (isReadme(path)) {
+    // Only this preset has metadata files; any other sample is its README and its code.
     if (config.preset !== 'samples-metadata') return { dir, readme: path };
     return {
       dir,
@@ -224,10 +287,14 @@ function snippetNames(metadata: Record<string, unknown> | undefined): string[] {
   return snippets.filter((name): name is string => typeof name === 'string' && name !== '');
 }
 
+/** Build and tool configuration of a project: code by extension, not what a sample shows. */
+const TOOLING =
+  /(?:^|\/)(?:[\w.-]+\.config\.[cm]?[jt]s|\.[\w.-]+rc\.[cm]?js|vite-env\.d\.ts|[\w.-]+\.d\.ts|setup[\w.-]*\.[jt]s)$/i;
+
 /**
  * The main source files of a sample directory when no metadata names them: code files of a
  * sensible size, nearest to the sample root first, files named after the sample before
- * the others.
+ * the others, and the configuration of build tools last.
  */
 export function mainFiles(tree: readonly TreeFile[], dir: string): string[] {
   const prefix = dir === '' ? '' : `${dir}/`;
@@ -236,6 +303,7 @@ export function mainFiles(tree: readonly TreeFile[], dir: string): string[] {
   const depth = (path: string): number => path.split('/').length;
   const named = (path: string): number =>
     name !== '' && key(baseOf(path).replace(/\.[^.]+$/, '')).includes(name) ? 0 : 1;
+  const tooling = (path: string): number => (TOOLING.test(path.slice(prefix.length)) ? 1 : 0);
   return tree
     .filter(
       (file) =>
@@ -248,7 +316,34 @@ export function mainFiles(tree: readonly TreeFile[], dir: string): string[] {
         (file.size ?? 0) <= MAX_FILE_BYTES,
     )
     .map((file) => file.path)
-    .sort((a, b) => depth(a) - depth(b) || named(a) - named(b) || (a < b ? -1 : a > b ? 1 : 0));
+    .sort(
+      (a, b) =>
+        tooling(a) - tooling(b) ||
+        depth(a) - depth(b) ||
+        named(a) - named(b) ||
+        (a < b ? -1 : a > b ? 1 : 0),
+    );
+}
+
+/** Source files named in the notice of a sample that has more of them than a read fetches. */
+const MAX_LISTED_FILES = 40;
+
+/**
+ * Says which source files of a sample were not fetched, each with the URL that reads it: a
+ * sample is often more than its entry file, and a file that is not named cannot be asked for.
+ */
+function otherFilesNotice(
+  scope: RepoScope,
+  paths: readonly string[],
+  nameOf: (path: string) => string,
+): string {
+  const listed = paths
+    .slice(0, MAX_LISTED_FILES)
+    .map((path) => `${nameOf(path)} (${blobUrl(scope.repo, scope.ref, path)})`);
+  const more = paths.length - listed.length;
+  return `${paths.length} more source file(s), each readable by its URL: ${listed.join(', ')}${
+    more > 0 ? `, and ${more} more` : ''
+  }.`;
 }
 
 /**
@@ -305,6 +400,9 @@ export async function readSample(
     try {
       const tree = await ctx.github.tree(repo, scope.ref, callOptions(src));
       paths = mainFiles(tree, sample.dir);
+      // The code of a sample that is assets only lies in the directory named after it.
+      const twin = paths.length === 0 ? codeTwin(tree, sample.dir) : undefined;
+      if (twin !== undefined) paths = mainFiles(tree, twin);
     } catch (error) {
       skipOptional(ctx, src, error, `the file list of ${repo}`);
       notices.push(
@@ -314,17 +412,22 @@ export async function readSample(
   }
   const wanted = paths.slice(0, Math.min(MAX_SAMPLE_FILES, requestsLeft(src)));
   const fetched = await mapPool(wanted, PARALLEL_FETCHES, optional);
+  // A file is named by its path below the sample; one that lies elsewhere by its full path.
+  const nameOf = (path: string): string =>
+    path.startsWith(prefix) ? path.slice(prefix.length) : path;
   const files = wanted.flatMap((path, index) => {
     const res = fetched[index];
     return res === undefined
       ? []
-      : [{ name: path.slice(prefix.length), text: res.text, ref: blobUrl(repo, scope.ref, path) }];
+      : [{ name: nameOf(path), text: res.text, ref: blobUrl(repo, scope.ref, path) }];
   });
-  if (files.length < paths.length) {
-    notices.push(
-      `${paths.length - files.length} more source file(s) are at ${treeUrl(repo, scope.ref, sample.dir)}.`,
-    );
+  // A file that was asked for and did not arrive may not exist; the others were not asked for.
+  const missed = wanted.length - files.length;
+  if (missed > 0) {
+    notices.push(`${missed} more source file(s) are at ${treeUrl(repo, scope.ref, sample.dir)}.`);
   }
+  const unread = paths.slice(wanted.length);
+  if (unread.length > 0) notices.push(otherFilesNotice(scope, unread, nameOf));
 
   const page = ctx.render.render(
     'source',

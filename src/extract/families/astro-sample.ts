@@ -67,7 +67,8 @@ function sourceFiles(page: PageView): SourceFile[] {
   const switcher = page.root.find(NATIVE_SAMPLE_SOURCE).first();
   switcher.children('div[data-codeblock]').each((_, el) => {
     const block = $(el).find('div.expressive-code').first();
-    if (block.length > 0) files.push(fileOf($, block, codeblockLabel($(el)), files.length, page.url));
+    if (block.length > 0)
+      files.push(fileOf($, block, codeblockLabel($(el)), files.length, page.url));
   });
   if (switcher.length > 0) {
     switcher.prev('h2').remove();

@@ -24,13 +24,29 @@ describe('stripUnseen', () => {
   it('removes comments in a line, on lines of their own and across lines', () => {
     expect(
       stripUnseen(
-        ['A <!-- one --> b <!-- two --> c.', '<!-- alone -->', 'Next.', '', '<!--', 'x', '-->', '', 'End.'].join('\n'),
+        [
+          'A <!-- one --> b <!-- two --> c.',
+          '<!-- alone -->',
+          'Next.',
+          '',
+          '<!--',
+          'x',
+          '-->',
+          '',
+          'End.',
+        ].join('\n'),
       ),
     ).toBe(['A  b  c.', '', 'Next.', '', 'End.'].join('\n'));
   });
 
   it('leaves code fences and an unterminated comment as they are', () => {
-    const source = ['```html', '<!-- sample -->', '<div hidden>x</div>', '```', 'Open <!-- never closed.'].join('\n');
+    const source = [
+      '```html',
+      '<!-- sample -->',
+      '<div hidden>x</div>',
+      '```',
+      'Open <!-- never closed.',
+    ].join('\n');
     expect(stripUnseen(source)).toBe(source);
   });
 
@@ -46,7 +62,7 @@ describe('stripUnseen', () => {
     ['<span style="display:none">PAYLOAD</span>'],
     ['<p style="color:red; visibility: hidden">PAYLOAD</p>'],
     ['<span style="font-size:0">PAYLOAD</span>'],
-    ['<span style=\'opacity:0\'>PAYLOAD</span>'],
+    ["<span style='opacity:0'>PAYLOAD</span>"],
     ['<div hidden>\n\nPAYLOAD\n\n<div>inner</div>\n</div>'],
     ['<details hidden><summary>PAYLOAD</summary></details>'],
   ])('removes the hidden element %s', (html) => {
@@ -56,7 +72,8 @@ describe('stripUnseen', () => {
   });
 
   it('keeps visible elements and removes only the tag of a hidden void element', () => {
-    const visible = 'A <span style="opacity:0.8">faded</span> and <b>bold</b> <img src="a.png" alt="a">.';
+    const visible =
+      'A <span style="opacity:0.8">faded</span> and <b>bold</b> <img src="a.png" alt="a">.';
     expect(stripUnseen(visible)).toBe(visible);
     expect(stripUnseen('A <img hidden src="a.png"> b.')).toBe('A  b.');
   });
@@ -157,7 +174,10 @@ describe('renderSource and renderNotebook', () => {
       {
         ipynb: {
           cells: [
-            { cell_type: 'markdown', source: ['# Title\n', '<!-- note -->\n', 'Text <span hidden>x</span>here.'] },
+            {
+              cell_type: 'markdown',
+              source: ['# Title\n', '<!-- note -->\n', 'Text <span hidden>x</span>here.'],
+            },
           ],
         },
       },
@@ -167,9 +187,9 @@ describe('renderSource and renderNotebook', () => {
   });
 
   it('also cleans a Markdown document', () => {
-    expect(
-      pageText(renderMarkdown({ markdown: '# T\n\nA <b hidden>x</b>b.' }, meta)),
-    ).toBe('# T\n\nA b.\n');
+    expect(pageText(renderMarkdown({ markdown: '# T\n\nA <b hidden>x</b>b.' }, meta))).toBe(
+      '# T\n\nA b.\n',
+    );
   });
 });
 

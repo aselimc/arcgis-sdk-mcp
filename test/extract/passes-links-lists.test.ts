@@ -17,9 +17,9 @@ describe('fixLists', () => {
   // Regression: legacy help puts a note between two steps (`</li><div>..</div><li>`). The
   // note ended the list in Markdown and the following steps were numbered one too high.
   it('moves a block between two items into the item before it', () => {
-    expect(
-      applyPass('<ol><li>one</li><li>two</li><p>stray</p><li>three</li></ol>', fixLists),
-    ).toBe('<ol><li>one</li><li>two<p>stray</p></li><li>three</li></ol>');
+    expect(applyPass('<ol><li>one</li><li>two</li><p>stray</p><li>three</li></ol>', fixLists)).toBe(
+      '<ol><li>one</li><li>two<p>stray</p></li><li>three</li></ol>',
+    );
   });
 
   it('keeps the numbers of the steps that follow', () => {

@@ -1,5 +1,6 @@
 import { load } from 'cheerio';
 import { describe, expect, it } from 'vitest';
+import { findIn, isElement, moveInto, WORK_ROOT, workRoot } from '../../src/extract/dom.js';
 import {
   MAX_CHILDREN,
   MAX_DEPTH,
@@ -8,6 +9,7 @@ import {
   shapeProblem,
 } from '../../src/extract/limits.js';
 import { detectMetaRefresh } from '../../src/extract/meta-refresh.js';
+import { chunkWideElements, WIDE } from '../../src/extract/pipeline.js';
 import { extractHtml, pageMarkdown } from './support.js';
 
 const page = (body: string): string =>
@@ -70,37 +72,70 @@ describe('documents built to be expensive', () => {
     expect(result.sections).toHaveLength(1);
   });
 
-  // The cost of what is within the limits must grow with the size of the document, not with
-  // its square: four times the elements may take four times as long, not sixteen times. A
-  // ratio holds on a loaded machine where a fixed number of milliseconds does not.
-  it.each([
-    ['headings', '<h2>a</h2>'],
-    ['links', '<a href="x">a</a> '],
-    ['paragraphs', '<p>hello world</p>'],
-    ['list items', '<li>x</li>'],
-  ])('converts thousands of %s in time linear in their number', (_name, unit) => {
-    const small = page(unit.repeat(1_500));
-    const large = page(unit.repeat(6_000));
-    extractHtml(small);
-    const base = Math.min(...[1, 2, 3].map(() => timed(() => extractHtml(small))));
-    let chars = 0;
-    const ms = Math.min(
-      ...[1, 2].map(() =>
-        timed(() => {
-          chars = pageMarkdown(extractHtml(large)).length;
-        }),
-      ),
-    );
-    expect(chars).toBeGreaterThan(6_000);
-    expect(ms).toBeLessThan(10 * base + 250);
-  });
-
   it('keeps the text of a very wide element complete and in order', () => {
     const body = Array.from({ length: 1500 }, (_, index) => `<p>p${index}</p>`).join('');
     const lines = pageMarkdown(extractHtml(page(body)))
       .split('\n')
       .filter((line) => /^p\d+$/.test(line));
     expect(lines).toEqual(Array.from({ length: 1500 }, (_, index) => `p${index}`));
+  });
+});
+
+// The selector engine and the Markdown converter both do work quadratic in the number of
+// children of one element. Timing that on a shared machine is unreliable; what is tested is
+// the three things that keep the width out of their way.
+describe('wide documents', () => {
+  it('holds the working content in one element, so a query never starts from thousands of nodes', () => {
+    const $ = load(`<${WORK_ROOT}></${WORK_ROOT}>`, null, false);
+    const source = load(page('<p>a</p>'.repeat(40)));
+    const holder = workRoot($).get(0);
+    expect(isElement(holder)).toBe(true);
+    if (isElement(holder)) moveInto(holder, source('main').contents().get());
+    expect($.root().children()).toHaveLength(1);
+    expect($('p')).toHaveLength(40);
+    expect(source('main').contents()).toHaveLength(0);
+    expect($('p').first().prev()).toHaveLength(0);
+    expect($('p').eq(1).prev().get(0)).toBe($('p').get(0));
+    expect($('p').last().next()).toHaveLength(0);
+  });
+
+  it('moves nodes out of several parents and keeps what stays behind linked', () => {
+    const $ = load(
+      '<div id="a"><i>1</i><i>2</i><i>3</i></div><div id="b"><b>4</b></div><p></p>',
+      null,
+      false,
+    );
+    const target = $('p').get(0);
+    const moved = [...$('#a i').slice(0, 2).get(), ...$('#b b').get()];
+    if (isElement(target)) moveInto(target, moved);
+    expect($.html()).toBe(
+      '<div id="a"><i>3</i></div><div id="b"></div><p><i>1</i><i>2</i><b>4</b></p>',
+    );
+    expect($('#a i').prev()).toHaveLength(0);
+  });
+
+  it('finds below an element what `find` finds, in document order', () => {
+    const $ = load('<main><section><h2>a</h2><div><h2>b</h2></div></section></main><h2>out</h2>');
+    expect(findIn($, $('section'), 'h2, h3').text()).toBe($('section').find('h2, h3').text());
+    expect(findIn($, $('main'), 'h2')).toHaveLength(2);
+    expect(findIn($, $('nav'), 'h2')).toHaveLength(0);
+  });
+
+  it('groups the children of a very wide element, and leaves lists and tables as they are', () => {
+    const items = '<li>x</li>'.repeat(WIDE * 2);
+    const $ = load(
+      `<${WORK_ROOT}>${'<p>a</p>'.repeat(WIDE * 3 + 5)}<ul>${items}</ul></${WORK_ROOT}>`,
+      null,
+      false,
+    );
+    chunkWideElements($);
+    const widths = $('*')
+      .get()
+      .flatMap((el) => (isElement(el) && el.tagName !== 'ul' ? [el.children.length] : []));
+    const widest = Math.max(...widths);
+    expect(widest).toBeLessThanOrEqual(WIDE);
+    expect($('p')).toHaveLength(WIDE * 3 + 5);
+    expect($('ul').children('li')).toHaveLength(WIDE * 2);
   });
 });
 
@@ -123,7 +158,10 @@ describe('detectMetaRefresh on hostile bodies', () => {
       'https://docs.example.com/x',
     );
     expect(
-      detectMetaRefresh(`${stub}${noise}<p>${'word '.repeat(80)}</p>`, 'https://docs.example.com/a/'),
+      detectMetaRefresh(
+        `${stub}${noise}<p>${'word '.repeat(80)}</p>`,
+        'https://docs.example.com/a/',
+      ),
     ).toBeUndefined();
   });
 

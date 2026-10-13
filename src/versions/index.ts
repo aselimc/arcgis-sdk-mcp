@@ -10,7 +10,8 @@
 import { budgetExhausted, newBudget, singleFlight } from '../core/async.js';
 import type { CreateVersionService } from '../core/factories.js';
 import type { CallOptions, Ctx, VersionReport } from '../core/ports.js';
-import type { OracleSpec, Product, VersionFact, VersionLine } from '../core/types.js';
+import type { OracleSpec, Product, SourceDef, VersionFact, VersionLine } from '../core/types.js';
+import { oracleSources } from '../registry/oracle-options.js';
 import { deadPackageWarning } from '../workspace/dead-packages.js';
 import { createWorkspaceScanner } from '../workspace/index.js';
 import { mergeFacts } from './merge.js';
@@ -56,21 +57,39 @@ function reportKey(ctx: Ctx, product: Product, version: string | undefined): str
 }
 
 /**
- * The version an agent asked about. Hosts and models send `""` for an optional argument
- * they do not use, so a blank value means "not given", not "the version named nothing".
+ * An optional argument as the caller meant it. Hosts and models send `""` for an optional
+ * argument they do not use, so a blank value means "not given": it is neither a version
+ * that names nothing nor a product that is unknown.
  */
-function askedVersion(version: string | undefined): string | undefined {
-  const trimmed = version?.trim();
+function given(argument: string | undefined): string | undefined {
+  const trimmed = argument?.trim();
   return trimmed === undefined || trimmed === '' ? undefined : trimmed;
 }
 
-/** Oracles in the order `label` tries them: live documented sources, then registries, then static values. */
-function labelOrder(product: Product): OracleSpec[] {
+/**
+ * Oracles in the order `label` tries them: live documented sources, then registries, then
+ * static values. With a source, only the oracles that speak for it: an oracle limited to
+ * other sources (`options.sources`) says nothing about this one.
+ */
+function labelOrder(product: Product, source?: SourceDef): OracleSpec[] {
   const rank = (spec: OracleSpec): number => {
     if (spec.type === 'static') return 2;
     return spec.provides.includes('documented') ? 0 : 1;
   };
-  return product.oracles.filter((spec) => spec.type !== 'plc').sort((a, b) => rank(a) - rank(b));
+  const speaksFor = (spec: OracleSpec): boolean =>
+    source === undefined || (oracleSources(spec.options)?.includes(source.id) ?? true);
+  return product.oracles
+    .filter((spec) => spec.type !== 'plc' && speaksFor(spec))
+    .sort((a, b) => rank(a) - rank(b));
+}
+
+/**
+ * The part of a label's cache key that tells sources apart. Empty for a product whose
+ * oracles speak for all of it, so that every source shares one label and one request.
+ */
+function labelScope(product: Product, source: SourceDef | undefined): string {
+  const scoped = product.oracles.some((spec) => oracleSources(spec.options) !== undefined);
+  return source === undefined || !scoped ? '' : `/${source.id}`;
 }
 
 /** Creates the version service. See `VersionService` in `src/core/ports.ts`. */
@@ -102,12 +121,16 @@ export const createVersionService: CreateVersionService = (ctx) => {
     return fresh;
   };
 
-  const readLabel = async (product: Product, line: VersionLine): Promise<string | undefined> => {
+  const readLabel = async (
+    product: Product,
+    line: VersionLine,
+    source?: SourceDef,
+  ): Promise<string | undefined> => {
     const call = { budget: newBudget(LABEL_REQUESTS, LABEL_DEADLINE_MS, ctx.clock) };
     const ofLine = (fact: VersionFact): boolean =>
       line.current || lineNumbers(line).length === 0 || belongsToLine(fact.value, line);
     const facts: VersionFact[] = [];
-    for (const spec of labelOrder(product)) {
+    for (const spec of labelOrder(product, source)) {
       if (budgetExhausted(call.budget, ctx.clock)) break;
       const found = await ORACLES[spec.type].read(ctx, product, spec, { call, line });
       facts.push(...found.filter(ofLine));
@@ -127,9 +150,10 @@ export const createVersionService: CreateVersionService = (ctx) => {
       const { sdks, dead } = await scanProject();
       const notes: string[] = [];
       let products: Product[];
-      let version = askedVersion(req.version);
-      if (req.product !== undefined) {
-        products = [ctx.registry.resolve(req.product).product];
+      let version = given(req.version);
+      const named = given(req.product);
+      if (named !== undefined) {
+        products = [ctx.registry.resolve(named).product];
       } else {
         const ids = [...new Set(sdks.map((sdk) => sdk.product))];
         products = ids
@@ -174,8 +198,17 @@ export const createVersionService: CreateVersionService = (ctx) => {
       };
     },
 
-    label(product, line): Promise<string | undefined> {
-      const key = `${product.id}/${line.id}/${capabilityKey(ctx)}`;
+    /**
+     * The port takes a product and a line. The optional `source` narrows the answer to the
+     * oracles that speak for that source: the Enterprise release number is not printed on a
+     * hosted location service, which has no version.
+     */
+    label(product, line, source?: SourceDef): Promise<string | undefined> {
+      // No oracle speaks for this source: it has no version, and nothing needs to be read.
+      if (source !== undefined && labelOrder(product, source).length === 0) {
+        return Promise.resolve(undefined);
+      }
+      const key = `${product.id}/${line.id}${labelScope(product, source)}/${capabilityKey(ctx)}`;
       const fresh = (entry: CachedLabel | undefined): entry is CachedLabel =>
         entry !== undefined &&
         ctx.clock.now() - entry.at <
@@ -189,7 +222,7 @@ export const createVersionService: CreateVersionService = (ctx) => {
           labels.set(key, stored);
           return stored.label;
         }
-        const label = await readLabel(product, line);
+        const label = await readLabel(product, line, source);
         const entry: CachedLabel = {
           at: ctx.clock.now(),
           ...(label === undefined ? {} : { label }),

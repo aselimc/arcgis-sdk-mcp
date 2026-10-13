@@ -20,6 +20,7 @@ import { outlineOf } from '../../core/sections.js';
 import type { DocPage, DocSection } from '../../core/types.js';
 import { parseGithubUrl } from '../../core/url.js';
 import type { IndexInternals } from '../index/types.js';
+import { SOURCE_SECTION_ID } from './display.js';
 import { chunkFences, pagedSections, readCursor, readKey, readValidator } from './paging.js';
 import { createPageReader } from './reader.js';
 import { normalizeRef, routeRef, type Route } from './router.js';
@@ -33,6 +34,9 @@ const MAX_SECTION_CANDIDATES = 30;
 /** Notice added when a tutorial is read with focused code. */
 const FOCUSED_CODE_NOTICE =
   'Code blocks show only the lines each step adds; read with view "full" for complete listings.';
+
+/** The description file of a folder in a repository. */
+const README = /\/readme\.(?:md|markdown|mdx)$/i;
 
 /** A ref that is a branch by its spelling: no digits, so neither a release tag nor a commit. */
 const BRANCH_NAME = /^[A-Za-z][A-Za-z/_-]*$/;
@@ -145,14 +149,20 @@ export function createDocService(
             ? anchor.sections
             : all;
         const resolved = resolveSection(page, within, wanted);
-        // A README that describes a sample has no code; the files next to it do.
+        // A README describes a sample; the code is in the files next to it. Those are listed
+        // when the README has no code at all, and after the commands it quotes (`npx serve`)
+        // when the only code it has is the code blocks scattered through its text.
+        const scattered =
+          resolved?.id === SOURCE_SECTION_ID && !page.files?.length && within === all;
         const listed =
-          resolved === undefined && source ? await sourceFilesSection(ctx, page, call) : undefined;
-        if (resolved !== undefined) {
-          shown = chunkFences(resolved.sections);
-          selected = wanted;
-        } else if (listed !== undefined) {
-          shown = [listed];
+          source && (resolved === undefined || (scattered && README.test(page.url)))
+            ? await sourceFilesSection(ctx, page, call)
+            : undefined;
+        if (resolved !== undefined || listed !== undefined) {
+          shown = [
+            ...chunkFences(resolved?.sections ?? []),
+            ...(listed === undefined ? [] : [listed]),
+          ];
           selected = wanted;
         } else if (explicit !== undefined) {
           throw sectionNotFound(followUpRef, explicit, all);

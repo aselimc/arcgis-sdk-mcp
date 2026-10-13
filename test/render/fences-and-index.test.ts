@@ -45,15 +45,26 @@ const manifest = {
               ],
               return: { type: { text: 'Promise<Feature[]>' } },
             },
-            { kind: 'method', name: 'goTo', description: 'Moves the view.', return: { type: { text: 'Promise<void>' } } },
+            {
+              kind: 'method',
+              name: 'goTo',
+              description: 'Moves the view.',
+              return: { type: { text: 'Promise<void>' } },
+            },
             {
               kind: 'field',
               name: 'selectionMode',
               type: { text: '"single" | "multiple"' },
-              description: 'Specifies the selection mode of the component, where:\n\n- `"single"` allows one,\n- `"multiple"` allows many.',
+              description:
+                'Specifies the selection mode of the component, where:\n\n- `"single"` allows one,\n- `"multiple"` allows many.',
             },
             { kind: 'field', name: 'resultOffset', type: { text: 'number' } },
-            { kind: 'field', name: 'scale', type: { text: '"s" | "m"' }, description: 'Size of the map.' },
+            {
+              kind: 'field',
+              name: 'scale',
+              type: { text: '"s" | "m"' },
+              description: 'Size of the map.',
+            },
           ],
         },
       ],
@@ -142,8 +153,8 @@ describe('one-line member index', () => {
 
 describe('summaryLine', () => {
   it('drops link targets, also ones with parentheses', () => {
-    expect(summaryLine('See [toJson()](https://e.com/swift/tojson()/) and [x](https://e.com/y).')).toBe(
-      'See toJson() and x.',
-    );
+    expect(
+      summaryLine('See [toJson()](https://e.com/swift/tojson()/) and [x](https://e.com/y).'),
+    ).toBe('See toJson() and x.');
   });
 });

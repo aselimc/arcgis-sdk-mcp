@@ -126,7 +126,8 @@ function setChildren(parent: ParentNode, children: ChildNode[]): void {
 export function moveInto(target: ParentNode, nodes: readonly AnyNode[]): void {
   const moving = new Set<AnyNode>(nodes);
   const former = new Set<ParentNode>();
-  for (const node of nodes) if (node.parent !== null && node.parent !== target) former.add(node.parent);
+  for (const node of nodes)
+    if (node.parent !== null && node.parent !== target) former.add(node.parent);
   for (const parent of former) {
     setChildren(
       parent,
@@ -144,11 +145,7 @@ export function moveInto(target: ParentNode, nodes: readonly AnyNode[]): void {
  * the scope to the selector engine, which deduplicates that list with a quadratic scan, so
  * one `find` on an element with twenty thousand children takes a quarter of a second.
  */
-export function findIn(
-  $: CheerioAPI,
-  scope: Cheerio<AnyNode>,
-  selector: string,
-): Cheerio<Element> {
+export function findIn($: CheerioAPI, scope: Cheerio<AnyNode>, selector: string): Cheerio<Element> {
   const top = scope.get(0);
   const inside = (el: AnyNode): boolean => {
     for (let node = el.parent; node !== null; node = node.parent) if (node === top) return true;

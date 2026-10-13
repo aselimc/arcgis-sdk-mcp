@@ -35,7 +35,7 @@ import type {
 } from '../src/core/types.js';
 import { parseGithubUrl } from '../src/core/url.js';
 import { GITHUB_OWNERS } from '../src/registry/hosts.js';
-import { URL_OPTION_KEYS } from '../src/registry/oracle-options.js';
+import { URL_OPTION_KEYS, oracleSources } from '../src/registry/oracle-options.js';
 import { plainKey } from '../src/registry/resolve.js';
 import { briefSchema, hostPolicySchema, validateProducts } from '../src/registry/schema.js';
 
@@ -211,6 +211,13 @@ function checkProduct(
       if (source.lines !== undefined && !source.lines.includes(line.id)) continue;
       if (/\{[a-z]+\}/i.test(expandTemplate(source.probe.url, line))) {
         error('INV-3', `source ${source.id}: probe URL has a placeholder left on line ${line.id}`);
+      }
+    }
+  }
+  for (const oracle of product.oracles) {
+    for (const source of oracleSources(oracle.options) ?? []) {
+      if (!sourceIds.includes(source)) {
+        error('INV-4', `oracle ${oracle.type} names unknown source ${source}`);
       }
     }
   }

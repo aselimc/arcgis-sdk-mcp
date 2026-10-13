@@ -156,9 +156,7 @@ function asExample(value: unknown): string | undefined {
 function examplesOf(media: Json): string[] {
   return [
     asExample(media.example),
-    ...Object.values(asRecord(media.examples)).map((example) =>
-      asExample(asRecord(example).value),
-    ),
+    ...Object.values(asRecord(media.examples)).map((example) => asExample(asRecord(example).value)),
   ].filter((example) => example !== undefined);
 }
 

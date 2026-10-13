@@ -89,7 +89,9 @@ describe('dokka signatures', () => {
       '<html><body><div class="main-content" id="content" pageIds="m::p/T///PointingToDeclaration//1"><h1 class="cover">T</h1>' +
       '<div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation">@</span><a href="c.html"><span>Composable</span></a></div></div>' +
       '<span class="token keyword">inline </span><span class="token keyword">fun </span><span>remember</span>(): <a href="d.html">Display</a></div></div></body></html>';
-    expect(body(convert(html))).toContain('```kotlin\n@Composable\ninline fun remember(): Display\n```');
+    expect(body(convert(html))).toContain(
+      '```kotlin\n@Composable\ninline fun remember(): Display\n```',
+    );
   });
 });
 
@@ -162,7 +164,10 @@ describe('native SDK sample pages', () => {
   });
 
   it('does not take a file switcher in a tutorial step for the source of a sample', () => {
-    const tutorial = sample.replace('<h2 id="sample-code">Sample code</h2>', '<h2 id="step">Step</h2><p>Add the files.</p>');
+    const tutorial = sample.replace(
+      '<h2 id="sample-code">Sample code</h2>',
+      '<h2 id="step">Step</h2><p>Add the files.</p>',
+    );
     const page = convert(tutorial, 'astro');
     expect(page.diagnostics.family).toBe('astro');
     expect(page.files).toBeUndefined();
@@ -245,9 +250,9 @@ describe('landing pages of the theme', () => {
 describe('code spans and fence languages', () => {
   // Regression: `Promise<_any_>` - emphasis markers inside a code span.
   it('writes styled parts of a code span as plain code', () => {
-    expect(
-      applyPass('<code><span>Promise</span>&lt;<em>any</em>&gt;</code>', fixCodeLinks),
-    ).toBe('<code>Promise&lt;any&gt;</code>');
+    expect(applyPass('<code><span>Promise</span>&lt;<em>any</em>&gt;</code>', fixCodeLinks)).toBe(
+      '<code>Promise&lt;any&gt;</code>',
+    );
   });
 
   it('names Visual Basic that a page tags as C#', () => {

@@ -20,7 +20,7 @@ export const MAX_DEPTH = 256;
 /** Most children of one element. */
 export const MAX_CHILDREN = 16_000;
 /** Most nodes (elements, text, comments) in the document. */
-export const MAX_NODES = 300_000;
+const MAX_NODES = 300_000;
 /**
  * Open elements in the markup beyond which the document is not even parsed: the HTML parser
  * itself slows down quadratically with the depth of the open-element stack. Counted loosely

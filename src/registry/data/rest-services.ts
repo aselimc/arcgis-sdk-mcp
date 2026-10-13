@@ -144,6 +144,18 @@ const REST_SOURCES: AnySourceDef[] = REST_SITES.map(restSource);
 // Index-build order follows `priority`; the array keeps the order of the design table.
 REST_SOURCES.splice(2, 0, LOCATION_SERVICES);
 
+/** The sub-sites of the REST reference that are released with ArcGIS Enterprise. */
+const ENTERPRISE_SOURCES = [
+  'services-enterprise',
+  'services-mission',
+  'admin-enterprise',
+  'admin-server',
+  'admin-portal',
+  'admin-notebook',
+  'admin-mission',
+  'admin-video',
+];
+
 const restApi: Product = {
   ...COMMON,
   id: 'rest-api',
@@ -181,12 +193,18 @@ const restApi: Product = {
       options: {
         url: `${D}/rest/services-reference/enterprise/whats-new/`,
         pattern: '<h2[^>]*>\\s*(\\d+(?:\\.\\d+)+)\\s*<',
+        // The ArcGIS Enterprise release: it describes the references that ship with
+        // Enterprise, not the hosted location services, which have no version.
+        sources: ENTERPRISE_SOURCES.join(','),
       },
       provides: ['documented'],
     },
     {
       type: 'agol-rest-info',
-      options: { url: 'https://www.arcgis.com/sharing/rest?f=json' },
+      options: {
+        url: 'https://www.arcgis.com/sharing/rest?f=json',
+        sources: 'portal,services-online',
+      },
       provides: ['documented'],
     },
   ],

@@ -167,6 +167,21 @@ describe('checkRegistry', () => {
     ]);
   });
 
+  it('INV-4: an oracle may be limited to sources the product has', () => {
+    const product = makeProduct({
+      oracles: [
+        {
+          type: 'static',
+          options: { version: '1.0', sources: 'guide, api' },
+          provides: ['documented'],
+        },
+      ],
+    });
+    expect(violations([product])).toEqual([
+      'INV-4 widgets-sdk: oracle static names unknown source api',
+    ]);
+  });
+
   it('INV-2: checks the base URL of every line of a source', () => {
     const product = makeProduct({
       lines: [
