@@ -30,16 +30,16 @@ import {
   dirOf,
   mapPool,
   metaOf,
-  recordOf,
-  renderOptionsOf,
+  repoRecord,
+  repoRenderOptions,
   requestsLeft,
   titleFromName,
-  tolerate,
   treeUrl,
   withNotices,
   type GithubSource,
   type RepoScope,
 } from './shared.js';
+import { skipOptional } from '../../kit/index.js';
 
 /** Source files fetched for one sample; the rest is linked. A read stays within one call's budget. */
 const MAX_SAMPLE_FILES = 6;
@@ -138,7 +138,7 @@ export function sampleRecords(
     const breadcrumb = breadcrumbOf(categoryTrail(sample.dir));
     const platform = platformOf(sample.dir);
     return {
-      ...recordOf(
+      ...repoRecord(
         src,
         scope,
         blobUrl(scope.repo, scope.ref, sample.readme ?? sample.metadata ?? sample.dir),
@@ -276,7 +276,7 @@ export async function readSample(
     try {
       return await ctx.github.raw(repo, scope.ref, path, callOptions(src, scope));
     } catch (error) {
-      tolerate(ctx, src, error, path);
+      skipOptional(ctx, src, error, path);
       return undefined;
     }
   };
@@ -306,7 +306,7 @@ export async function readSample(
       const tree = await ctx.github.tree(repo, scope.ref, callOptions(src));
       paths = mainFiles(tree, sample.dir);
     } catch (error) {
-      tolerate(ctx, src, error, `the file list of ${repo}`);
+      skipOptional(ctx, src, error, `the file list of ${repo}`);
       notices.push(
         `The source files could not be listed; browse them at ${treeUrl(repo, scope.ref, sample.dir)}.`,
       );
@@ -340,7 +340,7 @@ export async function readSample(
       'sample',
       primary,
     ),
-    renderOptionsOf(target, scope),
+    repoRenderOptions(target, scope),
   );
   return withNotices(page, scope, notices);
 }

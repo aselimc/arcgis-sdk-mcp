@@ -11,7 +11,7 @@ import { sectionsFromMarkdown } from '../../core/sections.js';
 import { nearest } from '../../core/text-distance.js';
 import type { CatalogRecord } from '../../core/types.js';
 import { splitRef } from '../../core/url.js';
-import { renderOptionsOf } from './static.js';
+import { renderOptionsOf } from '../kit/index.js';
 
 type Brief = ReturnType<Registry['briefs']>[number];
 

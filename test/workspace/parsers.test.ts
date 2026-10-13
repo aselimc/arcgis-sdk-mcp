@@ -11,6 +11,7 @@ import {
 import {
   parseCondaEnvironment,
   parsePackageJson,
+  parsePackageLock,
   parsePyproject,
   parseRequirements,
 } from '../../src/workspace/parsers-web-python.js';
@@ -51,10 +52,76 @@ describe('version specifications', () => {
   });
 });
 
+describe('ranges', () => {
+  it('keeps the specification of a range and drops it for a pin', () => {
+    const found = parsePackageJson(
+      JSON.stringify({
+        dependencies: { a: '^5.0.4', b: '5.0.4', c: '>=5.1.0 <6', d: '*', e: '~5.1' },
+      }),
+    );
+    expect(found.map((entry) => [entry.name, entry.version, entry.exact, entry.range])).toEqual([
+      ['a', '5.0.4', false, '^5.0.4'],
+      ['b', '5.0.4', true, undefined],
+      ['c', '5.1.0', false, '>=5.1.0 <6'],
+      ['d', '', false, undefined],
+      ['e', '5.1', false, '~5.1'],
+    ]);
+  });
+
+  it('writes a Python range with its operator', () => {
+    const found = parseRequirements('arcgis>=2.4\narcgis-mapping==4.33.0\npandas\n');
+    expect(found.map((entry) => [entry.name, entry.version, entry.range])).toEqual([
+      ['arcgis', '2.4', '>=2.4'],
+      ['arcgis-mapping', '4.33.0', undefined],
+      ['pandas', '', undefined],
+    ]);
+  });
+});
+
+describe('package-lock.json', () => {
+  it('reads the top-level installs of lock file versions 2 and 3', () => {
+    const found = parsePackageLock(
+      JSON.stringify({
+        lockfileVersion: 3,
+        packages: {
+          '': { name: 'app', dependencies: { '@arcgis/core': '^5.0.4' } },
+          'node_modules/@arcgis/core': { version: '5.1.27' },
+          'node_modules/react': { version: '19.0.0' },
+          'node_modules/x/node_modules/@arcgis/core': { version: '4.33.0' },
+          'node_modules/linked': { link: true },
+        },
+      }),
+    );
+    expect(found).toEqual([
+      { ecosystem: 'npm', name: '@arcgis/core', version: '5.1.27', exact: true },
+      { ecosystem: 'npm', name: 'react', version: '19.0.0', exact: true },
+    ]);
+  });
+
+  it('reads the dependency map of lock file version 1', () => {
+    const found = parsePackageLock(
+      JSON.stringify({
+        lockfileVersion: 1,
+        dependencies: { '@esri/calcite-components': { version: '2.13.2' } },
+      }),
+    );
+    expect(found).toEqual([
+      { ecosystem: 'npm', name: '@esri/calcite-components', version: '2.13.2', exact: true },
+    ]);
+  });
+
+  it('gives nothing for a file that is not a lock file', () => {
+    expect(parsePackageLock('[1, 2]')).toEqual([]);
+    expect(parsePackageLock('{"packages": []}')).toEqual([]);
+    expect(parsePackageLock('not json')).toEqual([]);
+  });
+});
+
 describe('manifest table', () => {
   it.each([
     ['package.json', 'package.json'],
     ['apps/web/package.json', 'package.json'],
+    ['package-lock.json', 'package-lock.json'],
     ['requirements-dev.txt', 'requirements.txt'],
     ['pyproject.toml', 'pyproject.toml'],
     ['env/environment.yaml', 'environment.yml'],
@@ -72,7 +139,7 @@ describe('manifest table', () => {
 
   it('knows no other files and never throws on garbage', () => {
     expect(manifestKindOf('README.md')).toBeUndefined();
-    expect(manifestKindOf('package-lock.json')).toBeUndefined();
+    expect(manifestKindOf('yarn.lock')).toBeUndefined();
     for (const kind of MANIFEST_KINDS) {
       expect(kind.parse('\u0000 not { a manifest ]] <<')).toEqual([]);
       expect(kind.parse('')).toEqual([]);

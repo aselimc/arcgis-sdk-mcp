@@ -165,7 +165,7 @@ describe('gateway: HTTP redirects', () => {
     const error = await mcpError(
       tight.http.get({ url: START, expect: 'html', budget: newBudget(1, 25_000, tight.clock) }),
     );
-    expect(error.details?.why).toBe('request budget');
+    expect(error.details).toMatchObject({ declined: 'budget', retryable: true });
     expect(tight.origin.urls()).toEqual([START]);
   });
 

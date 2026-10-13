@@ -11,6 +11,7 @@ import type { BoundSource, Ctx, ReadTarget, SourceAdapter } from '../../../core/
 import type { CatalogRecord, DocPage } from '../../../core/types.js';
 import { loadPackageJson, packageMeta } from './package-file.js';
 import { resolvePackageVersion, withVersionNotice } from './resolve-version.js';
+import { summaryOf, tolerate } from '../../kit/index.js';
 import {
   baseRecord,
   docTemplate,
@@ -20,12 +21,10 @@ import {
   notFound,
   probeDeclared,
   records,
-  renderOptionsOf,
+  entryRenderOptions,
   selectorOf,
   shapeError,
   str,
-  summaryOf,
-  tolerate,
   type Json,
 } from './shared.js';
 
@@ -250,7 +249,7 @@ async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
         file,
         `${pageUrl(template, packageName, component.tag)}${target.url.hash}`,
       ),
-      renderOptionsOf(target),
+      entryRenderOptions(target),
     );
     return withVersionNotice(page, pkg);
   }

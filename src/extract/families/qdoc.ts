@@ -1,6 +1,15 @@
 import type { AnyNode } from 'domhandler';
 import type { MemberEntry } from '../../core/types.js';
-import { escapeHtml, firstSentence, ID_ATTR, isElement, squash, tagged, unwrap } from '../dom.js';
+import {
+  escapeHtml,
+  firstSentence,
+  ID_ATTR,
+  isElement,
+  squash,
+  tagged,
+  unwrap,
+  workRoot,
+} from '../dom.js';
 import { stampOutline } from '../outline.js';
 import { sliceUntil } from '../slice.js';
 import type { FamilyProfile, PageView, Pass } from '../types.js';
@@ -33,7 +42,7 @@ function members(page: PageView): MemberEntry[] {
 
 const prepare: Pass = ($) => {
   // The page breadcrumb is emitted as an `li` outside any list.
-  $.root().children('li').remove();
+  workRoot($).children('li').remove();
   $(MEMBER_HEADING).each((_, el) => {
     const heading = $(el);
     const id = heading.attr(ID_ATTR) ?? heading.attr('id') ?? '';

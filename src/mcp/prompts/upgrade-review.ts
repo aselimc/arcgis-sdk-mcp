@@ -24,7 +24,7 @@ export function upgradeReviewMessage(args: z.output<typeof Args>): string[] {
     '',
     'Steps:',
     `1. Call ${formatCall(TOOLS.getVersions, { product, version: to })} to confirm that ${to} exists, see its compatibility pairings and get the release-notes refs. Compare with ${formatCall(TOOLS.getVersions, { product })} for what the project has installed.`,
-    `2. Read the release notes and the breaking-changes or migration pages of every version after ${from} up to and including ${to} with ${TOOLS.read}. If a version is missing from the refs, find it with ${formatCall(TOOLS.search, { query: `release notes ${to}`, product, kind: 'release-notes' })}.`,
+    `2. Read the release notes and the breaking-changes or migration pages of every version after ${from} up to and including ${to} with ${TOOLS.read}. If a version is missing from the refs, find it with ${formatCall(TOOLS.search, { query: `release notes ${to}`, product, kind: 'release-notes' })}. If that finds nothing, the product publishes its changes as guides (a migration guide, an upgrade guide, a "what's new" page): find them with ${formatCall(TOOLS.search, { query: `migration upgrade what's new ${to}`, product })}. A ref that ${TOOLS.read} reports as linked but not fetched (a GitHub release page, an archived site) is cited by its URL and not read.`,
     '3. From those pages, list each removed, renamed, deprecated or behaviour-changed API with the ref that states it.',
     '4. Search the project (grep) for every affected symbol, import path and package name. Report file and line for each use.',
     `5. For each affected use, verify the replacement with ${formatCall(TOOLS.lookupSymbol, { symbol: '<name>', product, version: to })} before proposing a change.`,

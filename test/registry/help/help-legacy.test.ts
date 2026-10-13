@@ -178,15 +178,25 @@ describe('earlier versions on the legacy hosts', () => {
         ]),
       ),
     });
-    expect(pro.lines.find((line) => line.id === '3.6')?.label).toBe('Pro 3.6');
+    // The bare version: messages write the label after the product name.
+    expect(pro.lines.find((line) => line.id === '3.6')?.label).toBe('3.6');
     const legacy = sourceOf(pro, 'legacy');
-    expect(legacy.adapter === 'legacy-help' ? legacy.config : undefined).toEqual({
+    const config = legacy.adapter === 'legacy-help' ? legacy.config : undefined;
+    expect(config).toMatchObject({
       host: 'pro.arcgis.com',
       base: '/en/pro-app/{line}/',
-      books: [{ path: 'get-started' }, { path: 'help' }],
       lines: ['3.6', '3.5'],
       enumerate: 'on-demand',
     });
+    // `help/` is a directory of books: it is listed through its `main` book, and the
+    // books that follow are real ones with a link list of their own.
+    expect(config?.books.slice(0, 3)).toEqual([
+      { path: 'get-started', tocScript: '/en/pro-app/{line}/get-started/2417.js' },
+      { path: 'help', tocScript: '/en/pro-app/{line}/help/main/1868.js' },
+      { path: 'help/projects', tocScript: '/en/pro-app/{line}/help/projects/1157.js' },
+    ]);
+    expect(config?.books.length).toBeLessThanOrEqual(27);
+    expect(legacy.probe.url).toBe('https://pro.arcgis.com/en/pro-app/3.6/get-started/flisting.htm');
     // The source exists on the link-only lines too, so they answer with a link.
     expect(legacy.lines).toHaveLength(11);
   });
@@ -196,6 +206,8 @@ describe('what the import hands to developer products', () => {
   it('builds the sources of five developer products', () => {
     expect(Object.keys(helpDeveloperSources).sort()).toEqual([
       'arcpy/legacy',
+      'arcpy/legacy-tools',
+      'arcpy/legacy-tools-extensions',
       'autocad-api/api',
       'cityengine/help',
       'earth-automation-api/api',
@@ -217,7 +229,28 @@ describe('what the import hands to developer products', () => {
     expect(books('geoevent-server/help')).toHaveLength(8);
     expect(books('earth-automation-api/api')).toEqual(['automation-api']);
     expect(books('autocad-api/api')).toEqual(['commands-api']);
-    expect(books('arcpy/legacy')).toEqual(['arcpy', 'tool-reference']);
+    expect(books('arcpy/legacy')).toHaveLength(15);
+    expect(books('arcpy/legacy').slice(0, 3)).toEqual([
+      'arcpy',
+      'arcpy/get-started',
+      'arcpy/geoprocessing_and_python',
+    ]);
+    // `arcpy/main` is what the section entry lists, so it is not a book of its own.
+    expect(books('arcpy/legacy')).not.toContain('arcpy/main');
+    // Every toolbox of the research is in exactly one of the two tool sources.
+    const tools = [...books('arcpy/legacy-tools'), ...books('arcpy/legacy-tools-extensions')];
+    expect(new Set(tools).size).toBe(tools.length);
+    expect(tools).toHaveLength(49);
+    expect(tools).toEqual(
+      expect.arrayContaining([
+        'tool-reference',
+        'tool-reference/analysis',
+        'tool-reference/data-management',
+        'tool-reference/modelbuilder-toolbox',
+        'tool-reference/spatial-analyst',
+        'tool-reference/network-analyst',
+      ]),
+    );
     expect(helpDeveloperSources['geoevent-server/help']).toMatchObject({
       floor: true,
       config: { host: 'enterprise.arcgis.com', base: '/en/geoevent/latest/' },

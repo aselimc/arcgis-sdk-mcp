@@ -199,17 +199,24 @@ describe('the shared pass order', () => {
   it('is the fixed order of the design', () => {
     expect(SHARED_PASSES.map((pass) => pass.name)).toEqual([
       'fixGlossary',
+      // Not in the design's list: dropdown switchers printed their items run together.
+      'fixCodeSwitchers',
       'fixExpressiveCode',
       'fixGatsbyCode',
       'fixIslands',
       'fixTabs',
       'iconLabelsToText',
       'removeCommon',
+      // After the tab and code passes, which reveal the panels a page hides on purpose.
+      'removeHidden',
       // Not in the design's list: added when live pages showed `<details>` toggle labels.
       'fixDetails',
       'fixCodeLinks',
       'fixAsides',
       'fixDl',
+      // Not in the design's list: stray blocks between list items, card grids, chip rows.
+      'fixLists',
+      'fixLinkGroups',
       'unwrapBlockyInline',
       'fixTables',
       'fixGenericPre',

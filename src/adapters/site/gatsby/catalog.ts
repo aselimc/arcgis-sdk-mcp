@@ -8,7 +8,7 @@ import { classifyUrl, humanizeSlug } from '../../../core/adapter-helpers.js';
 import { BREADCRUMB_SEPARATOR } from '../../../core/names.js';
 import type { BoundSource } from '../../../core/ports.js';
 import type { CatalogRecord, DocKind } from '../../../core/types.js';
-import { recordOf } from '../static.js';
+import { recordOf } from '../../kit/index.js';
 import type { SiteIndex } from './discovery.js';
 import { flattenNav, type NavEntry } from './nav.js';
 import { isObject } from './shape.js';

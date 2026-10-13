@@ -142,13 +142,14 @@ describe('gateway: request and cache', () => {
   it('keeps POST requests with different bodies apart, and does not repeat a failed POST', async () => {
     const rig = makeRig({ hosts: HOSTS, enabled: ['website', 'site-search'] });
     const url = 'https://esearchapi.esri.com/search';
-    rig.origin.on(url, (call) => json({ echo: call.body }));
+    const hitsFor = (query: string | undefined) => ({ search: { hits: [{ echo: query }] } });
+    rig.origin.on(url, (call) => json(hitsFor(call.body)));
 
     const one = await rig.http.getJson({ url, method: 'POST', body: '{"q":"a"}' });
     const two = await rig.http.getJson({ url, method: 'POST', body: '{"q":"b"}' });
     const oneAgain = await rig.http.getJson({ url, method: 'POST', body: '{"q":"a"}' });
-    expect(one.data).toEqual({ echo: '{"q":"a"}' });
-    expect(two.data).toEqual({ echo: '{"q":"b"}' });
+    expect(one.data).toEqual(hitsFor('{"q":"a"}'));
+    expect(two.data).toEqual(hitsFor('{"q":"b"}'));
     expect(oneAgain.res.cache).toBe('hit');
     expect(rig.origin.calls.map((call) => call.method)).toEqual(['POST', 'POST']);
 
@@ -256,7 +257,10 @@ describe('gateway: request budget', () => {
 
     const error = await mcpError(rig.http.get({ url: `${DOC}c/`, expect: 'html', budget }));
     expect(error.code).toBe('UPSTREAM_UNAVAILABLE');
-    expect(error.details).toMatchObject({ why: 'request budget', retryable: true });
+    // The sentence does not blame the host: nothing was asked of it.
+    expect(error.message).toBe('No answer from developers.arcgis.com within the request budget');
+    expect(error.details).toMatchObject({ declined: 'budget', retryable: true });
+    expect(error.details?.why).toContain('request budget of this call');
     expect(budgetExhausted(budget, rig.clock)).toBe(true);
     expect(rig.origin.calls).toHaveLength(2);
     expect(budget.used).toBe(2);
@@ -268,7 +272,7 @@ describe('gateway: request budget', () => {
     const budget = newBudget(12, 25_000, rig.clock);
     rig.clock.advance(25_000);
     const error = await mcpError(rig.http.get({ url: DOC, expect: 'html', budget }));
-    expect(error.details?.why).toBe('request budget');
+    expect(error.details).toMatchObject({ declined: 'budget' });
     expect(rig.origin.calls).toEqual([]);
   });
 

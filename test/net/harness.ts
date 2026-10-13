@@ -4,7 +4,7 @@
  */
 import type { Config } from '../../src/core/config.js';
 import { isMcpDocError, type McpDocError } from '../../src/core/errors.js';
-import type { HttpClient, SourcePolicy } from '../../src/core/ports.js';
+import type { SourcePolicy } from '../../src/core/ports.js';
 import type { Capability, HostPolicy } from '../../src/core/types.js';
 import { createHttpClient } from '../../src/net/index.js';
 import { makeConfig } from '../support/builders.js';
@@ -212,7 +212,7 @@ export function refreshStub(target: string): Response {
 
 /** Everything a gateway test needs. */
 export interface Rig {
-  http: HttpClient;
+  http: ReturnType<typeof createHttpClient>;
   origin: FakeOrigin;
   clock: FakeClock;
   cache: MemoryCache;

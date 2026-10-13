@@ -264,9 +264,15 @@ describe('unwrapBlockyInline', () => {
     );
   });
 
-  it('does not touch a link around other block content', () => {
-    const html = '<a href="/x/"><div>Card</div></a>';
-    expect(applyPass(html, unwrapBlockyInline)).toBe(html);
+  // Regression: a link around layout blocks printed as "[", the blocks and "](url)" on lines
+  // of their own (the product cards of the developer documentation landing page).
+  it('opens the blocks inside a link, so that the link is one line', () => {
+    expect(
+      applyPass(
+        '<a href="/x/"><div><img src="i.png" alt="i"></div><div>Card</div><p>text</p></a>',
+        unwrapBlockyInline,
+      ),
+    ).toBe('<a href="/x/"><img src="i.png" alt="i"> Card text</a>');
   });
 });
 

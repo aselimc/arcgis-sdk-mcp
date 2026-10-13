@@ -9,6 +9,11 @@ import type { AnyNode, Element } from 'domhandler';
 export const LANG_ATTR = 'data-md-lang';
 /** Attribute carrying the final section id of a heading (wins over `id`). */
 export const ID_ATTR = 'data-md-id';
+/**
+ * The element that holds the content of a working document. A custom name, so that no
+ * selector of a pass matches it by accident.
+ */
+export const WORK_ROOT = 'md-root';
 /** Stands for a line break inside a table cell until post-processing writes `<br>`. */
 export const BR_PLACEHOLDER = '\ue003';
 
@@ -60,6 +65,20 @@ export function headingLevel(node: AnyNode | null | undefined): number {
 export function normalizeLanguage(raw: string | undefined): string {
   const language = (raw ?? '').toLowerCase().trim();
   return LANGUAGE_ALIASES[language] ?? language;
+}
+
+/**
+ * The top of the content a pass works on: the working document's holder element, or the
+ * document itself for a fragment that was parsed without one.
+ *
+ * The pipeline keeps the content in one holder because cheerio starts every `$(selector)`
+ * from the children of the document, and the selector engine deduplicates that list with a
+ * quadratic scan: with thousands of top-level blocks (a long reference page, or a hostile
+ * one) every single query of every pass would cost tens of milliseconds.
+ */
+export function workRoot($: CheerioAPI): Cheerio<AnyNode> {
+  const holder = $.root().children(WORK_ROOT).first();
+  return holder.length > 0 ? holder : $.root();
 }
 
 /** Replaces each element with its own children. */

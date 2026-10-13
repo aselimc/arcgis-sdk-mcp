@@ -10,16 +10,17 @@ import type { CatalogRecord, DocPage } from '../../core/types.js';
 import {
   assertLive,
   budgetOf,
-  continueWithout,
+  tolerate,
   indexRequest,
   probeSource,
-  recordOf,
+  symbolRecord,
   renderMeta,
   renderOptionsOf,
   siteIndexEnabled,
   symbolTarget,
   unusableIndex,
-} from './dartdoc.js';
+  isIndexCanary,
+} from '../kit/index.js';
 import {
   parseObjectsInv,
   parseSphinxSearchIndex,
@@ -76,7 +77,7 @@ export function sphinxRecords(src: BoundSource, entries: readonly SphinxEntry[])
     if (ref === undefined || records.has(ref)) continue;
     if (entry.domain === 'std') {
       if (entry.role !== 'doc' || GENERATED_DOCS.has(entry.name)) continue;
-      records.set(ref, recordOf(src, ref, entry.display));
+      records.set(ref, symbolRecord(src, ref, entry.display));
       continue;
     }
     // An object without an anchor cannot be told from the page it is on.
@@ -87,7 +88,7 @@ export function sphinxRecords(src: BoundSource, entries: readonly SphinxEntry[])
     const owned = prefix !== '' && (MEMBER_ROLES.has(entry.role) || classes.has(prefix));
     records.set(
       ref,
-      recordOf(src, ref, owned ? parts.slice(-2).join('.') : symbol, {
+      symbolRecord(src, ref, owned ? parts.slice(-2).join('.') : symbol, {
         symbol,
         qualified: entry.name,
         symbolKind: KINDS.get(entry.role) ?? entry.role,
@@ -152,14 +153,14 @@ export const sphinxAdapter: SourceAdapter<'sphinx'> = {
       if (records.length === 0) throw unusableIndex(inventoryUrl, 'The inventory has no objects');
     } catch (error) {
       failure = error;
-      continueWithout(ctx, src, error, 'The Sphinx inventory');
+      tolerate(ctx, src, error, 'The Sphinx inventory');
     }
     if (failure === undefined) return records;
     const searchUrl = src.url('searchindex.js');
     try {
       records = sphinxRecords(src, (await searchIndex(ctx, src, searchUrl)).entries);
     } catch (error) {
-      continueWithout(ctx, src, error, 'The Sphinx search index');
+      tolerate(ctx, src, error, 'The Sphinx search index');
     }
     if (records.length === 0) throw toMcpDocError(failure);
     return records;
@@ -170,10 +171,12 @@ export const sphinxAdapter: SourceAdapter<'sphinx'> = {
   probe: (ctx, src) =>
     /\.inv(?:[?#]|$)/.test(src.source.probe.url)
       ? probeSource(ctx, src, {
+          siteIndex: isIndexCanary(src),
           encoding: 'base64',
           count: (text) => parseObjectsInv(Buffer.from(text, 'latin1'))?.entries.length,
         })
       : probeSource(ctx, src, {
+          siteIndex: isIndexCanary(src),
           count: (text) => parseSphinxSearchIndex(text)?.entries.length,
         }),
 };

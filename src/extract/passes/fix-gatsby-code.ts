@@ -23,7 +23,7 @@ const EXPAND_BUTTON = 'calcite-button[data-component-link="Expand/Collapse Code 
 
 /** Last line of a block that the page shows collapsed; the rest of the code is not in its HTML. */
 export const COLLAPSED_MARK =
-  '… (collapsed on the source page: the rest of this block is not in its HTML)';
+  '\u2026 (collapsed on the source page: the rest of this block is not in its HTML)';
 
 /**
  * Gatsby code blocks (react-syntax-highlighter) become plain `<pre data-md-lang>`. The whole
@@ -42,8 +42,7 @@ export const fixGatsbyCode: Pass = ($, env) => {
     stripGutter($, pre);
     const collapsed = $(el).find(EXPAND_BUTTON).length > 0;
     if (collapsed) env.counters.collapsedCode += 1;
-    const code = collapsed ? `${pre.text().replace(/\s+$/, '')}
-${COLLAPSED_MARK}` : pre.text();
+    const code = collapsed ? `${pre.text().replace(/\s+$/, '')}\n${COLLAPSED_MARK}` : pre.text();
     replaceWithPre($, $(el), code, languageOf(pre));
   });
   // Highlighter blocks that are not wrapped in div.code-block.

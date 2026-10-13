@@ -3,12 +3,10 @@
  * records, render metadata, call options and a bounded parallel map.
  */
 import { humanizeSlug } from '../../../core/adapter-helpers.js';
-import { budgetExhausted } from '../../../core/async.js';
-import { McpDocError, toMcpDocError } from '../../../core/errors.js';
+import { McpDocError } from '../../../core/errors.js';
 import { BREADCRUMB_SEPARATOR } from '../../../core/names.js';
 import type {
   BoundSource,
-  Ctx,
   GithubCallOptions,
   HttpResponse,
   ReadTarget,
@@ -16,6 +14,7 @@ import type {
   RenderOptions,
 } from '../../../core/ports.js';
 import type { CatalogRecord, DocKind, DocPage, LicenseTier } from '../../../core/types.js';
+import { recordOf, renderOptionsOf } from '../../kit/index.js';
 
 /** A `github-repo` source bound to a product and version line. */
 export type GithubSource = BoundSource<'github-repo'>;
@@ -123,23 +122,15 @@ export function breadcrumbOf(names: readonly string[]): string | undefined {
   return titles.length === 0 ? undefined : titles.join(BREADCRUMB_SEPARATOR);
 }
 
-/** A catalogue record with the fields every record of a repository shares. */
-export function recordOf(
+/** A catalogue record of a repository, under the licence the repository states. */
+export function repoRecord(
   src: GithubSource,
   scope: RepoScope,
   ref: string,
   kind: DocKind,
   title: string,
 ): CatalogRecord {
-  return {
-    ref,
-    product: src.product.id,
-    source: src.source.id,
-    line: src.line.id,
-    kind,
-    title,
-    license: scope.license,
-  };
+  return recordOf(src, ref, kind, title, { license: scope.license });
 }
 
 /**
@@ -168,16 +159,11 @@ export function metaOf(
 }
 
 /**
- * The renderer options of a read. Content under CC BY-ND is passed through unchanged, so
- * `verbatim` is set whatever the target asks for.
+ * The renderer options of a read of repository content. Content under CC BY-ND is passed
+ * through unchanged, so `verbatim` is set whatever the target asks for.
  */
-export function renderOptionsOf(target: ReadTarget, scope: RepoScope): RenderOptions | undefined {
-  const opts: RenderOptions = {
-    ...(target.select === undefined ? {} : { select: target.select }),
-    ...(target.detail === undefined ? {} : { detail: target.detail }),
-    ...(scope.license === 'cc-by-nd' ? { verbatim: true } : {}),
-  };
-  return Object.keys(opts).length === 0 ? undefined : opts;
+export function repoRenderOptions(target: ReadTarget, scope: RepoScope): RenderOptions | undefined {
+  return renderOptionsOf(target, scope.license === 'cc-by-nd' ? { verbatim: true } : {});
 }
 
 /** Adds the scope's notices (a branch fallback, an archived repository) to a rendered page. */
@@ -189,25 +175,6 @@ export function withNotices(page: DocPage, scope: RepoScope, extra: string[] = [
 /** `DOC_NOT_FOUND` for a URL of the repository that names nothing readable. */
 export function notFound(url: string, what: string, why: string): McpDocError {
   return new McpDocError('DOC_NOT_FOUND', what, { why, url, host: new URL(url).host });
-}
-
-/**
- * Decides what to do with a failure of one optional request (a snippet file, a metadata
- * file, one body of an index scan). Returns after logging when the content is simply not
- * there or upstream is failing; rethrows a defect (`INTERNAL`), because that is ours to fix.
- *
- * @returns `true` when the request budget is spent, so the caller stops asking for more.
- */
-export function tolerate(ctx: Ctx, src: GithubSource, error: unknown, what: string): boolean {
-  const typed = toMcpDocError(error);
-  if (typed.code === 'INTERNAL') throw typed;
-  ctx.logger.debug(`${what} was skipped`, {
-    product: src.product.id,
-    source: src.source.id,
-    code: typed.code,
-    url: typed.details?.url,
-  });
-  return src.budget !== undefined && budgetExhausted(src.budget, ctx.clock);
 }
 
 /**

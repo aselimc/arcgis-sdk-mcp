@@ -12,7 +12,7 @@ import { isMcpDocError, McpDocError, toMcpDocError } from '../../../core/errors.
 import type { BoundSource, Ctx } from '../../../core/ports.js';
 import { parseSitemap } from '../../../core/sitemap.js';
 import type { CatalogRecord } from '../../../core/types.js';
-import { absoluteUrl, continueWithout } from '../static.js';
+import { absoluteUrl, tolerate } from '../../kit/index.js';
 import { buildCatalog, describedPages } from './catalog.js';
 import { discoverFrom, emptyIndex, type DiscoveryWants, type SiteIndex } from './discovery.js';
 import { rememberPrefix, storedPrefix } from './prefix.js';
@@ -80,7 +80,7 @@ async function locateSitemap(
       }
       return { prefix, pages: [...pages] };
     } catch (error) {
-      continueWithout(session.ctx, session.src, error, `Sitemap ${url}`);
+      tolerate(session.ctx, session.src, error, `Sitemap ${url}`);
       const typed = toMcpDocError(error);
       failure ??= typed;
       if (typed.code !== 'DOC_NOT_FOUND') break;

@@ -20,7 +20,7 @@ import type { RenderMeta, RenderOptions, SectionSelector } from '../core/ports.j
 import { sectionSubtree } from '../core/sections.js';
 import type { DocSection, MemberEntry, SourceFile } from '../core/types.js';
 import { buildSections, stripHeadingMarks } from './build-sections.js';
-import { squash, tagged } from './dom.js';
+import { squash, tagged, WORK_ROOT, workRoot } from './dom.js';
 import { absolutize } from './passes/absolutize.js';
 import { fixAsides } from './passes/fix-asides.js';
 import { fixCodeLinks } from './passes/fix-code-links.js';
@@ -111,7 +111,10 @@ function select(
     if (nodes !== undefined && nodes.length > 0) return { nodes, member };
   }
   if (section !== undefined) return { nodes: sliceByHeading(page, section) };
-  return member === undefined ? {} : { member };
+  if (member !== undefined) return { member };
+  // An anchor that is neither a listed member nor a heading (the field of a type definition).
+  const nodes = profile.sliceMember?.(page, key);
+  return nodes !== undefined && nodes.length > 0 ? { nodes } : {};
 }
 
 /** Moves the nodes into a working document, runs the steps over it and converts the result. */
@@ -121,10 +124,10 @@ function convertNodes(
   env: PassEnv,
   convert: (html: string) => Converted,
 ): Converted {
-  const $ = load('', null, false);
-  $.root().append(nodes);
+  const $ = load(`<${WORK_ROOT}></${WORK_ROOT}>`, null, false);
+  workRoot($).append(nodes);
   for (const step of steps) step?.($, env);
-  const converted = convert($.html());
+  const converted = convert(workRoot($).html() ?? '');
   return { markdown: postProcess(converted.markdown), headingIds: converted.headingIds };
 }
 
@@ -169,7 +172,7 @@ export function runProfile(
   const whole = selection.nodes === undefined;
   // The page's own title heading is removed by `prepare`; every full page opens with one.
   const addTitle: Pass = (work) => {
-    work.root().prepend(tagged('h1', title));
+    workRoot(work).prepend(tagged('h1', title));
   };
   const body = convertNodes(
     selection.nodes ?? root.contents().get(),

@@ -121,12 +121,17 @@ export const astroJsRef: FamilyProfile = {
       level: (el, $) => ($(el).closest(CARD).length > 0 ? 0 : headingLevel(el)),
     });
   },
+  // The cards nested in a type definition are the fields of that type (`RangeValue-name`),
+  // not members of the class: listed here, `Query` would claim a property `name` that
+  // cannot be looked up as `Query.name`. They stay documented in the type definition's
+  // own section, and each is still a section under its card id.
   members: (page) =>
     page.root
       .find(CARD)
-      .map((_, el) => toMember(readCard(page.$, el)))
+      .map((_, el) => readCard(page.$, el))
       .get()
-      .filter((member) => member.id !== ''),
+      .filter((card) => !card.nested && card.id !== '')
+      .map(toMember),
   header: importTabs,
   sliceMember: (page, id) =>
     page.root

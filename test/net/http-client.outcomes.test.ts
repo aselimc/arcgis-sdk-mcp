@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { newBudget } from '../../src/core/async.js';
-import { DAY, MINUTE } from '../support/fake-clock.js';
+import { DAY, HOUR, MINUTE } from '../support/fake-clock.js';
 import {
   PAGE,
   hostRow,
@@ -38,6 +38,44 @@ describe('gateway: upstream outcomes', () => {
     expect((await rig.http.get({ url: DOC, expect: 'html' })).text).toBe(PAGE);
     expect(rig.origin.calls).toHaveLength(2);
   });
+
+  it.each([408, 421, 425])(
+    'takes %i for a failing host: retryable, answered from the copy it holds, nothing remembered',
+    async (code) => {
+      const rig = makeRig({ hosts: HOSTS });
+      rig.origin.on(DOC, page(PAGE), status(code), status(code), page(PAGE));
+      await rig.http.get({ url: DOC, expect: 'html' });
+
+      rig.clock.advance(25 * HOUR);
+      expect((await rig.http.get({ url: DOC, expect: 'html' })).cache).toBe('stale');
+
+      // Without a copy the caller is told to try again, not that the page does not exist.
+      const bare = makeRig({ hosts: HOSTS });
+      bare.origin.on(DOC, status(code), page(PAGE));
+      const error = await mcpError(bare.http.get({ url: DOC, expect: 'html' }));
+      expect(error.code).toBe('UPSTREAM_UNAVAILABLE');
+      expect(error.details).toMatchObject({ why: `HTTP ${code}`, retryable: true });
+      expect((await bare.http.get({ url: DOC, expect: 'html' })).text).toBe(PAGE);
+    },
+  );
+
+  it.each([400, 405, 406, 414, 422])(
+    'reports %i as DOC_NOT_FOUND without remembering it or dropping a copy',
+    async (code) => {
+      const rig = makeRig({ hosts: HOSTS });
+      rig.origin.on(DOC, page(PAGE), status(code), page(`${PAGE}<!-- v2 -->`));
+      await rig.http.get({ url: DOC, expect: 'html' });
+
+      rig.clock.advance(25 * HOUR);
+      const error = await mcpError(rig.http.get({ url: DOC, expect: 'html' }));
+      expect(error.code).toBe('DOC_NOT_FOUND');
+      expect(error.details?.why).toBe(`The server answered ${code}`);
+
+      // The next call asks again, and the copy from before is still there for a bad day.
+      expect((await rig.http.get({ url: DOC, expect: 'html' })).cache).toBe('miss');
+      expect(rig.origin.calls).toHaveLength(3);
+    },
+  );
 
   it.each([403, 429])('reports %i as UPSTREAM_BLOCKED: no retry, no stale copy', async (code) => {
     const rig = makeRig({ hosts: HOSTS });
@@ -144,7 +182,8 @@ describe('gateway: upstream outcomes', () => {
       rig.http.get({ url: DOC, expect: 'html', signal: controller.signal }),
     );
     expect(error.code).toBe('UPSTREAM_UNAVAILABLE');
-    expect(error.details?.why).toBe('cancelled by the caller');
+    expect(error.message).toBe('The request to developers.arcgis.com was cancelled');
+    expect(error.details).toMatchObject({ why: 'cancelled by the caller', declined: 'cancelled' });
     expect(rig.origin.calls).toEqual([]);
   });
 });

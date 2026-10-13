@@ -13,7 +13,7 @@
  * for this call and enumeration continues from the navigation tree and the sitemap.
  */
 import { isMcpDocError } from '../../../core/errors.js';
-import { continueWithout } from '../static.js';
+import { tolerate } from '../../kit/index.js';
 import type { NavTree } from './nav.js';
 import {
   fetchPageData,
@@ -121,7 +121,7 @@ async function loadHashed<V>(
       return parse((await session.json(url)).data, url);
     } catch (error) {
       if (isMcpDocError(error) && error.code === 'DOC_NOT_FOUND') return 'gone';
-      continueWithout(session.ctx, session.src, error, `Index file ${url}`);
+      tolerate(session.ctx, session.src, error, `Index file ${url}`);
       return [];
     }
   };
@@ -152,7 +152,7 @@ async function loadHashed<V>(
  *   redirects, a page that has gone), so the caller can start from another page; `'read'`
  *   otherwise, whether or not the page contributed anything new.
  * @throws McpDocError only when the call budget is spent or the failure is not upstream's
- *   (see `continueWithout`); a missing or malformed file is skipped.
+ *   (see `tolerate`); a missing or malformed file is skipped.
  */
 export async function discoverFrom(
   session: GatsbySession,

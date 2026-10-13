@@ -7,7 +7,8 @@ import type { BoundSource, Ctx, HttpResponse, RenderMeta } from '../../../core/p
 import { fetchPackageJson, fetchPackageText, jsdelivrFileUrl } from './jsdelivr.js';
 import { readLocalFile } from './local-packages.js';
 import type { ResolvedPackage } from './resolve-version.js';
-import { kindOf, licenseOf } from './shared.js';
+import { licenseOf } from '../../kit/index.js';
+import { kindOf } from './shared.js';
 
 /** Where the content of a package file came from. */
 export interface PackageFileOrigin {

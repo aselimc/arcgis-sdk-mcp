@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { BREAKER_DEFAULTS, CircuitBreakers } from '../../src/net/circuit-breaker.js';
-import { GLOBAL_CONCURRENCY, createRateLimiter } from '../../src/net/rate-limiter.js';
+import {
+  GLOBAL_CONCURRENCY,
+  createRateLimiter,
+  type StartTimer,
+} from '../../src/net/rate-limiter.js';
 import {
   MAX_RETRY_AFTER_MS,
   RETRY_DELAYS_MS,
@@ -151,6 +155,162 @@ describe('createRateLimiter', () => {
     (await third)?.();
     other?.();
     expect(thirdHeld).toBe(true);
+  });
+});
+
+describe('createRateLimiter: waits end at the deadline and on cancellation', () => {
+  /** A limiter whose deadline timers fire when the test says so. */
+  function make(globalConcurrent?: number) {
+    const clock = new FakeClock();
+    const timers: Array<{ ms: number; fire: () => void; stopped: boolean }> = [];
+    const startTimer: StartTimer = (ms, fire) => {
+      const timer = { ms, fire, stopped: false };
+      timers.push(timer);
+      return () => {
+        timer.stopped = true;
+      };
+    };
+    /** Token waits that the test ends by hand. */
+    const sleeping: Array<{ ms: number; wake: () => void }> = [];
+    const limiter = createRateLimiter({
+      clock,
+      sleep: (ms) => new Promise<void>((wake) => sleeping.push({ ms, wake })),
+      startTimer,
+      ...(globalConcurrent === undefined ? {} : { globalConcurrent }),
+    });
+    return { clock, limiter, timers, sleeping };
+  }
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const single = { ratePerSec: 1000, maxConcurrent: 1 };
+
+  it('stops queueing for a host slot when the deadline passes, and leaves the queue', async () => {
+    const { limiter, clock, timers } = make();
+    const front = await limiter.acquire('h', single);
+
+    // The request in front hangs; the one behind it has 500 ms.
+    let answered: 'slot' | 'refused' | undefined;
+    const waiting = limiter.acquire('h', single, { deadline: clock.now() + 500 }).then((r) => {
+      answered = r === undefined ? 'refused' : 'slot';
+    });
+    await tick();
+    expect(answered).toBeUndefined();
+    expect(timers.map((timer) => timer.ms)).toEqual([500]);
+
+    clock.advance(500);
+    timers[0]?.fire();
+    await waiting;
+    expect(answered).toBe('refused');
+
+    // The slot the front request frees goes to a caller that is still there.
+    front?.();
+    const next = await limiter.acquire('h', single);
+    expect(next).toBeDefined();
+  });
+
+  it('asks the clock, not the timer, whether the deadline has passed', async () => {
+    const { limiter, clock, timers } = make();
+    const front = await limiter.acquire('h', single);
+    const waiting = limiter.acquire('h', single, { deadline: clock.now() + 500 });
+    await tick();
+
+    // The timer fires early by the clock: the waiter keeps waiting and watches again.
+    clock.advance(200);
+    timers[0]?.fire();
+    await tick();
+    expect(timers.map((timer) => timer.ms)).toEqual([500, 300]);
+
+    front?.();
+    expect(await waiting).toBeDefined();
+    expect(timers[1]?.stopped).toBe(true);
+  });
+
+  it('refuses at once when the deadline has already passed', async () => {
+    const { limiter, clock, timers } = make();
+    expect(await limiter.acquire('h', single, { deadline: clock.now() })).toBeUndefined();
+    expect(timers).toEqual([]);
+    // Nothing was taken: the host is free.
+    expect(await limiter.acquire('h', single)).toBeDefined();
+  });
+
+  it('stops queueing when the caller cancels, whether for the host or the global slot', async () => {
+    const { limiter } = make(1);
+    const front = await limiter.acquire('a', single);
+
+    for (const key of ['a', 'b']) {
+      const controller = new AbortController();
+      const waiting = limiter.acquire(key, single, { signal: controller.signal });
+      await tick();
+      controller.abort('User cancelled');
+      expect(await waiting).toBeUndefined();
+    }
+    const aborted = new AbortController();
+    aborted.abort();
+    expect(await limiter.acquire('c', single, { signal: aborted.signal })).toBeUndefined();
+
+    // Neither cancelled waiter kept a slot of its host or the global one.
+    front?.();
+    (await limiter.acquire('a', single))?.();
+    (await limiter.acquire('b', single))?.();
+  });
+
+  it('ends the wait for a rate token when the caller cancels', async () => {
+    const { limiter, sleeping } = make();
+    const slow = { ratePerSec: 1 / 60, maxConcurrent: 1, minIntervalMs: 60_000 };
+    (await limiter.acquire('hub', slow))?.();
+
+    const controller = new AbortController();
+    const waiting = limiter.acquire('hub', slow, { signal: controller.signal });
+    await tick();
+    expect(sleeping.map((sleep) => sleep.ms)).toEqual([60_000]);
+    controller.abort();
+    expect(await waiting).toBeUndefined();
+  });
+
+  it('does not hold a global slot while it waits for the rate token of a slow host', async () => {
+    const { limiter, sleeping } = make(1);
+    const slow = { ratePerSec: 1 / 60, maxConcurrent: 1, minIntervalMs: 60_000 };
+    (await limiter.acquire('hub', slow))?.();
+
+    // The second Hub request sleeps for a minute. With the only global slot in its pocket
+    // it would stall every other host for that minute.
+    let hubStarted = false;
+    const hub = limiter.acquire('hub', slow).then((release) => {
+      hubStarted = true;
+      return release;
+    });
+    await tick();
+    expect(sleeping).toHaveLength(1);
+
+    const other = await limiter.acquire('developers', single);
+    expect(other).toBeDefined();
+    expect(hubStarted).toBe(false);
+
+    // Its token arrives while the other request is in flight: now it queues for the slot.
+    sleeping[0]?.wake();
+    await tick();
+    expect(hubStarted).toBe(false);
+    other?.();
+    (await hub)?.();
+    expect(hubStarted).toBe(true);
+  });
+
+  it('keeps the interval from the real start when the global slot came late', async () => {
+    const { limiter, clock, sleeping } = make(1);
+    const slow = { ratePerSec: 1, maxConcurrent: 1, minIntervalMs: 10_000 };
+    const blocker = await limiter.acquire('other', single);
+
+    // Reserved for now, but started 4 s later, when the global slot was free.
+    const first = limiter.acquire('hub', slow);
+    await tick();
+    clock.advance(4000);
+    blocker?.();
+    (await first)?.();
+
+    const second = limiter.acquire('hub', slow);
+    await tick();
+    expect(sleeping.map((sleep) => sleep.ms)).toEqual([10_000]);
+    sleeping[0]?.wake();
+    (await second)?.();
   });
 });
 

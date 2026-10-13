@@ -61,6 +61,9 @@ const prepare: Pass = ($) => {
   $('div.symbol.monospace').each((_, el) => {
     const symbol = $(el);
     symbol.find('.top-right-position, .copy-icon').remove();
+    // An annotation is a block of its own in the page: it ends its line in the text too,
+    // or the declaration reads `@Composablefun MapView(`.
+    symbol.children('div.block').each((__, annotation) => void $(annotation).append('\n'));
     replaceWithPre($, symbol, symbol.text().trim(), 'kotlin');
   });
   $('span.kdoc-tag').each((_, el) => {

@@ -56,7 +56,7 @@ const linkButtonRows: Pass = ($) => {
       platforms.length === 0 ? '' : `Also available for: ${platforms.join(', ')}`,
       ...source,
     ].filter((part) => part !== '');
-    row.replaceWith(parts.length === 0 ? '' : `<p>${parts.join(' · ')}</p>`);
+    row.replaceWith(parts.length === 0 ? '' : `<p>${parts.join(' \u00b7 ')}</p>`);
   });
 };
 

@@ -94,7 +94,25 @@ const OWNERS: Array<[string, string]> = [
   [`${PRO}/arcpy/functions/some.html`, 'arcpy/arcpy@latest'],
   [`${PRO}/tool-reference/analysis/some.html`, 'arcpy/tools@latest'],
   ['https://pro.arcgis.com/en/pro-app/3.6/arcpy/functions/some.htm', 'arcpy/legacy@3.6'],
-  ['https://pro.arcgis.com/en/pro-app/3.5/tool-reference/analysis/some.htm', 'arcpy/legacy@3.5'],
+  [
+    'https://pro.arcgis.com/en/pro-app/3.5/tool-reference/analysis/some.htm',
+    'arcpy/legacy-tools@3.5',
+  ],
+  [
+    'https://pro.arcgis.com/en/pro-app/3.6/tool-reference/spatial-analyst/some.htm',
+    'arcpy/legacy-tools-extensions@3.6',
+  ],
+  // Link-only releases are owned too, so they answer with a link like the help does.
+  ['https://pro.arcgis.com/en/pro-app/2.9/arcpy/functions/some.htm', 'arcpy/legacy@2.9'],
+  [
+    'https://pro.arcgis.com/en/pro-app/3.4/tool-reference/analysis/buffer.htm',
+    'arcpy/legacy-tools@3.4',
+  ],
+  // A toolbox that later releases dropped still belongs to the tool reference.
+  [
+    'https://pro.arcgis.com/en/pro-app/3.0/tool-reference/no-longer-a-toolbox/some.htm',
+    'arcpy/legacy-tools@3.0',
+  ],
   [`${D}/geoanalytics/sql-functions/some/`, 'geoanalytics-engine/guide@latest'],
   [`${D}/geoanalytics/api-reference/geoanalytics.some.html`, 'geoanalytics-engine/api@latest'],
   [`${D}/geoanalytics-fabric/api-reference/some.html`, 'geoanalytics-fabric/api@latest'],
@@ -141,7 +159,7 @@ const UNOWNED = [
   `${D}/javascript/latest/api-reference/esri-Map.html`,
   `${GH}/Esri/no-such-repository-anywhere/blob/main/README.md`,
   `${GH}/Esri/arcgis-pro-sdk/issues/1`,
-  'https://pro.arcgis.com/en/pro-app/2.9/arcpy/functions/some.htm',
+  'https://pro.arcgis.com/en/pro-app/2.5/arcpy/functions/some.htm',
   'https://r.esri.com/no-such-package/reference/some.html',
   'brief:ai/overview',
   'mailto:someone@example.com',

@@ -32,11 +32,11 @@ import { readSitemap, sitemapRecords } from './sitemap.js';
 import {
   assertLive,
   budgetOf,
-  continueWithout,
+  tolerate,
   probeSource,
   readHtmlPage,
   recordOf,
-} from './static.js';
+} from '../kit/index.js';
 
 type DocfxSource = BoundSource<'docfx-esri'>;
 
@@ -231,7 +231,7 @@ export const docfxEsriAdapter: SourceAdapter<'docfx-esri'> = {
     };
     const without = (error: unknown, what: string): void => {
       firstFailure ??= toMcpDocError(error);
-      continueWithout(ctx, src, error, what);
+      tolerate(ctx, src, error, what);
     };
 
     if (ctx.policy.enabled('site-index')) {
@@ -282,7 +282,7 @@ export const docfxEsriAdapter: SourceAdapter<'docfx-esri'> = {
 
   async read(ctx, src, target) {
     const kind = target.record?.kind ?? src.source.kinds[0] ?? 'help';
-    const page = await readHtmlPage(ctx, src, target, kind);
+    const page = await readHtmlPage(ctx, src, target, { kind });
     if (src.source.config.gpParameters !== true) return page;
     try {
       return await verifyToolName(ctx, src, target, page);

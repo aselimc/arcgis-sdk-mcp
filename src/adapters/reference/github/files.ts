@@ -32,16 +32,16 @@ import {
   mapPool,
   metaOf,
   notFound,
-  recordOf,
-  renderOptionsOf,
+  repoRecord,
+  repoRenderOptions,
   requestsLeft,
   titleFromName,
-  tolerate,
   treeUrl,
   withNotices,
   type GithubSource,
   type RepoScope,
 } from './shared.js';
+import { skipOptional } from '../../kit/index.js';
 
 /** Markdown files fetched by one enumeration to index their headings (`symbolsFromHeadings`). */
 export const MAX_HEADING_FILES = 60;
@@ -73,7 +73,7 @@ function documentRecord(src: GithubSource, scope: RepoScope, path: string): Cata
   const { title, trail } = describe(scope, path);
   const breadcrumb = breadcrumbOf(trail);
   return {
-    ...recordOf(src, scope, blobUrl(scope.repo, scope.ref, path), kind, title),
+    ...repoRecord(src, scope, blobUrl(scope.repo, scope.ref, path), kind, title),
     ...(breadcrumb === undefined ? {} : { breadcrumb }),
     locator: { path },
   };
@@ -92,7 +92,7 @@ function headingRecords(
   return sectionsFromMarkdown(markdown)
     .filter((section) => section.level === level && IDENTIFIER.test(section.title))
     .map((section) => ({
-      ...recordOf(src, scope, `${file.ref}#${section.id}`, kind, section.title),
+      ...repoRecord(src, scope, `${file.ref}#${section.id}`, kind, section.title),
       symbol: section.title.split('.').at(-1) ?? section.title,
       qualified: section.title,
       symbolKind: 'type',
@@ -133,7 +133,7 @@ export async function documentRecords(
       const res = await ctx.github.raw(scope.repo, scope.ref, file.path, callOptions(src, scope));
       return headingRecords(src, scope, file.path, res.text, level);
     } catch (error) {
-      spent = tolerate(ctx, src, error, file.path) || spent;
+      spent = skipOptional(ctx, src, error, file.path) || spent;
       return [];
     }
   });
@@ -169,7 +169,7 @@ export async function readFile(
   const fallback = presetKind(src.source.config.preset, src.source.kinds);
   const kind = target.record?.kind ?? (isMarkdown(path) ? kindOfFile(path, fallback) : fallback);
   const meta = metaOf(src, scope, `${publicUrl}${target.url.hash}`, kind, res);
-  const opts = renderOptionsOf(target, scope);
+  const opts = repoRenderOptions(target, scope);
 
   if (isMarkdown(path)) {
     return withNotices(ctx.render.render('markdown', { markdown: res.text }, meta, opts), scope);

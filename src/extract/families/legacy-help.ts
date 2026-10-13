@@ -11,6 +11,11 @@ const META_FIELDS: ReadonlyArray<[string, string]> = [
   ['last-modified', 'Last modified'],
 ];
 
+const STEP_WRAPPERS =
+  'div.stepinfo, div.stepresult, div.stepexample, div.info, div.steps, div.substeps, div.overflow-auto';
+/** Children that already separate the content of a wrapper from what surrounds it. */
+const BLOCK_CHILDREN = 'p, div, ul, ol, table, pre, blockquote, figure, section, h1, h2, h3, h4, h5, h6';
+
 function root($: CheerioAPI): Cheerio<Element> {
   const inSection = $('div.content-section main').first();
   return inSection.length > 0 ? inSection : $('main').first();
@@ -41,13 +46,15 @@ const prepare: Pass = ($) => {
     $(el).replaceWith(image.length === 0 ? '' : `<p><img src="${src}" alt="${alt}"></p>`);
   });
   unwrap($, $('div.codeblock, div.codeblockdesc'));
-  // Step wrappers carry no meaning of their own.
-  unwrap(
-    $,
-    $(
-      'div.stepinfo, div.stepresult, div.stepexample, div.info, div.steps, div.substeps, div.overflow-auto',
-    ),
-  );
+  // Step wrappers carry no meaning of their own, but they are blocks: one that holds bare
+  // text (`<span>cmd</span><div class="stepresult">Result.</div>`) must stay a paragraph,
+  // or its text is glued to the command before it.
+  $(STEP_WRAPPERS).each((_, el) => {
+    const wrapper = $(el);
+    if (wrapper.children(BLOCK_CHILDREN).length > 0) return;
+    if (squash(wrapper.text()) !== '') wrapper.replaceWith(`<p>${wrapper.html() ?? ''}</p>`);
+  });
+  unwrap($, $(STEP_WRAPPERS));
 };
 
 /**

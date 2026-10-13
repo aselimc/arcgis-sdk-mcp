@@ -15,13 +15,14 @@ import {
   indexRequest,
   oneLine,
   probeSource,
-  recordOf,
+  symbolRecord,
   renderMeta,
   renderOptionsOf,
   siteIndexEnabled,
   symbolTarget,
   unusableIndex,
-} from './dartdoc.js';
+  isIndexCanary,
+} from '../kit/index.js';
 
 /** One node of the navigator tree. Group markers have no `path`. */
 interface DoccNode {
@@ -124,7 +125,7 @@ export function doccRecords(
           page === undefined
             ? { symbol: title, qualified: title, symbolKind: 'module' }
             : { kind: page };
-        records.set(ref, recordOf(src, ref, title, { ...extras, breadcrumb: at.trail }));
+        records.set(ref, symbolRecord(src, ref, title, { ...extras, breadcrumb: at.trail }));
         visit(children, { ...below, owners: page === undefined ? [] : at.owners });
         continue;
       }
@@ -135,7 +136,7 @@ export function doccRecords(
       const qualified = parent === undefined ? name : `${parent}.${name}`;
       records.set(
         ref,
-        recordOf(src, ref, qualified, {
+        symbolRecord(src, ref, qualified, {
           symbol: name,
           qualified,
           symbolKind: KINDS.get(type) ?? type,
@@ -245,5 +246,5 @@ export const doccAdapter: SourceAdapter<'docc'> = {
 
   read,
   symbol: (ctx, src, record, detail) => read(ctx, src, symbolTarget(record, detail)),
-  probe: (ctx, src) => probeSource(ctx, src, { count: countPages }),
+  probe: (ctx, src) => probeSource(ctx, src, { siteIndex: isIndexCanary(src), count: countPages }),
 };

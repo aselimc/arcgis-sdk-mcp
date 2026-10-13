@@ -29,15 +29,15 @@ import {
   extensionOf,
   mapPool,
   metaOf,
-  recordOf,
-  renderOptionsOf,
+  repoRecord,
+  repoRenderOptions,
   requestsLeft,
   titleFromName,
-  tolerate,
   withNotices,
   type GithubSource,
   type RepoScope,
 } from './shared.js';
+import { skipOptional } from '../../kit/index.js';
 
 /** Files whose regions are indexed by one enumeration; the others are listed by file only. */
 export const MAX_SCANNED_FILES = 60;
@@ -261,7 +261,7 @@ export function renderSnippets(
     'markdown',
     { markdown },
     metaOf(src, scope, `${blobUrl(scope.repo, scope.ref, path)}${target.url.hash}`, 'sample', res),
-    renderOptionsOf(target, scope),
+    repoRenderOptions(target, scope),
   );
   return withNotices(page, scope);
 }
@@ -292,7 +292,7 @@ function regionRecords(
     const { region } = heading;
     const keywords = apiKeywords(region.apis);
     records.push({
-      ...recordOf(src, scope, `${url}#${section.id}`, 'sample', region.title),
+      ...repoRecord(src, scope, `${url}#${section.id}`, 'sample', region.title),
       breadcrumb: [trail, title, region.group]
         .filter((part) => part !== undefined)
         .join(BREADCRUMB_SEPARATOR),
@@ -307,7 +307,7 @@ function regionRecords(
 function fileRecord(src: GithubSource, scope: RepoScope, path: string): CatalogRecord {
   const trail = breadcrumbOf(dirOf(path).split('/'));
   return {
-    ...recordOf(src, scope, blobUrl(scope.repo, scope.ref, path), 'sample', fileTitle(path)),
+    ...repoRecord(src, scope, blobUrl(scope.repo, scope.ref, path), 'sample', fileTitle(path)),
     ...(trail === undefined ? {} : { breadcrumb: trail }),
     language: languageOf(path),
     locator: { path },
@@ -335,7 +335,7 @@ export async function snippetRecords(
       const res = await ctx.github.raw(scope.repo, scope.ref, file.path, callOptions(src, scope));
       return regionRecords(src, scope, file.path, res.text);
     } catch (error) {
-      spent = tolerate(ctx, src, error, file.path) || spent;
+      spent = skipOptional(ctx, src, error, file.path) || spent;
       return [fileRecord(src, scope, file.path)];
     }
   });

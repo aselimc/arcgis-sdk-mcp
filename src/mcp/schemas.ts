@@ -31,6 +31,20 @@ export function maxTokensArg(min: number, fallback: number): z.ZodDefault<z.ZodN
     .describe('Upper bound for this response.');
 }
 
+/**
+ * A count or size in a result: an integer of zero or more. A bare `z.number().int()` is
+ * published as the whole safe-integer range, negative half included, which says nothing
+ * about a number of hits and reads badly in every `tools/list` payload.
+ */
+export function countField(): z.ZodNumber {
+  return z.number().int().min(0);
+}
+
+/** The one-based position of an entry in a ranked list. */
+export function rankField(): z.ZodNumber {
+  return z.number().int().min(1);
+}
+
 /** `category` filter of the product list: every registry category, or all of them. */
 export const CategoryFilter = z.enum([...CATEGORIES, 'all']);
 

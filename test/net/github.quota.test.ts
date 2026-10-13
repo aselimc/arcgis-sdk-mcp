@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { GithubClient } from '../../src/core/ports.js';
+import type { GithubClient, HttpClient } from '../../src/core/ports.js';
 import { createGithubClient } from '../../src/net/github.js';
+import type { QuotaSource } from '../../src/net/rate-limit-info.js';
 import { FAKE_NOW, FakeClock, MINUTE } from '../support/fake-clock.js';
 import { FakeHttp } from '../support/fake-http.js';
 import { FakeLogger } from '../support/fake-logger.js';
@@ -74,12 +75,16 @@ describe('github: quota', () => {
     expect(error.details?.next).toBe(`Retry after ${RESET_ISO}`);
   });
 
-  it('recognises a secondary rate limit by its Retry-After', async () => {
+  it('recognises a secondary rate limit by its Retry-After, and waits it out', async () => {
     const rig = make();
     rig.origin.on(/api\.github/, status(429, { ...limitHeaders(37), 'retry-after': '90' }));
     const error = await mcpError(rig.github.latestRelease(REPO));
     expect(error.code).toBe('RATE_LIMITED_GITHUB');
     expect(error.details?.why).toContain(new Date(FAKE_NOW + 90_000).toISOString());
+
+    rig.clock.advance(60_000);
+    expect((await mcpError(rig.github.tree(REPO, 'main'))).code).toBe('RATE_LIMITED_GITHUB');
+    expect(rig.origin.calls).toHaveLength(1);
   });
 
   it('leaves a refusal that is not about quota as UPSTREAM_BLOCKED', async () => {
@@ -88,9 +93,59 @@ describe('github: quota', () => {
     expect((await mcpError(rig.github.repoMeta(REPO))).code).toBe('UPSTREAM_BLOCKED');
   });
 
-  it('keeps saying RATE_LIMITED_GITHUB once the breaker has opened on the refusals', async () => {
+  it('stops calling the API once the quota is known to be spent, until it resets', async () => {
     const rig = make();
-    rig.origin.on(/api\.github/, status(403, limitHeaders(0)));
+    rig.origin.on(/trees\/branch-/, status(403, { ...limitHeaders(0), 'retry-after': '1800' }));
+    // Seven calls for different trees, as an index build would make them.
+    for (let n = 0; n < 7; n += 1) {
+      rig.clock.advance(2000);
+      const error = await mcpError(rig.github.tree(REPO, `branch-${n}`));
+      expect(error.code).toBe('RATE_LIMITED_GITHUB');
+      expect(error.details?.why).toContain(`resets at ${RESET_ISO}`);
+    }
+    // GitHub asks clients not to keep sending while limited: one refusal is enough.
+    expect(rig.origin.calls).toHaveLength(1);
+    expect(rig.http.hostStates()).toEqual([
+      { host: 'api.github.com', breaker: 'closed', lastError: 'HTTP 403' },
+    ]);
+
+    const nextWindow = {
+      'x-ratelimit-remaining': '59',
+      'x-ratelimit-reset': String(RESET_SECONDS + 3600),
+    };
+    rig.origin.on(/trees\/after-reset/, json({ tree: [] }, nextWindow));
+    rig.clock.advance(31 * MINUTE);
+    expect(await rig.github.tree(REPO, 'after-reset')).toEqual([]);
+    expect(rig.github.quota()).toMatchObject({ remaining: 59 });
+  });
+
+  it('stops after the last request the quota allowed, before any refusal', async () => {
+    const rig = make();
+    rig.origin
+      .on(/releases/, json({ tag_name: 'v1' }, limitHeaders(0)))
+      .on(/trees/, json({ tree: [] }));
+    await rig.github.latestRelease(REPO);
+
+    const error = await mcpError(rig.github.tree(REPO, 'main'));
+    expect(error.code).toBe('RATE_LIMITED_GITHUB');
+    expect(rig.origin.urls().filter((url) => url.includes('/trees/'))).toEqual([]);
+  });
+
+  it('serves what it has stored while the quota is spent', async () => {
+    const rig = make();
+    rig.origin
+      .on(/trees\/main/, json({ tree: [{ path: 'README.md', type: 'blob' }] }, limitHeaders(1)))
+      .on(/releases/, status(403, limitHeaders(0)));
+    await rig.github.tree(REPO, 'main');
+    await mcpError(rig.github.latestRelease(REPO));
+    expect(await rig.github.tree(REPO, 'main')).toEqual([{ path: 'README.md' }]);
+    expect(rig.origin.calls).toHaveLength(2);
+  });
+
+  it('keeps saying RATE_LIMITED_GITHUB once the breaker has opened on refusals without a reset time', async () => {
+    const rig = make();
+    // No reset time: nothing says when to ask again, so the circuit breaker bounds the calls.
+    rig.origin.on(/api\.github/, status(403, { 'x-ratelimit-remaining': '0' }));
     for (let n = 0; n < 5; n += 1) await mcpError(rig.github.tree(REPO, `branch-${n}`));
     const error = await mcpError(rig.github.tree(REPO, 'one-more'));
     expect(error.code).toBe('RATE_LIMITED_GITHUB');
@@ -116,7 +171,69 @@ describe('github: quota', () => {
     expect((await mcpError(down.github.tree(REPO, 'main'))).code).toBe('UPSTREAM_UNAVAILABLE');
   });
 
-  it('takes a refusal for the quota when the HTTP client publishes no quota headers', async () => {
+  it('does not take a refusal for the quota when the API said nothing about quota', async () => {
+    const rig = make();
+    rig.origin.on(/api\.github/, status(403));
+    const error = await mcpError(rig.github.repoMeta(REPO));
+    expect(error.code).toBe('UPSTREAM_BLOCKED');
+    expect(error.details?.why).toBe('The server answered 403');
+    expect(rig.github.quota()).toEqual({ authenticated: false });
+  });
+});
+
+describe('github: quota facts and the HTTP client', () => {
+  /** The quota is not spent: a refusal with 4999 requests left is about something else. */
+  const NOT_QUOTA = { 'x-ratelimit-remaining': '4999', 'x-ratelimit-reset': String(RESET_SECONDS) };
+  const SPENT = { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': String(RESET_SECONDS) };
+
+  function over(http: HttpClient, rig: Rig): GithubClient {
+    return createGithubClient({
+      config: rig.config,
+      http,
+      cache: rig.cache,
+      logger: rig.logger,
+      clock: rig.clock,
+    });
+  }
+
+  it('reads them through a client that wraps the gateway and forwards the method', async () => {
+    const rig = makeRig({ hosts: HOSTS });
+    const real = rig.http;
+    const wrapped: HttpClient & QuotaSource = {
+      get: (req) => real.get(req),
+      getJson: (req) => real.getJson(req),
+      hostStates: () => real.hostStates(),
+      rateLimit: (host) => real.rateLimit(host),
+    };
+    rig.origin
+      .on(/repos\/Esri\/blocked/, status(403, NOT_QUOTA))
+      .on(/repos\/Esri\/limited/, status(403, SPENT));
+    const github = over(wrapped, rig);
+
+    expect((await mcpError(github.repoMeta('Esri/blocked'))).code).toBe('UPSTREAM_BLOCKED');
+    expect(github.quota()).toMatchObject({ remaining: 4999 });
+    expect((await mcpError(github.repoMeta('Esri/limited'))).code).toBe('RATE_LIMITED_GITHUB');
+  });
+
+  // The quota used to travel through hidden state keyed on the identity of the gateway
+  // object, and a refusal seen through any other object was guessed to be the quota.
+  it('never guesses: behind a client that reports no quota a refusal stays a refusal', async () => {
+    const rig = makeRig({ hosts: HOSTS });
+    const real = rig.http;
+    const wrapped: HttpClient = {
+      get: (req) => real.get(req),
+      getJson: (req) => real.getJson(req),
+      hostStates: () => real.hostStates(),
+    };
+    rig.origin.on(/api\.github/, status(403, NOT_QUOTA));
+    const github = over(wrapped, rig);
+
+    const error = await mcpError(github.repoMeta(REPO));
+    expect(error.code).toBe('UPSTREAM_BLOCKED');
+    expect(github.quota()).toEqual({ authenticated: false });
+  });
+
+  it('does the same with a replay client', async () => {
     const http = new FakeHttp().fail(/api\.github\.com/, 403);
     const github = createGithubClient({
       config: makeConfig(),
@@ -125,9 +242,7 @@ describe('github: quota', () => {
       logger: new FakeLogger(),
       clock: new FakeClock(),
     });
-    const error = await mcpError(github.repoMeta(REPO));
-    expect(error.code).toBe('RATE_LIMITED_GITHUB');
-    expect(error.details?.why).toContain('an unknown time');
+    expect((await mcpError(github.repoMeta(REPO))).code).toBe('UPSTREAM_BLOCKED');
     expect(github.quota()).toEqual({ authenticated: false });
   });
 });

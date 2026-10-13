@@ -87,7 +87,12 @@ const PRODUCTS: Array<[string, Product['category'], Product['status'], string]> 
   ['unreal-maps-sdk', 'game-engine', 'active', 'guide*:gatsby samples:github-repo'],
   ['runtime-100', 'native', 'retired', 'card*:static'],
   ['python-api', 'python', 'active', 'guide*:gatsby api:gatsby samples:github-repo'],
-  ['arcpy', 'python', 'active', 'arcpy*:docfx-esri tools:docfx-esri legacy:legacy-help'],
+  [
+    'arcpy',
+    'python',
+    'active',
+    'arcpy*:docfx-esri tools:docfx-esri legacy:legacy-help legacy-tools:legacy-help legacy-tools-extensions:legacy-help',
+  ],
   ['geoanalytics-engine', 'python', 'active', 'guide*:gatsby api:sphinx samples:github-repo'],
   ['geoanalytics-fabric', 'python', 'active', 'guide*:gatsby api:sphinx samples:github-repo'],
   ['r-arcgis', 'python', 'active', 'guide*:gatsby packages:pkgdown'],
@@ -528,16 +533,55 @@ describe('Python and desktop products', () => {
       toc: 'tool-reference/toc.json',
       gpParameters: true,
     });
-    const legacy = source('arcpy', 'legacy');
-    expect(legacy.lines).toEqual(['3.6', '3.5']);
-    expect(legacy.config).toEqual({
-      host: 'pro.arcgis.com',
-      base: '/en/pro-app/{line}/',
-      books: [{ path: 'arcpy' }, { path: 'tool-reference' }],
-      lines: ['3.6', '3.5'],
-      enumerate: 'on-demand',
+    const older = ['3.4', '3.3', '3.2', '3.1', '3.0', '2.9', '2.8', '2.7', '2.6'];
+    expect(product('arcpy').lines.map((line) => [line.id, line.access])).toEqual([
+      ['latest', 'live'],
+      ['3.6', 'live'],
+      ['3.5', 'live'],
+      ...older.map((id) => [id, 'link-only']),
+    ]);
+    for (const id of ['legacy', 'legacy-tools', 'legacy-tools-extensions']) {
+      const legacy = source('arcpy', id);
+      // A developer reference, on every numbered line, fetched for the two newest only.
+      expect(legacy.kinds, id).toEqual(['api', 'guide']);
+      expect(legacy.lines, id).toEqual(['3.6', '3.5', ...older]);
+      expect(legacy.config, id).toMatchObject({
+        host: 'pro.arcgis.com',
+        base: '/en/pro-app/{line}/',
+        lines: ['3.6', '3.5'],
+        enumerate: 'on-demand',
+      });
+    }
+  });
+
+  it('names real books of the earlier Pro releases, each with its table-of-contents script', () => {
+    const books = (id: string): Array<{ path: string; tocScript?: string }> => {
+      const legacy = source('arcpy', id);
+      return legacy.adapter === 'legacy-help' ? legacy.config.books : [];
+    };
+    // The section itself is listed through its `main` book; `arcpy/` publishes no listing.
+    expect(books('legacy')[0]).toEqual({
+      path: 'arcpy',
+      tocScript: '/en/pro-app/{line}/arcpy/main/1520.js',
     });
-    expect(product('arcpy').lines.map((line) => line.id)).toEqual(['latest', '3.6', '3.5']);
+    expect(books('legacy')).toContainEqual({
+      path: 'arcpy/functions',
+      tocScript: '/en/pro-app/{line}/arcpy/functions/577.js',
+    });
+    expect(books('legacy-tools')[0]?.path).toBe('tool-reference');
+    expect(books('legacy-tools').map((book) => book.path)).toContain('tool-reference/analysis');
+    expect(books('legacy-tools-extensions').map((book) => book.path)).toContain(
+      'tool-reference/spatial-analyst',
+    );
+    for (const id of ['legacy', 'legacy-tools', 'legacy-tools-extensions']) {
+      // One request per book, inside the 30 requests of an index build.
+      expect(books(id).length, id).toBeLessThanOrEqual(27);
+      for (const book of books(id)) expect(book.tocScript, book.path).toMatch(/\/\d+\.js$/);
+      // The canary is a link list of a real book, so `doctor` fails when listing cannot work.
+      expect(source('arcpy', id).probe.url, id).toMatch(
+        /\/pro-app\/3\.6\/(?:arcpy|tool-reference)\/[a-z0-9-]+\/flisting\.htm$/,
+      );
+    }
   });
 
   it('lists the nine R package sites', () => {

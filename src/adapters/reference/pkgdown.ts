@@ -11,18 +11,19 @@ import type { CatalogRecord, DocKind, DocPage } from '../../core/types.js';
 import {
   assertLive,
   budgetOf,
-  continueWithout,
+  tolerate,
   indexRequest,
   oneLine,
   probeSource,
   readHtmlPage,
-  recordOf,
+  symbolRecord,
   renderMeta,
   renderOptionsOf,
   siteIndexEnabled,
   symbolTarget,
   unusableIndex,
-} from './dartdoc.js';
+  isIndexCanary,
+} from '../kit/index.js';
 
 /** Package sites read by one enumeration, one request each. */
 const MAX_PACKAGES = 12;
@@ -98,7 +99,7 @@ export function pkgdownRecords(
     const breadcrumb = [pkg, page.dir];
     if (kind !== 'api') {
       const headings = page.headings.slice(0, MAX_HEADINGS);
-      return recordOf(src, ref, page.title, {
+      return symbolRecord(src, ref, page.title, {
         kind,
         breadcrumb,
         ...(headings.length === 0 ? {} : { headings }),
@@ -108,8 +109,8 @@ export function pkgdownRecords(
     const file = page.relative.replace(/^.*\//, '').replace(/\.html$/, '');
     const topic = cut < 0 ? file : page.title.slice(cut + TOPIC_SEPARATOR.length).trim();
     // The reference index has no topic of its own.
-    if (topic === '') return recordOf(src, ref, page.title, { breadcrumb });
-    return recordOf(src, ref, topic, {
+    if (topic === '') return symbolRecord(src, ref, page.title, { breadcrumb });
+    return symbolRecord(src, ref, topic, {
       symbol: topic,
       qualified: `${pkg}::${topic}`,
       symbolKind: 'function',
@@ -169,7 +170,7 @@ async function read(ctx: Ctx, src: BoundSource, target: ReadTarget): Promise<Doc
       if (toMcpDocError(error).code !== 'DOC_NOT_FOUND') throw error;
     }
   }
-  return readHtmlPage(ctx, src, target, src.source.probe.family, kind);
+  return readHtmlPage(ctx, src, target, { kind });
 }
 
 /**
@@ -195,7 +196,7 @@ export const pkgdownAdapter: SourceAdapter<'pkgdown'> = {
         for (const record of found) records.set(record.ref, record);
       } catch (error) {
         firstFailure ??= toMcpDocError(error);
-        continueWithout(ctx, src, error, `The package site ${pkg}`);
+        tolerate(ctx, src, error, `The package site ${pkg}`);
       }
     }
     if (records.size > 0) return [...records.values()];
@@ -204,5 +205,5 @@ export const pkgdownAdapter: SourceAdapter<'pkgdown'> = {
 
   read,
   symbol: (ctx, src, record, detail) => read(ctx, src, symbolTarget(record, detail)),
-  probe: (ctx, src) => probeSource(ctx, src),
+  probe: (ctx, src) => probeSource(ctx, src, { siteIndex: isIndexCanary(src) }),
 };

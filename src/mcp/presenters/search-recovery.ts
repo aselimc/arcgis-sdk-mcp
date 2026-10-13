@@ -7,6 +7,7 @@ import { formatCall } from '../../core/budget.js';
 import { TOOLS } from '../../core/names.js';
 import type { SearchResponse } from '../../core/ports.js';
 import type { McpContainer } from '../container.js';
+import { productShortlist } from '../shortlist.js';
 
 /** Products the router is asked for when looking for one outside the searched scope. */
 const NEIGHBOUR_CANDIDATES = 5;
@@ -30,7 +31,7 @@ export interface FailedSearch {
  * 3. The caller named the product: its profile, which lists the sources that can be browsed
  *    and whether full-text search is available. (Offering another product here would let two
  *    products point at each other.)
- * 4. No product at all: the product list filtered by the query.
+ * 4. No product at all: the products that best match the query.
  */
 export function zeroHitNext(
   failed: FailedSearch,
@@ -73,5 +74,5 @@ export function zeroHitNext(
   const [named] = scope.products;
   return product !== undefined && named !== undefined
     ? formatCall(TOOLS.listProducts, { product: named })
-    : formatCall(TOOLS.listProducts, { query });
+    : productShortlist(query);
 }

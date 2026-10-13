@@ -22,12 +22,12 @@ import {
   absoluteUrl,
   assertLive,
   budgetOf,
-  continueWithout,
+  tolerate,
   licenseOf,
   probeSource,
   recordOf,
   renderOptionsOf,
-} from './static.js';
+} from '../kit/index.js';
 
 type Json = Record<string, unknown>;
 type OpenApiSource = BoundSource<'openapi'>;
@@ -258,7 +258,7 @@ export const openapiAdapter: SourceAdapter<'openapi'> = {
       } catch (error) {
         firstFailure ??= toMcpDocError(error);
         const url = typeof entry === 'string' ? entry : entry.url;
-        continueWithout(ctx, src, error, `OpenAPI document ${url}`);
+        tolerate(ctx, src, error, `OpenAPI document ${url}`);
       }
     }
     if (records.size === 0 && firstFailure !== undefined) throw firstFailure;

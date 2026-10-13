@@ -4,6 +4,7 @@
  * name on API pages; the pseudo-sections `source`, `readme`, `parameters`, `syntax` and
  * `members`; fuzzy match (edit distance at most 2).
  */
+import { estimateTokens, splitBlocks } from '../../core/budget.js';
 import { sectionSubtree } from '../../core/sections.js';
 import { levenshtein } from '../../core/text-distance.js';
 import type { DocPage, DocSection } from '../../core/types.js';
@@ -56,6 +57,63 @@ function firstMatching(sections: readonly DocSection[], pattern: RegExp): DocSec
   return sections.find((section) => pattern.test(section.id) || pattern.test(section.title));
 }
 
+const FENCE = /^ {0,3}(?:`{3,}|~{3,})/;
+
+/**
+ * Headings under which a page keeps its code: "Sample code" on the sample pages of Esri's
+ * site, "Source code", "Code", "Example code", "Usage".
+ */
+const SOURCE_HEADING = /^(?:sample[\s-]?code|source(?:[\s-]?code)?|code|example|usage)(?![\p{L}\p{N}])/iu;
+
+function fences(section: DocSection): string[] {
+  return splitBlocks(section.markdown).filter((block) => FENCE.test(block));
+}
+
+/**
+ * The code of a page that keeps it in no section of its own: every fenced block, under the
+ * heading of the section it came from. This is what "source" means for a notebook (its code
+ * cells) and for a sample written as one Markdown file.
+ */
+function codeBlocks(sections: readonly DocSection[]): DocSection | undefined {
+  const parts: string[] = [];
+  for (const part of sections) {
+    const blocks = fences(part);
+    if (blocks.length === 0) continue;
+    if (part.title !== '') parts.push(`### ${part.title}`);
+    parts.push(...blocks);
+  }
+  if (parts.length === 0) return undefined;
+  const markdown = ['## Source', ...parts].join('\n\n');
+  return {
+    id: SOURCE_SECTION_ID,
+    level: 2,
+    title: 'Source',
+    markdown,
+    tokens: estimateTokens(markdown),
+  };
+}
+
+/** Words a reference page puts after the name of a member in its heading. */
+const MEMBER_KIND = '(?:method|property|event|field|constructor|function|operator|delegate)';
+
+/**
+ * The section whose heading is a member name as page-per-type references write it:
+ * `IRESTRequestHandler.HandleRESTRequest Method`, `Name Property`, `run(args)`. The exact
+ * spelling wins over one that differs in case.
+ */
+export function memberHeading(
+  sections: readonly DocSection[],
+  name: string,
+): DocSection | undefined {
+  const escaped = bare(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (escaped === '') return undefined;
+  const source = `^(?:[\\p{L}\\p{N}_.]+\\.)?${escaped}(?:\\s*\\(.*\\))?(?:\\s+${MEMBER_KIND})?$`;
+  return (
+    sections.find((section) => new RegExp(source, 'u').test(section.title)) ??
+    sections.find((section) => new RegExp(source, 'iu').test(section.title))
+  );
+}
+
 function pseudo(
   page: DocPage,
   sections: readonly DocSection[],
@@ -65,8 +123,20 @@ function pseudo(
     case 'source': {
       const files = fileSections(page.files ?? []);
       if (files.length > 0) return { sections: files, id: SOURCE_SECTION_ID, by: 'pseudo' };
-      const found = firstMatching(sections, /^(?:source|code|example|usage)/i);
-      return found === undefined ? undefined : subtree(sections, found.id, 'pseudo');
+      // A heading alone is not code: "Example use case" introduces prose, and the code is
+      // under "Example code" further down.
+      const coded = sections
+        .filter((part) => SOURCE_HEADING.test(part.id) || SOURCE_HEADING.test(part.title))
+        .map((part) => sectionSubtree(sections, part.id))
+        .find((tree) => tree.some((part) => fences(part).length > 0));
+      const [head] = coded ?? [];
+      if (coded !== undefined && head !== undefined) {
+        return { sections: coded, id: head.id, by: 'pseudo' };
+      }
+      const code = codeBlocks(sections);
+      return code === undefined
+        ? undefined
+        : { sections: [code], id: SOURCE_SECTION_ID, by: 'pseudo' };
     }
     case 'readme':
       // The description of a sample or repository page, without its source files.
@@ -156,6 +226,8 @@ export function resolveSection(
       ? { sections: documented, id: member.id, by: 'member' }
       : { sections: [memberSection(member)], id: member.id, by: 'member' };
   }
+  const headed = memberHeading(sections, name);
+  if (headed !== undefined) return subtree(sections, headed.id, 'member');
 
   if (isPseudoSection(name)) {
     const found = pseudo(page, sections, lower as PseudoSection);

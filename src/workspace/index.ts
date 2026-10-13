@@ -8,15 +8,35 @@
  * dependency and look it up among the registry's packages. The `workspaceSignals` a product
  * declares (a file glob list and a regular expression) cover everything else: project files
  * without a package registry, such as a Unity `Packages/manifest.json` or an `.uproject`.
+ *
+ * A project changes while the server runs (an SDK is upgraded, a first one is added), so a
+ * scan is good for a minute only: {@link createWorkspaceScanner} is the one place that
+ * decides how long a scan is reused.
  */
+import { singleFlight } from '../core/async.js';
 import type { DetectWorkspace } from '../core/factories.js';
 import { matchesAnyGlob } from '../core/glob.js';
+import type { Clock } from '../core/ports.js';
 import type { Product, WorkspaceSdk, WorkspaceSignal } from '../core/types.js';
 import { deadPackageOf, type DeadPackageHit } from './dead-packages.js';
 import { cleanVersion } from './dependency.js';
 import { buildPackageIndex } from './match.js';
 import { DEFAULT_SCAN_LIMITS, scanFiles, type ScanLimits, type ScannedFile } from './scan.js';
 import { MANIFEST_KINDS, manifestKindOf } from './signals.js';
+
+/**
+ * An SDK found in the project, with how firmly its version is known. Assignable to
+ * `WorkspaceSdk`, whose `version` consumers use to pin documentation.
+ */
+export interface DetectedSdk extends WorkspaceSdk {
+  /** True when a lock file or an exact pin states the version. */
+  exact: boolean;
+  /**
+   * The range the manifest states (`^5.0.4`) when nothing pins the version. `version` is
+   * then the lowest version the range allows; the installed one may be newer.
+   */
+  range?: string;
+}
 
 /** Everything one scan found. */
 export interface WorkspaceScan {
@@ -25,7 +45,7 @@ export interface WorkspaceScan {
    * empty string when no manifest states one (`"*"`, a path dependency, a project file
    * that only names the SDK).
    */
-  sdks: WorkspaceSdk[];
+  sdks: DetectedSdk[];
   /** Retired npm packages the project depends on. */
   dead: DeadPackageHit[];
   /** True when a scan limit was reached, so the result may be incomplete. */
@@ -41,6 +61,8 @@ interface Sighting {
   primary: boolean;
   /** A lock file or exact pin. */
   exact: boolean;
+  /** The range as written, when the manifest states one. */
+  range?: string;
   /** Read by a manifest parser rather than a registry regex. */
   structured: boolean;
 }
@@ -96,14 +118,16 @@ function signalSightings(file: ScannedFile, products: readonly Product[]): Sight
       }
       if (match === null) continue;
       const chosen = signalPackage(product, signal);
-      const raw = signal.versionGroup === undefined ? undefined : match[signal.versionGroup];
+      const raw = (signal.versionGroup === undefined ? undefined : match[signal.versionGroup]) ?? '';
+      const version = cleanVersion(raw);
       found.push({
         product,
         package: chosen.name,
-        version: cleanVersion(raw ?? ''),
+        version,
         file: file.path,
         primary: chosen.primary,
         exact: false,
+        ...(version === '' || raw.trim() === version ? {} : { range: raw.trim() }),
         structured: false,
       });
     }
@@ -151,6 +175,7 @@ export async function scanWorkspace(
             file: file.path,
             primary: false,
             exact: found.exact,
+            ...(found.range === undefined ? {} : { range: found.range }),
             structured: true,
           });
         }
@@ -165,6 +190,7 @@ export async function scanWorkspace(
         file: file.path,
         primary: match.primary,
         exact: found.exact,
+        ...(found.range === undefined ? {} : { range: found.range }),
         structured: true,
       });
     }
@@ -184,12 +210,16 @@ export async function scanWorkspace(
         Number(b.primary) - Number(a.primary) ||
         a.package.localeCompare(b.package),
     )
-    .map(({ product, package: name, version, file }) => ({
-      product: product.id,
-      package: name,
-      version,
-      file,
-    }));
+    .map(
+      ({ product, package: name, version, file, exact, range }): DetectedSdk => ({
+        product: product.id,
+        package: name,
+        version,
+        file,
+        exact,
+        ...(range === undefined ? {} : { range }),
+      }),
+    );
 
   if (truncated) logger.warn('workspace scan stopped at a limit', { files: files.length });
   for (const hit of dead) {
@@ -202,5 +232,51 @@ export async function scanWorkspace(
   return { sdks, dead, truncated };
 }
 
-/** The `DetectWorkspace` factory of `src/core/factories.ts`: the SDKs of {@link scanWorkspace}. */
-export const detectWorkspace: DetectWorkspace = async (deps) => (await scanWorkspace(deps)).sdks;
+/** How long one scan of the project is reused. */
+export const WORKSPACE_SCAN_TTL_MS = 60 * 1000;
+
+const EMPTY_SCAN: WorkspaceScan = { sdks: [], dead: [], truncated: false };
+
+/**
+ * A scan of the project that is reused for {@link WORKSPACE_SCAN_TTL_MS} and then redone, so
+ * that an upgraded or newly added SDK shows without a restart. Every part of a scan (SDKs,
+ * retired packages) comes from the same walk and therefore has the same age. Concurrent
+ * callers share one walk. A scan that fails is logged and answered as an empty project,
+ * for the same short time and not for the life of the process.
+ */
+export function createWorkspaceScanner(
+  deps: Parameters<DetectWorkspace>[0] & { clock: Clock },
+  ttlMs = WORKSPACE_SCAN_TTL_MS,
+): () => Promise<WorkspaceScan> {
+  const flights = singleFlight<'scan', WorkspaceScan>();
+  let last: { at: number; scan: WorkspaceScan } | undefined;
+  return () => {
+    if (last !== undefined && deps.clock.now() - last.at < ttlMs) {
+      return Promise.resolve(last.scan);
+    }
+    return flights.run('scan', async () => {
+      let scan = EMPTY_SCAN;
+      try {
+        scan = await scanWorkspace(deps);
+      } catch (error) {
+        // Version pinning is a convenience: a project that cannot be read must not fail a call.
+        deps.logger.warn('workspace detection failed', { error });
+      }
+      last = { at: deps.clock.now(), scan };
+      return scan;
+    });
+  };
+}
+
+/**
+ * The `DetectWorkspace` factory of `src/core/factories.ts`: the SDKs of one
+ * {@link scanWorkspace}, in the port's shape. It scans on every call; a caller that keeps
+ * the result decides its lifetime (see {@link createWorkspaceScanner}).
+ */
+export const detectWorkspace: DetectWorkspace = async (deps) =>
+  (await scanWorkspace(deps)).sdks.map(({ product, package: name, version, file }) => ({
+    product,
+    package: name,
+    version,
+    file,
+  }));

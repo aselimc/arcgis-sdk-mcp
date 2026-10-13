@@ -304,7 +304,7 @@ describe('github: tree, raw, wiki, releases', () => {
     const controller = new AbortController();
     controller.abort();
     const error = await mcpError(rig.github.tree(REPO, 'main', { signal: controller.signal }));
-    expect(error.details?.why).toBe('cancelled by the caller');
+    expect(error.details).toMatchObject({ why: 'cancelled by the caller', declined: 'cancelled' });
     expect(
       (await mcpError(rig.github.raw(REPO, 'main', 'a.md', { signal: controller.signal }))).code,
     ).toBe('UPSTREAM_UNAVAILABLE');

@@ -12,6 +12,7 @@ import { type ErrorCode, type McpDocError, toMcpDocError } from '../core/errors.
 import { shortHash } from '../core/hash.js';
 import { BRIEF_PREFIX, ENV_PREFIX, TOOLS, type ToolName } from '../core/names.js';
 import type { Clock, Logger } from '../core/ports.js';
+import { productShortlist } from './shortlist.js';
 
 /** The call that failed: the recovery is phrased in terms of it. */
 export interface ErrorSite {
@@ -67,8 +68,20 @@ function slugQuery(ref: string | undefined): string | undefined {
   return words.length > 0 ? words : undefined;
 }
 
+/** Shortest `query` that `arcgis_docs_search` accepts. */
+const MIN_QUERY_CHARS = 2;
+
+/**
+ * A search for `query`. A recovery has to be a call that can be made: text the search tool
+ * would reject (nothing, or one character such as the symbol `x`) is replaced by a
+ * placeholder the agent fills in.
+ */
 function searchFor(query: string | undefined, extra: Record<string, unknown> = {}): string {
-  return formatCall(TOOLS.search, { query: query ?? 'what you are looking for', ...extra });
+  const usable = query !== undefined && query.trim().length >= MIN_QUERY_CHARS;
+  return formatCall(TOOLS.search, {
+    query: usable ? query.trim() : 'what you are looking for',
+    ...extra,
+  });
 }
 
 /** The recovery used when the thrower did not supply one. */
@@ -79,7 +92,7 @@ function fallbackNext(error: McpDocError, site: ErrorSite, ref: string, deps: Er
   const url = details.url ?? text(args.ref);
   switch (error.code) {
     case 'UNKNOWN_PRODUCT':
-      return formatCall(TOOLS.listProducts, product === undefined ? {} : { query: product });
+      return product === undefined ? formatCall(TOOLS.listProducts, {}) : productShortlist(product);
     case 'AMBIGUOUS_SYMBOL':
       return 'Repeat the lookup with one of the candidates below';
     case 'SYMBOL_NOT_FOUND':

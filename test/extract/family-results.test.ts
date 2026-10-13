@@ -58,8 +58,10 @@ describe('family results', () => {
       'queryGauges',
       'event-refresh',
       'RefreshEvent',
-      'RefreshEvent-count',
     ]);
+    // Regression: the fields of a type definition were listed as properties of the class
+    // (`Query` claimed `name` and `value`, which are `RangeValue-name` and `RangeValue-value`).
+    expect(members.map((member) => member.name)).not.toContain('count');
     expect(members[1]).toEqual({
       id: 'id',
       name: 'id',
@@ -105,7 +107,7 @@ describe('family results', () => {
     ]);
     expect(markdown).toContain('| `labelField` | `string \\| null` |');
     expect(markdown).not.toContain('### labelField');
-    expect(overview.members).toHaveLength(7);
+    expect(overview.members).toHaveLength(6);
     expect(pageMarkdown(extractFixture('astro-js-ref', { detail: 'signature' }))).toBe(markdown);
     expect(pageMarkdown(extractFixture('astro-js-ref', { detail: 'full' }))).toContain(
       '### labelField',

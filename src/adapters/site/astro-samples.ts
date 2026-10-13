@@ -8,7 +8,7 @@ import { humanizeSlug, matchUrlFilter } from '../../core/adapter-helpers.js';
 import { McpDocError } from '../../core/errors.js';
 import type { BoundSource, Ctx } from '../../core/ports.js';
 import type { CatalogRecord, DocPage } from '../../core/types.js';
-import { assertLive, budgetOf, readHtmlPage, recordOf } from './static.js';
+import { assertLive, budgetOf, readHtmlPage, recordOf } from '../kit/index.js';
 
 /** One card of a sample index page. */
 export interface SampleCard {
@@ -103,5 +103,5 @@ export function readSample(
   src: BoundSource<'astro'>,
   record: CatalogRecord,
 ): Promise<DocPage> {
-  return readHtmlPage(ctx, src, { url: new URL(record.ref), record }, 'sample');
+  return readHtmlPage(ctx, src, { url: new URL(record.ref), record }, { kind: 'sample' });
 }

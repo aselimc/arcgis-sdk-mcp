@@ -6,7 +6,9 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import * as z from 'zod/v4';
 import { formatCall } from '../../core/budget.js';
 import { TOOLS } from '../../core/names.js';
+import type { ProductResolution } from '../../core/ports.js';
 import type { CatalogRecord } from '../../core/types.js';
+import { pageKey } from '../../core/url.js';
 import { LARGE_RESULT_META } from '../annotations.js';
 import { compact } from '../compact.js';
 import type { McpContainer } from '../container.js';
@@ -23,6 +25,10 @@ const Input = z.object({
     .string()
     .min(1)
     .max(200)
+    // "." or "-" names nothing, and no follow-up search could be built from it either.
+    .refine((name) => /[\p{L}\p{N}]/u.test(name), {
+      error: 'Expected the name of a symbol: it has no letter or digit',
+    })
     .describe(
       'Name of a class, member, component, REST operation, function, tool or spec object. Qualified names and "Type.member" are accepted.',
     ),
@@ -52,26 +58,74 @@ function displayName(record: CatalogRecord): string {
   return record.qualified ?? record.symbol ?? record.title;
 }
 
+/** How many other candidates are listed. */
+const MAX_ALTERNATES = 3;
+
 /**
- * The other candidates as copyable `{symbol, product}` pairs with their refs. A candidate
- * with the name of the answer itself (another declaration of that name: an overload on a
- * page of its own, the same function for another type of argument) cannot be asked for by
- * name again, so it is listed as the ref to read.
+ * Where a ref points, for comparison: its page and its fragment without regard to case.
+ * Two sources of one product (the website reference and the package manifest) index the
+ * same entity under different names but document it at the same place.
  */
-function alternates(answer: CatalogRecord, records: readonly CatalogRecord[]): string {
-  if (records.length === 0) return '';
-  const lines = records.slice(0, 3).map((record) => {
+function placeKey(ref: string): string {
+  const hash = ref.indexOf('#');
+  const fragment = hash === -1 ? '' : ref.slice(hash + 1).toLowerCase();
+  return `${pageKey(ref)}#${fragment}`;
+}
+
+/** What the caller's request fixed, which every follow-up lookup has to repeat. */
+interface LookupScope {
+  /** True when `product` had the form `product/source`: the source is part of the request. */
+  scoped: boolean;
+  /** The `version` argument, when one was given. */
+  version: string | undefined;
+}
+
+/**
+ * The other candidates as copyable lookup arguments with their refs.
+ *
+ * A candidate documented at the place of the answer is the answer under another name and
+ * is left out. A candidate with the name of the answer itself (another declaration of that
+ * name: an overload on a page of its own, the same function for another type of argument)
+ * cannot be asked for by name again, so it is listed as the ref to read. The others repeat
+ * the scope of the request: without the version a follow-up would silently answer from the
+ * current release, and without the source it could find a namesake in another one.
+ */
+function alternates(
+  answer: CatalogRecord,
+  records: readonly CatalogRecord[],
+  scope: LookupScope,
+): string {
+  const others = records.filter((record) => placeKey(record.ref) !== placeKey(answer.ref));
+  if (others.length === 0) return '';
+  const lines = others.slice(0, MAX_ALTERNATES).map((record) => {
     const kind = record.symbolKind === undefined ? '' : ` (${record.symbolKind})`;
     const namesake =
       record.product === answer.product && displayName(record) === displayName(answer);
-    const call = namesake
-      ? formatCall(TOOLS.read, { ref: record.ref })
-      : JSON.stringify({ symbol: displayName(record), product: record.product });
-    return namesake
-      ? `- another ${displayName(record)}${kind}: ${call}`
-      : `- ${call}${kind}: ${record.ref}`;
+    if (namesake) {
+      return `- another ${displayName(record)}${kind}: ${formatCall(TOOLS.read, { ref: record.ref })}`;
+    }
+    const call = JSON.stringify({
+      symbol: displayName(record),
+      product: scope.scoped ? `${record.product}/${record.source}` : record.product,
+      ...(scope.version === undefined ? {} : { version: scope.version }),
+    });
+    return `- ${call}${kind}: ${record.ref}`;
   });
   return ['Other matches:', ...lines].join('\n');
+}
+
+/**
+ * The product of the answer and, whenever it was not named by its id, how it was arrived
+ * at (design section 3.1).
+ */
+function productEcho(resolved: ProductResolution, asked: string | undefined): string {
+  const { product, resolvedFrom } = resolved;
+  const name = `${product.name} (${product.id})`;
+  if (asked === product.id) return name;
+  // Without a `product` argument the scope is the project's one SDK or the symbol itself.
+  return asked === undefined && resolvedFrom === 'project'
+    ? `${name}, detected in the project`
+    : `${name}, resolved from "${resolvedFrom}"`;
 }
 
 const handle: ToolHandler<typeof Input> = async (args, call, container) => {
@@ -86,18 +140,18 @@ const handle: ToolHandler<typeof Input> = async (args, call, container) => {
     call,
   );
   const { record, page, resolvedProduct } = response;
-  const { product } = resolvedProduct;
   const version = await pageVersion(page, container);
   const kind = record.symbolKind === undefined ? '' : ` (${record.symbolKind})`;
-  // Echo the resolution whenever the product was not named by its id (design section 3.1).
-  const echo =
-    args.product === product.id
-      ? `${product.name} (${product.id})`
-      : `${product.name} (${product.id}), resolved from "${resolvedProduct.resolvedFrom}"`;
+  const scope = { scoped: resolvedProduct.source !== undefined, version: args.version };
   return textResult({
-    status: pageStatus(`${displayName(record)}${kind}`, page, echo, version),
+    status: pageStatus(
+      `${displayName(record)}${kind}`,
+      page,
+      productEcho(resolvedProduct, args.product),
+      version,
+    ),
     notes: pageNotes(page),
-    body: [response.text.trim(), alternates(record, response.alternates)]
+    body: [response.text.trim(), alternates(record, response.alternates, scope)]
       .filter((block) => block.length > 0)
       .join('\n\n'),
     next: response.next,

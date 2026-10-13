@@ -10,15 +10,16 @@ import type { BoundSource, Ctx, SourceAdapter } from '../../core/ports.js';
 import type { CatalogRecord } from '../../core/types.js';
 import {
   assertLive,
-  continueWithout,
+  tolerate,
   indexRequest,
   probeSource,
   readHtmlPage,
-  recordOf,
+  symbolRecord,
   siteIndexEnabled,
   symbolTarget,
   unusableIndex,
-} from './dartdoc.js';
+  isIndexCanary,
+} from '../kit/index.js';
 import { parseXrefmap, type XrefEntry } from './xrefmap.js';
 
 /** An xrefmap and its table of contents are two requests; this many API sets are read. */
@@ -72,7 +73,7 @@ export function xrefRecords(
     const title = entry.nameWithType ?? entry.name ?? entry.uid;
     if (!KINDS.has(prefix)) {
       // A conceptual page of the site has a uid but documents no symbol.
-      records.set(ref, recordOf(src, ref, title, { locator: { uid: entry.uid }, platform }));
+      records.set(ref, symbolRecord(src, ref, title, { locator: { uid: entry.uid }, platform }));
       continue;
     }
 
@@ -86,7 +87,7 @@ export function xrefRecords(
     const constructor = prefix === 'M' && path.endsWith('#ctor');
     records.set(
       ref,
-      recordOf(src, ref, title, {
+      symbolRecord(src, ref, title, {
         symbol,
         qualified:
           member && parent !== undefined ? `${parent}.${symbol}` : path.replace(/`+\d+/g, ''),
@@ -150,7 +151,7 @@ async function readTocKinds(
     return tocKinds(data);
   } catch (error) {
     // Without it every type is still listed, as kind `type`.
-    continueWithout(ctx, src, error, `The table of contents ${path}`);
+    tolerate(ctx, src, error, `The table of contents ${path}`);
     return new Map();
   }
 }
@@ -198,7 +199,7 @@ export const docfxNetAdapter: SourceAdapter<'docfx-net'> = {
         }
       } catch (error) {
         firstFailure ??= toMcpDocError(error);
-        continueWithout(ctx, src, error, `The xrefmap ${file}`);
+        tolerate(ctx, src, error, `The xrefmap ${file}`);
       }
     }
     if (records.size > 0) return [...records.values()];
@@ -207,11 +208,12 @@ export const docfxNetAdapter: SourceAdapter<'docfx-net'> = {
     );
   },
 
-  read: (ctx, src, target) => readHtmlPage(ctx, src, target, 'docfx-net'),
+  read: (ctx, src, target) => readHtmlPage(ctx, src, target, { family: 'docfx-net' }),
   symbol: (ctx, src, record, detail) =>
-    readHtmlPage(ctx, src, symbolTarget(record, detail), 'docfx-net'),
+    readHtmlPage(ctx, src, symbolTarget(record, detail), { family: 'docfx-net' }),
   probe: (ctx, src) =>
     probeSource(ctx, src, {
+      siteIndex: isIndexCanary(src),
       count: (text) => (/^references:/m.test(text) ? parseXrefmap(text).length : undefined),
     }),
 };

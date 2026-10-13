@@ -227,7 +227,9 @@ export function createRateLimiter(deps: {
       let started = wait !== undefined;
       if (wait !== undefined && wait > 0) {
         // The token is spent either way: a cancelled caller does not hand its turn back.
-        await untilGone({ signal: options.signal }, (gaveUp) => Promise.race([sleep(wait), gaveUp]));
+        await untilGone({ signal: options.signal }, (gaveUp) =>
+          Promise.race([sleep(wait), gaveUp]),
+        );
         started = options.signal?.aborted !== true;
       }
       started &&= await slot(global, options);

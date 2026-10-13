@@ -14,6 +14,14 @@ const CACHE_TEXT: Record<CacheState, string> = {
 };
 
 /**
+ * Where the text of a page came from. A brief ships with this package and is never
+ * requested, so the cache state its page carries (a formality of the type) says nothing.
+ */
+function originText(page: DocPage): string {
+  return page.kind === 'brief' ? 'bundled' : CACHE_TEXT[page.cache];
+}
+
+/**
  * The version to print for a page: the exact one its adapter reported, else the label the
  * version service knows for the page's line, else the line's own label when it names a
  * version (`300.x`). The label of an unversioned line (`Current`) says nothing and is left out.
@@ -62,7 +70,7 @@ export function pageStatus(
       product,
       version === undefined ? undefined : `version ${version}`,
       page.kind,
-      CACHE_TEXT[page.cache],
+      originText(page),
     ],
     page.degraded === undefined ? undefined : `${page.degraded.level}, ${page.degraded.reason}`,
   );

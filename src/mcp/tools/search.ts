@@ -12,7 +12,16 @@ import { compact } from '../compact.js';
 import type { McpContainer } from '../container.js';
 import { statusLine, structuredResult } from '../envelope.js';
 import { zeroHitNext } from '../presenters/search-recovery.js';
-import { cursorArg, Notes, productArg, ResultKind, SearchKind, versionArg } from '../schemas.js';
+import {
+  countField,
+  cursorArg,
+  Notes,
+  productArg,
+  rankField,
+  ResultKind,
+  SearchKind,
+  versionArg,
+} from '../schemas.js';
 import { registerDocTool, type ToolDefinition, type ToolHandler } from '../tool.js';
 
 const DESCRIPTION =
@@ -43,7 +52,7 @@ const Input = z.object({
 });
 
 const Hit = z.object({
-  rank: z.number().int(),
+  rank: rankField(),
   title: z.string(),
   ref: z.string(),
   product: z.string(),
@@ -67,7 +76,7 @@ const Output = z.object({
     line: z.string(),
   }),
   mode: z.enum(['local', 'local+site']),
-  total: z.number().int(),
+  total: countField(),
   results: z.array(Hit),
   nextCursor: z.string().optional(),
   notes: Notes,

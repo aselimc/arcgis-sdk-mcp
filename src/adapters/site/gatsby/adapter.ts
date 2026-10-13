@@ -11,7 +11,7 @@
  */
 import { toMcpDocError } from '../../../core/errors.js';
 import type { SourceAdapter } from '../../../core/ports.js';
-import { probeSource } from '../static.js';
+import { probeSource } from '../../kit/index.js';
 import { MAX_ENUMERATE_REQUESTS, enumerateGatsby } from './enumerate.js';
 import { readGatsby, symbolGatsby } from './read.js';
 

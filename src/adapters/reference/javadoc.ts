@@ -8,14 +8,15 @@ import type { BoundSource, Ctx, SourceAdapter } from '../../core/ports.js';
 import type { CatalogRecord, HtmlFamily } from '../../core/types.js';
 import {
   assertLive,
-  continueWithout,
+  tolerate,
   indexRequest,
   probeSource,
   readHtmlPage,
   siteIndexEnabled,
   symbolTarget,
   unusableIndex,
-} from './dartdoc.js';
+  isIndexCanary,
+} from '../kit/index.js';
 import {
   javadocLegacyRecords,
   javadocMemberRecords,
@@ -65,7 +66,7 @@ async function modernRecords(ctx: Ctx, src: BoundSource): Promise<CatalogRecord[
     const members = await searchIndex(ctx, src, 'member-search-index.js');
     return [...types, ...javadocMemberRecords(src, members, modules)];
   } catch (error) {
-    continueWithout(ctx, src, error, 'The member index');
+    tolerate(ctx, src, error, 'The member index');
     return types;
   }
 }
@@ -90,11 +91,12 @@ export const javadocAdapter: SourceAdapter<'javadoc'> = {
     return src.source.config.legacy === true ? legacyRecords(ctx, src) : modernRecords(ctx, src);
   },
 
-  read: (ctx, src, target) => readHtmlPage(ctx, src, target, familyOf(src)),
+  read: (ctx, src, target) => readHtmlPage(ctx, src, target, { family: familyOf(src) }),
   symbol: (ctx, src, record, detail) =>
-    readHtmlPage(ctx, src, symbolTarget(record, detail), familyOf(src)),
+    readHtmlPage(ctx, src, symbolTarget(record, detail), { family: familyOf(src) }),
   probe: (ctx, src) =>
     probeSource(ctx, src, {
+      siteIndex: isIndexCanary(src),
       count: countEntries,
       // The class list is an HTML file, but it is the index of the site, not a page of it.
       ...(src.source.probe.url.endsWith(LEGACY_CLASS_LIST) ? { siteIndex: true } : {}),

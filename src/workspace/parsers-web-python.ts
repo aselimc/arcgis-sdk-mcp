@@ -32,6 +32,40 @@ export function parsePackageJson(text: string): Dependency[] {
   return found;
 }
 
+/**
+ * `package-lock.json`: the version npm installed for each package. Lock file versions 2 and
+ * 3 list them under `packages["node_modules/<name>"]`, version 1 under `dependencies`. Only
+ * top-level installs count: a copy nested inside another package is that package's business.
+ */
+export function parsePackageLock(text: string): Dependency[] {
+  let lock: unknown;
+  try {
+    lock = JSON.parse(text);
+  } catch {
+    return [];
+  }
+  if (typeof lock !== 'object' || lock === null) return [];
+  const { packages, dependencies } = lock as Record<string, unknown>;
+  const found: Dependency[] = [];
+  const take = (name: string, entry: unknown): void => {
+    const version = (entry as { version?: unknown } | null)?.version;
+    if (typeof version === 'string') found.push(dependency('npm', name, version, true));
+  };
+  if (typeof packages === 'object' && packages !== null && !Array.isArray(packages)) {
+    for (const [path, entry] of Object.entries(packages)) {
+      const name = /^node_modules\/((?:@[^/]+\/)?[^/]+)$/.exec(path)?.[1];
+      if (name !== undefined) take(name, entry);
+    }
+  } else if (
+    typeof dependencies === 'object' &&
+    dependencies !== null &&
+    !Array.isArray(dependencies)
+  ) {
+    for (const [name, entry] of Object.entries(dependencies)) take(name, entry);
+  }
+  return found;
+}
+
 /** A PEP 508 or conda requirement: optional channel, name, optional extras, optional first version clause. */
 const REQUIREMENT =
   /^(?:[\w.-]+::)?([A-Za-z0-9][A-Za-z0-9._-]*)\s*(?:\[[^\]]*\])?\s*(?:(===|==|~=|>=|<=|!=|=|>|<)\s*([^\s;,#=]+))?/;
@@ -48,7 +82,8 @@ function requirement(spec: string): Dependency | undefined {
   return dependency(
     'pypi',
     match[1],
-    match[3],
+    // With its operator, so that a range is reported as the manifest writes it.
+    match[3] === undefined ? undefined : `${match[2] ?? ''}${match[3]}`,
     match[3] !== undefined && exact && !match[3].includes('*'),
   );
 }

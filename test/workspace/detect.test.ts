@@ -2,10 +2,16 @@ import { describe, expect, it } from 'vitest';
 import type { Config } from '../../src/core/config.js';
 import type { Product } from '../../src/core/types.js';
 import { deadPackageWarning, DEAD_PACKAGES } from '../../src/workspace/dead-packages.js';
-import { detectWorkspace, scanWorkspace } from '../../src/workspace/index.js';
+import {
+  WORKSPACE_SCAN_TTL_MS,
+  createWorkspaceScanner,
+  detectWorkspace,
+  scanWorkspace,
+} from '../../src/workspace/index.js';
 import { buildPackageIndex } from '../../src/workspace/match.js';
 import { WORKSPACE_PRODUCTS, useProjects } from './project.js';
 import { makeConfig, makeProduct } from '../support/builders.js';
+import { FakeClock } from '../support/fake-clock.js';
 import { FakeLogger } from '../support/fake-logger.js';
 import { fakeRegistry } from '../support/fake-registry.js';
 
@@ -252,6 +258,133 @@ describe('scanWorkspace: limits', () => {
   });
 });
 
+describe('ranges and lock files', () => {
+  const manifest = json({
+    dependencies: { '@arcgis/core': '^5.0.4', '@esri/calcite-components': '5.0.2' },
+  });
+
+  it('keeps the range a manifest states: its lowest version is not what is installed', async () => {
+    const scan = await scanWorkspace(deps(project({ 'package.json': manifest })));
+    expect(scan.sdks).toEqual([
+      {
+        product: 'calcite',
+        package: '@esri/calcite-components',
+        version: '5.0.2',
+        file: 'package.json',
+        exact: true,
+      },
+      {
+        product: 'js-maps-sdk',
+        package: '@arcgis/core',
+        version: '5.0.4',
+        file: 'package.json',
+        exact: false,
+        range: '^5.0.4',
+      },
+    ]);
+  });
+
+  it('keeps a Python range with its operator', async () => {
+    const scan = await scanWorkspace(deps(project({ 'requirements.txt': 'arcgis>=2.4\n' })));
+    expect(scan.sdks).toEqual([
+      {
+        product: 'python-api',
+        package: 'arcgis',
+        version: '2.4',
+        file: 'requirements.txt',
+        exact: false,
+        range: '>=2.4',
+      },
+    ]);
+  });
+
+  it('takes the installed version from package-lock.json when there is one', async () => {
+    const root = project({
+      'package.json': manifest,
+      'package-lock.json': json({
+        lockfileVersion: 3,
+        packages: {
+          '': { dependencies: { '@arcgis/core': '^5.0.4' } },
+          'node_modules/@arcgis/core': { version: '5.1.27' },
+          // A copy nested inside another package is not what the project imports.
+          'node_modules/some-widget/node_modules/@arcgis/core': { version: '4.33.0' },
+        },
+      }),
+    });
+    const core = (await scanWorkspace(deps(root))).sdks.find((sdk) => sdk.package === '@arcgis/core');
+    expect(core).toEqual({
+      product: 'js-maps-sdk',
+      package: '@arcgis/core',
+      version: '5.1.27',
+      file: 'package-lock.json',
+      exact: true,
+    });
+  });
+
+  it('hands the port plain SDK entries, without the scan details', async () => {
+    const found = await detectWorkspace(deps(project({ 'package.json': manifest })));
+    expect(found.map((sdk) => Object.keys(sdk))).toEqual([
+      ['product', 'package', 'version', 'file'],
+      ['product', 'package', 'version', 'file'],
+    ]);
+  });
+});
+
+describe('createWorkspaceScanner', () => {
+  const core = (version: string): string => json({ dependencies: { '@arcgis/core': version } });
+
+  it('reuses a scan for a minute and then sees the changed manifest', async () => {
+    const root = project({ 'package.json': core('4.33.0') });
+    const clock = new FakeClock();
+    const scan = createWorkspaceScanner({ ...deps(root), clock });
+    expect((await scan()).sdks[0]?.version).toBe('4.33.0');
+
+    project.write(root, {
+      'package.json': json({ dependencies: { '@arcgis/core': '5.0.4', 'esri-loader': '3.7.0' } }),
+    });
+    clock.advance(WORKSPACE_SCAN_TTL_MS - 1);
+    const reused = await scan();
+    expect(reused.sdks[0]?.version).toBe('4.33.0');
+    expect(reused.dead).toEqual([]);
+
+    // The SDK list and the retired packages come from one walk, so they change together.
+    clock.advance(1);
+    const fresh = await scan();
+    expect(fresh.sdks[0]?.version).toBe('5.0.4');
+    expect(fresh.dead.map((hit) => hit.package.name)).toEqual(['esri-loader']);
+  });
+
+  it('shares one walk between concurrent callers', async () => {
+    const root = project({ 'package.json': core('5.1.0') });
+    const environment = deps(root);
+    const scan = createWorkspaceScanner({ ...environment, clock: new FakeClock() });
+    const [first, second] = await Promise.all([scan(), scan()]);
+    expect(first).toBe(second);
+    expect(environment.logger.messages('debug')).toHaveLength(1);
+  });
+
+  it('answers a failed scan as an empty project, and tries again later', async () => {
+    const root = project({ 'package.json': core('5.1.0') });
+    const environment = deps(root);
+    const clock = new FakeClock();
+    let broken = true;
+    const registry = {
+      ...environment.registry,
+      all: () => {
+        if (broken) throw new Error('registry is not ready');
+        return environment.registry.all();
+      },
+    };
+    const scan = createWorkspaceScanner({ ...environment, registry, clock });
+    expect(await scan()).toEqual({ sdks: [], dead: [], truncated: false });
+    expect(environment.logger.messages('warn')).toHaveLength(1);
+
+    broken = false;
+    clock.advance(WORKSPACE_SCAN_TTL_MS);
+    expect((await scan()).sdks.map((sdk) => sdk.version)).toEqual(['5.1.0']);
+  });
+});
+
 describe('dead packages', () => {
   it('lists the five retired packages of the design', () => {
     expect(DEAD_PACKAGES.map((entry) => entry.name).sort()).toEqual([
@@ -283,7 +416,13 @@ describe('dead packages', () => {
     ]);
     // A loader or tool version says nothing about the SDK version in use.
     expect(scan.sdks).toEqual([
-      { product: 'js-maps-sdk', package: '@arcgis/core', version: '5.1.0', file: 'package.json' },
+      {
+        product: 'js-maps-sdk',
+        package: '@arcgis/core',
+        version: '5.1.0',
+        file: 'package.json',
+        exact: true,
+      },
     ]);
     expect(environment.logger.messages('warn')).toHaveLength(3);
   });
@@ -299,6 +438,7 @@ describe('dead packages', () => {
         package: 'arcgis-js-api',
         version: '4.28.10',
         file: 'package.json',
+        exact: true,
       },
     ]);
     expect(scan.dead).toHaveLength(1);

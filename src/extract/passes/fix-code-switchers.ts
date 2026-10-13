@@ -3,8 +3,13 @@ import type { Element } from 'domhandler';
 import { squash, tagged } from '../dom.js';
 import type { Pass } from '../types.js';
 
-/** The strip above a code block that selects one of its variants (`GET` / `POST`, one file of several). */
+/**
+ * The strip above a code block that selects one of its variants (`GET` / `POST`, one file of
+ * several). The class is shared with ARIA tab strips, which the tab pass handles: only a
+ * strip with a dropdown is meant here.
+ */
 const SWITCHER = '.code-switcher';
+const DROPDOWN = 'calcite-dropdown';
 /** A variant of an Astro switcher; all of them are in the page, all but one hidden. */
 const VARIANT = '[data-codeblock]';
 
@@ -29,6 +34,7 @@ function shownLabel(switcher: Cheerio<Element>, labels: readonly string[]): stri
 export const fixCodeSwitchers: Pass = ($) => {
   $(SWITCHER).each((_, el) => {
     const switcher = $(el);
+    if (switcher.find(DROPDOWN).length === 0) return;
     const labels = switcher
       .find('calcite-dropdown-item')
       .map((__, item) => squash($(item).attr('data-label') ?? $(item).text()))

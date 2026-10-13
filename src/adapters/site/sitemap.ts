@@ -13,11 +13,11 @@ import {
   absoluteUrl,
   assertLive,
   budgetOf,
-  continueWithout,
+  tolerate,
   probeSource,
   readHtmlPage,
   recordOf,
-} from './static.js';
+} from '../kit/index.js';
 
 /** A sitemap index may fan out; this many requests are spent on one sitemap at most. */
 const MAX_REQUESTS_PER_SITEMAP = 4;
@@ -79,7 +79,7 @@ export async function readSitemap(
       if (nested.kind === 'urlset') for (const entry of nested.entries) locs.add(entry.loc);
     } catch (error) {
       firstFailure ??= toMcpDocError(error);
-      continueWithout(ctx, src, error, `Sitemap ${child}`);
+      tolerate(ctx, src, error, `Sitemap ${child}`);
     }
   }
   if (locs.size > 0) return [...locs];
@@ -143,7 +143,7 @@ export const sitemapAdapter: SourceAdapter<'sitemap'> = {
         locs.push(...(await readSitemap(ctx, src, url, Math.min(share, MAX_REQUESTS_PER_SITEMAP))));
       } catch (error) {
         firstFailure ??= toMcpDocError(error);
-        continueWithout(ctx, src, error, `Sitemap ${url}`);
+        tolerate(ctx, src, error, `Sitemap ${url}`);
       }
     }
     const records = sitemapRecords(
@@ -176,7 +176,7 @@ export const sitemapAdapter: SourceAdapter<'sitemap'> = {
       const path = base === undefined ? '' : href.slice(base.length).replace(/#.*$/, '');
       kind = classifyUrl(path, src.source.config, fallbackKind(src));
     }
-    return readHtmlPage(ctx, src, target, kind);
+    return readHtmlPage(ctx, src, target, { kind });
   },
 
   probe: (ctx, src) => probeSource(ctx, src),

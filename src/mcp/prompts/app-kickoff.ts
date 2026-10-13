@@ -5,6 +5,7 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import * as z from 'zod/v4';
 import { formatCall } from '../../core/budget.js';
 import { TOOLS } from '../../core/names.js';
+import { productShortlist } from '../shortlist.js';
 import { GROUND_RULES, userMessage } from './message.js';
 
 /** Name of the prompt. */
@@ -25,7 +26,9 @@ export function appKickoffMessage(args: z.output<typeof Args>): string[] {
   const choose =
     product === undefined
       ? [
-          `2. Choose the product: call ${formatCall(TOOLS.listProducts, { query: goal })}, pick the best fit and say why. Then call ${TOOLS.listProducts} with that product id and read its profile: documentation sources, start-here links, pitfalls.`,
+          // A goal is a sentence and shares a word with most products: the ranked shortlist
+          // is asked for, not the whole filtered catalogue.
+          `2. Choose the product: call ${productShortlist(goal)}; the list is ranked, best match first. Pick the best fit and say why. Then call ${TOOLS.listProducts} with that product id and read its profile: documentation sources, start-here links, pitfalls.`,
         ]
       : [
           `2. Call ${formatCall(TOOLS.listProducts, { product })} and read the profile: documentation sources, start-here links, pitfalls.`,

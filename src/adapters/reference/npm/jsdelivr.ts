@@ -5,7 +5,8 @@
  */
 import { McpDocError } from '../../../core/errors.js';
 import type { BoundSource, Ctx, HttpResponse } from '../../../core/ports.js';
-import { budgetOf, isRecord, records, shapeError, str } from './shared.js';
+import { budgetOf } from '../../kit/index.js';
+import { isRecord, records, shapeError, str } from './shared.js';
 
 /** Base of single-file URLs: `<base>/<package>@<version>/<path>`. */
 export const JSDELIVR_CDN = 'https://cdn.jsdelivr.net/npm';

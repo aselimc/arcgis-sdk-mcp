@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { newBudget } from '../../src/core/async.js';
 import { createHttpClient } from '../../src/net/index.js';
 import { DAY, MINUTE, SECOND } from '../support/fake-clock.js';
 import { PAGE, hostRow, json, makeRig, mcpError, page, status } from './harness.js';
@@ -121,27 +120,6 @@ describe('gateway: rate limiter', () => {
     await rig.http.getJson({ url: 'https://hub.arcgis.com/api/v3/docs-json' });
     await rig.http.getJson({ url: 'https://hub.arcgis.com/api/search/v1/docs-json' });
     expect(rig.sleeps).toEqual([60_000]);
-  });
-
-  it('gives up without a request when the wait would pass the deadline', async () => {
-    const rig = makeRig({
-      hosts: [
-        hostRow('hub.arcgis.com', { ratePerSec: 1, maxConcurrent: 1, minIntervalMs: 60_000 }),
-      ],
-    });
-    rig.origin.on(/./, json({ openapi: '3.0.0' }));
-    const budget = newBudget(12, 25_000, rig.clock);
-    await rig.http.getJson({ url: 'https://hub.arcgis.com/api/v3/docs-json', budget });
-
-    const error = await mcpError(
-      rig.http.getJson({ url: 'https://hub.arcgis.com/api/search/v1/docs-json', budget }),
-    );
-    expect(error.code).toBe('UPSTREAM_UNAVAILABLE');
-    expect(error.details).toMatchObject({ why: 'request budget', retryable: true });
-    expect(rig.origin.calls).toHaveLength(1);
-    expect(rig.sleeps).toEqual([]);
-    // The request never reached the network, so it was not counted.
-    expect(budget.used).toBe(1);
   });
 
   it('runs at most the host concurrency at once, and four across hosts', async () => {

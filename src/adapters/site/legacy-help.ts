@@ -33,11 +33,11 @@ import { readSitemap } from './sitemap.js';
 import {
   assertLive,
   budgetOf,
-  continueWithout,
+  tolerate,
   probeSource,
   readHtmlPage,
   recordOf,
-} from './static.js';
+} from '../kit/index.js';
 
 type LegacySource = BoundSource<'legacy-help'>;
 type Book = AdapterConfigMap['legacy-help']['books'][number];
@@ -207,7 +207,7 @@ async function enumerateBook(
       return await run();
     } catch (error) {
       failure ??= toMcpDocError(error);
-      continueWithout(ctx, src, error, what);
+      tolerate(ctx, src, error, what);
       return undefined;
     }
   };
@@ -284,7 +284,7 @@ export const legacyHelpAdapter: SourceAdapter<'legacy-help'> = {
         }
       } catch (error) {
         firstFailure ??= toMcpDocError(error);
-        continueWithout(ctx, src, error, `Book ${bookBase(src, book)}`);
+        tolerate(ctx, src, error, `Book ${bookBase(src, book)}`);
       }
       remaining -= granted - allowance.left;
     }
@@ -304,7 +304,7 @@ export const legacyHelpAdapter: SourceAdapter<'legacy-help'> = {
   },
 
   read(ctx, src, target) {
-    return readHtmlPage(ctx, src, target, target.record?.kind ?? pageKind(src));
+    return readHtmlPage(ctx, src, target, { kind: pageKind(src) });
   },
 
   probe(ctx, src): Promise<ProbeResult> {

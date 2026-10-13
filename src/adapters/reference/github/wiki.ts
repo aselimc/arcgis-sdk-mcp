@@ -22,8 +22,8 @@ import {
   callOptions,
   metaOf,
   notFound,
-  recordOf,
-  renderOptionsOf,
+  repoRecord,
+  repoRenderOptions,
   titleFromName,
   wikiUrl,
   withNotices,
@@ -179,7 +179,7 @@ export async function wikiRecords(
     ...links.filter((link) => link.page !== HOME && !matchesAnyGlob(link.page, exclude)),
   ];
   return pages.map((link) => ({
-    ...recordOf(src, scope, wikiUrl(scope.repo, link.page), kind, link.title),
+    ...repoRecord(src, scope, wikiUrl(scope.repo, link.page), kind, link.title),
     ...(link.trail.length === 0 ? {} : { breadcrumb: link.trail.join(BREADCRUMB_SEPARATOR) }),
     locator: { page: link.page },
   }));
@@ -313,7 +313,7 @@ export async function readWiki(
     'markdown',
     { markdown: res.text },
     metaOf(src, scope, `${wikiUrl(scope.repo, name)}${target.url.hash}`, kind, res),
-    renderOptionsOf(target, scope),
+    repoRenderOptions(target, scope),
   );
   // Wiki pages usually start below the title GitHub shows, which is the page name: without
   // a level-1 heading of its own, a page is titled as the sidebar links it, not after

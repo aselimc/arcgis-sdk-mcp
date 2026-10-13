@@ -6,7 +6,7 @@
 import { toMcpDocError } from '../../../core/errors.js';
 import type { BoundSource, Ctx, ReadTarget, RenderMeta } from '../../../core/ports.js';
 import type { CatalogRecord, DocPage, SymbolDetail } from '../../../core/types.js';
-import { assertLive, budgetOf, continueWithout, licenseOf, renderOptionsOf } from '../static.js';
+import { assertLive, budgetOf, tolerate, licenseOf, renderOptionsOf } from '../../kit/index.js';
 import {
   bodyModeOf,
   bodyVariantOf,
@@ -62,7 +62,7 @@ async function bodyFromPageData(
       pageData = await fetchPageData(session, prefix, page);
     } catch (error) {
       // The HTML page is the next rung; only a spent budget or a defect ends the read here.
-      continueWithout(ctx, src, error, `Page-data of ${page}`);
+      tolerate(ctx, src, error, `Page-data of ${page}`);
       if (toMcpDocError(error).code === 'DOC_NOT_FOUND') continue;
       return undefined;
     }

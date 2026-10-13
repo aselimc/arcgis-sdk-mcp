@@ -6,7 +6,7 @@
  */
 import type { BoundSource } from '../../core/ports.js';
 import type { CatalogRecord } from '../../core/types.js';
-import { recordOf } from './dartdoc.js';
+import { symbolRecord } from '../kit/index.js';
 
 /** How javadoc names the package of a class declared without one. */
 const UNNAMED_PACKAGE = '<Unnamed>';
@@ -125,7 +125,7 @@ export function javadocTypeRecords(
     const outer = name.includes('.') ? name.slice(0, name.lastIndexOf('.')) : undefined;
     records.set(
       ref,
-      recordOf(src, ref, name, {
+      symbolRecord(src, ref, name, {
         symbol: name.split('.').at(-1),
         qualified: qualify(pkg, name),
         symbolKind: 'type',
@@ -162,7 +162,7 @@ export function javadocMemberRecords(
     const parent = qualify(pkg, type);
     records.set(
       ref,
-      recordOf(src, ref, `${type}.${label}`, {
+      symbolRecord(src, ref, `${type}.${label}`, {
         symbol: name,
         qualified: `${parent}.${name}`,
         symbolKind: !callable
@@ -196,7 +196,7 @@ export function javadocLegacyRecords(src: BoundSource, html: string): CatalogRec
     if (name === '' || !ref.startsWith(base) || records.has(ref)) continue;
     records.set(
       ref,
-      recordOf(src, ref, name, {
+      symbolRecord(src, ref, name, {
         symbol: name.split('.').at(-1),
         qualified: `${pkg}.${name}`,
         symbolKind: kind.toLowerCase(),

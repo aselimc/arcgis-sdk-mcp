@@ -656,6 +656,15 @@ function gameEngine(spec: {
   pages: number;
   options: Omit<AdapterConfigMap['gatsby'], 'base'>;
   samplesRepo: string;
+  /**
+   * How the samples repository marks a sample. Unity keeps a README next to the C# scripts of
+   * each sample (`samples-readme`). An Unreal Engine sample is a README next to Blueprint
+   * assets, which are not code files, and a few samples carry a metadata file: there the
+   * sibling rule of `samples-metadata` finds every sample directory.
+   */
+  samplesPreset: 'samples-readme' | 'samples-metadata';
+  /** Samples in the repository when it was verified. */
+  samplesCount: number;
   workspaceSignals: WorkspaceSignal[];
   pitfalls: string[];
   related: string[];
@@ -689,8 +698,12 @@ function gameEngine(spec: {
           family: 'gatsby',
         },
       },
-      // Most samples of these repositories have a README but no metadata file.
-      samples({ repo: spec.samplesRepo, pin: 'branch', preset: 'samples-readme' }),
+      samples({
+        repo: spec.samplesRepo,
+        pin: 'branch',
+        preset: spec.samplesPreset,
+        count: spec.samplesCount,
+      }),
     ],
     oracles: [banner(`/${spec.slug}/`), LIFECYCLE],
     releaseNotesSlug: 'release-notes-{major}-{minor}-{patch}',
@@ -708,6 +721,8 @@ const unity = gameEngine({
   pages: 259,
   options: { symbols: 'fuse-store', bodyFrom: 'auto' },
   samplesRepo: 'Esri/arcgis-maps-sdk-unity-samples',
+  samplesPreset: 'samples-readme',
+  samplesCount: 19,
   workspaceSignals: [
     {
       files: ['Packages/manifest.json'],
@@ -731,6 +746,9 @@ const unreal = gameEngine({
   pages: 260,
   options: { symbols: 'fuse-store' },
   samplesRepo: 'Esri/arcgis-maps-sdk-unreal-engine-samples',
+  samplesPreset: 'samples-metadata',
+  // The 17 samples of the sample viewer; the two XR samples have no metadata file beside them.
+  samplesCount: 17,
   workspaceSignals: [{ files: ['*.uproject', '**/*.uproject'], pattern: 'ArcGISMapsSDK' }],
   pitfalls: [
     'Most features exist both as Blueprint nodes and C++ classes; pages document both under one type name.',

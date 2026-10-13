@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { McpDocError } from '../../src/core/errors.js';
 import { TOOLS } from '../../src/core/names.js';
+import type { IndexService } from '../../src/core/ports.js';
+import { makeHit } from '../support/builders.js';
 import { makeFakeServices } from './support/fake-services.js';
 import { useToolSuite } from './support/tool-suite.js';
 
@@ -23,7 +25,7 @@ describe('search and sample tools', () => {
         ],
       });
       expect(outcome.text.split('\n')[0]).toBe(
-        'Search "query features" | products: js-maps-sdk (sources: references), resolved from "workspace" | line: latest | kind: api | mode: local index + Esri site search | hits 1-2 of 2',
+        'Search "query features" | products: js-maps-sdk (sources: references), detected in the project | line: latest | kind: api | mode: local index + Esri site search | hits 1-2 of 2',
       );
       expect(outcome.text).toContain(
         '1. FeatureLayer.queryFeatures [api, method] js-maps-sdk/references 5.1',
@@ -76,8 +78,148 @@ describe('search and sample tools', () => {
       const data = structuredOf(TOOLS.search, outcome);
       expect(data).toMatchObject({ total: 0, results: [], mode: 'local' });
       expect(outcome.text).toContain('| 0 hits\nNote: No hits; absence here is not proof');
-      expect(outcome.text).toContain('Next: arcgis_docs_list_products({"query":"nothing"})');
+      expect(outcome.text).toContain(
+        'Next: arcgis_docs_list_products({"query":"nothing","limit":8})',
+      );
       expect(outcome.text).not.toContain('Source:');
+    });
+
+    // Regression: the continuation fell back to the default page size of 8.
+    it('repeats a chosen page size in the continuation, and omits the default one', async () => {
+      const chosen = await call(TOOLS.search, { query: 'many', product: 'javascript', limit: 20 });
+      const cursor = String(structuredOf(TOOLS.search, chosen).nextCursor);
+      expect(chosen.text).toContain(
+        `Note: More hits: arcgis_docs_search({"query":"many","product":"javascript","limit":20,"cursor":"${cursor}"})`,
+      );
+      const byDefault = await call(TOOLS.search, { query: 'many', limit: 8 });
+      expect(byDefault.text).toContain(
+        'Note: More hits: arcgis_docs_search({"query":"many","cursor":',
+      );
+    });
+
+    it('says in plain words how a scope the caller did not name was chosen', async () => {
+      const search = suite.harness.services.search.search.bind(suite.harness.services.search);
+      const origins: Array<[string | undefined, string]> = [
+        ['router', 'products: js-maps-sdk, chosen from the query |'],
+        ['query', 'products: js-maps-sdk, named by the query |'],
+        ['none', 'products: js-maps-sdk |'],
+        [undefined, 'products: js-maps-sdk |'],
+      ];
+      for (const [resolvedFrom, expected] of origins) {
+        suite.harness.services.search.search = async (req, options) => {
+          const response = await search(req, options);
+          const { resolvedFrom: _from, sources: _sources, ...scope } = response.scope;
+          return {
+            ...response,
+            scope: { ...scope, ...(resolvedFrom === undefined ? {} : { resolvedFrom }) },
+          };
+        };
+        const outcome = await call(TOOLS.search, { query: 'query features' });
+        expect(outcome.text.split('\n')[0], String(resolvedFrom)).toContain(expected);
+      }
+      suite.harness.services.search = makeFakeServices(suite.harness.ctx).search;
+      // A product argument is echoed as the caller wrote it.
+      const named = await call(TOOLS.search, { query: 'query features', product: 'javascript' });
+      expect(named.text.split('\n')[0]).toContain(', resolved from "javascript" |');
+    });
+
+    describe('without hits', () => {
+      type IndexQuery = Parameters<IndexService['query']>[0];
+      /** Scripts what the index finds for the query in any content type. */
+      const scriptIndex = (found: number): IndexQuery[] => {
+        const seen: IndexQuery[] = [];
+        const hits = Array.from({ length: found }, () => makeHit({ product: 'js-maps-sdk' }));
+        suite.harness.services.index.query = (query) => {
+          seen.push(query);
+          return { hits, total: hits.length };
+        };
+        return seen;
+      };
+      /** Makes the scripted search find nothing whatever the query is. */
+      const findNothing = (): void => {
+        const { search } = makeFakeServices(suite.harness.ctx);
+        suite.harness.services.search.search = async (req, options) => ({
+          ...(await search.search({ ...req, query: 'nothing' }, options)),
+          query: req.query,
+        });
+      };
+      const restore = (): void => {
+        suite.harness.services.search = makeFakeServices(suite.harness.ctx).search;
+      };
+      const nextOf = (text: string): string | undefined =>
+        text.split('\n').find((line) => line.startsWith('Next: '));
+
+      // Regression: the note said "repeat without kind" while Next: listed the catalogue.
+      it('offers the same search without `kind` when other content types have hits', async () => {
+        const seen = scriptIndex(1);
+        const outcome = await call(TOOLS.search, {
+          query: 'nothing',
+          product: 'javascript',
+          kind: 'troubleshooting',
+          version: '4.x',
+          limit: 5,
+        });
+        expect(nextOf(outcome.text)).toBe(
+          'Next: arcgis_docs_search({"query":"nothing","product":"javascript","version":"4.x","limit":5})',
+        );
+        expect(seen).toEqual([{ text: 'nothing', products: ['js-maps-sdk'], limit: 1, offset: 0 }]);
+      });
+
+      it('offers the nearest product outside a scope that was chosen for the caller', async () => {
+        scriptIndex(0);
+        findNothing();
+        // The test registry routes "widgets" to widgets-sdk, which was not searched.
+        const outcome = await call(TOOLS.search, {
+          query: 'widgets testing',
+          kind: 'guide',
+          version: '4.x',
+        });
+        expect(nextOf(outcome.text)).toBe(
+          'Next: arcgis_docs_search({"query":"widgets testing","product":"widgets-sdk","kind":"guide"})',
+        );
+        restore();
+      });
+
+      // Two products must not point at each other: a named product ends at its profile.
+      it('offers the profile of a product the caller named, never another product', async () => {
+        const seen = scriptIndex(0);
+        suite.harness.services.search.search = async (req) => ({
+          query: req.query,
+          scope: { products: ['js-maps-sdk'], sources: ['references'], line: 'latest' },
+          mode: 'local',
+          total: 0,
+          hits: [],
+          notes: [],
+        });
+        const outcome = await call(TOOLS.search, {
+          query: 'widgets testing',
+          product: 'javascript/references',
+          kind: 'guide',
+        });
+        expect(nextOf(outcome.text)).toBe(
+          'Next: arcgis_docs_list_products({"product":"js-maps-sdk"})',
+        );
+        // Other content types are looked for where the search looked: in the scoped source.
+        expect(seen).toMatchObject([{ products: ['js-maps-sdk'], sources: ['references'] }]);
+        restore();
+      });
+
+      it('offers a short ranked product list when no product was searched at all', async () => {
+        suite.harness.services.search.search = async (req) => ({
+          query: req.query,
+          scope: { products: [], line: 'latest', resolvedFrom: 'none' },
+          mode: 'local',
+          total: 0,
+          hits: [],
+          notes: [],
+        });
+        const outcome = await call(TOOLS.search, { query: 'zzz yyy', kind: 'api' });
+        expect(outcome.text.split('\n')[0]).toContain('| products: none | line: latest |');
+        expect(nextOf(outcome.text)).toBe(
+          'Next: arcgis_docs_list_products({"query":"zzz yyy","limit":8})',
+        );
+        restore();
+      });
     });
   });
 

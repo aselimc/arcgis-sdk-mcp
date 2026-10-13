@@ -17,7 +17,7 @@ import type {
 } from '../../core/ports.js';
 import type { CatalogRecord, DocPage } from '../../core/types.js';
 import { parseGithubUrl } from '../../core/url.js';
-import { continueWithout, oneLine, recordOf, renderMeta, renderOptionsOf } from './dartdoc.js';
+import { tolerate, oneLine, symbolRecord, renderMeta, renderOptionsOf } from '../kit/index.js';
 
 /** Files read by one enumeration; the Pro SDK has 16. */
 const MAX_FILES = 20;
@@ -149,7 +149,7 @@ export function xmldocRecords(src: BoundSource, fileUrl: string, xml: string): C
     const parameters = parameterList(id);
     records.set(
       target.href,
-      recordOf(
+      symbolRecord(
         src,
         target.href,
         `${owned ? `${ownerName}.` : ''}${symbol}${parameters === undefined ? '' : `(${parameters})`}`,
@@ -315,7 +315,7 @@ export const xmldocAdapter: SourceAdapter<'xmldoc'> = {
         records.push(...xmldocRecords(src, blobUrl(repo, ref, path), res.text));
       } catch (error) {
         firstFailure ??= toMcpDocError(error);
-        continueWithout(ctx, src, error, `The documentation file ${path}`);
+        tolerate(ctx, src, error, `The documentation file ${path}`);
       }
     }
     if (records.length > 0) return records;

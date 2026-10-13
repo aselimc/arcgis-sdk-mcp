@@ -16,7 +16,8 @@ import {
   type LoadedFile,
 } from './json-mapper.js';
 import { packageMeta } from './package-file.js';
-import { baseRecord, fragmentOf, notFound, records, shapeError, str, type Json } from './shared.js';
+import { fragmentOf } from '../../kit/index.js';
+import { baseRecord, notFound, records, shapeError, str, type Json } from './shared.js';
 
 /** One profile. */
 interface Profile {

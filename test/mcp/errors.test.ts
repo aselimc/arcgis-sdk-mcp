@@ -56,7 +56,7 @@ describe('errorText', () => {
       'UNKNOWN_PRODUCT',
       {},
       { tool: TOOLS.search, args: { query: 'x', product: 'javscript' } },
-      'Next: arcgis_docs_list_products({"query":"javscript"}).',
+      'Next: arcgis_docs_list_products({"query":"javscript","limit":8}).',
     ],
     [
       'UNKNOWN_PRODUCT',
@@ -75,6 +75,14 @@ describe('errorText', () => {
       {},
       { tool: TOOLS.lookupSymbol, args: { symbol: 'X1' } },
       'Next: arcgis_docs_search({"query":"X1","kind":"api"}).',
+    ],
+    // Regression: the search tool rejects a query of one character, so a recovery built
+    // from the symbol `x` was a call that could not be made.
+    [
+      'SYMBOL_NOT_FOUND',
+      {},
+      { tool: TOOLS.lookupSymbol, args: { symbol: 'x', product: 'js-maps-sdk' } },
+      'Next: arcgis_docs_search({"query":"what you are looking for","product":"js-maps-sdk","kind":"api"}).',
     ],
     [
       'DOC_NOT_FOUND',

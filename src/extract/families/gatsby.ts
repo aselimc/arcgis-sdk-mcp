@@ -3,7 +3,7 @@ import { stampOutline } from '../outline.js';
 import type { FamilyProfile, Pass } from '../types.js';
 import { themeRoot, themeTitle } from './shared.js';
 
-const ARROW = ' → ';
+const ARROW = ' \u2192 ';
 
 /**
  * The class pages of the generated API references (Survey123 web app API) show the base

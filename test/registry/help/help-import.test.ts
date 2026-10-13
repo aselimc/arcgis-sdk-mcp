@@ -254,7 +254,7 @@ describe('help import: failures name the cause', () => {
 
   it('rejects a section of the old ArcGIS Pro host that the research does not list', () => {
     const { rules: stale } = inputs();
-    stale.pro.helpBooks.push('no-such-section');
+    stale.pro.sources['arcgis-pro/legacy']?.sections.push('no-such-section');
     expect(() => buildHelpRegistry(source, stale)).toThrow(/no section "no-such-section"/);
   });
 });

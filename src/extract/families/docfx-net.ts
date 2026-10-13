@@ -15,6 +15,36 @@ function references($: CheerioAPI, block: Element, selector: string): string[] {
     .get();
 }
 
+/** `level2` gives 2: the depth of an entry in the inheritance block. */
+const levelOf = (entry: Element): number =>
+  Number(/(?:^|\s)level(\d+)(?:\s|$)/.exec(entry.attribs.class ?? '')?.[1] ?? Number.NaN);
+
+/**
+ * The inheritance block as two lines. DocFX lists the base types one level apart, then the
+ * type itself (the one name that is not a link), then the types derived from it one level
+ * below: read as one chain, twenty sibling subclasses of `Layer` would each seem to derive
+ * from the one before. The chain ends at the type; what follows is the "Derived" line.
+ */
+function inheritance($: CheerioAPI, block: Element): string {
+  const label = squash($(block).find('h5').first().text()) || 'Inheritance';
+  const entries = $(block).children('div').get();
+  const reference = (entry: Element): string => references($, entry, 'a, span.xref').join('');
+  // The type itself is not linked; without that marker, the deepest level holds the derived types.
+  let self = entries.findIndex((entry) => $(entry).find('a').length === 0);
+  if (self === -1) {
+    const deepest = Math.max(...entries.map(levelOf).filter((level) => !Number.isNaN(level)));
+    const first = entries.findIndex((entry) => levelOf(entry) === deepest);
+    const shared = entries.filter((entry) => levelOf(entry) === deepest).length > 1;
+    self = shared && first > 0 ? first - 1 : entries.length - 1;
+  }
+  const chain = entries.slice(0, self + 1).map(reference);
+  const derived = entries.slice(self + 1).map(reference);
+  return (
+    `<p>${tagged('strong', `${label}:`)} ${chain.join(ARROW)}</p>` +
+    (derived.length === 0 ? '' : `<p>${tagged('strong', 'Derived:')} ${derived.join(', ')}</p>`)
+  );
+}
+
 const prepare: Pass = ($) => {
   $('h1').first().remove();
   $('.collapsible-button, a.header-action, .anchorjs-link').remove();
@@ -23,10 +53,12 @@ const prepare: Pass = ($) => {
     const label = tagged('strong', 'Inherited members:');
     $(el).replaceWith(`<p>${label} ${references($, el, 'a, span.xref').join(', ')}</p>`);
   });
-  $('div.inheritance, div.implements, div.derived').each((_, el) => {
+  $('div.inheritance').each((_, el) => {
+    $(el).replaceWith(inheritance($, el));
+  });
+  $('div.implements, div.derived').each((_, el) => {
     const label = squash($(el).find('h5').first().text());
-    const separator = $(el).hasClass('inheritance') ? ARROW : ', ';
-    const items = references($, el, 'div a, div span.xref').join(separator);
+    const items = references($, el, 'div a, div span.xref').join(', ');
     $(el).replaceWith(`<p>${tagged('strong', `${label}:`)} ${items}</p>`);
   });
   // `h5` and `h6` are field labels on these pages (Namespace, Assembly, Declaration).

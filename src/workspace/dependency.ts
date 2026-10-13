@@ -13,6 +13,11 @@ export interface Dependency {
   version: string;
   /** True for a lock file or an exact pin, which beats a range for the same package. */
   exact: boolean;
+  /**
+   * The specification as written, when it is a range (`^5.1.0`, `>=2.4,<3`). `version` is
+   * then only the lowest version the range allows, not what is installed.
+   */
+  range?: string;
 }
 
 /**
@@ -41,11 +46,14 @@ export function dependency(
   spec: string | undefined,
   exact?: boolean,
 ): Dependency {
-  const raw = spec ?? '';
+  const raw = (spec ?? '').trim();
+  const version = cleanVersion(raw);
+  const pinned = exact ?? (raw !== '' && isExactSpec(raw));
   return {
     ecosystem,
     name: name.trim(),
-    version: cleanVersion(raw),
-    exact: exact ?? (raw !== '' && isExactSpec(raw)),
+    version,
+    exact: pinned,
+    ...(pinned || version === '' || raw === version ? {} : { range: raw }),
   };
 }

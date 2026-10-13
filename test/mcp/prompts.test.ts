@@ -92,8 +92,9 @@ describe('prompts', () => {
       const text = await get(APP_KICKOFF_PROMPT, { goal: 'offline field app' });
       expect(text).toContain('Product: not chosen yet.');
       expect(text).toContain('1. Call arcgis_docs_get_versions({})');
+      // Regression: a goal sentence as an unlimited filter returned the whole catalogue.
       expect(text).toContain(
-        '2. Choose the product: call arcgis_docs_list_products({"query":"offline field app"})',
+        '2. Choose the product: call arcgis_docs_list_products({"query":"offline field app","limit":8}); the list is ranked, best match first.',
       );
     });
   });
@@ -107,6 +108,12 @@ describe('prompts', () => {
     expect(text).toContain('upgrade of js-maps-sdk from 4.31 to 5.1');
     expect(text).toContain('arcgis_docs_get_versions({"product":"js-maps-sdk","version":"5.1"})');
     expect(text).toContain('"kind":"release-notes"');
+    // Regression: a product without release-notes pages (it publishes migration guides)
+    // left the step with a search that finds nothing and a release ref that cannot be read.
+    expect(text).toContain(
+      'If that finds nothing, the product publishes its changes as guides (a migration guide, an upgrade guide, a "what\'s new" page): find them with arcgis_docs_search({"query":"migration upgrade what\'s new 5.1","product":"js-maps-sdk"}).',
+    );
+    expect(text).toContain('is cited by its URL and not read.');
     expect(text).toContain('Search the project (grep)');
     expect(text).toContain(
       'arcgis_docs_lookup_symbol({"symbol":"<name>","product":"js-maps-sdk","version":"5.1"})',

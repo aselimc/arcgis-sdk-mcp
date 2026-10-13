@@ -16,6 +16,7 @@ import {
 import {
   parseCondaEnvironment,
   parsePackageJson,
+  parsePackageLock,
   parsePyproject,
   parseRequirements,
 } from './parsers-web-python.js';
@@ -31,6 +32,8 @@ export interface ManifestKind {
 
 /** Every manifest type of design section 7. */
 export const MANIFEST_KINDS: readonly ManifestKind[] = [
+  // The lock file states what is installed; `package.json` usually states a range.
+  { id: 'package-lock.json', files: ['**/package-lock.json'], parse: parsePackageLock },
   { id: 'package.json', files: ['**/package.json'], parse: parsePackageJson },
   { id: 'requirements.txt', files: ['**/requirements*.txt'], parse: parseRequirements },
   { id: 'pyproject.toml', files: ['**/pyproject.toml'], parse: parsePyproject },

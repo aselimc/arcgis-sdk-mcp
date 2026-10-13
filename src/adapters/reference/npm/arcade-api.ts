@@ -19,16 +19,15 @@ import {
   type LoadedFile,
 } from './json-mapper.js';
 import { packageMeta } from './package-file.js';
+import { fragmentOf, summaryOf } from '../../kit/index.js';
 import {
   baseRecord,
-  fragmentOf,
   isRecord,
   notFound,
   records,
   selectorOf,
   shapeError,
   str,
-  summaryOf,
   type Json,
 } from './shared.js';
 

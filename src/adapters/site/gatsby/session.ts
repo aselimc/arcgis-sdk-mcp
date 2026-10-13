@@ -6,7 +6,7 @@
 import { McpDocError, isMcpDocError } from '../../../core/errors.js';
 import type { BoundSource, Ctx, HttpRequest, HttpResponse } from '../../../core/ports.js';
 import type { TtlClass } from '../../../core/types.js';
-import { budgetOf, continueWithout } from '../static.js';
+import { budgetOf, tolerate } from '../../kit/index.js';
 
 /** Per-request options of a {@link GatsbySession}. */
 export interface SessionRequest {
@@ -57,13 +57,13 @@ export class GatsbySession {
   /**
    * Runs work whose failure leaves a lower rung to answer from. Upstream failures are logged
    * and become `undefined`; a spent call budget and unexpected exceptions are rethrown, as
-   * decided by `continueWithout`.
+   * decided by `tolerate`.
    */
   async optional<V>(what: string, work: () => Promise<V>): Promise<V | undefined> {
     try {
       return await work();
     } catch (error) {
-      continueWithout(this.ctx, this.src, error, what);
+      tolerate(this.ctx, this.src, error, what);
       return undefined;
     }
   }

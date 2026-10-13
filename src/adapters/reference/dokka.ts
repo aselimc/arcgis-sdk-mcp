@@ -12,11 +12,12 @@ import {
   oneLine,
   probeSource,
   readHtmlPage,
-  recordOf,
+  symbolRecord,
   siteIndexEnabled,
   symbolTarget,
   unusableIndex,
-} from './dartdoc.js';
+  isIndexCanary,
+} from '../kit/index.js';
 
 /** One entry of `pages.json`: `name` is the declaration, `description` the qualified name. */
 interface DokkaEntry {
@@ -97,7 +98,7 @@ export function dokkaRecords(src: BoundSource, entries: readonly unknown[]): Cat
     const owned = start < parts.length - 1;
     const parent = owned ? parts.slice(0, -1).join('.') : undefined;
     const fallback = item.keyword === 'fun' ? (owned ? 'method' : 'function') : 'enum-entry';
-    return recordOf(src, item.ref, parts.slice(start).join('.'), {
+    return symbolRecord(src, item.ref, parts.slice(start).join('.'), {
       symbol: parts.at(-1),
       qualified: item.qualified,
       symbolKind: item.kind ?? (item.keyword === undefined && !owned ? 'symbol' : fallback),
@@ -130,8 +131,8 @@ export const dokkaAdapter: SourceAdapter<'dokka'> = {
     return records;
   },
 
-  read: (ctx, src, target) => readHtmlPage(ctx, src, target, 'dokka'),
+  read: (ctx, src, target) => readHtmlPage(ctx, src, target, { family: 'dokka' }),
   symbol: (ctx, src, record, detail) =>
-    readHtmlPage(ctx, src, symbolTarget(record, detail), 'dokka'),
-  probe: (ctx, src) => probeSource(ctx, src),
+    readHtmlPage(ctx, src, symbolTarget(record, detail), { family: 'dokka' }),
+  probe: (ctx, src) => probeSource(ctx, src, { siteIndex: isIndexCanary(src) }),
 };

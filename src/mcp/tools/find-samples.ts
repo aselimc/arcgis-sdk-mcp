@@ -11,7 +11,7 @@ import type { SampleHit, SamplesResponse } from '../../core/ports.js';
 import { compact } from '../compact.js';
 import type { McpContainer } from '../container.js';
 import { type Attribution, bodyBudget, statusLine, structuredResult } from '../envelope.js';
-import { maxTokensArg, Notes, productArg } from '../schemas.js';
+import { countField, maxTokensArg, Notes, productArg, rankField } from '../schemas.js';
 import { registerDocTool, type ToolDefinition, type ToolHandler } from '../tool.js';
 
 const DESCRIPTION =
@@ -49,7 +49,7 @@ const Input = z.object({
 });
 
 const Sample = z.object({
-  rank: z.number().int(),
+  rank: rankField(),
   title: z.string(),
   ref: z.string(),
   product: z.string(),
@@ -59,7 +59,7 @@ const Sample = z.object({
   relevantApis: z.array(z.string()).optional(),
   category: z.string().optional(),
   files: z
-    .array(z.object({ name: z.string(), ref: z.string(), bytes: z.number().int().optional() }))
+    .array(z.object({ name: z.string(), ref: z.string(), bytes: countField().optional() }))
     .optional(),
   origin: z.enum(['esri-site', 'github']),
   license: z.string(),
@@ -74,7 +74,7 @@ const Output = z.object({
     platform: z.string().optional(),
     pinnedTo: z.string().optional(),
   }),
-  total: z.number().int(),
+  total: countField(),
   results: z.array(Sample),
   code: z
     .object({

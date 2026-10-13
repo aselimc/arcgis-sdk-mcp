@@ -123,6 +123,41 @@ describe('send', () => {
     expect((await pending).kind).toBe('aborted');
   });
 
+  // fetch rejects with the reason given to abort(). The MCP SDK aborts a cancelled tool call
+  // with the client's reason string, so the rejection is not an AbortError, or an Error, at all.
+  it.each<[string, unknown]>([
+    ['a string', 'User cancelled'],
+    ['an Error', new Error('the client went away')],
+    ['a TypeError that reads like a network failure', new TypeError('fetch failed')],
+    ['an object', { code: -32800 }],
+  ])('recognises a cancellation whatever it was aborted with: %s', async (_label, reason) => {
+    const controller = new AbortController();
+    const pending = failure(send(hang, { ...REQUEST, signal: controller.signal }));
+    controller.abort(reason);
+    const error = await pending;
+    expect(error.kind).toBe('aborted');
+    expect(error.message).toBe('cancelled by the caller');
+  });
+
+  it('recognises a cancellation that arrives while the body streams in', async () => {
+    const controller = new AbortController();
+    const streaming: typeof fetch = async (_input, init) =>
+      new Response(
+        new ReadableStream<Uint8Array>({
+          start(stream) {
+            stream.enqueue(new TextEncoder().encode('<p>start'));
+            init?.signal?.addEventListener('abort', () => {
+              stream.error(init.signal?.reason);
+            });
+          },
+        }),
+      );
+    const pending = failure(send(streaming, { ...REQUEST, signal: controller.signal }));
+    await new Promise((resolve) => setImmediate(resolve));
+    controller.abort('User cancelled');
+    expect((await pending).kind).toBe('aborted');
+  });
+
   it('classifies everything else as a network error', async () => {
     const refusedConnection = await failure(
       send(async () => {

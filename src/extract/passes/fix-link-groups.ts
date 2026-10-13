@@ -29,13 +29,14 @@ function cardsToLists($: CheerioAPI): void {
       const card = $(el);
       const href = card.attr('href');
       // A heading that links to itself is a section heading with a permalink, not a card.
-      if (href === undefined || href.startsWith('#')) {
+      if (href?.startsWith('#') === true) {
         card.replaceWith(card.contents());
         return;
       }
       const name = squash(card.find(HEADINGS).first().text());
       if (name === '') return;
-      const title = tagged('a', name, `href="${escapeHtml(href)}"`);
+      const title =
+        href === undefined ? escapeHtml(name) : tagged('a', name, `href="${escapeHtml(href)}"`);
       const text = cardText($, card);
       card.replaceWith(
         `<ul ${CARD_LIST}=""><li>${title}${text === '' ? '' : `: ${escapeHtml(text)}`}</li></ul>`,

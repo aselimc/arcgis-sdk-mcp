@@ -19,11 +19,11 @@ import { readSitemap, sitemapRecords } from './sitemap.js';
 import {
   assertLive,
   budgetOf,
-  continueWithout,
+  tolerate,
   probeSource,
   readHtmlPage,
   recordOf,
-} from './static.js';
+} from '../kit/index.js';
 
 type AstroSource = BoundSource<'astro'>;
 type SearchIndex = NonNullable<AdapterConfigMap['astro']['searchIndexes']>[number];
@@ -249,7 +249,7 @@ async function enumerate(ctx: Ctx, src: AstroSource): Promise<CatalogRecord[]> {
       for (const [ref, record] of fresh) merged.set(ref, record);
     } catch (error) {
       firstFailure ??= toMcpDocError(error);
-      continueWithout(ctx, src, error, what);
+      tolerate(ctx, src, error, what);
     }
   };
 
@@ -292,7 +292,7 @@ function kindOf(src: AstroSource, target: ReadTarget): DocKind {
 }
 
 function read(ctx: Ctx, src: AstroSource, target: ReadTarget): Promise<DocPage> {
-  return readHtmlPage(ctx, src, target, kindOf(src, target));
+  return readHtmlPage(ctx, src, target, { kind: kindOf(src, target) });
 }
 
 /** The decoded anchor of a ref; empty when it has none. */

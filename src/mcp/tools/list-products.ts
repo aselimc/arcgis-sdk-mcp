@@ -17,7 +17,7 @@ import {
   renderToc,
   tocRow,
 } from '../presenters/product.js';
-import { CategoryFilter, cursorArg, Notes, productArg } from '../schemas.js';
+import { CategoryFilter, countField, cursorArg, Notes, productArg } from '../schemas.js';
 import { registerDocTool, type ToolDefinition, type ToolHandler } from '../tool.js';
 
 const DESCRIPTION =
@@ -95,7 +95,7 @@ const Profile = z.object({
       id: z.string(),
       title: z.string(),
       kinds: z.array(z.string()),
-      pages: z.number().int().optional(),
+      pages: countField().optional(),
       ref: z.string(),
       enabled: z.boolean(),
       health: z.enum(['ok', 'degraded', 'failing', 'unknown']),
@@ -118,7 +118,7 @@ const Profile = z.object({
 const TocEntry = z.object({
   title: z.string(),
   ref: z.string().optional(),
-  depth: z.number().int(),
+  depth: countField(),
   kind: z.string().optional(),
 });
 
@@ -127,7 +127,7 @@ const Output = z.object({
   products: z.array(Row).optional(),
   product: Profile.optional(),
   toc: z.array(TocEntry).optional(),
-  total: z.number().int(),
+  total: countField(),
   nextCursor: z.string().optional(),
   notes: Notes,
 });
@@ -238,7 +238,13 @@ const handle: ToolHandler<typeof Input> = async (args, call, { ctx, services }) 
           toc.nextCursor !== undefined
             ? again({ section, cursor: toc.nextCursor })
             : firstRef && formatCall(TOOLS.read, { ref: firstRef }),
-        attribution: { kind: 'project' },
+        // The titles and refs were enumerated from the source, unlike the registry data of
+        // the list and the profile: they are attributed like search hits.
+        attribution: {
+          kind: 'listing',
+          licenses: toc.entries.map((entry) => entry.license),
+          retrievedOn: ctx.clock.iso(),
+        },
       },
       result,
     );

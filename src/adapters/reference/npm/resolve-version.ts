@@ -17,7 +17,8 @@ import type { DocPage } from '../../../core/types.js';
 import { compareVersions, isPrerelease, parseVersion } from '../../../core/version-key.js';
 import { isExactVersion, resolveSpecifier } from './jsdelivr.js';
 import { findLocalPackage, type LocalPackage } from './local-packages.js';
-import { budgetOf, isRecord, shapeError, str, tolerate } from './shared.js';
+import { budgetOf, tolerate } from '../../kit/index.js';
+import { isRecord, shapeError, str } from './shared.js';
 
 /** A package pinned to one exact version, and how that version was chosen. */
 export interface ResolvedPackage {

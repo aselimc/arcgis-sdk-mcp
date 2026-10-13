@@ -56,6 +56,8 @@ const LINES: Array<[string, string | undefined, string]> = [
   ['arcpy', 'Pro 3.6', '3.6'],
   ['arcpy', '3.6', '3.6'],
   ['arcpy', '3.5.2', '3.5'],
+  ['arcpy', '3.4', '3.4'],
+  ['arcpy', '2.9', '2.9'],
   // Unversioned documentation: a version-addressed source can still be asked for the version.
   ['calcite', '3.0.1', 'latest'],
   ['rest-js', '4.11.1', 'latest'],
@@ -72,8 +74,7 @@ const UNAVAILABLE: Array<[string, string]> = [
   ['unity-maps-sdk', '1.0'],
   ['python-api', '2.2.0'],
   ['python-api', '1.9'],
-  ['arcpy', '3.4'],
-  ['arcpy', '2.9'],
+  ['arcpy', '2.5'],
   ['java-maps-sdk', '300.1'],
   ['calcite', 'beta'],
 ];

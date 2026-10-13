@@ -28,7 +28,7 @@ import {
   matchTemplate,
   notFound,
   probeDeclared,
-  renderOptionsOf,
+  entryRenderOptions,
   selectorOf,
 } from './shared.js';
 
@@ -160,7 +160,7 @@ async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
       loaded,
       `${fillTemplate(template, { path: moduleOf(file) })}${target.url.hash}`,
     ),
-    renderOptionsOf(target),
+    entryRenderOptions(target),
   );
   // The ref is the page of the current release; the text is the one of the version read.
   return withVersionNotice(page, pkg, ' The linked page documents the current release.');
