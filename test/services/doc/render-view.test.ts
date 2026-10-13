@@ -127,6 +127,68 @@ describe('renderView', () => {
     expect(view.suggest).toBeUndefined();
   });
 
+  // Regression: reading the parameter section of a REST operation gave a quarter of the
+  // budget, an outline of its sub-sections and no way to reach the rest of the parameters.
+  it('auto: pages a section asked for by name whose own text does not fit', () => {
+    const page = makeDocPage({
+      markdown: [
+        '## Request parameters',
+        '',
+        ...Array.from({ length: 40 }, (_, i) => `Parameter ${i} ${'p'.repeat(200)}\n`),
+        '### Date formats',
+        '',
+        'date '.repeat(300),
+        '',
+        '### Paging',
+        '',
+        'page '.repeat(100),
+      ].join('\n'),
+    });
+    const request = { page, shown: page.sections, maxTokens: 800, offset: 0 } as const;
+
+    const selected = renderView({ ...request, view: 'auto', selected: true });
+    expect(selected.truncated).toBe(true);
+    expect(selected.suggest).toBeUndefined();
+    expect(selected.nextOffset).toBeGreaterThan(0);
+    expect(selected.text).not.toContain('Outline (pass an id');
+    // The whole budget goes to the text, not a quarter of it.
+    expect(estimateTokens(selected.text)).toBeGreaterThan(600);
+    expect(estimateTokens(selected.text)).toBeLessThanOrEqual(800);
+
+    const whole = renderView({ ...request, view: 'auto' });
+    expect(whole.suggest).toBe('date-formats');
+    expect(whole.text).toContain('Outline (pass an id');
+  });
+
+  it('auto: a section asked for by name keeps the outline when its own text fits', () => {
+    const page = makeDocPage({
+      markdown: [
+        '## Examples',
+        '',
+        'Three requests follow.',
+        '',
+        '### First',
+        '',
+        'one '.repeat(900),
+        '',
+        '### Second',
+        '',
+        'two '.repeat(400),
+      ].join('\n'),
+    });
+    const view = renderView({
+      page,
+      shown: page.sections,
+      view: 'auto',
+      maxTokens: 800,
+      offset: 0,
+      selected: true,
+    });
+    expect(view.suggest).toBe('first');
+    expect(view.text).toContain('Three requests follow.');
+    expect(view.text).toContain('Outline (pass an id');
+  });
+
   it('outline: returns the title and the outline only', () => {
     const view = renderView({
       page: guide,

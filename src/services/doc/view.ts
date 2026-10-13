@@ -3,7 +3,8 @@
  *
  * - `auto`: everything when it fits the budget; otherwise the header block, the opening
  *   capped at a quarter of the budget, the outline and a suggestion for the next section.
- *   A document with nothing to outline is paged instead.
+ *   A document with nothing to outline is paged instead, and so is a section asked for by
+ *   name whose own text does not fit the opening.
  * - `outline`: the structure only, at most 600 tokens.
  * - `full`: sections in order, continued from a character offset; cuts fall between
  *   sections, or inside an oversized one at a paragraph or fence boundary.
@@ -39,6 +40,8 @@ export interface ViewRequest {
   maxTokens: number;
   /** Character offset into `joinSections(shown)`; non-zero when continuing from a cursor. */
   offset: number;
+  /** True when `shown` is one section the caller asked for by name. */
+  selected?: boolean;
 }
 
 /** The rendered body. */
@@ -156,10 +159,14 @@ export function renderView(request: ViewRequest): ViewResult {
       const opening = fitSections(
         bare ? [lead, second] : [lead],
         Math.floor(maxTokens * LEAD_SHARE),
-      ).text;
-      const used = estimateTokens(joinParts([header, opening]));
-      const outline = renderOutline(page, shown, Math.max(MIN_CONTENT_TOKENS, maxTokens - used));
-      return { text: joinParts([header, opening, outline]), truncated: true, suggest };
+      );
+      // A section asked for by name whose own text is cut is paged instead: its outline
+      // lists only the sub-sections, which would leave the rest of that text unreachable.
+      if (request.selected !== true || opening.cutInside !== lead.id) {
+        const used = estimateTokens(joinParts([header, opening.text]));
+        const outline = renderOutline(page, shown, Math.max(MIN_CONTENT_TOKENS, maxTokens - used));
+        return { text: joinParts([header, opening.text, outline]), truncated: true, suggest };
+      }
     }
     // Nothing to choose between (one long section): fall through to paging.
   }

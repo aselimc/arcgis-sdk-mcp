@@ -155,6 +155,7 @@ export function createDocService(
         view: req.cursor === undefined ? req.view : 'full',
         maxTokens: req.maxTokens,
         offset,
+        selected: selected !== undefined,
       });
 
       const response: ReadResponse = {

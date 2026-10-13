@@ -21,6 +21,7 @@ import { simpleName } from '../index/symbol-map.js';
 import type { IndexInternals } from '../index/types.js';
 import { resolveScope } from '../scope.js';
 import { symbolText } from './detail.js';
+import { MAX_INHERITED_CANDIDATES, declaredElsewhere, inheritedNotice } from './inherited.js';
 import { MAX_NEAREST, nearestNames, notFoundError } from './not-found.js';
 import { createSymbolReader } from './read.js';
 import { displayName, resolveSymbol, type Candidate, type SymbolScope } from './resolve.js';
@@ -92,9 +93,45 @@ export function createSymbolService(
         return { winner: memberCandidate(type, entry.name), page };
       };
 
+      /**
+       * The declaration of `member` on a type that `type` inherits it from: the same-named
+       * member of another type that the page of `type` links to.
+       */
+      const readInherited = async (
+        type: CatalogRecord,
+        member: string,
+      ): Promise<Candidate | undefined> => {
+        const { target } = placeOf(type.product);
+        const owner = displayName(type);
+        const lower = member.toLowerCase();
+        const candidates = index
+          .symbols(type.product, target.line.id)
+          .exact(member)
+          .filter(
+            (record) =>
+              record.parent !== undefined &&
+              record.parent !== owner &&
+              simpleName(record).toLowerCase() === lower,
+          );
+        if (candidates.length === 0 || candidates.length > MAX_INHERITED_CANDIDATES) {
+          return undefined;
+        }
+        const typePage = await reader.read(
+          target,
+          { record: type, step: 'exact', rank: [0, 0, 0, 0], twins: [] },
+          'full',
+          call,
+        );
+        const declared = declaredElsewhere(typePage, candidates);
+        return declared === undefined
+          ? undefined
+          : { record: declared, step: 'member', rank: [1, 0, 0, 0], twins: [] };
+      };
+
       let winner: Candidate;
       let alternates: Candidate[] = [];
       let read: DocPage | undefined;
+      let inherited: string | undefined;
       if (resolution.kind === 'none') {
         const { knownType } = resolution;
         const listed =
@@ -108,14 +145,27 @@ export function createSymbolService(
           knownType !== undefined && listed.length === 0
             ? await readFromType(knownType, memberName)
             : undefined;
-        if (fromType === undefined || 'names' in fromType) {
-          const names =
-            fromType !== undefined && knownType !== undefined && fromType.names.length > 0
-              ? fromType.names.map((name) => `${displayName(knownType)}.${name}`)
-              : nearestNames(index, req, targets, knownType);
-          throw notFoundError(req, targets, states, names, knownType);
+        if (fromType !== undefined && 'winner' in fromType) {
+          ({ winner, page: read } = fromType);
+        } else {
+          const declared =
+            knownType !== undefined && listed.length > 0
+              ? await readInherited(knownType, memberName)
+              : undefined;
+          if (declared === undefined || knownType === undefined) {
+            const names =
+              fromType !== undefined && knownType !== undefined && fromType.names.length > 0
+                ? fromType.names.map((name) => `${displayName(knownType)}.${name}`)
+                : nearestNames(index, req, targets, knownType);
+            throw notFoundError(req, targets, states, names, knownType);
+          }
+          winner = declared;
+          inherited = inheritedNotice(
+            displayName(knownType),
+            simpleName(declared.record),
+            declared.record.parent ?? ownerName(declared.record),
+          );
         }
-        ({ winner, page: read } = fromType);
       } else if (resolution.kind === 'ambiguous') {
         const pairs = resolution.candidates.map((candidate) => ({
           symbol: displayName(candidate.record),
@@ -167,6 +217,7 @@ export function createSymbolService(
       const name = displayName(winner.record);
       read ??= await reader.read(target, winner, req.detail, call);
       notices.unshift(...read.notices);
+      if (inherited !== undefined) notices.push(inherited);
       if (!target.explicit && target.version !== undefined) {
         notices.push(`Version ${target.version} was detected in the project.`);
       }
