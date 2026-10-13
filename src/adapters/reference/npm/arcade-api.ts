@@ -7,7 +7,7 @@
  */
 import { formatCall } from '../../../core/budget.js';
 import { TOOLS } from '../../../core/names.js';
-import type { Ctx, ReadTarget } from '../../../core/ports.js';
+import type { Ctx, ReadTarget, RenderOptions } from '../../../core/ports.js';
 import type { CatalogRecord, DocPage, SymbolDetail } from '../../../core/types.js';
 import {
   docRoot,
@@ -25,7 +25,7 @@ import {
   isRecord,
   notFound,
   records,
-  renderOptionsOf,
+  selectorOf,
   shapeError,
   str,
   summaryOf,
@@ -70,7 +70,8 @@ function labelOf(item: Json): string | undefined {
  * Parses the file into categories.
  *
  * @throws McpDocError `UPSTREAM_UNAVAILABLE` (not retryable) when the file is not a list of
- *   categories with `items`; an empty list is valid.
+ *   categories with `items`; an empty list is valid. Categories without a usable item are
+ *   dropped: they have nothing to show.
  */
 function parse(src: JsonSrc, loaded: LoadedFile): ArcadeCategory[] {
   const { data, url } = loaded.file;
@@ -81,7 +82,7 @@ function parse(src: JsonSrc, loaded: LoadedFile): ArcadeCategory[] {
   }
   const root = docRoot(src);
   const file = fileRef(src);
-  return valid.map((raw, index) => {
+  const categories = valid.map((raw, index): ArcadeCategory => {
     const groups = (raw.items as unknown[]).map((entry) =>
       records(Array.isArray(entry) ? entry : [entry]),
     );
@@ -105,6 +106,7 @@ function parse(src: JsonSrc, loaded: LoadedFile): ArcadeCategory[] {
     );
     return { raw, id, title: str(raw.title) ?? id, ref: page ?? `${file}#${id}`, items };
   });
+  return categories.filter((category) => category.items.length > 0);
 }
 
 function itemRecord(src: JsonSrc, category: ArcadeCategory, item: ArcadeItem): CatalogRecord {
@@ -125,27 +127,43 @@ function itemRecord(src: JsonSrc, category: ArcadeCategory, item: ArcadeItem): C
   };
 }
 
-/** The category a read names and, when it names one, the anchor of an item on it. */
+/** What a read names: a category and, when it names one, an item on it. */
+interface Located {
+  category: ArcadeCategory;
+  item?: ArcadeItem;
+  /** True when the URL's fragment is the address of the category itself, not of a part of it. */
+  fragmentIsCategory: boolean;
+}
+
+/**
+ * Finds the category by the record that led here, else by URL. A page URL names its category
+ * by path. On the file URL (entries without a documentation page) everything shares one
+ * path, so the fragment is the address: a category id, or the anchor of an item.
+ */
 function locate(
   src: JsonSrc,
   categories: ArcadeCategory[],
   target: ReadTarget,
-): { category: ArcadeCategory; item?: ArcadeItem } | undefined {
+): Located | undefined {
   const locator = target.record?.locator;
   const fragment = fragmentOf(target.url);
   const wanted = pageKey(target.url.href);
   const onFile = wanted === pageKey(fileRef(src));
+  const byFragment = onFile ? categories.find((candidate) => candidate.id === fragment) : undefined;
   const category =
     categories.find((candidate) => candidate.id === locator?.category) ??
-    categories.find((candidate) => pageKey(candidate.ref) === wanted) ??
-    (onFile ? categories.find((candidate) => candidate.id === fragment) : undefined) ??
     (onFile
-      ? categories.find((candidate) => candidate.items.some((item) => item.anchor === fragment))
-      : undefined);
+      ? (byFragment ??
+        categories.find((candidate) => candidate.items.some((item) => item.anchor === fragment)))
+      : categories.find((candidate) => pageKey(candidate.ref) === wanted));
   if (category === undefined) return undefined;
   const anchor = locator?.anchor ?? fragment;
   const item = category.items.find((candidate) => candidate.anchor === anchor);
-  return item === undefined ? { category } : { category, item };
+  return {
+    category,
+    ...(item === undefined ? {} : { item }),
+    fragmentIsCategory: category === byFragment && item === undefined,
+  };
 }
 
 /** The `arcade-api` mapper. */
@@ -153,7 +171,6 @@ export const arcadeApiMapper: JsonMapper = {
   records(src, loaded) {
     const byRef = new Map<string, CatalogRecord>();
     for (const category of parse(src, loaded)) {
-      if (category.items.length === 0) continue;
       byRef.set(category.ref, {
         ...baseRecord(src, category.ref, category.title),
         locator: { category: category.id },
@@ -180,16 +197,23 @@ export const arcadeApiMapper: JsonMapper = {
       );
     }
     const { category, item } = found;
-    const opts = renderOptionsOf(
-      target.select === undefined && item !== undefined
-        ? { ...target, select: { member: item.anchor } }
-        : target,
-    );
+    // The item is selected by its anchor, which is its section id whatever the URL said.
+    const select =
+      target.select ??
+      (item !== undefined
+        ? { member: item.anchor }
+        : found.fragmentIsCategory
+          ? undefined
+          : selectorOf(target));
+    const opts: RenderOptions = {
+      ...(select === undefined ? {} : { select }),
+      ...(target.detail === undefined ? {} : { detail: target.detail }),
+    };
     const page = ctx.render.render(
       'arcade',
       { item: category.raw },
       packageMeta(src, loaded.pkg, loaded.file, item?.ref ?? category.ref),
-      opts,
+      Object.keys(opts).length === 0 ? undefined : opts,
     );
     return withVersionNotice(page, loaded.pkg);
   },

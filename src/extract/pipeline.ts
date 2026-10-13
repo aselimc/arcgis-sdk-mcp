@@ -92,8 +92,8 @@ function select(
     outline.find((node) => node.id === key) ?? outline.find((node) => node.alias === key);
   // A member selector prefers members; a section selector prefers sections, except that a
   // member id always wins: member cards carry headings of their own.
-  const member =
-    selector?.member === undefined ? (byId ?? (section ? undefined : byName)) : (byId ?? byName);
+  const preferSection = selector?.member === undefined && section !== undefined;
+  const member = byId ?? (preferSection ? undefined : byName);
   if (member !== undefined) {
     const nodes = profile.sliceMember?.(page, member.id);
     if (nodes !== undefined && nodes.length > 0) return { nodes, member };
@@ -117,9 +117,9 @@ function convertNodes(
 }
 
 /**
- * Applies one family profile to a parsed page, which it consumes (content nodes are moved
- * out of it). Returns `undefined` when the page has no content
- * root for this family, which the caller treats as drift.
+ * Applies one family profile to a parsed page, which it consumes: the content nodes are
+ * moved out of it. Returns `undefined` when the page has no content root for this family,
+ * which the caller treats as drift.
  */
 export function runProfile(
   $: CheerioAPI,
@@ -128,7 +128,7 @@ export function runProfile(
   opts: RenderOptions,
   convert: (html: string) => Converted,
 ): ProfileResult | undefined {
-  // The title is read first: a profile may remove page chrome while it looks for its root.
+  // The title often lives outside the content root; `<title>` is the last resort.
   const ownTitle = squash(profile.title($));
   const title = ownTitle === '' ? squash($('title').first().text()) : ownTitle;
   const root = profile.root($);

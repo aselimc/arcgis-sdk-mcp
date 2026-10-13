@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package widgets.pbf;
+
+// One feature of a query result.
+message Feature {
+  uint64 id = 1;
+  repeated sint64 coordinates = 2;
+}

@@ -1,0 +1,75 @@
+{
+  "name": "DocFX .NET reference with two API sets, happy path",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/net/net.xrefmap.yml",
+      "response": { "contentType": "text/yaml", "bodyFile": "docfx-net.xrefmap.yml" }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/net/netwin.xrefmap.yml",
+      "response": { "contentType": "text/yaml", "bodyFile": "docfx-netwin.xrefmap.yml" }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/net/api/net/toc.json",
+      "response": {
+        "json": {
+          "items": [
+            {
+              "name": "Example.Widgets",
+              "href": "Example.Widgets/Example.Widgets.html",
+              "topicHref": "Example.Widgets/Example.Widgets.html",
+              "topicUid": "Example.Widgets",
+              "type": "Namespace",
+              "items": [
+                {
+                  "name": "Widget",
+                  "href": "Example.Widgets/Example.Widgets.Widget.html",
+                  "topicUid": "Example.Widgets.Widget",
+                  "type": "Class"
+                },
+                {
+                  "name": "Widget.Shape",
+                  "href": "Example.Widgets/Example.Widgets.Widget.Shape.html",
+                  "topicUid": "Example.Widgets.Widget.Shape",
+                  "type": "Enum"
+                },
+                {
+                  "name": "WidgetList<T>",
+                  "href": "Example.Widgets/Example.Widgets.WidgetList-1.html",
+                  "topicUid": "Example.Widgets.WidgetList`1",
+                  "type": "Class"
+                }
+              ]
+            }
+          ],
+          "memberLayout": "SeparatePages"
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/net/api/netwin/toc.json",
+      "response": {
+        "json": {
+          "items": [
+            {
+              "name": "Example.Widgets.UI",
+              "topicUid": "Example.Widgets.UI",
+              "type": "Namespace",
+              "items": [
+                { "name": "WidgetView", "topicUid": "Example.Widgets.UI.WidgetView", "type": "Class" }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/net/api/net/Example.Widgets/Example.Widgets.Widget.html",
+      "response": { "bodyFile": "page.html" }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/net/api/net/Example.Widgets/Example.Widgets.Widget.ResizeAsync.html",
+      "response": { "bodyFile": "page.html" }
+    }
+  ]
+}

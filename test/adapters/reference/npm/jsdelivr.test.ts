@@ -82,9 +82,9 @@ describe('file reads', () => {
     const ctx = npmCtx();
     const url = cdnFile(NAME, '7.2.4', 'docs/api.json');
     ctx.http.on(url, { json: { modules: [{ path: 'a' }] } }).fail(url, 'truncated');
-    await expect(fetchPackageJson(ctx, bound(), NAME, '7.2.4', 'docs/api.json')).rejects.toMatchObject(
-      { code: 'UPSTREAM_UNAVAILABLE', details: { retryable: true } },
-    );
+    await expect(
+      fetchPackageJson(ctx, bound(), NAME, '7.2.4', 'docs/api.json'),
+    ).rejects.toMatchObject({ code: 'UPSTREAM_UNAVAILABLE', details: { retryable: true } });
   });
 });
 

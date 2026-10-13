@@ -131,20 +131,18 @@ export function buildContainer(
     }
   });
 
-  const ctx = lazy(
-    (): Ctx => ({
-      config,
-      logger,
-      clock,
-      http: http(),
-      github: github(),
-      cache: cache(),
-      policy: policy(),
-      registry: registry(),
-      render: render(),
-      workspace,
-    }),
-  );
+  const ctx = lazy((): Ctx => ({
+    config,
+    logger,
+    clock,
+    http: http(),
+    github: github(),
+    cache: cache(),
+    policy: policy(),
+    registry: registry(),
+    render: render(),
+    workspace,
+  }));
   const adapters = lazy(() =>
     createAdapterRegistry(factories.siteAdapters(), factories.referenceAdapters()),
   );

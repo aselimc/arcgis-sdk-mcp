@@ -1,0 +1,145 @@
+{
+  "name": "pkgdown package sites: one with Markdown twins, one without, one that does not exist",
+  "interactions": [
+    {
+      "url": "https://r.esri.com/widgetr/search.json",
+      "response": {
+        "json": [
+          {
+            "path": "https://developers.arcgis.com/widgets-r/LICENSE.html",
+            "id": null,
+            "dir": "",
+            "previous_headings": "",
+            "what": "Licence",
+            "title": "Licence",
+            "text": "Invented licence text.",
+            "code": ""
+          },
+          { "path": [] },
+          {
+            "path": "https://developers.arcgis.com/widgets-r/index.html",
+            "id": "widgetr-",
+            "dir": "",
+            "previous_headings": "",
+            "what": "Make widgets from R",
+            "title": "Make widgets from R",
+            "text": "Invented overview text.",
+            "code": ""
+          },
+          {
+            "path": "https://developers.arcgis.com/widgets-r/index.html",
+            "id": "installation",
+            "dir": "",
+            "previous_headings": "",
+            "what": "Installation",
+            "title": "Make widgets from R",
+            "text": "Invented installation text.",
+            "code": "install.packages(\"widgetr\")"
+          },
+          {
+            "path": "https://developers.arcgis.com/widgets-r/reference/make_widget.html",
+            "id": null,
+            "dir": "Reference",
+            "previous_headings": "",
+            "what": "Create a widget — make_widget",
+            "title": "Create a widget — make_widget",
+            "text": "Invented description.",
+            "code": ""
+          },
+          {
+            "path": "https://developers.arcgis.com/widgets-r/reference/make_widget.html",
+            "id": "arguments",
+            "dir": "Reference",
+            "previous_headings": "",
+            "what": "Arguments",
+            "title": "Create a widget — make_widget",
+            "text": "size The size of the widget.",
+            "code": ""
+          },
+          {
+            "path": "https://developers.arcgis.com/widgets-r/reference/resize.html",
+            "id": null,
+            "dir": "Reference",
+            "previous_headings": "",
+            "what": "Resize or reshape a widget — resize_widget",
+            "title": "Resize or reshape a widget — resize_widget",
+            "text": "Invented description.",
+            "code": ""
+          },
+          {
+            "path": "https://developers.arcgis.com/widgets-r/articles/first-widget.html",
+            "id": "prepare",
+            "dir": "Articles",
+            "previous_headings": "",
+            "what": "Prepare the data",
+            "title": "Your first widget",
+            "text": "Invented article text.",
+            "code": ""
+          },
+          {
+            "path": "https://developers.arcgis.com/widgets-r/articles/first-widget.html",
+            "id": "draw",
+            "dir": "Articles",
+            "previous_headings": "",
+            "what": "Draw the widget",
+            "title": "Your first widget",
+            "text": "Invented article text.",
+            "code": ""
+          },
+          {
+            "path": "https://developers.arcgis.com/widgets-r/news/index.html",
+            "id": "widgetr-020",
+            "dir": "Changelog",
+            "previous_headings": "",
+            "what": "widgetr 0.2.0",
+            "title": "widgetr 0.2.0",
+            "text": "Invented changelog text.",
+            "code": ""
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://r.esri.com/widgetviz/search.json",
+      "response": {
+        "json": [
+          {
+            "path": "reference/plot_widget.html",
+            "id": null,
+            "dir": "Reference",
+            "previous_headings": "",
+            "what": "Plot a widget — plot_widget",
+            "title": "Plot a widget — plot_widget",
+            "text": "Invented description.",
+            "code": ""
+          }
+        ]
+      }
+    },
+    { "url": "https://r.esri.com/widgetnew/search.json", "response": { "status": 404 } },
+    {
+      "url": "https://r.esri.com/widgetr/llms.txt",
+      "response": {
+        "contentType": "text/plain; charset=utf-8",
+        "body": "# widgetr\n\n- [make_widget](https://r.esri.com/widgetr/reference/make_widget.md)\n"
+      }
+    },
+    {
+      "url": "https://r.esri.com/widgetr/reference/make_widget.md",
+      "response": {
+        "contentType": "text/markdown; charset=utf-8",
+        "body": "# Create a widget\n\nCreates a widget of the given size.\n\n## Arguments\n\n- `size`: the size of the widget.\n"
+      }
+    },
+    { "url": "https://r.esri.com/widgetr/articles/first-widget.md", "response": { "status": 404 } },
+    {
+      "url": "https://r.esri.com/widgetr/articles/first-widget.html",
+      "response": { "bodyFile": "page.html" }
+    },
+    { "url": "https://r.esri.com/widgetviz/llms.txt", "response": { "status": 404 } },
+    {
+      "url": "https://r.esri.com/widgetviz/reference/plot_widget.html",
+      "response": { "bodyFile": "page.html" }
+    }
+  ]
+}

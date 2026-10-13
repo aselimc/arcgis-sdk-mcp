@@ -1,0 +1,13 @@
+{
+  "name": "JDK 8 javadoc reference with a class list, happy path",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/widgets-server/api-reference/java/allclasses-noframe.html",
+      "response": { "bodyFile": "javadoc-allclasses-noframe.html" }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets-server/api-reference/java/com/example/widgets/server/Gadget.html",
+      "response": { "bodyFile": "page.html" }
+    }
+  ]
+}

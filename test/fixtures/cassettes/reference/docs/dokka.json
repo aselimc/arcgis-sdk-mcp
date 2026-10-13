@@ -1,0 +1,95 @@
+{
+  "name": "dokka reference, happy path",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/kotlin/scripts/pages.json",
+      "response": {
+        "json": [
+          {
+            "name": "class Widget : Part, Closeable",
+            "description": "com.example.widgets.Widget",
+            "location": "widgets-kotlin/com.example.widgets/-widget/index.html",
+            "searchKeys": ["Widget", "class Widget : Part, Closeable", "com.example.widgets.Widget"]
+          },
+          {
+            "name": "constructor(size: Int)",
+            "description": "com.example.widgets.Widget.Widget",
+            "location": "widgets-kotlin/com.example.widgets/-widget/-widget.html",
+            "searchKeys": ["Widget", "constructor(size: Int)", "com.example.widgets.Widget.Widget"]
+          },
+          {
+            "name": "fun resize(size: Int): Widget",
+            "description": "com.example.widgets.Widget.resize",
+            "location": "widgets-kotlin/com.example.widgets/-widget/resize.html",
+            "searchKeys": ["resize", "fun resize(size: Int): Widget", "com.example.widgets.Widget.resize"]
+          },
+          {
+            "name": "fun resize(width: Int, height: Int): Widget",
+            "description": "com.example.widgets.Widget.resize",
+            "location": "widgets-kotlin/com.example.widgets/-widget/resize.html",
+            "searchKeys": ["resize", "fun resize(width: Int, height: Int): Widget", "com.example.widgets.Widget.resize"]
+          },
+          {
+            "name": "val size: Int",
+            "description": "com.example.widgets.Widget.size",
+            "location": "widgets-kotlin/com.example.widgets/-widget/size.html",
+            "searchKeys": ["size", "val size: Int", "com.example.widgets.Widget.size"]
+          },
+          {
+            "name": "@Deprecated(message = \"Use resize\") fun grow(): Widget",
+            "description": "com.example.widgets.Widget.grow",
+            "location": "widgets-kotlin/com.example.widgets/-widget/grow.html",
+            "searchKeys": ["grow"]
+          },
+          {
+            "name": "abstract class Builder",
+            "description": "com.example.widgets.Widget.Builder",
+            "location": "widgets-kotlin/com.example.widgets/-widget/-builder/index.html",
+            "searchKeys": ["Builder", "abstract class Builder", "com.example.widgets.Widget.Builder"]
+          },
+          {
+            "name": "abstract fun build(): Widget",
+            "description": "com.example.widgets.Widget.Builder.build",
+            "location": "widgets-kotlin/com.example.widgets/-widget/-builder/build.html",
+            "searchKeys": ["build", "abstract fun build(): Widget", "com.example.widgets.Widget.Builder.build"]
+          },
+          {
+            "name": "enum WidgetShape : Enum<WidgetShape>",
+            "description": "com.example.widgets.WidgetShape",
+            "location": "widgets-kotlin/com.example.widgets/-widget-shape/index.html",
+            "searchKeys": ["WidgetShape"]
+          },
+          {
+            "name": "Round",
+            "description": "com.example.widgets.WidgetShape.Round",
+            "location": "widgets-kotlin/com.example.widgets/-widget-shape/-round/index.html",
+            "searchKeys": ["Round"]
+          },
+          {
+            "name": "fun interface Listener",
+            "description": "com.example.widgets.Listener",
+            "location": "widgets-kotlin/com.example.widgets/-listener/index.html",
+            "searchKeys": ["Listener"]
+          },
+          {
+            "name": "fun createWidget(size: Int): Widget",
+            "description": "com.example.widgets.createWidget",
+            "location": "widgets-kotlin/com.example.widgets/create-widget.html",
+            "searchKeys": ["createWidget"]
+          },
+          {
+            "name": "typealias WidgetId = String",
+            "description": "com.example.widgets.WidgetId",
+            "location": "widgets-kotlin/com.example.widgets/-widget-id/index.html",
+            "searchKeys": ["WidgetId"]
+          },
+          { "name": "no location", "description": "com.example.widgets.Nowhere" }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/kotlin/widgets-kotlin/com.example.widgets/-widget/index.html",
+      "response": { "bodyFile": "page.html" }
+    }
+  ]
+}

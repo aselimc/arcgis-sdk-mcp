@@ -120,8 +120,7 @@ export const javadoc: FamilyProfile = {
   defaultLanguage: 'java',
   root: ($) => $(ROOT).first(),
   title: ($) => $(ROOT).find('h1.title').first().text(),
-  outline: (page) =>
-    stampOutline(page, { ...HEADINGS, id: headingOrSectionId }),
+  outline: (page) => stampOutline(page, { ...HEADINGS, id: headingOrSectionId }),
   members,
   sliceMember: (page, id) =>
     page.root

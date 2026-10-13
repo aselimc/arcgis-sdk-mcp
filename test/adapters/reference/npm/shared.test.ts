@@ -62,7 +62,9 @@ describe('documentation URL templates', () => {
     expect(matchTemplate('https://example.org/{x}/{x}/', 'https://example.org/a/a/')).toEqual({
       x: 'a',
     });
-    expect(matchTemplate('https://example.org/{x}/{x}/', 'https://example.org/a/b/')).toBeUndefined();
+    expect(
+      matchTemplate('https://example.org/{x}/{x}/', 'https://example.org/a/b/'),
+    ).toBeUndefined();
   });
 
   it('decodes values and survives malformed escapes', () => {
@@ -105,11 +107,15 @@ describe('selectors', () => {
   it('selects the member a fragment names unless the caller selected something', () => {
     expect(selectorOf({ url })).toEqual({ member: 'event-ready' });
     expect(selectorOf({ url, select: { section: 'overview' } })).toEqual({ section: 'overview' });
-    expect(selectorOf({ url: new URL('https://developers.arcgis.com/widgets/x/') })).toBeUndefined();
+    expect(
+      selectorOf({ url: new URL('https://developers.arcgis.com/widgets/x/') }),
+    ).toBeUndefined();
   });
 
   it('builds renderer options only when there is something to ask for', () => {
-    expect(renderOptionsOf({ url: new URL('https://developers.arcgis.com/widgets/x/') })).toBeUndefined();
+    expect(
+      renderOptionsOf({ url: new URL('https://developers.arcgis.com/widgets/x/') }),
+    ).toBeUndefined();
     expect(renderOptionsOf({ url, detail: 'signature', focusedCode: true })).toEqual({
       select: { member: 'event-ready' },
       detail: 'signature',

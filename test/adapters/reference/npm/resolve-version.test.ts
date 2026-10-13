@@ -245,12 +245,12 @@ describe('withVersionNotice', () => {
   });
 
   it('says which build an installed or requested version is', () => {
-    expect(
-      withVersionNotice(page, { name: NAME, version: '7.1.9', how: 'local' }).notices,
-    ).toEqual([
-      'existing',
-      "Read from @arcgis/widget-core 7.1.9 as installed in the project's node_modules.",
-    ]);
+    expect(withVersionNotice(page, { name: NAME, version: '7.1.9', how: 'local' }).notices).toEqual(
+      [
+        'existing',
+        "Read from @arcgis/widget-core 7.1.9 as installed in the project's node_modules.",
+      ],
+    );
     expect(
       withVersionNotice(page, { name: NAME, version: '6.9.1', how: 'requested' }, ' More.').notices,
     ).toEqual([

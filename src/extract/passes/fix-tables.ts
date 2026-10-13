@@ -1,4 +1,4 @@
-import type { Cheerio, CheerioAPI } from 'cheerio';
+import type { CheerioAPI } from 'cheerio';
 import type { Element } from 'domhandler';
 import { BR_PLACEHOLDER, escapeHtml, firstNonEmpty, squash, tagged, unwrap } from '../dom.js';
 import type { Pass, PassCounters } from '../types.js';
@@ -11,7 +11,6 @@ const BREAK_RUNS = new RegExp(`\\s*${BR_PLACEHOLDER}(?:\\s*${BR_PLACEHOLDER})*\\
 const BREAKS = new RegExp(BR_PLACEHOLDER, 'g');
 
 interface Grid {
-  table: Cheerio<Element>;
   headerCells: Element[];
   headers: string[];
   body: Element[][];
@@ -22,8 +21,7 @@ interface Grid {
 const cellsOf = ($: CheerioAPI, row: Element): Element[] => $(row).children('th, td').get();
 
 function readGrid($: CheerioAPI, el: Element): Grid | undefined {
-  const table = $(el);
-  const rows = table
+  const rows = $(el)
     .find('tr')
     .filter((_, row) => $(row).closest('table').get(0) === el)
     .get();
@@ -38,7 +36,6 @@ function readGrid($: CheerioAPI, el: Element): Grid | undefined {
   const headerCells = headRow === undefined ? [] : cellsOf($, headRow);
   const body = rows.filter((row) => row !== headRow).map((row) => cellsOf($, row));
   return {
-    table,
     headerCells,
     headers: headerCells.map((cell) => squash($(cell).text())),
     body,

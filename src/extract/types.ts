@@ -69,6 +69,7 @@ export interface FamilyProfile {
   readonly defaultLanguage: string;
   /** The element holding the content. Empty when the page is not of this family after all. */
   root($: CheerioAPI): Cheerio<Element>;
+  /** The page title as the family marks it up; empty to fall back to `<title>`. */
   title($: CheerioAPI): string;
   /** Stamps section ids on the headings (see `outline.ts`) and returns them in document order. */
   outline(page: PageView): OutlineNode[];

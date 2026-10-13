@@ -44,14 +44,46 @@ describe('detectMetaRefresh', () => {
   });
 
   it.each([
-    ['an unquoted attribute value', '<meta http-equiv=refresh content=0;url=/moved/>', 'https://docs.example.com/moved/'],
-    ['upper-case attribute names', '<META HTTP-EQUIV="REFRESH" CONTENT="0; URL=/moved/">', 'https://docs.example.com/moved/'],
-    ['entity-encoded quotes', '<meta http-equiv="refresh" content="0; url=&#x27;/moved/&#x27;">', 'https://docs.example.com/moved/'],
-    ['double quotes inside single quotes', `<meta http-equiv='refresh' content='0; url="/moved/?a=1&amp;b=2"'>`, 'https://docs.example.com/moved/?a=1&b=2'],
-    ['content before http-equiv', '<meta content="0; url=/moved/" http-equiv="refresh">', 'https://docs.example.com/moved/'],
-    ['an absolute target', '<meta http-equiv="refresh" content="0; url=https://other.example.org/x">', 'https://other.example.org/x'],
-    ['a delay and a comma', '<meta http-equiv="refresh" content="2.5, /moved/">', 'https://docs.example.com/moved/'],
-    ['a relative target', '<meta http-equiv="refresh" content="0; url=../core/Chart/">', 'https://docs.example.com/harbor/latest/core/Chart/'],
+    [
+      'an unquoted attribute value',
+      '<meta http-equiv=refresh content=0;url=/moved/>',
+      'https://docs.example.com/moved/',
+    ],
+    [
+      'upper-case attribute names',
+      '<META HTTP-EQUIV="REFRESH" CONTENT="0; URL=/moved/">',
+      'https://docs.example.com/moved/',
+    ],
+    [
+      'entity-encoded quotes',
+      '<meta http-equiv="refresh" content="0; url=&#x27;/moved/&#x27;">',
+      'https://docs.example.com/moved/',
+    ],
+    [
+      'double quotes inside single quotes',
+      `<meta http-equiv='refresh' content='0; url="/moved/?a=1&amp;b=2"'>`,
+      'https://docs.example.com/moved/?a=1&b=2',
+    ],
+    [
+      'content before http-equiv',
+      '<meta content="0; url=/moved/" http-equiv="refresh">',
+      'https://docs.example.com/moved/',
+    ],
+    [
+      'an absolute target',
+      '<meta http-equiv="refresh" content="0; url=https://other.example.org/x">',
+      'https://other.example.org/x',
+    ],
+    [
+      'a delay and a comma',
+      '<meta http-equiv="refresh" content="2.5, /moved/">',
+      'https://docs.example.com/moved/',
+    ],
+    [
+      'a relative target',
+      '<meta http-equiv="refresh" content="0; url=../core/Chart/">',
+      'https://docs.example.com/harbor/latest/core/Chart/',
+    ],
   ])('resolves %s', (_case, html, target) => {
     expect(detectMetaRefresh(html, BASE)).toBe(target);
   });
@@ -71,7 +103,10 @@ describe('detectMetaRefresh', () => {
     ['an empty content value', '<meta http-equiv="refresh" content="">'],
     ['a value that is not a delay', '<meta http-equiv="refresh" content="soon; url=/moved/">'],
     ['a quoted empty target', `<meta http-equiv="refresh" content="0; url=''">`],
-    ['a real page that carries a refresh tag', realPage('<meta http-equiv="refresh" content="900; url=/session-expired/">')],
+    [
+      'a real page that carries a refresh tag',
+      realPage('<meta http-equiv="refresh" content="900; url=/session-expired/">'),
+    ],
     ['a target that is not a URL', '<meta http-equiv="refresh" content="0; url=http://[bad">'],
   ])('returns undefined for %s', (_case, html) => {
     expect(detectMetaRefresh(html, BASE)).toBeUndefined();

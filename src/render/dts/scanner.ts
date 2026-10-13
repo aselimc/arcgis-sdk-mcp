@@ -168,24 +168,42 @@ function heritage(
   };
 }
 
-/** Splits a class, interface or enum body into members (design section 6.5: depth 1 only). */
+/** Column of a token: the number of characters before it on its line. */
+function column(source: string, token: Token): number {
+  return token.start - (source.lastIndexOf('\n', token.start - 1) + 1);
+}
+
+/**
+ * Splits a class, interface or enum body into members (design section 6.5: depth 1 only).
+ *
+ * A member whose brackets do not balance would swallow everything after it. The scanner
+ * recovers at the next doc comment that starts a line at the indentation of the body's
+ * members: the open member ends there and is kept as raw text.
+ */
 function members(source: string, body: readonly Token[], inEnum: boolean): DtsMember[] {
   const result: DtsMember[] = [];
   let depth = 0;
   let angle = 0;
   let pending: Token | undefined;
   let current: { tokens: Token[]; jsdoc?: Token } | undefined;
-  const flush = (): void => {
+  const first = body.find((token) => token.lineStart);
+  const indent = first === undefined ? -1 : column(source, first);
+  const flush = (broken = false): void => {
     if (current !== undefined && current.tokens.length > 0) {
-      result.push(parseMember(source, current.tokens, current.jsdoc?.text));
+      const member = parseMember(source, current.tokens, current.jsdoc?.text);
+      result.push(broken ? { ...member, kind: 'unknown', raw: true } : member);
     }
     current = undefined;
   };
   for (const token of body) {
     if (!isCode(token)) {
-      if (token.kind !== 'jsdoc' || depth > 0) continue;
+      if (token.kind !== 'jsdoc') continue;
+      const atMemberIndent = token.lineStart && column(source, token) === indent;
+      // Inside a member, a doc comment documents a property of an inline object type.
+      if (depth > 0 && !atMemberIndent) continue;
       // A doc comment while a member is still open means its terminator is missing.
-      flush();
+      flush(depth > 0);
+      depth = 0;
       angle = 0;
       pending = token;
       continue;

@@ -1,0 +1,30 @@
+{
+  "name": "javadoc reference with search indexes, happy path",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/java/package-search-index.js",
+      "response": {
+        "contentType": "application/javascript",
+        "bodyFile": "javadoc-package-search-index.js"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/java/type-search-index.js",
+      "response": {
+        "contentType": "application/javascript",
+        "bodyFile": "javadoc-type-search-index.js"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/java/member-search-index.js",
+      "response": {
+        "contentType": "application/javascript",
+        "bodyFile": "javadoc-member-search-index.js"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/java/com.example.widgets/com/example/widgets/Widget.html",
+      "response": { "bodyFile": "page.html" }
+    }
+  ]
+}

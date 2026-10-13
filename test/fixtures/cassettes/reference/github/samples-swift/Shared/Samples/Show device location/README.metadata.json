@@ -1,0 +1,11 @@
+{
+  "category": "Location",
+  "description": "Draws a marker where the device is and keeps it centred.",
+  "ignore": false,
+  "images": ["show-device-location.png"],
+  "keywords": ["location", "tracking", "LocationTracker", "WidgetMapView"],
+  "redirect_from": [],
+  "relevant_apis": ["LocationTracker", "WidgetMapView"],
+  "snippets": ["ShowDeviceLocationView.swift", "ShowDeviceLocationView.Model.swift"],
+  "title": "Show device location"
+}

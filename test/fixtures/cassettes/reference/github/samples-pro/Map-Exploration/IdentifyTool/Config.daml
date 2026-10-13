@@ -1,0 +1,5 @@
+<ArcGIS defaultAssembly="IdentifyTool.dll">
+  <modules>
+    <insertModule id="IdentifyTool_Module" caption="IdentifyTool" />
+  </modules>
+</ArcGIS>

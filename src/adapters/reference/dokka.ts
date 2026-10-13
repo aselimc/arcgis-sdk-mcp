@@ -27,10 +27,11 @@ interface DokkaEntry {
 
 /** The declaration keyword of a Kotlin signature, after any modifiers and annotations. */
 const DECLARATION =
-  /(?:^|\s)(enum class|annotation class|fun interface|class|interface|object|typealias|fun|val|var|constructor)\b/;
+  /(?:^|\s)(enum class|annotation class|fun interface|enum|class|interface|object|typealias|fun|val|var|constructor)\b/;
 
 const KINDS: Readonly<Record<string, string>> = {
   'enum class': 'enum',
+  enum: 'enum',
   'annotation class': 'annotation',
   'fun interface': 'interface',
   class: 'class',

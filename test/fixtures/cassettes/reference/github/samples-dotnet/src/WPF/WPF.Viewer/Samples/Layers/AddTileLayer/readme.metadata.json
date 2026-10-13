@@ -1,0 +1,11 @@
+{
+  "category": "Layers",
+  "description": "Adds a cached tile layer to a map.",
+  "ignore": false,
+  "images": ["AddTileLayer.jpg"],
+  "keywords": ["tiles", "cache"],
+  "redirect_from": [],
+  "relevant_apis": ["Map", "TileLayer"],
+  "snippets": ["AddTileLayer.xaml.cs", "AddTileLayer.xaml"],
+  "title": "Add tile layer"
+}

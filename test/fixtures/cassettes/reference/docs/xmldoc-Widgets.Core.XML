@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>Widgets.Core</name>
+  </assembly>
+  <members>
+    <member name="T:Widgets.Core.Widget">
+      <summary>
+        A widget holds parts. See <see cref="T:Widgets.Core.Part"/> for what a part is.
+      </summary>
+      <remarks>Widgets are created on the main thread.</remarks>
+    </member>
+    <member name="M:Widgets.Core.Widget.#ctor(System.Int32)">
+      <summary>Creates a widget of the given size.</summary>
+      <param name="size">The size in units.</param>
+    </member>
+    <member name="M:Widgets.Core.Widget.ResizeAsync(System.Int32,System.Collections.Generic.IEnumerable{Widgets.Core.Part})">
+      <summary>Resizes the widget &amp; repaints its parts.</summary>
+      <param name="size">The new size.</param>
+      <param name="parts">The parts to repaint.</param>
+      <returns>A task that completes when the widget is painted.</returns>
+    </member>
+    <member name="P:Widgets.Core.Widget.Size">
+      <summary>Gets the size of the widget.</summary>
+    </member>
+    <member name="M:Widgets.Core.Widget.InternalReset">
+      <exclude/>
+      <summary>Hidden from the published reference.</summary>
+    </member>
+    <member name="M:Widgets.Core.Widget.#cctor">
+      <summary>Static set-up.</summary>
+    </member>
+    <member name="E:Widgets.Core.Widget.Resized"/>
+    <member name="T:Widgets.Core.Widget.Shape">
+      <summary>The shapes a widget can take.</summary>
+    </member>
+    <member name="F:Widgets.Core.Widget.Shape.Round">
+      <summary>A round widget.</summary>
+    </member>
+    <member name="T:Widgets.Core.Part">
+      <summary>One part of a widget.</summary>
+    </member>
+    <member name="M:Widgets.Core.Part.op_Addition(Widgets.Core.Part,Widgets.Core.Part)">
+      <summary>Joins two parts.</summary>
+    </member>
+    <member name="T:Widgets.Core.WidgetList`1">
+      <summary>A list of widgets.</summary>
+    </member>
+    <member name="M:Widgets.Core.WidgetList`1.Add(`0)">
+      <summary>Adds a widget to the list.</summary>
+    </member>
+    <member name="M:Widgets.Core.WidgetList`1.System#IDisposable#Dispose">
+      <summary>Releases the list.</summary>
+    </member>
+    <member name="!:Unresolved reference">
+      <summary>Not a documentation id.</summary>
+    </member>
+  </members>
+</doc>

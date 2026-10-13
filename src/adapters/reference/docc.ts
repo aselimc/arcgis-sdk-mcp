@@ -124,7 +124,8 @@ export function doccRecords(
         continue;
       }
       const owner = OWNERS.has(type);
-      const name = owner ? title : simpleName(title);
+      // A nested type is titled with its outer type (`Outer.Inner`), which `owners` already holds.
+      const name = owner ? (title.split('.').at(-1) ?? title) : simpleName(title);
       const parent = at.owners.length === 0 ? undefined : at.owners.join('.');
       const qualified = parent === undefined ? name : `${parent}.${name}`;
       records.set(

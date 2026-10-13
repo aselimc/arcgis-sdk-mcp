@@ -6,7 +6,9 @@ import { applyPass, extractHtml, pageMarkdown, passEnv } from './support.js';
 
 /** Converts a body fragment through the whole pipeline (generic family) and drops the title. */
 const markdownOf = (body: string): string =>
-  pageMarkdown(extractHtml(`<html><head><title>T</title></head><body><main>${body}</main></body></html>`))
+  pageMarkdown(
+    extractHtml(`<html><head><title>T</title></head><body><main>${body}</main></body></html>`),
+  )
     .replace(/^# T\n\n/, '')
     .trimEnd();
 
@@ -30,7 +32,8 @@ describe('fixTables', () => {
   });
 
   it('moves the caption to a bold paragraph before the table', () => {
-    const html = '<table><caption>Scale limits</caption><tr><th>A</th></tr><tr><td>1</td></tr></table>';
+    const html =
+      '<table><caption>Scale limits</caption><tr><th>A</th></tr><tr><td>1</td></tr></table>';
     expect(applyPass(html, fixTables)).toBe(
       '<p><strong>Scale limits</strong></p><table><thead><tr><th>A</th></tr></thead><tbody><tr><td>1</td></tr></tbody></table>',
     );
@@ -38,7 +41,8 @@ describe('fixTables', () => {
 
   it('turns a headerless two-column table into key and value bullets', () => {
     const env = passEnv();
-    const html = '<table><tr><td>Header:</td><td><code>Chart.h</code></td></tr><tr><td>Since</td></tr></table>';
+    const html =
+      '<table><tr><td>Header:</td><td><code>Chart.h</code></td></tr><tr><td>Since</td></tr></table>';
     expect(applyPass(html, fixTables, env)).toBe(
       '<ul><li><strong>Header:</strong> <code>Chart.h</code></li><li><strong>Since:</strong> </li></ul>',
     );
@@ -94,15 +98,23 @@ describe('fixTables', () => {
   });
 
   it('produces Markdown without raw HTML for every strategy', () => {
-    expect(markdownOf('<table><tr><th>A</th><th>B</th></tr><tr><td><p>1</p><p>2</p></td><td>x | y</td></tr></table>')).toBe(
-      '| A   | B   |\n| --- | --- |\n| 1<br>2 | x \\| y |',
-    );
-    expect(markdownOf('<table><tr><td>Header:</td><td>Chart.h</td></tr></table>')).toBe('- **Header:** Chart.h');
     expect(
-      markdownOf('<table><tr><th>P</th><th>D</th></tr><tr><td><code>f</code></td><td><p>Format.</p><pre class="language-json">{}</pre></td></tr></table>'),
+      markdownOf(
+        '<table><tr><th>A</th><th>B</th></tr><tr><td><p>1</p><p>2</p></td><td>x | y</td></tr></table>',
+      ),
+    ).toBe('| A   | B   |\n| --- | --- |\n| 1<br>2 | x \\| y |');
+    expect(markdownOf('<table><tr><td>Header:</td><td>Chart.h</td></tr></table>')).toBe(
+      '- **Header:** Chart.h',
+    );
+    expect(
+      markdownOf(
+        '<table><tr><th>P</th><th>D</th></tr><tr><td><code>f</code></td><td><p>Format.</p><pre class="language-json">{}</pre></td></tr></table>',
+      ),
     ).toBe('_P / D_\n\n**`f`**\n\nFormat.\n\n```json\n{}\n```');
     expect(
-      markdownOf('<table><tr><th>F</th><th>T</th><th>N</th></tr><tr><td>b</td><td>array</td><td><ul><li>x</li></ul></td></tr></table>'),
+      markdownOf(
+        '<table><tr><th>F</th><th>T</th><th>N</th></tr><tr><td>b</td><td>array</td><td><ul><li>x</li></ul></td></tr></table>',
+      ),
     ).toBe('**b**\n\n- **T:** array\n- **N:**\n  - x');
   });
 });

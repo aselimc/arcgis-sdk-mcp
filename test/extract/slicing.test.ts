@@ -4,7 +4,8 @@ import type { DocPage, HtmlFamily } from '../../src/core/types.js';
 import { extractFixture, extractHtml, FAMILY_CASES } from './support.js';
 
 const ids = (page: DocPage): string[] => page.sections.map((section) => section.id);
-const text = (page: DocPage): string => page.sections.map((section) => section.markdown).join('\n\n');
+const text = (page: DocPage): string =>
+  page.sections.map((section) => section.markdown).join('\n\n');
 
 describe('section slicing', () => {
   describe.each(FAMILY_CASES)('$family', ({ family }) => {
@@ -30,8 +31,12 @@ describe('section slicing', () => {
     });
 
     it('returns the whole page for a selector that matches nothing', () => {
-      expect(ids(extractFixture(family, { select: { section: 'no-such-section' } }))).toEqual(ids(full));
-      expect(ids(extractFixture(family, { select: { member: 'noSuchMember' } }))).toEqual(ids(full));
+      expect(ids(extractFixture(family, { select: { section: 'no-such-section' } }))).toEqual(
+        ids(full),
+      );
+      expect(ids(extractFixture(family, { select: { member: 'noSuchMember' } }))).toEqual(
+        ids(full),
+      );
       expect(ids(extractFixture(family, { select: {} }))).toEqual(ids(full));
     });
   });
@@ -87,7 +92,9 @@ describe('member slicing', () => {
   it('cuts one member card of the JavaScript reference by id or by name', () => {
     const byId = extractFixture('astro-js-ref', { select: { member: 'queryGauges' } });
     expect(ids(byId)).toEqual(['queryGauges']);
-    expect(text(byId)).toContain('```ts\nqueryGauges (filter?: GaugeFilter): Promise<Gauge[]>\n```');
+    expect(text(byId)).toContain(
+      '```ts\nqueryGauges (filter?: GaugeFilter): Promise<Gauge[]>\n```',
+    );
     expect(text(byId)).toContain('**Parameters**');
     expect(text(byId)).not.toContain('labelField');
 
@@ -102,11 +109,15 @@ describe('member slicing', () => {
 
     const nested = extractFixture('astro-js-ref', { select: { member: 'RefreshEvent-count' } });
     expect(ids(nested)).toEqual(['RefreshEvent-count']);
-    expect(text(nested)).toBe('### count\n\n_Property_\n\n- **Type:** number\n\nHow many gauges changed.');
+    expect(text(nested)).toBe(
+      '#### count\n\n_Property_\n\n- **Type:** number\n\nHow many gauges changed.',
+    );
   });
 
   it('treats a member id given as a section selector as that member', () => {
-    expect(ids(extractFixture('astro-js-ref', { select: { section: 'labelField' } }))).toEqual(['labelField']);
+    expect(ids(extractFixture('astro-js-ref', { select: { section: 'labelField' } }))).toEqual([
+      'labelField',
+    ]);
   });
 
   it('compares javadoc member ids as strings', () => {
@@ -114,7 +125,9 @@ describe('member slicing', () => {
     const sliced = extractFixture('javadoc', { select: { member } });
     expect(ids(sliced)).toEqual([member]);
     expect(text(sliced)).toContain('```java\npublic HarborChart(Basemap basemap)\n```');
-    expect(ids(extractFixture('javadoc', { select: { member: 'getMaxScale' } }))).toEqual(['getMaxScale()']);
+    expect(ids(extractFixture('javadoc', { select: { member: 'getMaxScale' } }))).toEqual([
+      'getMaxScale()',
+    ]);
   });
 
   it('cuts a javadoc 1.8 member at its anchor', () => {
@@ -133,7 +146,10 @@ describe('member slicing', () => {
   });
 
   it('reduces a member to declaration and summary for detail "signature"', () => {
-    const page = extractFixture('astro-js-ref', { select: { member: 'queryGauges' }, detail: 'signature' });
+    const page = extractFixture('astro-js-ref', {
+      select: { member: 'queryGauges' },
+      detail: 'signature',
+    });
     expect(page.sections).toHaveLength(1);
     expect(page.sections[0]).toMatchObject({ id: 'queryGauges', level: 3, title: 'queryGauges' });
     expect(text(page)).toBe(
@@ -141,15 +157,24 @@ describe('member slicing', () => {
     );
     expect(page.diagnostics.fences).toBe(1);
 
-    const java = extractFixture('javadoc', { select: { member: 'getMaxScale()' }, detail: 'signature' });
+    const java = extractFixture('javadoc', {
+      select: { member: 'getMaxScale()' },
+      detail: 'signature',
+    });
     expect(text(java)).toBe(
       '### getMaxScale\n\n```java\npublic double getMaxScale()\n```\n\nGets the largest scale the chart can be shown at.',
     );
   });
 
   it('keeps the whole member for the other detail levels', () => {
-    const summary = extractFixture('astro-js-ref', { select: { member: 'queryGauges' }, detail: 'summary' });
-    const full = extractFixture('astro-js-ref', { select: { member: 'queryGauges' }, detail: 'full' });
+    const summary = extractFixture('astro-js-ref', {
+      select: { member: 'queryGauges' },
+      detail: 'summary',
+    });
+    const full = extractFixture('astro-js-ref', {
+      select: { member: 'queryGauges' },
+      detail: 'full',
+    });
     expect(text(summary)).toBe(text(full));
     expect(text(full)).toContain('console.log(gauges.length);');
   });

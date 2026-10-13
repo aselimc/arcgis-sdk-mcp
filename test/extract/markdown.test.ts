@@ -21,18 +21,24 @@ describe('fence', () => {
   });
 
   it('normalises NBSP, line endings and surrounding blank lines, and keeps indentation', () => {
-    expect(fence('\n\n  if x:\r\n    y = 1  \r\n\n', 'python')).toBe('```python\n  if x:\n    y = 1\n```');
+    expect(fence('\n\n  if x:\r\n    y = 1  \r\n\n', 'python')).toBe(
+      '```python\n  if x:\n    y = 1\n```',
+    );
   });
 });
 
 describe('createMarkdownConverter', () => {
   it('fences a normalised pre with the language of its attribute', () => {
-    expect(md('<pre data-md-lang="ts">const a: number = 1;</pre>')).toBe('```ts\nconst a: number = 1;\n```');
+    expect(md('<pre data-md-lang="ts">const a: number = 1;</pre>')).toBe(
+      '```ts\nconst a: number = 1;\n```',
+    );
     expect(md('<pre><code>&lt;div&gt;</code></pre>')).toBe('```\n<div>\n```');
   });
 
   it('reports heading ids in order, preferring the stamped id', () => {
-    const result = convert('<h1>Title</h1><h2 id="a">A</h2><h3 id="b" data-md-id="b-1">B</h3><h2 id="">C</h2>');
+    const result = convert(
+      '<h1>Title</h1><h2 id="a">A</h2><h3 id="b" data-md-id="b-1">B</h3><h2 id="">C</h2>',
+    );
     expect(result.headingIds).toEqual([undefined, 'a', 'b-1', undefined]);
     expect(stripHeadingMarks(result.markdown)).toBe('# Title\n\n## A\n\n### B\n\n## C');
   });
@@ -49,39 +55,51 @@ describe('createMarkdownConverter', () => {
   });
 
   it('drops links without text, keeps image links', () => {
-    expect(md('<h2>Title<a href="#title"></a></h2><p><a href="/x"><img src="/i.png" alt="pic"></a></p>')).toBe(
-      '## Title\n\n[![pic](/i.png)](/x)',
-    );
+    expect(
+      md('<h2>Title<a href="#title"></a></h2><p><a href="/x"><img src="/i.png" alt="pic"></a></p>'),
+    ).toBe('## Title\n\n[![pic](/i.png)](/x)');
   });
 
   it('removes scripts, styles, buttons, forms and inline SVG', () => {
-    expect(md('<p>a</p><script>x()</script><style>p{}</style><button>b</button><form>f</form><svg><text>t</text></svg><p>z</p>')).toBe('a\n\nz');
+    expect(
+      md(
+        '<p>a</p><script>x()</script><style>p{}</style><button>b</button><form>f</form><svg><text>t</text></svg><p>z</p>',
+      ),
+    ).toBe('a\n\nz');
   });
 
   it('writes compact list items', () => {
-    expect(md('<ul><li>one</li><li>two<ul><li>nested</li></ul></li></ul>')).toBe('- one\n- two\n  - nested');
+    expect(md('<ul><li>one</li><li>two<ul><li>nested</li></ul></li></ul>')).toBe(
+      '- one\n- two\n  - nested',
+    );
     expect(md('<ol><li>first</li><li>second</li></ol>')).toBe('1. first\n2. second');
     expect(md('<ol start="9"><li>nine</li><li>ten</li></ol>')).toBe('9. nine\n10. ten');
     expect(md('<ol start="x"><li>one</li></ol>')).toBe('1. one');
   });
 
   it('indents the blocks of a list item by the width of its marker', () => {
-    expect(md('<ol><li><p>Run it:</p><pre data-md-lang="bash">make\n\nmake test</pre></li><li><p>Done.</p></li></ol>')).toBe(
-      '1. Run it:\n\n   ```bash\n   make\n\n   make test\n   ```\n2. Done.',
-    );
+    expect(
+      md(
+        '<ol><li><p>Run it:</p><pre data-md-lang="bash">make\n\nmake test</pre></li><li><p>Done.</p></li></ol>',
+      ),
+    ).toBe('1. Run it:\n\n   ```bash\n   make\n\n   make test\n   ```\n2. Done.');
   });
 
   it('writes a clean table as a GFM table and emphasis with underscores', () => {
-    expect(md('<table><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td><em>x</em></td><td><strong>y</strong></td></tr></tbody></table>')).toBe(
-      '| A   | B   |\n| --- | --- |\n| _x_ | **y** |',
-    );
+    expect(
+      md(
+        '<table><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td><em>x</em></td><td><strong>y</strong></td></tr></tbody></table>',
+      ),
+    ).toBe('| A   | B   |\n| --- | --- |\n| _x_ | **y** |');
     expect(md('<hr>')).toBe('---');
   });
 });
 
 describe('postProcess', () => {
   it('collapses blank lines outside fences and keeps them inside', () => {
-    expect(postProcess('a\n\n\n\nb\n\n```js\nx\n\n\ny\n```\n\n\n')).toBe('a\n\nb\n\n```js\nx\n\n\ny\n```');
+    expect(postProcess('a\n\n\n\nb\n\n```js\nx\n\n\ny\n```\n\n\n')).toBe(
+      'a\n\nb\n\n```js\nx\n\n\ny\n```',
+    );
   });
 
   it('strips trailing whitespace everywhere and leading blank lines', () => {
@@ -89,7 +107,9 @@ describe('postProcess', () => {
   });
 
   it('writes cell line breaks, NBSP and zero-width characters', () => {
-    expect(postProcess(`| a${BR_PLACEHOLDER}b |\nx y\u200b\u200c\u200d\ufeffz`)).toBe('| a<br>b |\nx yz');
+    expect(postProcess(`| a${BR_PLACEHOLDER}b |\nx y\u200b\u200c\u200d\ufeffz`)).toBe(
+      '| a<br>b |\nx yz',
+    );
   });
 
   it('keeps special characters inside fences', () => {
@@ -107,8 +127,19 @@ describe('postProcess', () => {
 
 describe('scanLines and measureMarkdown', () => {
   it('tracks fences at any indentation and inside block quotes', () => {
-    const lines = scanLines('- item\n    ```js\n    # not a heading\n    ```\n> ~~~\n> quoted\n> ~~~\ntext');
-    expect(lines.map((line) => line.fenced)).toEqual([false, true, true, true, true, true, true, false]);
+    const lines = scanLines(
+      '- item\n    ```js\n    # not a heading\n    ```\n> ~~~\n> quoted\n> ~~~\ntext',
+    );
+    expect(lines.map((line) => line.fenced)).toEqual([
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+    ]);
     expect(lines[1]?.opens).toBe('js');
     expect(lines[3]?.closes).toBe(true);
     expect(lines[4]?.opens).toBe('');
@@ -121,7 +152,12 @@ describe('scanLines and measureMarkdown', () => {
 
   it('counts fences and the ones with a language', () => {
     const metrics = measureMarkdown('```js\na\n```\n\n```\nb\n```\n\n~~~python\nc\n~~~');
-    expect(metrics).toEqual({ fences: 3, fencesWithLanguage: 2, leftoverHtmlTags: 0, unclosedFence: false });
+    expect(metrics).toEqual({
+      fences: 3,
+      fencesWithLanguage: 2,
+      leftoverHtmlTags: 0,
+      unclosedFence: false,
+    });
   });
 
   it('reports an unclosed fence', () => {
@@ -145,12 +181,19 @@ describe('scanLines and measureMarkdown', () => {
 describe('buildSections', () => {
   const sections = (html: string) => {
     const converted = convert(html);
-    return buildSections({ markdown: postProcess(converted.markdown), headingIds: converted.headingIds });
+    return buildSections({
+      markdown: postProcess(converted.markdown),
+      headingIds: converted.headingIds,
+    });
   };
 
   it('uses the page ids of headings and slugs for the rest', () => {
-    const result = sections('<h1>Guide</h1><p>Lead.</p><h2 id="set-up">Set up</h2><p>x</p><h3>Next steps</h3><p>y</p>');
-    expect(result.map((section) => [section.id, section.level, section.title, section.parent])).toEqual([
+    const result = sections(
+      '<h1>Guide</h1><p>Lead.</p><h2 id="set-up">Set up</h2><p>x</p><h3>Next steps</h3><p>y</p>',
+    );
+    expect(
+      result.map((section) => [section.id, section.level, section.title, section.parent]),
+    ).toEqual([
       ['guide', 1, 'Guide', undefined],
       ['set-up', 2, 'Set up', 'guide'],
       ['next-steps', 3, 'Next steps', 'set-up'],
@@ -160,13 +203,17 @@ describe('buildSections', () => {
   });
 
   it('keeps ids that no selector could hold, such as erased Java signatures', () => {
-    const result = sections('<h3 data-md-id="&lt;init&gt;(com.example.Item,int)">Chart</h3><p>x</p>');
+    const result = sections(
+      '<h3 data-md-id="&lt;init&gt;(com.example.Item,int)">Chart</h3><p>x</p>',
+    );
     expect(result[0]?.id).toBe('<init>(com.example.Item,int)');
     expect(result[0]?.title).toBe('Chart');
   });
 
   it('numbers repeated ids in document order and points parents at the final ids', () => {
-    const result = sections('<h2>Parameters</h2><h3>Notes</h3><h2>Parameters</h2><h3>Notes</h3><h2 id="parameters-1">Clash</h2>');
+    const result = sections(
+      '<h2>Parameters</h2><h3>Notes</h3><h2>Parameters</h2><h3>Notes</h3><h2 id="parameters-1">Clash</h2>',
+    );
     expect(result.map((section) => [section.id, section.parent])).toEqual([
       ['parameters', undefined],
       ['notes', 'parameters'],
@@ -185,7 +232,9 @@ describe('buildSections', () => {
   });
 
   it('strips the markers of headings that are not sections of their own', () => {
-    const result = sections('<h2 id="a">A</h2><blockquote><h3 id="quoted">Quoted</h3><p>x</p></blockquote>');
+    const result = sections(
+      '<h2 id="a">A</h2><blockquote><h3 id="quoted">Quoted</h3><p>x</p></blockquote>',
+    );
     expect(result).toHaveLength(1);
     expect(result[0]?.markdown).toBe('## A\n\n> ### Quoted\n>\n> x');
   });

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>Widgets.Desktop</name>
+  </assembly>
+  <members>
+    <member name="T:Widgets.Desktop.WidgetPane">
+      <summary>A pane that shows one widget.</summary>
+    </member>
+    <member name="M:Widgets.Desktop.WidgetPane.Show(Widgets.Core.Widget)">
+      <summary>Shows a widget in the pane.</summary>
+      <param name="widget">The widget to show.</param>
+    </member>
+  </members>
+</doc>

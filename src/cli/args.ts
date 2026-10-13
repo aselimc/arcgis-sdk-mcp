@@ -92,10 +92,7 @@ Environment:
 export function isLoopbackHost(host: string): boolean {
   const name = host.trim().toLowerCase();
   return (
-    name === 'localhost' ||
-    name === '::1' ||
-    name === '[::1]' ||
-    /^127(?:\.\d{1,3}){3}$/.test(name)
+    name === 'localhost' || name === '::1' || name === '[::1]' || /^127(?:\.\d{1,3}){3}$/.test(name)
   );
 }
 
@@ -131,7 +128,9 @@ function parseToolArgs(raw: string | undefined): Record<string, unknown> {
     throw new UsageError(`call: the arguments are not valid JSON (${reason})`);
   }
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw new UsageError('call: the arguments must be a JSON object, for example \'{"query":"x"}\'');
+    throw new UsageError(
+      'call: the arguments must be a JSON object, for example \'{"query":"x"}\'',
+    );
   }
   return value as Record<string, unknown>;
 }

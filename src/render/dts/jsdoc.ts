@@ -48,9 +48,11 @@ function inlineTags(text: string): string {
     .replace(
       /\{@(link|linkcode|linkplain)\s+([^}|\s]+)(?:\s*\|\s*|\s+)?([^}]*)\}/g,
       (_whole, tag: string, target: string, label: string) => {
-        const shown = label.trim() === '' ? target : label.trim();
+        const named = label.trim() !== '';
+        const shown = named ? label.trim() : target;
         if (/^https?:\/\//.test(target)) return `[${shown}](${target})`;
-        return tag === 'linkplain' ? shown : `\`${shown}\``;
+        // A symbol name reads as code; an author's label is prose unless the tag asks for code.
+        return tag === 'linkplain' || (named && tag === 'link') ? shown : `\`${shown}\``;
       },
     )
     .replace(/\\@/g, '@');

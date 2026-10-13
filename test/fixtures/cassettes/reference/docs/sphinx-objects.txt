@@ -1,0 +1,15 @@
+widgets py:module 0 widgets.html#module-$ -
+widgets.make_widget py:function 1 widgets.html#$ -
+widgets.Widget py:class 1 widgets.html#$ -
+widgets.Widget.resize py:method 1 widgets.html#$ -
+widgets.Widget.size py:property 1 widgets.html#$ -
+widgets.Widget.from_json py:classmethod 1 widgets.html#$ -
+widgets.tools.Polish py:class 1 widgets.tools.html#$ -
+widgets.tools.Polish.run py:method 1 widgets.tools.html#$ -
+widgets.tools.Polish.Result py:attribute 1 widgets.tools.html#$ -
+widgets.tools.PolishError py:exception 1 widgets.tools.html#$ -
+widgets std:doc -1 widgets.html Widgets package
+widgets.tools std:doc -1 widgets.tools.html -
+genindex std:label -1 genindex.html Index
+search std:doc -1 search.html Search
+this row is not an inventory entry

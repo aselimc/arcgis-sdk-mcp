@@ -16,6 +16,8 @@ import { scanDts, type DtsDeclaration, type DtsFile, type DtsMember } from './sc
 const RAW_NOTICE =
   'Part of this declaration file could not be parsed; the affected declarations are shown as written.';
 
+const UNPARSED_GROUP = 'Unparsed declarations';
+
 const GROUP_BY_KIND: Record<DtsDeclaration['kind'], string> = {
   class: 'Classes',
   interface: 'Interfaces',
@@ -62,6 +64,8 @@ function group(kind: DtsMember['kind']): { group: string; kind: string } {
     case 'call':
     case 'index':
       return { group: 'Signatures', kind: 'signature' };
+    case 'unknown':
+      return { group: UNPARSED_GROUP, kind: 'member' };
     default:
       return { group: 'Properties', kind: 'property' };
   }
@@ -147,7 +151,6 @@ function extraMembers(
         kind,
         group: groupName,
         signature: member.text,
-        ...(kind === 'event' ? {} : { flags: ['constructor option'] }),
         ...documentation(doc),
       },
     ];
@@ -159,7 +162,7 @@ function classMembers(view: ClassView): ApiMember[] {
   const own = mergeAccessors(view.members.filter((member) => !isHidden(member))).flatMap(
     (parts) => classMember(parts, options, view.picked) ?? [],
   );
-  const order = ['Constructors', 'Properties', 'Methods', 'Signatures'];
+  const order = ['Constructors', 'Properties', 'Methods', 'Signatures', UNPARSED_GROUP];
   own.sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group));
   const seen = new Set(own.map((member) => member.name));
   return [
@@ -301,7 +304,7 @@ export function renderDts(
       id: memberName,
       name: memberName,
       kind: 'member',
-      group: 'Unparsed declarations',
+      group: UNPARSED_GROUP,
       signature: rawText,
       flags: ['unparsed declaration'],
     });

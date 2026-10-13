@@ -17,7 +17,9 @@ import { ADAPTER_TYPES, type AdapterType } from '../core/types.js';
  * @throws Error when two adapters claim the same type. This is a wiring mistake and must
  *   stop start-up, because which adapter would answer is otherwise an accident of order.
  */
-export function createAdapterRegistry(...lists: ReadonlyArray<readonly SourceAdapter[]>): AdapterRegistry {
+export function createAdapterRegistry(
+  ...lists: ReadonlyArray<readonly SourceAdapter[]>
+): AdapterRegistry {
   const byType = new Map<AdapterType, SourceAdapter>();
   for (const adapter of lists.flat()) {
     if (byType.has(adapter.type)) {

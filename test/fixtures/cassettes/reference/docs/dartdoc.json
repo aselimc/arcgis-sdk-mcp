@@ -1,0 +1,118 @@
+{
+  "name": "dartdoc reference, happy path",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/reference/index.json",
+      "response": {
+        "json": [
+          {
+            "name": "widgets_sdk",
+            "qualifiedName": "widgets_sdk",
+            "href": "widgets_sdk/",
+            "kind": 9,
+            "packageRank": 0,
+            "desc": "Invented library used by tests."
+          },
+          {
+            "name": "Widget",
+            "qualifiedName": "widgets_sdk.Widget",
+            "href": "widgets_sdk/Widget-class.html",
+            "kind": 3,
+            "packageRank": 0,
+            "desc": "A widget holds\nparts.",
+            "enclosedBy": { "name": "widgets_sdk", "kind": 9, "href": "widgets_sdk/" }
+          },
+          {
+            "name": "Widget.new",
+            "qualifiedName": "widgets_sdk.Widget.Widget.new",
+            "href": "widgets_sdk/Widget/Widget.html",
+            "kind": 2,
+            "packageRank": 0,
+            "desc": "Creates a widget.",
+            "enclosedBy": { "name": "Widget", "kind": 3, "href": "widgets_sdk/Widget-class.html" }
+          },
+          {
+            "name": "Widget.fromJson",
+            "qualifiedName": "widgets_sdk.Widget.Widget.fromJson",
+            "href": "widgets_sdk/Widget/Widget.fromJson.html",
+            "kind": 2,
+            "packageRank": 0,
+            "desc": "Creates a widget from JSON.",
+            "enclosedBy": { "name": "Widget", "kind": 3, "href": "widgets_sdk/Widget-class.html" }
+          },
+          {
+            "name": "size",
+            "qualifiedName": "widgets_sdk.Widget.size",
+            "href": "widgets_sdk/Widget/size.html",
+            "kind": 16,
+            "overriddenDepth": 0,
+            "packageRank": 0,
+            "desc": "The size of the widget.",
+            "enclosedBy": { "name": "Widget", "kind": 3, "href": "widgets_sdk/Widget-class.html" }
+          },
+          {
+            "name": "resize",
+            "qualifiedName": "widgets_sdk.Widget.resize",
+            "href": "widgets_sdk/Widget/resize.html",
+            "kind": 10,
+            "overriddenDepth": 0,
+            "packageRank": 0,
+            "desc": "Changes the size.",
+            "enclosedBy": { "name": "Widget", "kind": 3, "href": "widgets_sdk/Widget-class.html" }
+          },
+          {
+            "name": "WidgetShape",
+            "qualifiedName": "widgets_sdk.WidgetShape",
+            "href": "widgets_sdk/WidgetShape.html",
+            "kind": 5,
+            "packageRank": 0,
+            "desc": "The shapes a widget can take.",
+            "enclosedBy": { "name": "widgets_sdk", "kind": 9, "href": "widgets_sdk/" }
+          },
+          {
+            "name": "round",
+            "qualifiedName": "widgets_sdk.WidgetShape.round",
+            "href": "widgets_sdk/WidgetShape.html#round",
+            "kind": 1,
+            "packageRank": 0,
+            "desc": "A round widget.",
+            "enclosedBy": { "name": "WidgetShape", "kind": 5, "href": "widgets_sdk/WidgetShape.html" }
+          },
+          {
+            "name": "createWidget",
+            "qualifiedName": "widgets_sdk.createWidget",
+            "href": "widgets_sdk/createWidget.html",
+            "kind": 8,
+            "packageRank": 0,
+            "desc": "Creates a widget of the default size.",
+            "enclosedBy": { "name": "widgets_sdk", "kind": 9, "href": "widgets_sdk/" }
+          },
+          {
+            "name": "resize",
+            "qualifiedName": "widgets_sdk.Widget.resize",
+            "href": "widgets_sdk/Widget/resize.html",
+            "kind": 10,
+            "packageRank": 0,
+            "desc": "A repeated entry.",
+            "enclosedBy": { "name": "Widget", "kind": 3, "href": "widgets_sdk/Widget-class.html" }
+          },
+          { "name": "withoutHref", "qualifiedName": "widgets_sdk.withoutHref", "kind": 8 },
+          {
+            "name": "elsewhere",
+            "qualifiedName": "other.elsewhere",
+            "href": "https://example.com/other/elsewhere.html",
+            "kind": 8
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/reference/widgets_sdk/Widget-class.html",
+      "response": { "bodyFile": "page.html" }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/api-reference/reference/widgets_sdk/WidgetShape.html",
+      "response": { "bodyFile": "page.html" }
+    }
+  ]
+}

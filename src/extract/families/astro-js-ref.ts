@@ -4,14 +4,7 @@ import { headingLevel, ID_ATTR, replaceWithPre, squash, tagged } from '../dom.js
 import { HEADINGS, stampOutline } from '../outline.js';
 import type { FamilyProfile, PageView, Pass } from '../types.js';
 import { dropCodePenStrips } from './astro.js';
-import {
-  CARD,
-  indexTable,
-  NESTED_ATTR,
-  readCard,
-  toMember,
-  type Card,
-} from './js-ref-cards.js';
+import { CARD, indexTable, NESTED_ATTR, readCard, toMember, type Card } from './js-ref-cards.js';
 import { themeRoot, themeTitle } from './shared.js';
 
 /** The page's own member summary tables; never the tables inside a card. */
@@ -122,9 +115,7 @@ export const astroJsRef: FamilyProfile = {
   // Headings inside cards are member headings; `prepare` writes them with the card id.
   outline: (page) => {
     // A nested card keeps its heading level when it is read on its own.
-    page.root
-      .find(`${CARD} ${CARD}`)
-      .each((_, card) => void page.$(card).attr(NESTED_ATTR, ''));
+    page.root.find(`${CARD} ${CARD}`).each((_, card) => void page.$(card).attr(NESTED_ATTR, ''));
     return stampOutline(page, {
       ...HEADINGS,
       level: (el, $) => ($(el).closest(CARD).length > 0 ? 0 : headingLevel(el)),

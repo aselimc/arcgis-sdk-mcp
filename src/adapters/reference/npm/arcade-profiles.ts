@@ -97,12 +97,12 @@ export const arcadeProfilesMapper: JsonMapper = {
   page(ctx: Ctx, src, loaded, target): DocPage {
     const profiles = parse(src, loaded);
     const wanted = pageKey(target.url.href);
-    const id =
-      target.record?.locator?.profile ??
-      (wanted === pageKey(fileRef(src)) ? fragmentOf(target.url) : undefined);
+    // On the file URL every profile shares one path, so only the fragment tells them apart.
+    const onFile = wanted === pageKey(fileRef(src));
+    const id = target.record?.locator?.profile ?? (onFile ? fragmentOf(target.url) : undefined);
     const profile =
       profiles.find((candidate) => candidate.id === id) ??
-      profiles.find((candidate) => pageKey(candidate.ref) === wanted);
+      (onFile ? undefined : profiles.find((candidate) => pageKey(candidate.ref) === wanted));
     if (profile === undefined) {
       throw notFound(
         target.url.href,

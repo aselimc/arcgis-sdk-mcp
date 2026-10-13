@@ -1,0 +1,11 @@
+{
+  "category": "Layers",
+  "description": "Adds a cached tile layer to a map.",
+  "ignore": false,
+  "images": ["add-tile-layer.png"],
+  "keywords": ["tiles", "cache", "TileLayer"],
+  "redirect_from": [],
+  "relevant_apis": ["TileLayer"],
+  "snippets": ["AddTileLayerView.swift"],
+  "title": "Add tile layer"
+}

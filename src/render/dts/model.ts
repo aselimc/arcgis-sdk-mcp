@@ -127,7 +127,17 @@ export function rawMemberText(source: string, name: string): string | undefined 
   // The comment belongs to the member only when nothing but whitespace separates them.
   const comment = docStart === -1 ? '' : before.slice(docStart).trimEnd();
   const attached = comment.endsWith('*/') && comment.indexOf('*/') === comment.length - 2;
-  const start = attached ? docStart : match.index;
+  // Cut whole lines, so that removing the common indentation leaves the text as written.
+  const start = text.lastIndexOf('\n', (attached ? docStart : match.index) - 1) + 1;
   const next = text.indexOf('/**', match.index + match[0].length);
-  return text.slice(start, next === -1 ? text.length : next).trim();
+  const lines = text
+    .slice(start, next === -1 ? text.length : next)
+    .trimEnd()
+    .split('\n');
+  const indent = Math.min(
+    ...lines
+      .filter((line) => line.trim() !== '')
+      .map((line) => line.length - line.trimStart().length),
+  );
+  return lines.map((line) => line.slice(indent)).join('\n');
 }

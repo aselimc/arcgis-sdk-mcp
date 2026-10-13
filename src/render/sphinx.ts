@@ -205,6 +205,13 @@ function wholePage(
   const $prose = $scope.clone();
   $prose.find('dl.py').remove();
   $prose.find('h1').first().remove();
+  // A section that only introduced an object is now a bare heading; the object's own
+  // section follows below, so the heading would only repeat its title.
+  for (const section of $prose.find('section').toArray().reverse()) {
+    const $rest = $(section).clone();
+    $rest.children('h1, h2, h3, h4, h5, h6').first().remove();
+    if ($rest.text().trim() === '') $(section).remove();
+  }
   const types = top.map((dl) => ({ dl, type: toType($, dl, convert, detail) }));
   const sectionBlocks: Block[] = [
     { level: 1, title, body: convert($prose.html() ?? '') },

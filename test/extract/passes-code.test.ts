@@ -7,7 +7,12 @@ import { fixGlossary } from '../../src/extract/passes/fix-glossary.js';
 import { applyPass, passEnv, runPasses } from './support.js';
 
 /** An Expressive Code block; `&#127;` is the line separator of the copy button. */
-const expressive = (options: { button?: string; language?: string; title?: string; body: string }): string =>
+const expressive = (options: {
+  button?: string;
+  language?: string;
+  title?: string;
+  body: string;
+}): string =>
   `<div class="expressive-code"><figure class="frame"><figcaption class="header">${
     options.title === undefined ? '' : `<span class="title">${options.title}</span>`
   }</figcaption><pre data-language="${options.language ?? 'js'}"><code>${options.body}</code></pre><div class="copy">${
@@ -29,13 +34,18 @@ describe('fixGlossary', () => {
     expect(applyPass('<p><a class="term" href="/g/x/">tile &amp; cache</a></p>', fixGlossary)).toBe(
       '<p>tile &amp; cache</p>',
     );
-    expect(applyPass('<p><span data-term="">basemap</span></p>', fixGlossary)).toBe('<p>basemap</p>');
+    expect(applyPass('<p><span data-term="">basemap</span></p>', fixGlossary)).toBe(
+      '<p>basemap</p>',
+    );
   });
 });
 
 describe('fixExpressiveCode', () => {
   it('takes the code from the copy button, with U+007F as newline', () => {
-    const html = expressive({ button: 'const a = 1;&#127;&#127;const b = &quot;x&quot;;', body: line('const a = 1;') });
+    const html = expressive({
+      button: 'const a = 1;&#127;&#127;const b = &quot;x&quot;;',
+      body: line('const a = 1;'),
+    });
     const $ = runPasses(html, [fixExpressiveCode]);
     expect($('pre').attr('data-md-lang')).toBe('js');
     expect($('pre').text()).toBe('const a = 1;\n\nconst b = "x";');
@@ -48,15 +58,20 @@ describe('fixExpressiveCode', () => {
   });
 
   it('falls back to the rendered lines, without the collapsed-lines summary rows', () => {
-    const body = collapsed('2 collapsed lines', line('import a;') + line('import b;')) + line('run();');
+    const body =
+      collapsed('2 collapsed lines', line('import a;') + line('import b;')) + line('run();');
     const $ = runPasses(expressive({ body, language: 'typescript' }), [fixExpressiveCode]);
     expect($('pre').text()).toBe('import a;\nimport b;\nrun();');
     expect($('pre').attr('data-md-lang')).toBe('ts');
   });
 
   it('keeps only the expanded lines in focused mode and marks each collapsed run', () => {
-    const body = collapsed('29 collapsed lines', line('a();')) + line('b();') + collapsed('3 collapsed lines', line('c();'));
-    const block = (language: string): string => expressive({ button: 'a();&#127;b();&#127;c();', body, language });
+    const body =
+      collapsed('29 collapsed lines', line('a();')) +
+      line('b();') +
+      collapsed('3 collapsed lines', line('c();'));
+    const block = (language: string): string =>
+      expressive({ button: 'a();&#127;b();&#127;c();', body, language });
     const focused = passEnv({ focusedCode: true });
     expect(runPasses(block('js'), [fixExpressiveCode], focused)('pre').text()).toBe(
       '// \u2026 29 collapsed lines \u2026\nb();\n// \u2026 3 collapsed lines \u2026',
@@ -71,12 +86,16 @@ describe('fixExpressiveCode', () => {
 
   it('uses the full code in focused mode when nothing is collapsed', () => {
     const html = expressive({ button: 'a();&#127;b();', body: line('a();') + line('b();') });
-    expect(runPasses(html, [fixExpressiveCode], passEnv({ focusedCode: true }))('pre').text()).toBe('a();\nb();');
+    expect(runPasses(html, [fixExpressiveCode], passEnv({ focusedCode: true }))('pre').text()).toBe(
+      'a();\nb();',
+    );
   });
 
   it('writes a file title before the block', () => {
     const html = expressive({ button: 'x', body: line('x'), title: 'main.js' });
-    expect(applyPass(html, fixExpressiveCode)).toBe('<p><em>main.js</em></p><pre data-md-lang="js">x</pre>');
+    expect(applyPass(html, fixExpressiveCode)).toBe(
+      '<p><em>main.js</em></p><pre data-md-lang="js">x</pre>',
+    );
   });
 });
 
@@ -85,7 +104,9 @@ describe('fixGatsbyCode', () => {
     `<div class="code-block"><div><calcite-button></calcite-button><calcite-tooltip>Copy</calcite-tooltip></div><pre data-language="${language}" class="syntax-highlighter"><code style="white-space:pre"><code style="display: none">1\n2\n</code><span><span class="react-syntax-highlighter-line-number">1</span>first\n</span><span><span class="linenumber">2</span>second\n</span></code></pre></div>`;
 
   it('drops the gutter, the hidden copy and the buttons', () => {
-    expect(applyPass(block('javascript'), fixGatsbyCode)).toBe('<pre data-md-lang="js">first\nsecond\n</pre>');
+    expect(applyPass(block('javascript'), fixGatsbyCode)).toBe(
+      '<pre data-md-lang="js">first\nsecond\n</pre>',
+    );
   });
 
   it('maps the placeholder language "other" to no language', () => {
@@ -93,7 +114,8 @@ describe('fixGatsbyCode', () => {
   });
 
   it('reads the language from the code class when the pre has none', () => {
-    const html = '<div class="code-block"><pre><code class="hl language-json">{}</code></pre></div>';
+    const html =
+      '<div class="code-block"><pre><code class="hl language-json">{}</code></pre></div>';
     expect(applyPass(html, fixGatsbyCode)).toBe('<pre data-md-lang="json">{}</pre>');
   });
 
@@ -143,7 +165,8 @@ describe('fixCodeLinks', () => {
   });
 
   it('keeps only the text when the code holds links among other text', () => {
-    const html = '<code>find(<a href="/a">Filter</a> filter,\n  <a href="/b">Options</a> options)</code>';
+    const html =
+      '<code>find(<a href="/a">Filter</a> filter,\n  <a href="/b">Options</a> options)</code>';
     expect(applyPass(html, fixCodeLinks)).toBe('<code>find(Filter filter, Options options)</code>');
   });
 

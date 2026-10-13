@@ -25,20 +25,20 @@ const GROUPS: Record<MemberId['prefix'], { group: string; kind: string }> = {
 function crefName(cref: string): string {
   const id = parseMemberId(cref);
   if (id === undefined) return cref.replace(/^[A-Z]:/, '');
-  if (id.prefix === 'T' || id.prefix === 'N') return id.name;
-  return `${id.owner.split('.').at(-1) ?? id.owner}.${id.name}`;
+  // A constructor's display name is its type's; the parameter list tells the two apart.
+  return id.constructor ? id.signature : id.display;
 }
 
-/** Conversion state: the document, and code blocks parked while paragraphs are re-flowed. */
+/** Conversion state: the document, and finished blocks (code, lists) parked while paragraphs are re-flowed. */
 interface Api {
   (selector: AnyNode | string | undefined): cheerio.Cheerio<AnyNode>;
-  fences: string[];
+  parked: string[];
 }
 
 /** Stores a finished block and returns the marker that stands in for it. */
 function park($: Api, block: string): string {
-  $.fences.push(block);
-  return `\n\n@@fence:${$.fences.length - 1}@@\n\n`;
+  $.parked.push(block);
+  return `\n\n@@block:${$.parked.length - 1}@@\n\n`;
 }
 
 /** Code text without the indentation the XML file gives every line of an element. */
@@ -119,7 +119,7 @@ function node($: Api, item: AnyNode): string {
       return href === undefined ? inner() : `[${inner().trim()}](${href})`;
     }
     case 'list':
-      return `\n\n${listBlock($, item)}\n\n`;
+      return park($, listBlock($, item));
     case 'note':
       return `\n\n> **Note:** ${inner().trim()}\n\n`;
     default:
@@ -134,11 +134,19 @@ function children($: Api, parent: AnyNode | undefined): string {
 
 /** The Markdown of one element's content, with paragraph spacing normalised. */
 function markdown($: Api, element: AnyNode | undefined): string {
-  return blocks(
+  let text = blocks(
     ...children($, element)
       .split(/\n{2,}/)
       .map((paragraph) => paragraph.replace(/[ \t]*\n[ \t]*/g, ' ').trim()),
-  ).replace(/@@fence:(\d+)@@/g, (_whole, index: string) => $.fences[Number(index)] ?? '');
+  );
+  // A parked list can itself hold a parked code block, so markers are resolved until none is left.
+  for (let depth = 0; depth < 8 && text.includes('@@block:'); depth += 1) {
+    text = text.replace(
+      /@@block:(\d+)@@/g,
+      (_whole, index: string) => $.parked[Number(index)] ?? '',
+    );
+  }
+  return text;
 }
 
 interface Slice {
@@ -174,7 +182,7 @@ function toMember(slice: Slice): ApiMember | undefined {
   const loaded = cheerio.load(slice.xml, { xml: true });
   const $: Api = Object.assign(
     (selector: AnyNode | string | undefined) => loaded(selector as string),
-    { fences: [] as string[] },
+    { parked: [] as string[] },
   );
   const root = $('member').get(0);
   const section = (name: string): string => markdown($, $(root).children(name).get(0));

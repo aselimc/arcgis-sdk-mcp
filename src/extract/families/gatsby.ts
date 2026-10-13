@@ -3,6 +3,9 @@ import { stampOutline } from '../outline.js';
 import type { FamilyProfile, Pass } from '../types.js';
 import { themeRoot, themeTitle } from './shared.js';
 
+/** Marks a list made from a card, so that only such lists are merged. */
+const CARD_LIST = 'data-md-cards';
+
 /**
  * Illustration cards (`a.group` wrapping an icon, an `h3` and a description) become list
  * items `[title](href): description`. As links they would each open a section of their own.
@@ -13,26 +16,20 @@ export const cardsToList: Pass = ($) => {
     .each((_, el) => {
       const card = $(el);
       const href = card.attr('href');
-      const title = tagged(
-        'a',
-        squash(card.children('h3').first().text()),
-        `href="${escapeHtml(href ?? '#')}"`,
-      );
+      const name = squash(card.children('h3').first().text());
+      const title =
+        href === undefined ? escapeHtml(name) : tagged('a', name, `href="${escapeHtml(href)}"`);
       const description = squash(card.find('p').text());
-      card.replaceWith(
-        `<ul><li>${title}${description === '' ? '' : `: ${escapeHtml(description)}`}</li></ul>`,
-      );
+      const text = description === '' ? '' : `: ${escapeHtml(description)}`;
+      card.replaceWith(`<ul ${CARD_LIST}=""><li>${title}${text}</li></ul>`);
     });
 };
 
 /** Consecutive one-card lists (see {@link cardsToList}) are merged into one list. */
 export const mergeCardLists: Pass = ($) => {
-  $('ul + ul').each((_, el) => {
+  $(`ul[${CARD_LIST}] + ul[${CARD_LIST}]`).each((_, el) => {
     const list = $(el);
-    const previous = list.prev('ul');
-    if (previous.length === 0 || list.children().length !== 1) return;
-    if (list.children('li').children('a').length === 0) return;
-    previous.append(list.children());
+    list.prev().append(list.children());
     list.remove();
   });
 };

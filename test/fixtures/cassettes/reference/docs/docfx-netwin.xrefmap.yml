@@ -1,0 +1,21 @@
+### YamlMime:XRefMap
+sorted: true
+references:
+- uid: Example.Widgets.UI.WidgetView
+  name: WidgetView
+  href: api/netwin/Example.Widgets.UI/Example.Widgets.UI.WidgetView.html
+  commentId: T:Example.Widgets.UI.WidgetView
+  fullName: Example.Widgets.UI.WidgetView
+  nameWithType: WidgetView
+- uid: Example.Widgets.UI.WidgetView.Widget
+  name: Widget
+  href: api/netwin/Example.Widgets.UI/Example.Widgets.UI.WidgetView.Widget.html#Example_Widgets_UI_WidgetView_Widget
+  commentId: P:Example.Widgets.UI.WidgetView.Widget
+  fullName: Example.Widgets.UI.WidgetView.Widget
+  nameWithType: WidgetView.Widget
+- uid: Example.Widgets.Widget
+  name: Widget
+  href: api/netwin/Example.Widgets/Example.Widgets.Widget.html
+  commentId: T:Example.Widgets.Widget
+  fullName: Example.Widgets.Widget
+  nameWithType: Widget

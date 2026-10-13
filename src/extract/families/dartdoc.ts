@@ -66,7 +66,6 @@ export const dartdoc: FamilyProfile = {
   defaultLanguage: 'dart',
   root: ($) => $(ROOT).first(),
   title,
-  outline: (page) =>
-    stampOutline(page, { ...HEADINGS, id: headingOrSectionId }),
+  outline: (page) => stampOutline(page, { ...HEADINGS, id: headingOrSectionId }),
   prepare,
 };

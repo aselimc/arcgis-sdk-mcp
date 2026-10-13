@@ -14,7 +14,10 @@ const island = (component: string, inner: string): string =>
 
 describe('fixIslands', () => {
   it('keeps the slot of a MoreInfo island as a block quote', () => {
-    const html = island('MoreInfoReact', '<button>More info</button><astro-slot><p>Details.</p></astro-slot>');
+    const html = island(
+      'MoreInfoReact',
+      '<button>More info</button><astro-slot><p>Details.</p></astro-slot>',
+    );
     expect(applyPass(html, fixIslands)).toBe(
       '<blockquote><p><strong>More info:</strong></p><p>Details.</p></blockquote>',
     );
@@ -22,7 +25,9 @@ describe('fixIslands', () => {
 
   it('turns a CodePen link in prose into its text and drops it in a link strip', () => {
     const link = island('CodePenLinkReact', '<a href="https://pen.example/x">  starter\n pen </a>');
-    expect(applyPass(`<p>Start from the ${link}.</p>`, fixIslands)).toBe('<p>Start from the starter pen.</p>');
+    expect(applyPass(`<p>Start from the ${link}.</p>`, fixIslands)).toBe(
+      '<p>Start from the starter pen.</p>',
+    );
     expect(applyPass(`<ul class="list-none"><li>${link}</li></ul>`, fixIslands)).toBe(
       '<ul class="list-none"><li></li></ul>',
     );
@@ -41,7 +46,10 @@ describe('fixIslands', () => {
   });
 
   it('processes nested islands innermost first', () => {
-    const html = island('MoreInfoReact', `<astro-slot><p>See ${island('CodePenLinkReact', 'the pen')}.</p></astro-slot>`);
+    const html = island(
+      'MoreInfoReact',
+      `<astro-slot><p>See ${island('CodePenLinkReact', 'the pen')}.</p></astro-slot>`,
+    );
     expect(applyPass(html, fixIslands)).toBe(
       '<blockquote><p><strong>More info:</strong></p><p>See the pen.</p></blockquote>',
     );
@@ -77,7 +85,8 @@ describe('fixTabs', () => {
 
 describe('iconLabelsToText', () => {
   it('writes the meaning of an icon-only cell as text', () => {
-    const svg = (label: string): string => `<svg aria-label="${label}"><path d="M0 0"></path></svg>`;
+    const svg = (label: string): string =>
+      `<svg aria-label="${label}"><path d="M0 0"></path></svg>`;
     const html = `<table><tr><th>${svg('Required')}</th><td>${svg('Supported')}</td><td>${svg('Not supported')}</td><td>${svg('Beta & preview')}</td></tr></table>`;
     expect(applyPass(html, iconLabelsToText)).toBe(
       '<table><tbody><tr><th>Required</th><td>yes</td><td>no</td><td>Beta &amp; preview</td></tr></tbody></table>',
@@ -102,7 +111,9 @@ describe('removeCommon', () => {
   });
 
   it('removes <wbr> without inserting a space', () => {
-    expect(applyPass('<code>Feature<wbr>Layer</code>', removeCommon)).toBe('<code>FeatureLayer</code>');
+    expect(applyPass('<code>Feature<wbr>Layer</code>', removeCommon)).toBe(
+      '<code>FeatureLayer</code>',
+    );
     expect(COMMON_REMOVE).toContain('wbr');
   });
 });
@@ -111,7 +122,9 @@ describe('fixAsides', () => {
   it('rewrites a theme note with its label', () => {
     const html =
       '<aside role="note" class="note"><header><calcite-icon></calcite-icon><span>Warning</span></header><div class="contents"><p>Careful.</p></div></aside>';
-    expect(applyPass(html, fixAsides)).toBe('<blockquote><p><strong>Warning:</strong></p><p>Careful.</p></blockquote>');
+    expect(applyPass(html, fixAsides)).toBe(
+      '<blockquote><p><strong>Warning:</strong></p><p>Careful.</p></blockquote>',
+    );
   });
 
   it('labels a theme note "Note" when it has no label', () => {
@@ -121,11 +134,23 @@ describe('fixAsides', () => {
   });
 
   it.each([
-    ['a doc.esri.com alert', '<div class="alert alert-license"><h5>License:</h5><p>Standard only.</p></div>', 'License'],
+    [
+      'a doc.esri.com alert',
+      '<div class="alert alert-license"><h5>License:</h5><p>Standard only.</p></div>',
+      'License',
+    ],
     ['a DocFX note', '<div class="WARNING"><h5>Warning</h5><p>Standard only.</p></div>', 'Warning'],
-    ['a legacy help panel', '<div class="panel trailer-1"><h5 class="icon">Tip:</h5><p>Standard only.</p></div>', 'Tip'],
+    [
+      'a legacy help panel',
+      '<div class="panel trailer-1"><h5 class="icon">Tip:</h5><p>Standard only.</p></div>',
+      'Tip',
+    ],
     ['a legacy help note', '<div class="note"><h5>Note: </h5><p>Standard only.</p></div>', 'Note'],
-    ['a Sphinx admonition', '<div class="admonition warning"><p class="admonition-title">Caution</p><p>Standard only.</p></div>', 'Caution'],
+    [
+      'a Sphinx admonition',
+      '<div class="admonition warning"><p class="admonition-title">Caution</p><p>Standard only.</p></div>',
+      'Caution',
+    ],
   ])('rewrites %s', (_kind, html, label) => {
     expect(applyPass(html, fixAsides)).toBe(
       `<blockquote><p><strong>${label}:</strong></p><p>Standard only.</p></blockquote>`,
@@ -142,16 +167,20 @@ describe('fixAsides', () => {
   });
 
   it('quotes a box that carries its own bold label without adding a second one', () => {
-    expect(applyPass('<div class="admonition note"><p><b>Note:</b> Inline label.</p></div>', fixAsides)).toBe(
-      '<blockquote><p><b>Note:</b> Inline label.</p></blockquote>',
-    );
-    expect(applyPass('<div class="note"><p><strong>Known limits</strong></p><p>Five.</p></div>', fixAsides)).toBe(
-      '<blockquote><p><strong>Known limits</strong></p><p>Five.</p></blockquote>',
-    );
+    expect(
+      applyPass('<div class="admonition note"><p><b>Note:</b> Inline label.</p></div>', fixAsides),
+    ).toBe('<blockquote><p><b>Note:</b> Inline label.</p></blockquote>');
+    expect(
+      applyPass(
+        '<div class="note"><p><strong>Known limits</strong></p><p>Five.</p></div>',
+        fixAsides,
+      ),
+    ).toBe('<blockquote><p><strong>Known limits</strong></p><p>Five.</p></blockquote>');
   });
 
   it('leaves layout boxes without a label alone', () => {
-    const html = '<div class="panel"><p>Just a box.</p></div><div class="alert"><p>Banner.</p></div>';
+    const html =
+      '<div class="panel"><p>Just a box.</p></div><div class="alert"><p>Banner.</p></div>';
     expect(applyPass(html, fixAsides)).toBe(html);
   });
 
@@ -166,7 +195,8 @@ describe('fixAsides', () => {
 
 describe('fixDl', () => {
   it('turns terms and definitions into bullets and strips the trailing colon', () => {
-    const html = '<dl><dt>Since:</dt><dd>2.1</dd><dt><span>Type:</span></dt><dd><code>string</code></dd></dl>';
+    const html =
+      '<dl><dt>Since:</dt><dd>2.1</dd><dt><span>Type:</span></dt><dd><code>string</code></dd></dl>';
     expect(applyPass(html, fixDl)).toBe(
       '<ul><li><strong>Since:</strong> 2.1</li><li><strong><span>Type</span>:</strong> <code>string</code></li></ul>',
     );
@@ -180,7 +210,8 @@ describe('fixDl', () => {
   });
 
   it('reads grouped entries (dl > div > dt + dd)', () => {
-    const html = '<dl><div><dt>Kind</dt><dd>class</dd></div><div><p>stray</p></div><p>stray</p></dl>';
+    const html =
+      '<dl><div><dt>Kind</dt><dd>class</dd></div><div><p>stray</p></div><p>stray</p></dl>';
     expect(applyPass(html, fixDl)).toBe('<ul><li><strong>Kind:</strong> class</li></ul>');
   });
 
@@ -202,7 +233,8 @@ describe('fixDl', () => {
 
 describe('unwrapBlockyInline', () => {
   it('drops emphasis that wraps block content and keeps inline emphasis', () => {
-    const html = '<em><p>Block.</p></em><strong><ul><li>x</li></ul></strong><p><em>inline</em> <b>bold</b></p>';
+    const html =
+      '<em><p>Block.</p></em><strong><ul><li>x</li></ul></strong><p><em>inline</em> <b>bold</b></p>';
     expect(applyPass(html, unwrapBlockyInline)).toBe(
       '<p>Block.</p><ul><li>x</li></ul><p><em>inline</em> <b>bold</b></p>',
     );
@@ -223,7 +255,8 @@ describe('absolutize', () => {
   });
 
   it('keeps the text of script links and bare fragment links, without the link', () => {
-    const html = '<a href="javascript:void(0)">run</a> <a href="#" onclick="go()">Top <b>now</b></a> <a href="">empty</a>';
+    const html =
+      '<a href="javascript:void(0)">run</a> <a href="#" onclick="go()">Top <b>now</b></a> <a href="">empty</a>';
     expect(applyPass(html, absolutize, env)).toBe('run Top <b>now</b> empty');
   });
 
