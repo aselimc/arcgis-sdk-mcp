@@ -330,15 +330,13 @@ const arcpy: Product = {
     { ...LATEST, label: 'Pro 3.7' },
     // The same lines as product arcgis-pro: the two previous releases are read on demand,
     // older ones are links only, for the help and for this reference alike.
-    ...PRO_LEGACY_LINES.map(
-      (id): VersionLine => ({
-        id,
-        label: `Pro ${id}`,
-        current: false,
-        access: PRO_LIVE_LINES.has(id) ? 'live' : 'link-only',
-        vars: {},
-      }),
-    ),
+    ...PRO_LEGACY_LINES.map((id): VersionLine => ({
+      id,
+      label: `Pro ${id}`,
+      current: false,
+      access: PRO_LIVE_LINES.has(id) ? 'live' : 'link-only',
+      vars: {},
+    })),
   ],
   sources: [
     proSection('arcpy', 'ArcPy reference', 'arcpy/', 1050, {}, { floor: true }),

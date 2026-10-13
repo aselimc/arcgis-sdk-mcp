@@ -336,7 +336,9 @@ export function createRouter(
   /** A confidence with the product's prior applied (see {@link PRIOR}). */
   const withPrior = (id: string, confidence: number): number => {
     const prior = PRIOR[id] ?? 1;
-    return prior === 1 ? confidence : Math.min(confidence * prior, Math.max(confidence, PRIOR_CEILING));
+    return prior === 1
+      ? confidence
+      : Math.min(confidence * prior, Math.max(confidence, PRIOR_CEILING));
   };
 
   /** The default set for a query that decided nothing, as far as the registry has it. */
@@ -419,9 +421,7 @@ export function createRouter(
       ];
     } else {
       // An identifier is one name: only a product that lists it whole knows it.
-      const evidence = byVocabulary(
-        identifier ? [stem(query.trim().toLowerCase())] : terms(query),
-      );
+      const evidence = byVocabulary(identifier ? [stem(query.trim().toLowerCase())] : terms(query));
       const best = evidence[0];
       if (best === undefined) return undecided();
       // Words that many products share equally (`maps sdk`) single none of them out. The

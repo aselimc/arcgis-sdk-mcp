@@ -3,7 +3,7 @@ import { DEVELOPERS_ORIGIN as D } from '../../../src/core/names.js';
 import type { Product } from '../../../src/core/types.js';
 import { aiProducts } from '../../../src/registry/data/ai.js';
 import { devopsOssProducts } from '../../../src/registry/data/devops-oss.js';
-import { helpDeveloperLinks, helpProducts } from '../../../src/registry/data/help.generated.js';
+import { helpDeveloperLinks } from '../../../src/registry/data/help.generated.js';
 import { legacyProducts } from '../../../src/registry/data/legacy.js';
 import { restServicesProducts } from '../../../src/registry/data/rest-services.js';
 import { specsProducts } from '../../../src/registry/data/specs.js';

@@ -136,7 +136,7 @@ describe('one-line member index', () => {
   });
 
   it('adds nothing to a line that is a sentence', () => {
-    expect(properties).toContain('- `scale`: Size of the map.\n');
+    expect(properties?.split('\n').at(-1)).toBe('- `scale`: Size of the map.');
   });
 });
 

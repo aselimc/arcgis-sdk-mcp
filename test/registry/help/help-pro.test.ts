@@ -44,7 +44,10 @@ const SCRIPTS: Record<string, unknown> = {
   start: 30,
 };
 
-function makeRules(sources: Record<string, Partial<SourceRule>>, complete: string[] = []): ProRules {
+function makeRules(
+  sources: Record<string, Partial<SourceRule>>,
+  complete: string[] = [],
+): ProRules {
   return {
     product: 'desk',
     liveLines: ['2.0'],

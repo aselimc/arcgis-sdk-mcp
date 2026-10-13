@@ -13,7 +13,7 @@
  * - {@link listFromCurrent}: the topics of a book as the current release lists them, for a
  *   release that publishes no listing of its own.
  */
-import { bindSource } from '../../core/adapter-helpers.js';
+import { bindSource, humanizeSlug } from '../../core/adapter-helpers.js';
 import { BREADCRUMB_SEPARATOR } from '../../core/names.js';
 import type { BoundSource, Ctx } from '../../core/ports.js';
 import type { AnySourceDef, CatalogRecord } from '../../core/types.js';
@@ -91,8 +91,17 @@ export async function symbolNamer(
   (topic: Pick<ListedTopic, 'title' | 'ancestors'>, path: string) => SymbolFields | undefined
 > {
   const name = await tocSymbolNamer(ctx, twin.source);
+  // The rule for tools asks for a "... toolbox" group above the entry, which the table of
+  // contents of the whole reference has. A book that is the directory of one toolbox lists
+  // its toolsets at the top: the book itself is that group.
+  const book = twin.within.replace(/\/+$/, '');
+  const above =
+    twin.source.source.config.gpParameters === true && book !== '' && !book.includes('/')
+      ? [`${humanizeSlug(book)} toolbox`]
+      : [];
   return (topic, path) => {
-    const fields = name({ title: topic.title, ancestors: topic.ancestors }, currentPath(path));
+    const entry = { title: topic.title, ancestors: [...above, ...topic.ancestors] };
+    const fields = name(entry, currentPath(path));
     return fields === undefined ? undefined : { ...fields, language: 'python' };
   };
 }

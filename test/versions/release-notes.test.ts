@@ -258,7 +258,9 @@ describe('locateReleaseNotes', () => {
       /\/whats-new-(?:api-)?(\d+(?:-\d+)+)-(net|java|cdf)\/$/,
     );
     // Newest release first; inside a release the order the pattern names the variants in.
-    expect(pages.map((page) => `${page.version} ${page.variant} ${page.url.slice(guide.length)}`)).toEqual([
+    expect(
+      pages.map((page) => `${page.version} ${page.variant} ${page.url.slice(guide.length)}`),
+    ).toEqual([
       '12.1 net /net/whats-new-12-1-net/',
       '12.1 net /net/whats-new-api-12-1-net/',
       '12.1 java /java/whats-new-12-1-java/',

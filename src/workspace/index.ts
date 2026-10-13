@@ -118,7 +118,8 @@ function signalSightings(file: ScannedFile, products: readonly Product[]): Sight
       }
       if (match === null) continue;
       const chosen = signalPackage(product, signal);
-      const raw = (signal.versionGroup === undefined ? undefined : match[signal.versionGroup]) ?? '';
+      const raw =
+        (signal.versionGroup === undefined ? undefined : match[signal.versionGroup]) ?? '';
       const version = cleanVersion(raw);
       found.push({
         product,
@@ -210,16 +211,14 @@ export async function scanWorkspace(
         Number(b.primary) - Number(a.primary) ||
         a.package.localeCompare(b.package),
     )
-    .map(
-      ({ product, package: name, version, file, exact, range }): DetectedSdk => ({
-        product: product.id,
-        package: name,
-        version,
-        file,
-        exact,
-        ...(range === undefined ? {} : { range }),
-      }),
-    );
+    .map(({ product, package: name, version, file, exact, range }): DetectedSdk => ({
+      product: product.id,
+      package: name,
+      version,
+      file,
+      exact,
+      ...(range === undefined ? {} : { range }),
+    }));
 
   if (truncated) logger.warn('workspace scan stopped at a limit', { files: files.length });
   for (const hit of dead) {

@@ -337,7 +337,7 @@ describe('checkLinks', () => {
     ctx.http.on(`${D}/widgets/`, page);
     const first = makeProduct({ homepage: `${D}/widgets/` });
     const second = makeProduct({ id: 'gadgets-sdk', homepage: `${D}/widgets/` });
-    const results = await checkLinks(ctx, [first, second], async () => {});
+    const results = await checkLinks(ctx, [first, second], () => Promise.resolve());
     expect(results.map((result) => result.ok)).toEqual([true, true]);
     expect(ctx.http.count(`${D}/widgets/`)).toBe(1);
   });

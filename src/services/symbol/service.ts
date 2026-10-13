@@ -3,6 +3,7 @@
  * it through its source's adapter and trims it to the requested detail. Once a record is
  * resolved the lookup no longer fails for an upstream problem (see `read.ts`).
  */
+import { bindSource } from '../../core/adapter-helpers.js';
 import { formatCall, joinSections } from '../../core/budget.js';
 import { McpDocError } from '../../core/errors.js';
 import { TOOLS } from '../../core/names.js';
@@ -464,35 +465,48 @@ export function createSymbolService(
 
       /**
        * The read call that continues a text at the offset where the budget cut it, or
-       * `undefined` when a read of the page would not page over the same text: the page came
-       * from an adapter's own symbol method or from another source than the one that owns its
-       * URL, or the reader would show other sections.
+       * `undefined` when a read of the page would not page over the same text. A cursor is
+       * only worth issuing when it is certain to be accepted, so the page is read the way
+       * `arcgis_docs_read` will read it (from the cache, since it was just fetched) and the
+       * two texts are compared: an adapter's own symbol method, another source answering for
+       * the URL, or sections the reader adds all make them differ.
        */
-      const continuation = (text: SymbolText): string | undefined => {
+      const continuation = async (text: SymbolText): Promise<string | undefined> => {
         if (text.cutOffset === undefined) return undefined;
         const source = target.product.sources.find((candidate) => candidate.id === page.source);
         if (source === undefined) return undefined;
-        let owner;
-        try {
-          if (adapters.get(source.adapter).symbol !== undefined) return undefined;
-          owner = ctx.registry.ownerOf(new URL(page.url));
-        } catch {
-          return undefined;
-        }
-        if (owner?.product.id !== target.product.id || owner.source.id !== source.id) {
-          return undefined;
-        }
-        const all = pagedSections(page, 'all');
-        const fragment = winner.record.parent === undefined ? undefined : fragmentOf(winner.record.ref);
-        const shown =
-          fragment === undefined ? all : resolveSection(page, all, fragment)?.sections;
-        if (shown === undefined || joinSections(shown) !== joinSections(text.own)) return undefined;
+        const fragment =
+          winner.record.parent === undefined ? undefined : fragmentOf(winner.record.ref);
         const ref = fragment === undefined ? page.url : winner.record.ref;
-        return formatCall(TOOLS.read, {
-          ref,
-          view: 'full',
-          cursor: readCursor(page.ref, fragment, shown, text.cutOffset),
-        });
+        try {
+          const url = new URL(ref);
+          const owner = ctx.registry.ownerOf(url);
+          if (owner?.product.id !== target.product.id || owner.source.id !== source.id) {
+            return undefined;
+          }
+          const record = index.record(url.href);
+          const readerPage = await adapters
+            .get(source.adapter)
+            .read(ctx, bindSource(target.product, source, owner.line, undefined, call.budget), {
+              url,
+              ...(fragment === undefined ? {} : { select: { section: fragment, member: fragment } }),
+              ...(record === undefined ? {} : { record }),
+            });
+          const all = pagedSections(readerPage, 'all');
+          const shown =
+            fragment === undefined ? all : resolveSection(readerPage, all, fragment)?.sections;
+          if (shown === undefined || joinSections(shown) !== joinSections(text.own)) {
+            return undefined;
+          }
+          return formatCall(TOOLS.read, {
+            ref,
+            view: 'full',
+            cursor: readCursor(readerPage.ref, fragment, shown, text.cutOffset),
+          });
+        } catch (error) {
+          ctx.logger.debug('no continuation cursor for a cut lookup', { ref, error });
+          return undefined;
+        }
       };
 
       let next: string | undefined;
@@ -511,10 +525,10 @@ export function createSymbolService(
           symbol: name,
           product: winner.record.product,
           detail: 'full',
-          ...(shaped.cutOffset === undefined ? {} : { max_tokens: enough }),
+          ...(shaped.budgetCut ? { max_tokens: enough } : {}),
         });
         const restart = formatCall(TOOLS.read, { ref: winner.record.ref, view: 'full' });
-        next = continuation(shaped) ?? (req.detail === 'full' ? restart : fuller);
+        next = (await continuation(shaped)) ?? (req.detail === 'full' ? restart : fuller);
       }
       return {
         record: winner.record,

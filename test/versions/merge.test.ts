@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { VersionFact } from '../../src/core/types.js';
 import { mergeFacts } from '../../src/versions/merge.js';
 import { dotnetProduct, javaProduct, jsProduct, pythonProduct, restJsProduct } from './products.js';
+import { makeProduct } from '../support/builders.js';
 
 const fact = (
   partial: Partial<VersionFact> & Pick<VersionFact, 'role' | 'value'>,
@@ -169,5 +170,45 @@ describe('mergeFacts: evidence', () => {
     ]);
     expect(merged.facts.map((entry) => entry.tag)).toEqual(['ga', 'mature', 'retirement']);
     expect(mergeFacts(jsProduct, [])).toEqual({ facts: [], mismatches: [], notices: [] });
+  });
+});
+
+// Regression of a fix: Esri Leaflet lists its plug-ins as packages, each with its own
+// version oracle. Their version numbers are their own, not a second opinion on the core.
+describe('mergeFacts: companion packages', () => {
+  const leaflet = makeProduct({
+    id: 'esri-leaflet',
+    name: 'Esri Leaflet',
+    packages: [
+      { registry: 'npm', name: 'esri-leaflet', license: 'apache-2.0', primary: true },
+      { registry: 'npm', name: 'esri-leaflet-vector', license: 'apache-2.0' },
+    ],
+  });
+  const facts = [
+    npm('esri-leaflet-vector', 'latest', '4.3.2'),
+    npm('esri-leaflet', 'latest', '3.0.19'),
+  ];
+
+  it('reports the plug-in after the core package and sees no mismatch between them', () => {
+    const merged = mergeFacts(leaflet, facts);
+    expect(merged.facts.map((entry) => `${entry.package} ${entry.value}`)).toEqual([
+      'esri-leaflet 3.0.19',
+      'esri-leaflet-vector 4.3.2',
+    ]);
+    expect(merged.installable?.value).toBe('3.0.19');
+    expect(merged.mismatches).toEqual([]);
+  });
+
+  it('still compares a channel that is not one of the product packages', () => {
+    const release = fact({
+      role: 'installable',
+      value: '3.1.0',
+      registry: 'github',
+      package: 'Esri/esri-leaflet',
+      oracle: 'github-release',
+    });
+    expect(mergeFacts(leaflet, [...facts, release]).mismatches).toEqual([
+      'github Esri/esri-leaflet has 3.1.0, which is newer than npm esri-leaflet 3.0.19.',
+    ]);
   });
 });

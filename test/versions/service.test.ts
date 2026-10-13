@@ -333,7 +333,10 @@ describe('version report: the project', () => {
     const before = await service.report({ product: 'js-maps-sdk' }, makeCall(ctx));
     expect(before.products[0]?.project?.version).toBe('4.33.0');
 
-    project.write(ctx.config.projectDir, packageJson({ '@arcgis/core': '5.1.4', 'esri-loader': '3.7.0' }));
+    project.write(
+      ctx.config.projectDir,
+      packageJson({ '@arcgis/core': '5.1.4', 'esri-loader': '3.7.0' }),
+    );
     ctx.clock.advance(2 * MINUTE);
     const after = await service.report({ product: 'js-maps-sdk' }, makeCall(ctx));
     expect(after.products[0]?.project?.version).toBe('5.1.4');

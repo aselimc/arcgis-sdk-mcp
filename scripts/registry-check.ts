@@ -583,7 +583,9 @@ async function main(args: readonly string[]): Promise<number> {
     console.log(`probe   ${result.product}/${result.source}: ${state} (${result.ms} ms)`);
   }
   for (const result of links.filter((entry) => !entry.ok)) {
-    console.log(`link    ${result.product} ${result.where}: FAILED ${result.url} (${result.error ?? ''})`);
+    console.log(
+      `link    ${result.product} ${result.where}: FAILED ${result.url} (${result.error ?? ''})`,
+    );
   }
   for (const result of kinds) {
     const state =

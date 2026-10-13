@@ -203,9 +203,7 @@ function listRows(table: TextTable, about: CompatibilityContext): CompatibilityR
  */
 export function readTable(table: TextTable, about: CompatibilityContext): TableReading {
   const subject = subjectOf(table, about.product);
-  const versioned = table.rows.filter((cells) =>
-    isVersionCell(cells[subject.column] ?? ''),
-  ).length;
+  const versioned = table.rows.filter((cells) => isVersionCell(cells[subject.column] ?? '')).length;
   if (versioned * 2 < table.rows.length) {
     return { rows: listRows(table, about).slice(0, MAX_ROWS) };
   }

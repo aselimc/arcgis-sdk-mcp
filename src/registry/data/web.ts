@@ -768,22 +768,16 @@ function mappingLibrary(spec: {
     ...(spec.npmPackage === undefined ? {} : { workspaceSignals: [npmSignal(spec.npmPackage)] }),
     lines: [LATEST],
     sources: [
-      gatsbySite(
-        'guide',
-        spec.base,
-        spec.pages,
-        spec.options,
-        {
-          title: `${sections.slice(0, -1).join(', ')} and ${sections.at(-1) ?? ''}`,
-          kinds: [
-            'guide',
-            'tutorial',
-            ...(spec.samples === true ? (['sample'] as const) : []),
-            ...(hasApi ? (['api'] as const) : []),
-            ...(spec.releaseNotes === undefined ? [] : (['release-notes'] as const)),
-          ],
-        },
-      ),
+      gatsbySite('guide', spec.base, spec.pages, spec.options, {
+        title: `${sections.slice(0, -1).join(', ')} and ${sections.at(-1) ?? ''}`,
+        kinds: [
+          'guide',
+          'tutorial',
+          ...(spec.samples === true ? (['sample'] as const) : []),
+          ...(hasApi ? (['api'] as const) : []),
+          ...(spec.releaseNotes === undefined ? [] : (['release-notes'] as const)),
+        ],
+      }),
     ],
     // A plug-in has its own version numbers; each one is asked about separately.
     oracles: packages.map((name) => npmDistTags(name)),

@@ -19,8 +19,7 @@ import { defineOracle, option, resolveUrl } from './kit.js';
 export const staticOracle = defineOracle('static', undefined, (_ctx, product, spec, run) => {
   const url = resolveUrl(option(spec, 'url') ?? product.homepage, run.line);
   const facts: VersionFact[] = [];
-  const value =
-    option(spec, 'version') ?? /\d+(?:\.\d+)+/.exec(product.statusNote ?? '')?.[0];
+  const value = option(spec, 'version') ?? /\d+(?:\.\d+)+/.exec(product.statusNote ?? '')?.[0];
   if (value !== undefined) facts.push({ role: 'documented', value, oracle: 'static', url });
   for (const tag of ['ga', 'mature', 'retirement'] as const) {
     const date = parseDate(option(spec, tag));

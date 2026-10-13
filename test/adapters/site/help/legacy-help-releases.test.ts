@@ -4,7 +4,7 @@ import { bindSource } from '../../../../src/core/adapter-helpers.js';
 import { makeDocPage, makeLine, makeProduct, makeSource } from '../../../support/builders.js';
 import type { TestCtx } from '../../../support/make-ctx.js';
 import { rendererOf } from '../contract.js';
-import { PYTHON, proCtx, python, withoutSiteIndex } from './docfx-setup.js';
+import { PYTHON, proCtx, python, tools, withoutSiteIndex } from './docfx-setup.js';
 
 /**
  * An earlier release of a product whose current release is documented on doc.esri.com. The
@@ -230,5 +230,61 @@ describe('legacy-help: a release that lists its own books', () => {
     const records = await legacyHelpAdapter.enumerate!(ctx, src);
     expect(records).toHaveLength(3);
     expect(records.every((record) => record.symbol === undefined)).toBe(true);
+  });
+
+  // A toolbox book lists its toolsets at the top: nothing in its own tree says "toolbox",
+  // which is what tells a tool from a topic in the table of contents of the whole reference.
+  it('names the tools of a toolbox book', async () => {
+    const TOOLBOX = `${RELEASE}tool-reference/shaping/`;
+    const toolbox = {
+      ...earlier,
+      id: 'legacy-tools',
+      config: {
+        ...earlier.config,
+        books: [
+          {
+            path: 'tool-reference/shaping',
+            tocScript: '/en/widgets-pro/{line}/tool-reference/shaping/1484.js',
+          },
+        ],
+      },
+    };
+    const tree = [
+      'treedata = (window.treedata || {}); treedata.data = {};',
+      node('root', { parent: '', children: ['1484_1', '1484_h0'] }),
+      node('1484_1', {
+        parent: 'root',
+        label: 'An overview of the Shaping toolbox',
+        url: '/en/widgets-pro/3.5/tool-reference/shaping/an-overview-of-the-shaping-toolbox.htm',
+      }),
+      node('1484_h0', { parent: 'root', label: 'Edges toolset', children: ['1484_2', '1484_h1'] }),
+      node('1484_2', {
+        parent: '1484_h0',
+        label: 'Round Corners',
+        url: '/en/widgets-pro/3.5/tool-reference/shaping/round-corners.htm',
+      }),
+      node('1484_h1', { parent: '1484_h0', label: 'Edges toolset concepts', children: ['1484_3'] }),
+      node('1484_3', {
+        parent: '1484_h1',
+        label: 'How Round Corners works',
+        url: '/en/widgets-pro/3.5/tool-reference/shaping/how-round-corners-works.htm',
+      }),
+    ].join('\n');
+    const ctx = proCtx();
+    ctx.http.on(`${TOOLBOX}1484.js`, { body: tree });
+    const src = bindSource({ ...product, sources: [python, tools, toolbox] }, toolbox, release);
+    const records = await legacyHelpAdapter.enumerate!(ctx, src);
+
+    expect(records.map((record) => [record.title, record.qualified, record.symbolKind])).toEqual([
+      ['An overview of the Shaping toolbox', undefined, undefined],
+      ['Round Corners', 'arcpy.shaping.RoundCorners', 'tool'],
+      ['How Round Corners works', undefined, undefined],
+    ]);
+    expect(records[1]).toMatchObject({
+      ref: `${TOOLBOX}round-corners.htm`,
+      kind: 'api',
+      keywords: ['RoundCorners_shaping'],
+      breadcrumb: 'Edges toolset',
+    });
   });
 });

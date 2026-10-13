@@ -108,14 +108,24 @@ function documentedLine(
       ];
 }
 
-/** Other channels (a GitHub release, a second registry) that disagree with the primary one. */
-function channelLines(groups: readonly VersionFact[][]): string[] {
+/**
+ * Other channels (a GitHub release, a second registry) that disagree with the primary one.
+ * A companion package of the product (a plug-in such as `esri-leaflet-vector`) is not
+ * another channel of the same release: it has version numbers of its own, and a different
+ * number there is no disagreement.
+ */
+function channelLines(product: Product, groups: readonly VersionFact[][]): string[] {
   const primary = groups[0] === undefined ? undefined : channelCurrent(groups[0]);
   if (primary === undefined) return [];
+  const companions = new Set(
+    product.packages
+      .map((ref) => ref.name.toLowerCase())
+      .filter((name) => name !== primary.package?.toLowerCase()),
+  );
   const lines: string[] = [];
   for (const group of groups.slice(1)) {
     const other = channelCurrent(group);
-    if (other === undefined) continue;
+    if (other === undefined || companions.has(other.package?.toLowerCase() ?? '')) continue;
     const order = compareAtSharedPrecision(other.value, primary.value);
     if (order === undefined || order === 0) continue;
     lines.push(
@@ -183,7 +193,7 @@ export function mergeFacts(product: Product, facts: readonly VersionFact[]): Mer
     mismatches: [
       ...documentedLine(documented, installable),
       ...staleLatestLines(groups),
-      ...channelLines(groups),
+      ...channelLines(product, groups),
     ],
     notices,
   };

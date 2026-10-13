@@ -32,6 +32,8 @@ export interface SymbolText {
    * that text, so a reader can continue from the offset without repeating anything.
    */
   cutOffset?: number;
+  /** True when the budget, and not only the detail level, left text out. */
+  budgetCut: boolean;
   /** Tokens of the symbol's whole documentation, header included: what `full` would need. */
   totalTokens: number;
   /** The sections `cutOffset` indexes into. */
@@ -345,6 +347,7 @@ export function symbolText(
       historyDropped ||
       (detail === 'signature' && reduced),
     ...(continuous && fit.nextOffset !== undefined ? { cutOffset: fit.nextOffset } : {}),
+    budgetCut: fit.nextOffset !== undefined,
     totalTokens: headerTokens + tokensOf(own),
     own,
   };

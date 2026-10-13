@@ -147,18 +147,14 @@ export function createNoticeMatcher(products: readonly Product[]): NoticeMatcher
 
   return {
     concerns(notice, product) {
-      const rivals = [...phrasesOf]
-        .filter(([id]) => id !== product.id)
-        .flatMap(([, list]) => list);
+      const rivals = [...phrasesOf].filter(([id]) => id !== product.id).flatMap(([, list]) => list);
       return phrases(product).some((phrase) => {
         const claimed = occurrences(notice.subject, phrase).some(
           ([start, end]) =>
             !rivals.some(
               (rival) =>
                 rival.length > phrase.length &&
-                occurrences(notice.subject, rival).some(
-                  ([from, to]) => from <= start && to >= end,
-                ),
+                occurrences(notice.subject, rival).some(([from, to]) => from <= start && to >= end),
             ),
         );
         if (claimed) return true;

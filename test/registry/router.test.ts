@@ -220,11 +220,7 @@ describe('query routing', () => {
     const eligible = new Set(
       PRODUCTS.filter((product) => product.tier !== 'link').map((product) => product.id),
     );
-    const words = PRODUCTS.flatMap((product) => [
-      product.id,
-      product.name,
-      ...product.keywords,
-    ]);
+    const words = PRODUCTS.flatMap((product) => [product.id, product.name, ...product.keywords]);
     for (const query of words) {
       for (const entry of route(query, 5)) {
         expect(ids.has(entry.product)).toBe(true);
@@ -346,7 +342,9 @@ describe('createRouter', () => {
   });
 
   it('treats a product whose every source is a curated link list like a tombstone', () => {
-    const entries = [{ url: 'https://developers.arcgis.com/x/', title: 'X', kind: 'guide' as const }];
+    const entries = [
+      { url: 'https://developers.arcgis.com/x/', title: 'X', kind: 'guide' as const },
+    ];
     const card = makeProduct({
       id: 'old-gadgets',
       name: 'Old Gadgets',

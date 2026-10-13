@@ -311,7 +311,9 @@ describe('ranges and lock files', () => {
         },
       }),
     });
-    const core = (await scanWorkspace(deps(root))).sdks.find((sdk) => sdk.package === '@arcgis/core');
+    const core = (await scanWorkspace(deps(root))).sdks.find(
+      (sdk) => sdk.package === '@arcgis/core',
+    );
     expect(core).toEqual({
       product: 'js-maps-sdk',
       package: '@arcgis/core',

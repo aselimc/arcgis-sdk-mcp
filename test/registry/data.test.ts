@@ -188,12 +188,7 @@ const REPOSITORIES: Array<[string, string, string, string]> = [
   // An Unreal Engine sample is a README next to Blueprint assets, which are not code files:
   // `samples-readme` found none of them. A few carry a metadata file, and the sibling rule
   // of `samples-metadata` then finds every sample directory.
-  [
-    'unreal-maps-sdk',
-    'samples',
-    'Esri/arcgis-maps-sdk-unreal-engine-samples',
-    'samples-metadata',
-  ],
+  ['unreal-maps-sdk', 'samples', 'Esri/arcgis-maps-sdk-unreal-engine-samples', 'samples-metadata'],
   ['python-api', 'samples', 'Esri/arcgis-python-api', 'notebooks'],
   ['geoanalytics-engine', 'samples', 'Esri/geoanalytics-engine-samples', 'notebooks'],
   ['geoanalytics-fabric', 'samples', 'Esri/geoanalytics-fabric-samples', 'notebooks'],

@@ -177,8 +177,18 @@ describe('rowsFromTable', () => {
       expect(reading.own).toBe('2.37');
       // The row above is dated after today: it is ahead, although no version says so.
       expect(reading.rows).toEqual([
-        { with: 'JS SDK', value: '5.2.* (with Web map spec 2.38)', unreleased: true, source: MATRIX_URL },
-        { with: 'Web scene spec', value: '1.41 (with Web map spec 2.38)', unreleased: true, source: MATRIX_URL },
+        {
+          with: 'JS SDK',
+          value: '5.2.* (with Web map spec 2.38)',
+          unreleased: true,
+          source: MATRIX_URL,
+        },
+        {
+          with: 'Web scene spec',
+          value: '1.41 (with Web map spec 2.38)',
+          unreleased: true,
+          source: MATRIX_URL,
+        },
         { with: 'JS SDK', value: '5.1.*', unreleased: false, source: MATRIX_URL },
         { with: 'Web scene spec', value: '1.40', unreleased: false, source: MATRIX_URL },
       ]);
