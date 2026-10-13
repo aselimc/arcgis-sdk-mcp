@@ -145,13 +145,15 @@ const jsSources: AnySourceDef[] = [
         '^api-reference/',
         '/live/$',
         '^demo-apps/',
-        '^\\d+\\.\\d+/$',
+        // Dotted version pages are redirect stubs (see `releaseNotes` below).
+        '^(?:release-notes/)?\\d+\\.\\d+/$',
         '^references/',
         '^sample-code/',
       ],
       classify: [
         ['^tutorials/', 'tutorial'],
         ['^release-notes', 'release-notes'],
+        ['^v\\d+-\\d+/$', 'release-notes'],
       ],
     },
     capability: 'website',

@@ -74,7 +74,8 @@ function guide(
       // Each is a meta refresh to a page that is listed anyway.
       exclude: ['\\.htm$', '-heading/$'],
       classify: [
-        ['^tutorials/', 'tutorial'],
+        // Tutorials sit under their topic (`layers/tutorials/add-a-feature-layer/`).
+        ['(?:^|/)tutorials/', 'tutorial'],
         ['^sample-code/', 'sample'],
         ['^release-notes/', 'release-notes'],
         ['(?:^|/)api-reference/', 'api'],

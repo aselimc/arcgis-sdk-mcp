@@ -264,7 +264,8 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
   // One entry per name: a namesake cannot be told apart by the pair a caller copies.
   const named = new Map<string, Candidate>();
   for (const candidate of candidates) {
-    if (!named.has(identityOf(candidate.record))) named.set(identityOf(candidate.record), candidate);
+    if (!named.has(identityOf(candidate.record)))
+      named.set(identityOf(candidate.record), candidate);
   }
   return { kind: 'ambiguous', candidates: [...named.values()].slice(0, MAX_AMBIGUOUS) };
 }

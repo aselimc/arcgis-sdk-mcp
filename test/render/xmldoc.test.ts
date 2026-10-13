@@ -236,7 +236,9 @@ describe('renderXmldoc: overloads', () => {
       meta,
       { detail: 'signature' },
     );
-    expect(one.sections[0]?.markdown).toContain('### `Run<T>`\n\n```csharp\nDock.Run<T>(Func<T>)\n```');
+    expect(one.sections[0]?.markdown).toContain(
+      '### `Run<T>`\n\n```csharp\nDock.Run<T>(Func<T>)\n```',
+    );
     const two = renderXmldoc(
       { xml: unnamed, memberId: 'M:Example.Queue.Dock.Pair``2(``0,``1)' },
       meta,

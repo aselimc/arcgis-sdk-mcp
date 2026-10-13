@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { matchUrlFilter } from '../../src/core/adapter-helpers.js';
+import { classifyUrl, matchUrlFilter } from '../../src/core/adapter-helpers.js';
 import { sourceRootUrl } from '../../src/core/source-urls.js';
-import type { AnySourceDef, Product } from '../../src/core/types.js';
+import type { AnySourceDef, DocKind, Product } from '../../src/core/types.js';
 import { desktopEnterpriseProducts } from '../../src/registry/data/desktop-enterprise.js';
 import { nativeProducts } from '../../src/registry/data/native.js';
 import { pythonProducts } from '../../src/registry/data/python.js';
@@ -255,6 +255,26 @@ describe('registry data of design sections 4.1 to 4.4', () => {
     expect(product(productId).repos.map((ref) => ref.repo)).toContain(repo);
   });
 
+  // Regression: the sitemap of a native SDK lists the `.htm` addresses of the Runtime
+  // documentation and a `-heading/` page per navigation group. All are redirect stubs; for
+  // .NET they were almost half of the guide records.
+  it.each(['swift', 'kotlin', 'dotnet', 'qt', 'flutter', 'java'])(
+    '%s-maps-sdk/guide leaves the redirect stubs of its sitemap out',
+    (sdk) => {
+      const { config } = source(`${sdk}-maps-sdk`, 'guide');
+      const kept = (path: string) => matchUrlFilter(path, config as { exclude?: string[] });
+      expect(kept('android/latest/sample-code/display-map.htm')).toBe(false);
+      expect(kept('device-location-heading/')).toBe(false);
+      expect(kept('device-location/')).toBe(true);
+      expect(kept('sample-code/display-map/')).toBe(true);
+      expect(kept('api-reference/html/class.html')).toBe(true);
+      // Tutorials sit under their topic, not under one tutorials/ directory.
+      const filter = config as { classify?: Array<[string, DocKind]> };
+      expect(classifyUrl('layers/tutorials/add-a-feature-layer/', filter)).toBe('tutorial');
+      expect(classifyUrl('layers/feature-layers/', filter)).toBe('guide');
+    },
+  );
+
   it.each(ORACLES)('%s asks the oracles %j', (id, types) => {
     expect(product(id).oracles.map((oracle) => oracle.type)).toEqual(types);
   });
@@ -364,9 +384,16 @@ describe('JavaScript SDK', () => {
     expect(owners('sample-code/some/live/')).toEqual(['samples']);
     expect(owners('demo-apps/some/')).toEqual([]);
     expect(owners('4.10/')).toEqual([]);
+    // Dotted version pages are redirect stubs; the notes of a release are at v<major>-<minor>/.
+    expect(owners('release-notes/4.9/')).toEqual([]);
+    expect(owners('release-notes/')).toEqual(['guide']);
+    expect(owners('v5-0/')).toEqual(['guide']);
+    expect(classifyUrl('v5-0/', guide.config)).toBe('release-notes');
+    expect(classifyUrl('vector-tiles-v2-0/', guide.config)).toBe('guide');
     expect(guide.config.classify).toEqual([
       ['^tutorials/', 'tutorial'],
       ['^release-notes', 'release-notes'],
+      ['^v\\d+-\\d+/$', 'release-notes'],
     ]);
     expect(guide.config.searchIndexes).toEqual([{ url: 'guide-topic-search.json', role: 'guide' }]);
     expect(core.config.searchIndexes).toEqual([{ url: 'references-search.json', role: 'api' }]);
