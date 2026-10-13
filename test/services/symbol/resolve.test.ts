@@ -217,6 +217,40 @@ describe('resolveSymbol: the resolution table', () => {
     );
   });
 
+  // Regression: with a member that many types share, a misspelt or module-qualified type
+  // was ignored and the answer was an ambiguity between unrelated types.
+  describe('a written type that is not a known type', () => {
+    const owners = ['PierLayer', 'HarbourLayer', 'TideLayer', 'QuayLayer', 'BuoyLayer'];
+    const records = owners.flatMap((owner) => [
+      makeRecord({
+        ref: `https://d/${owner}/`,
+        symbol: owner,
+        qualified: `pkg/${owner}`,
+        symbolKind: 'class',
+      }),
+      makeRecord({
+        ref: `https://d/${owner}/#queryBerths`,
+        symbol: 'queryBerths',
+        qualified: `pkg/${owner}.queryBerths`,
+        parent: `pkg/${owner}`,
+        symbolKind: 'method',
+      }),
+    ]);
+    const widgets = scope('widgets-sdk', records);
+
+    it.each([
+      ['TideLayr.queryBerths', 'found:pkg/TideLayer.queryBerths@simple'],
+      ['TideLayr.queryBerthz', 'found:pkg/TideLayer.queryBerths@fuzzy'],
+      ['layers/TideLayer.queryBerths', 'found:pkg/TideLayer.queryBerths@simple'],
+    ])('%s -> %s', (input, expected) => {
+      expect(outcome(resolveSymbol(input, [widgets]))).toBe(expected);
+    });
+
+    it('stays ambiguous when the written type resembles none of the owners', () => {
+      expect(resolveSymbol('Unrelated.queryBerths', [widgets]).kind).toBe('ambiguous');
+    });
+  });
+
   it('names a record without a qualified name by its symbol', () => {
     expect(displayName(makeRecord({ symbol: 'arcgis-map' }))).toBe('arcgis-map');
     expect(displayName(makeRecord())).toBe('');

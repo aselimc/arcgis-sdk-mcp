@@ -10,16 +10,22 @@ import type {
   AdapterRegistry,
   Ctx,
   IndexState,
+  ProductResolution,
   SymbolResponse,
   SymbolService,
 } from '../../core/ports.js';
+import { nearest } from '../../core/text-distance.js';
+import { normalizeSymbol } from '../../core/tokenize.js';
+import type { CatalogRecord, DocPage } from '../../core/types.js';
+import { simpleName } from '../index/symbol-map.js';
 import type { IndexInternals } from '../index/types.js';
 import { resolveScope } from '../scope.js';
 import { symbolText } from './detail.js';
-import { nearestNames, notFoundError } from './not-found.js';
+import { MAX_NEAREST, nearestNames, notFoundError } from './not-found.js';
 import { createSymbolReader } from './read.js';
-import { displayName, resolveSymbol, type SymbolScope } from './resolve.js';
-import { sourceRank, symbolSources, targetOf } from './target.js';
+import { displayName, resolveSymbol, type Candidate, type SymbolScope } from './resolve.js';
+import { VERSION_ADDRESSED, sourceRank, symbolSources, targetOf, type Target } from './target.js';
+import { isTypeNamed, memberCandidate, memberEntry, ownerName } from './type-member.js';
 
 /** Most products a lookup without a `product` argument covers. */
 const MAX_ROUTED_PRODUCTS = 3;
@@ -56,11 +62,61 @@ export function createSymbolService(
       }
 
       const resolution = resolveSymbol(req.symbol, scopes);
+      const memberName = normalizeSymbol(req.symbol).simple;
+      /** The target and resolution of the product a record belongs to. */
+      const placeOf = (product: string): { target: Target; resolved: ProductResolution } => {
+        const position = targets.findIndex((target) => target.product.id === product);
+        const target = targets[position];
+        const resolved = scope.resolutions[position];
+        if (target === undefined || resolved === undefined) {
+          throw new McpDocError('INTERNAL', 'A resolved symbol has no product in scope');
+        }
+        return { target, resolved };
+      };
+      /**
+       * Reads `member` out of the page of a type whose source lists no members. `undefined`
+       * when the page has no such member; `names` then holds the members it does have.
+       */
+      const readFromType = async (
+        type: CatalogRecord,
+        member: string,
+      ): Promise<{ winner: Candidate; page: DocPage } | { names: string[] }> => {
+        const candidate = memberCandidate(type, member);
+        const page = await reader.read(placeOf(type.product).target, candidate, req.detail, call);
+        const entry = memberEntry(page, member);
+        if (entry === undefined) {
+          const known = (page.members ?? []).map((item) => item.name);
+          return { names: nearest(member, known, MAX_NEAREST) };
+        }
+        // The page spells the name; the caller may have differed in case.
+        return { winner: memberCandidate(type, entry.name), page };
+      };
+
+      let winner: Candidate;
+      let alternates: Candidate[] = [];
+      let read: DocPage | undefined;
       if (resolution.kind === 'none') {
-        const names = nearestNames(index, req, targets, resolution.knownType);
-        throw notFoundError(req, targets, states, names, resolution.knownType);
-      }
-      if (resolution.kind === 'ambiguous') {
+        const { knownType } = resolution;
+        const listed =
+          knownType === undefined
+            ? []
+            : index
+                .symbols(knownType.product, placeOf(knownType.product).target.line.id)
+                .members(displayName(knownType));
+        // A source that lists types only (package typings) still documents their members.
+        const fromType =
+          knownType !== undefined && listed.length === 0
+            ? await readFromType(knownType, memberName)
+            : undefined;
+        if (fromType === undefined || 'names' in fromType) {
+          const names =
+            fromType !== undefined && knownType !== undefined && fromType.names.length > 0
+              ? fromType.names.map((name) => `${displayName(knownType)}.${name}`)
+              : nearestNames(index, req, targets, knownType);
+          throw notFoundError(req, targets, states, names, knownType);
+        }
+        ({ winner, page: read } = fromType);
+      } else if (resolution.kind === 'ambiguous') {
         const pairs = resolution.candidates.map((candidate) => ({
           symbol: displayName(candidate.record),
           product: candidate.record.product,
@@ -74,19 +130,43 @@ export function createSymbolService(
             next: formatCall(TOOLS.lookupSymbol, { ...pairs[0], detail: req.detail }),
           },
         );
+      } else {
+        ({ winner, alternates } = resolution);
       }
 
-      const { winner, alternates } = resolution;
-      const position = targets.findIndex((target) => target.product.id === winner.record.product);
-      const target = targets[position];
-      const resolved = scope.resolutions[position];
-      if (target === undefined || resolved === undefined) {
-        throw new McpDocError('INTERNAL', 'A resolved symbol has no product in scope');
+      const { target, resolved } = placeOf(winner.record.product);
+      const versionedSource = (record: CatalogRecord): boolean => {
+        const source = target.product.sources.find((candidate) => candidate.id === record.source);
+        return source !== undefined && VERSION_ADDRESSED.has(source.adapter);
+      };
+      const notices: string[] = [];
+      if (
+        read === undefined &&
+        target.preferVersioned &&
+        winner.record.parent !== undefined &&
+        !versionedSource(winner.record)
+      ) {
+        // The member is indexed from the website, which documents the current release only;
+        // the version asked for is in the package typings, under the member's type.
+        const owner = ownerName(winner.record);
+        const type = index
+          .symbols(target.product.id, target.line.id)
+          .exact(owner)
+          .find((record) => isTypeNamed(record, owner) && versionedSource(record));
+        const fromType =
+          type === undefined ? undefined : await readFromType(type, simpleName(winner.record));
+        if (fromType !== undefined && 'winner' in fromType) {
+          ({ winner, page: read } = fromType);
+        } else if (target.version !== undefined) {
+          notices.push(
+            `Version ${target.version} of this member could not be read from the package; this is the documentation of the current release.`,
+          );
+        }
       }
 
       const name = displayName(winner.record);
-      const read = await reader.read(target, winner, req.detail, call);
-      const notices = [...read.notices];
+      read ??= await reader.read(target, winner, req.detail, call);
+      notices.unshift(...read.notices);
       if (!target.explicit && target.version !== undefined) {
         notices.push(`Version ${target.version} was detected in the project.`);
       }

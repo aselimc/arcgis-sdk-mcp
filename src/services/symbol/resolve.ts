@@ -106,6 +106,24 @@ function fuzzyDistance(needle: string, record: CatalogRecord): number {
   return levenshtein(needle, name, MAX_SYMBOL_DISTANCE);
 }
 
+/** Members considered when a written type has to pick one of many same-named members. */
+const OWNER_SCAN = 64;
+
+/** The type a caller wrote before the member name, when no such type is known. */
+function ownerHint(parts: readonly string[]): string | undefined {
+  return parts.length > 1 ? parts.at(-2)?.toLowerCase() : undefined;
+}
+
+/**
+ * How far the written type is from the type that owns a member: 0 for the same name, up to
+ * `MAX_SYMBOL_DISTANCE + 1` for an unrelated one. Records without an owner are not affected.
+ */
+function ownerDistance(hint: string | undefined, record: CatalogRecord): number {
+  if (hint === undefined || record.parent === undefined) return 0;
+  const owner = (record.parent.split(/::|[.#/]/).at(-1) ?? record.parent).toLowerCase();
+  return levenshtein(hint, owner, MAX_SYMBOL_DISTANCE);
+}
+
 function compare(a: Candidate, b: Candidate): number {
   for (let position = 0; position < a.rank.length; position++) {
     const difference = (a.rank[position] ?? 0) - (b.rank[position] ?? 0);
@@ -165,12 +183,17 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
     }
   }
 
+  // What stands before the name when it is not a known type: a module path, or a type that
+  // is misspelt or qualified differently (`layers/FeatureLayer.queryFeatures`). It cannot
+  // select a member, but it still says which of several same-named members was meant.
+  const hint = knownType === undefined ? ownerHint(parts) : undefined;
+
   if (all.length === 0 && qualified && knownType === undefined) {
     // No part of the prefix is a known type, so it is a module or namespace path
     // (`layers/FeatureLayer`): the last part is the name.
     for (const scope of scopes) {
       for (const record of scope.symbols.exact(simple)) {
-        add(scope, record, directStep(record, simple, false));
+        add(scope, record, directStep(record, simple, false), ownerDistance(hint, record));
       }
     }
   }
@@ -179,10 +202,11 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
   if (step === undefined) {
     const needle = simple.toLowerCase();
     for (const scope of scopes) {
-      for (const record of scope.symbols.fuzzy(simple, MAX_AMBIGUOUS)) {
+      const depth = hint === undefined ? MAX_AMBIGUOUS : OWNER_SCAN;
+      for (const record of scope.symbols.fuzzy(simple, depth)) {
         // `Type.membr` should not match a similarly named member of another type.
         if (knownType !== undefined && record.parent !== displayName(knownType)) continue;
-        add(scope, record, 'fuzzy', fuzzyDistance(needle, record));
+        add(scope, record, 'fuzzy', fuzzyDistance(needle, record) + ownerDistance(hint, record));
       }
     }
     step = all.length > 0 ? 'fuzzy' : undefined;

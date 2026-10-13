@@ -162,6 +162,18 @@ describe('lookup: errors', () => {
     expect(near.details?.candidates).toEqual(['FeatureLayer.applyEdits']);
   });
 
+  // Regression: a member a type inherits (indexed under its base type) was answered with the
+  // first members of the type in alphabetical order, none of them related.
+  it('suggests the same member on other types first, where an inherited member is declared', async () => {
+    const h = harness();
+    const error = await failure(
+      lookup(h, { symbol: 'GraphicsLayer.goTo', product: 'js-maps-sdk' }),
+    );
+    expect(error.code).toBe('SYMBOL_NOT_FOUND');
+    expect(error.details?.why).toContain('listed under the type that declares it');
+    expect(error.details?.candidates).toEqual(['MapView.goTo', 'SceneView.goTo']);
+  });
+
   it('says when the reference index is not ready, and that a retry may work', async () => {
     const h = harness({
       config: { limits: { ...makeHarness().ctx.config.limits, indexBuildDeadlineMs: 30 } },

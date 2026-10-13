@@ -17,6 +17,9 @@ import type { Target } from './target.js';
 /** Names suggested when nothing matches. */
 export const MAX_NEAREST = 5;
 
+/** Of those, how many may be the same member name on other types. */
+const MAX_INHERITED = 3;
+
 /**
  * Names to suggest when nothing resolved: members of the type when only the member is
  * unknown, else what the text index finds for the name.
@@ -34,9 +37,19 @@ export function nearestNames(
     );
     const all = [...new Set(members.map(simpleName))];
     const near = nearest(simple, all, MAX_NEAREST);
-    // Nothing similar: the first members still show what the type offers.
-    const names = near.length > 0 ? near : all.slice(0, MAX_NEAREST);
-    return names.map((name) => `${displayName(knownType)}.${name}`);
+    // A member a type inherits is indexed under the type that declares it: the same name
+    // on other types is the likeliest answer and goes first.
+    const elsewhere = targets
+      .flatMap((target) => index.symbols(target.product.id, target.line.id).exact(simple))
+      .filter((record) => record.parent !== undefined && record.parent !== displayName(knownType))
+      .map(displayName);
+    const inherited = [...new Set(elsewhere)].slice(0, MAX_INHERITED);
+    // Nothing similar anywhere: the first members still show what the type offers.
+    const names = near.length > 0 || inherited.length > 0 ? near : all.slice(0, MAX_NEAREST);
+    return [...inherited, ...names.map((name) => `${displayName(knownType)}.${name}`)].slice(
+      0,
+      MAX_NEAREST,
+    );
   }
   const { hits } = index.query({
     text: req.symbol,
@@ -79,7 +92,7 @@ export function notFoundError(
 
   let why: string;
   if (knownType !== undefined) {
-    why = `${displayName(knownType)} is documented but no member with this name was found; not verified, and this does not prove it does not exist`;
+    why = `${displayName(knownType)} is documented but no member with this name was found (an inherited member is listed under the type that declares it); not verified, and this does not prove it does not exist`;
   } else if (pending.length > 0) {
     why = `Not verified: ${unsearched} could not be searched${transient ? '; retry' : ''}. This does not prove it does not exist`;
   } else {

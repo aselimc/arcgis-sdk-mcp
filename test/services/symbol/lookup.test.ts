@@ -278,6 +278,103 @@ describe('lookup: scope and versions', () => {
     expect(h.adapter('astro').count('read')).toBe(0);
   });
 
+  // Regression: `FeatureLayer.queryFeatures` with a version answered from the website (the
+  // current release), or not at all, because package typings list modules and no members.
+  describe('a member of a type that only the versioned typings can answer for', () => {
+    const typingsWithMembers = (): DocPage =>
+      makeDocPage({
+        url: FL_URL,
+        kind: 'api',
+        product: 'js-maps-sdk',
+        source: 'typings',
+        version: '4.33.2',
+        license: 'esri-ma',
+        markdown:
+          '### queryFeatures\n\n```ts\nqueryFeatures(query?: Query): Promise<FeatureSet>;\n```\n\nAs declared in 4.33.',
+        members: [{ id: 'queryFeatures', name: 'queryFeatures', kind: 'method' }],
+      });
+
+    it('reads the member out of the typings of the requested version', async () => {
+      const h = harness();
+      h.adapter('npm-dts').addPage(typingsWithMembers());
+      const response = await lookup(h, {
+        symbol: 'FeatureLayer.queryFeatures',
+        product: 'js-maps-sdk',
+        version: '4.33',
+      });
+      expect(response.record).toMatchObject({
+        source: 'typings',
+        qualified: 'FeatureLayer.queryFeatures',
+        parent: 'FeatureLayer',
+      });
+      expect(response.page).toMatchObject({ source: 'typings', version: '4.33.2' });
+      expect(response.text).toContain('As declared in 4.33.');
+      expect(h.adapter('npm-dts').calls.at(-1)?.target).toMatchObject({
+        select: { member: 'queryFeatures' },
+      });
+      expect(h.adapter('astro').count('read')).toBe(0);
+    });
+
+    it('answers from the website, and says so, when the typings do not have the member', async () => {
+      const h = harness();
+      const response = await lookup(h, {
+        symbol: 'FeatureLayer.queryFeatures',
+        product: 'js-maps-sdk',
+        version: '4.33',
+      });
+      expect(response.record.source).toBe('core');
+      expect(response.page.notices).toContain(
+        'Version 4.33 of this member could not be read from the package; this is the documentation of the current release.',
+      );
+    });
+
+    it('finds a member of a type that is indexed without members', async () => {
+      const product = makeProduct({
+        sources: [
+          makeSource(
+            'npm-dts',
+            { package: '@x/widgets', docUrl: '/widgets/{path}/' },
+            { id: 'typings', kinds: ['api'], capability: 'package-cdn' },
+          ),
+        ],
+      });
+      const ref = 'https://developers.arcgis.com/widgets/Gadget/';
+      const h = makeHarness({
+        products: [product],
+        records: [
+          makeRecord({
+            ref,
+            source: 'typings',
+            kind: 'api',
+            title: 'Gadget',
+            symbol: 'Gadget',
+            qualified: '@x/widgets/Gadget',
+          }),
+        ],
+      });
+      h.adapter('npm-dts').addPage(
+        makeDocPage({
+          url: ref,
+          markdown: '### spin\n\n```ts\nspin(turns: number): void;\n```',
+          members: [
+            { id: 'spin', name: 'spin', kind: 'method' },
+            { id: 'spinUp', name: 'spinUp', kind: 'method' },
+          ],
+        }),
+      );
+      const found = await lookup(h, { symbol: 'Gadget.spin', product: 'widgets-sdk' });
+      expect(found.record.qualified).toBe('@x/widgets/Gadget.spin');
+      expect(found.text).toContain('spin(turns: number): void;');
+
+      const missing = await failure(lookup(h, { symbol: 'Gadget.spinn', product: 'widgets-sdk' }));
+      expect(missing.code).toBe('SYMBOL_NOT_FOUND');
+      expect(missing.details?.candidates).toEqual([
+        '@x/widgets/Gadget.spin',
+        '@x/widgets/Gadget.spinUp',
+      ]);
+    });
+  });
+
   it('rejects a version no source can answer for', async () => {
     const h = harness();
     const error = await failure(
