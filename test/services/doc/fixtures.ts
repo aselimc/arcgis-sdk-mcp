@@ -1,5 +1,5 @@
 import { McpDocError } from '../../../src/core/errors.js';
-import type { DocPage } from '../../../src/core/types.js';
+import type { DocPage, HtmlFamily } from '../../../src/core/types.js';
 import { makeDocPage } from '../../support/builders.js';
 import { makeHarness, type Harness, type HarnessOptions } from '../support/harness.js';
 
@@ -32,8 +32,14 @@ export const GUIDE_MD = [
   'Describe the cluster in a popup.',
 ].join('\n');
 
+/** Marks a page as converted from HTML, as the pages of a documentation site are. */
+export const asHtml = (page: DocPage, family: HtmlFamily = 'gatsby'): DocPage => ({
+  ...page,
+  diagnostics: { ...page.diagnostics, family },
+});
+
 export const guidePage = (overrides: Partial<DocPage> = {}): DocPage =>
-  makeDocPage({ url: GUIDE_URL, markdown: GUIDE_MD, product: 'js-maps-sdk', ...overrides });
+  asHtml(makeDocPage({ url: GUIDE_URL, markdown: GUIDE_MD, product: 'js-maps-sdk', ...overrides }));
 
 export const apiPage = (): DocPage =>
   makeDocPage({
@@ -98,7 +104,7 @@ export const LONG_MD = [
 ].join('\n');
 
 export const longPage = (markdown = LONG_MD): DocPage =>
-  makeDocPage({ url: GUIDE_URL, markdown, product: 'js-maps-sdk' });
+  asHtml(makeDocPage({ url: GUIDE_URL, markdown, product: 'js-maps-sdk' }));
 
 export function harness(options: HarnessOptions = {}): Harness {
   const h = makeHarness(options);

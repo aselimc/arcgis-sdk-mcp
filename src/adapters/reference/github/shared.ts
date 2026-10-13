@@ -97,15 +97,20 @@ export function extensionOf(path: string): string {
 /**
  * A readable title from a file or directory name of any naming style: `Add 3D tiles layer`
  * is kept, `add-3d-tiles-layer` and `add_3d_tiles_layer` become `Add 3d tiles layer`,
- * `DisplayKMLNetworkLinks` becomes `Display KML network links`, and a numeric ordering
- * prefix (`01-getting-started`) is dropped.
+ * `DisplayKMLNetworkLinks` becomes `Display KML network links`, `Add3DTilesLayer` becomes
+ * `Add 3D tiles layer`, and a numeric ordering prefix (`01-getting-started`) is dropped.
+ * A dotted name (`3DSceneLayer.cmn`, an object of a specification) is an identifier and is
+ * kept as written.
  */
 export function titleFromName(name: string): string {
-  const plain = humanizeSlug(baseOf(name).replace(/^\d{1,3}[-_](?=[A-Za-z])/, ''));
+  const base = baseOf(name).replace(/^\d{1,3}[-_](?=[A-Za-z])/, '');
+  const plain = humanizeSlug(base);
   if (plain.includes(' ')) return plain;
+  // An identifier keeps its own first letter, which `humanizeSlug` has capitalised.
+  if (plain.includes('.')) return base.charAt(0) + plain.slice(1);
   const words = plain
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/([a-z])([A-Z0-9])/g, '$1 $2')
+    .replace(/([A-Z0-9]+)([A-Z][a-z])/g, '$1 $2')
     .split(' ');
   return words
     .map((word, index) => (index === 0 || /^[A-Z0-9]+$/.test(word) ? word : word.toLowerCase()))

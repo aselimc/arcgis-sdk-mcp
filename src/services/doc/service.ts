@@ -101,6 +101,16 @@ export function createDocService(
       const page = await load(req.ref, call, { select, focusedCode: req.view !== 'full' });
 
       const all = displaySections(page, 'all');
+      // The ref a follow-up call passes together with a `section`. The fragment of an HTML
+      // page is an anchor inside it and gives way to that section. In structured sources a
+      // fragment can address the document itself (an operation of an API description, a
+      // member of a documentation file): unless it names a part of the page that was read,
+      // it stays, or the follow-up would read another document.
+      const anchor = fragment === undefined ? undefined : resolveSection(page, all, fragment);
+      const inPage =
+        page.diagnostics.family !== 'structured' ||
+        (anchor !== undefined && anchor.id !== all[0]?.id);
+      const followUpRef = inPage ? req.ref.replace(/#.*$/, '') : req.ref;
       let shown: DocSection[] =
         req.view === 'auto' && req.cursor === undefined ? displaySections(page, 'default') : all;
       let selected: string | undefined;
@@ -110,7 +120,7 @@ export function createDocService(
           shown = resolved.sections;
           selected = wanted;
         } else if (explicit !== undefined) {
-          throw sectionNotFound(req.ref.replace(/#.*$/, ''), explicit, all);
+          throw sectionNotFound(followUpRef, explicit, all);
         }
         // A fragment that names nothing (a tab or UI anchor) reads the whole page.
       }
@@ -179,10 +189,7 @@ export function createDocService(
           cursor: response.nextCursor,
         });
       } else if (view.suggest !== undefined) {
-        response.next = formatCall(TOOLS.read, {
-          ref: req.ref.replace(/#.*$/, ''),
-          section: view.suggest,
-        });
+        response.next = formatCall(TOOLS.read, { ref: followUpRef, section: view.suggest });
       }
       return response;
     },

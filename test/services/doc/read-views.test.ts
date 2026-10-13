@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { joinSections } from '../../../src/core/budget.js';
 import { type McpDocError } from '../../../src/core/errors.js';
+import type { DocPage } from '../../../src/core/types.js';
 import { makeDocPage } from '../../support/builders.js';
 import {
   API_URL,
+  DEV,
   GUIDE_MD,
   GUIDE_URL,
   LONG_MD,
@@ -226,6 +228,64 @@ describe('read: sections', () => {
         candidates: ['cluster-points', 'enable-clustering', 'cluster-popups'],
         next: `arcgis_docs_read({"ref":"${GUIDE_URL}","view":"outline"})`,
       },
+    });
+  });
+
+  // Regression: the follow-up call of an outline dropped the fragment of the ref. For an
+  // operation of an API description the fragment is what names the operation, so the
+  // follow-up read the overview of the whole description and found no such section.
+  describe('a ref whose fragment addresses the document', () => {
+    const SPEC_URL = `${DEV}/rest/services-reference/enterprise/api.json`;
+    const operation = (): DocPage =>
+      makeDocPage({
+        url: SPEC_URL,
+        kind: 'api',
+        product: 'rest-api',
+        source: 'services',
+        markdown: [
+          '# GET /things/{id}',
+          '',
+          'Returns one thing.',
+          '',
+          '## Path parameters',
+          '',
+          '- `id`: the thing.',
+          '',
+          '## Responses',
+          '',
+          'response '.repeat(3000),
+        ].join('\n'),
+      });
+
+    it('keeps the fragment in the follow-up of an outline', async () => {
+      const h = harness();
+      h.adapter('javadoc').addPage(operation());
+      const response = await read(h, { ref: `${SPEC_URL}#getThing`, maxTokens: 500 });
+      expect(response.truncated).toBe(true);
+      expect(response.next).toBe(
+        `arcgis_docs_read({"ref":"${SPEC_URL}#getThing","section":"responses"})`,
+      );
+    });
+
+    it('keeps the fragment in the follow-up of SECTION_NOT_FOUND', async () => {
+      const h = harness();
+      h.adapter('javadoc').addPage(operation());
+      await expect(
+        read(h, { ref: `${SPEC_URL}#getThing`, section: 'request body' }),
+      ).rejects.toMatchObject({
+        code: 'SECTION_NOT_FOUND',
+        details: { next: `arcgis_docs_read({"ref":"${SPEC_URL}#getThing","view":"outline"})` },
+      });
+    });
+
+    it('drops a fragment that names a part of the document that was read', async () => {
+      const h = harness();
+      h.adapter('javadoc').addPage(operation());
+      await expect(
+        read(h, { ref: `${SPEC_URL}#responses`, section: 'request body' }),
+      ).rejects.toMatchObject({
+        details: { next: `arcgis_docs_read({"ref":"${SPEC_URL}","view":"outline"})` },
+      });
     });
   });
 
