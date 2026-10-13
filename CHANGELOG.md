@@ -29,9 +29,11 @@ First version.
 - Version oracles (npm, PyPI, NuGet, pub.dev, GitHub releases, page banners, sitemaps, and
   Esri's product life cycle service with the opt-in capability `lifecycle-api`) and detection
   of Esri SDK versions in the user's project.
-- Symbol lookup follows a member to the type it is inherited from when the page of the type
-  links to the declaration (Kotlin, .NET, Flutter, Java), and shows every overload of a C#
-  method.
+- Symbol lookup follows a member to the type it is inherited from: by the link or statement
+  on the page of the type (Kotlin, .NET, Flutter, Java), or up the base types that page names
+  (Qt, Swift). It shows every overload of a C# method, lists a second declaration of the same
+  name (the Arcade `Intersects` of geometries and of feature sets) as a ref to read, and keeps
+  the member index of a type whose description alone would fill the result.
 - One HTTP gateway with an allow-list, capability presets (`strict`, `standard`), robots
   rules, rate limiting, retries, a circuit breaker, a disk cache with conditional
   revalidation and stale-if-error, and offline mode.

@@ -9,9 +9,15 @@ const ROOT = 'article#main';
 /** The Python tab of a geoprocessing tool's parameter tabs. */
 const PYTHON_TAB = 'section[data-tab="python"]';
 
-/** The tool's call signature (`arcpy.analysis.Buffer(...)`), shown as the page header. */
+/** The call syntax of an ArcPy class or function page: the line under its "Syntax" heading. */
+const SYNTAX_LINE = 'h2#syntax + p > code';
+
+/**
+ * The call signature, shown as the page header: `arcpy.analysis.Buffer(...)` from the Python
+ * tab of a tool, `SearchCursor(...)` from the "Syntax" section of a class or function.
+ */
 function signature(page: PageView): AnyNode[] {
-  const code = page.root.find(`${PYTHON_TAB} > p > code`).first();
+  const code = page.root.find(`${PYTHON_TAB} > p > code, ${SYNTAX_LINE}`).first();
   const text = squash(code.text());
   if (text === '') return [];
   code.parent().remove();

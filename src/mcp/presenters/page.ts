@@ -15,7 +15,8 @@ const CACHE_TEXT: Record<CacheState, string> = {
 
 /**
  * The version to print for a page: the exact one its adapter reported, else the label the
- * version service knows for the page's line, else the line's own label.
+ * version service knows for the page's line, else the line's own label when it names a
+ * version (`300.x`). The label of an unversioned line (`Current`) says nothing and is left out.
  */
 export async function pageVersion(
   page: DocPage,
@@ -28,11 +29,12 @@ export async function pageVersion(
     product.lines.find((candidate) => candidate.id === page.line) ??
     product.lines.find((candidate) => candidate.current);
   if (line === undefined) return undefined;
+  const own = /\d/.test(line.label) ? line.label : undefined;
   try {
-    return (await services.versions.label(product, line)) ?? line.label;
+    return (await services.versions.label(product, line)) ?? own;
   } catch {
     // The label is decoration: a failing oracle must not fail a read that succeeded.
-    return line.label;
+    return own;
   }
 }
 

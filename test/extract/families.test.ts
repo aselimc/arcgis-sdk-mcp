@@ -188,6 +188,21 @@ describe('docfx rules', () => {
     );
   });
 
+  // Regression: `detail: "signature"` of an ArcPy class returned no declaration, because the
+  // syntax of a class or function is a line of inline code under "Syntax", not a tool tab.
+  it('heads an ArcPy class or function page with the line of its Syntax section', () => {
+    const page = convertAs(
+      'docfx-esri',
+      '<article id="main" data-uid="9"><h1>RowReader</h1><h2 id="summary">Summary</h2><p>Reads rows.</p>' +
+        '<h2 id="syntax">Syntax</h2><p><code>RowReader(in_table, {where_clause})</code></p><p>Both are strings.</p></article>',
+    );
+    expect(page.header).toBe('```python\nRowReader(in_table, {where_clause})\n```');
+    // The line moves to the header; it is not repeated under "Syntax".
+    expect(page.sections.map((section) => section.markdown).join('\n\n')).toBe(
+      '# RowReader\n\n## Summary\n\nReads rows.\n\n## Syntax\n\nBoth are strings.',
+    );
+  });
+
   it('has no header on a doc.esri.com page without a tool signature', () => {
     const page = convertAs(
       'docfx-esri',

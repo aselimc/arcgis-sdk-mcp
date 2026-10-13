@@ -99,7 +99,7 @@ describe('document tools', () => {
       ]);
     });
 
-    it('falls back to the line label, the bare product id or no version at all', async () => {
+    it('falls back to a line label that names a version, the bare product id or no version at all', async () => {
       const read = suite.harness.services.docs.read.bind(suite.harness.services.docs);
       const withPage = (patch: Record<string, unknown>): void => {
         suite.harness.services.docs.read = async (req, options) => {
@@ -108,9 +108,18 @@ describe('document tools', () => {
         };
       };
       withPage({ product: 'widgets-sdk', line: 'missing' });
+      // The label of an unversioned line ("Current") is not a version and is not printed.
       expect((await call(TOOLS.read, { ref: REFS.page })).text.split('\n')[0]).toBe(
-        'Get started | Widgets SDK (widgets-sdk) | version Current | guide | fetched now',
+        'Get started | Widgets SDK (widgets-sdk) | guide | fetched now',
       );
+      const line = suite.harness.ctx.registry.get('widgets-sdk')?.lines[0];
+      if (line === undefined) throw new Error('widgets-sdk has no line');
+      const label = line.label;
+      line.label = '2.x';
+      expect((await call(TOOLS.read, { ref: REFS.page })).text.split('\n')[0]).toBe(
+        'Get started | Widgets SDK (widgets-sdk) | version 2.x | guide | fetched now',
+      );
+      line.label = label;
       withPage({ product: 'not-in-registry' });
       const unknown = await call(TOOLS.read, { ref: REFS.page });
       expect(unknown.text.split('\n')[0]).toBe(
