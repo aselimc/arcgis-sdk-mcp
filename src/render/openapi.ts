@@ -144,7 +144,6 @@ function operationPage(operation: OaOperation, links: Linker): { header: string;
       {
         level: 1,
         title: operationTitle(operation),
-        heading: operationTitle(operation),
         body: blocks(
           operation.deprecated === true ? '> **Deprecated**' : undefined,
           links(operation.summary ?? ''),

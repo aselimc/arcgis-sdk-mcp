@@ -33,8 +33,12 @@ const MIN_CONFIDENCE = 0.12;
 const MAX_TIED = 3;
 const TIE_MARGIN = 0.001;
 
-/** A term known to more than this share of the products (`arcgis`) tells them apart no longer. */
+/**
+ * A term known to more than this share of the products (`arcgis`) tells them apart no longer.
+ * The floor keeps the rule from firing in a registry of a handful of products.
+ */
 const UBIQUITOUS_SHARE = 0.25;
+const UBIQUITOUS_FLOOR = 3;
 
 /** Confidence of a product named by a symbol or package shape. */
 const SHAPE_CONFIDENCE = 0.95;
@@ -176,9 +180,7 @@ function candidateOf(product: Product): Candidate {
  * @returns `route(query, n)`: at most `n` products, best first; `[]` when the query names
  *   nothing the registry knows.
  */
-export function createRouter(
-  products: readonly Product[],
-): (query: string, n?: number) => Route[] {
+export function createRouter(products: readonly Product[]): (query: string, n?: number) => Route[] {
   const eligible = products.filter((product) => product.tier !== 'link').map(candidateOf);
   const byId = new Map(eligible.map((candidate) => [candidate.product.id, candidate]));
 
@@ -191,7 +193,8 @@ export function createRouter(
   }
   const rarity = (term: string): number => {
     const frequency = documentFrequency.get(term);
-    if (frequency === undefined || frequency > eligible.length * UBIQUITOUS_SHARE) return 0;
+    const ubiquitous = Math.max(UBIQUITOUS_FLOOR, eligible.length * UBIQUITOUS_SHARE);
+    if (frequency === undefined || frequency > ubiquitous) return 0;
     return Math.log(1 + eligible.length / frequency);
   };
 
@@ -232,7 +235,10 @@ export function createRouter(
           (sum, term) => sum + rarity(term) * (candidate.weights.get(term) ?? 0),
           0,
         );
-        return { product: candidate.product.id, confidence: (score / total) * candidate.multiplier };
+        return {
+          product: candidate.product.id,
+          confidence: (score / total) * candidate.multiplier,
+        };
       })
       .filter((route) => route.confidence >= MIN_CONFIDENCE)
       .sort((a, b) => b.confidence - a.confidence);

@@ -4,6 +4,7 @@ import type { VersionFact } from '../../../src/core/types.js';
 import {
   defineOracle,
   homeUrl,
+  lineUrl,
   option,
   packageOption,
   resolveUrl,
@@ -47,7 +48,9 @@ describe('defineOracle', () => {
       expect(outcome.facts).toEqual([]);
       expect(outcome.error).toBeInstanceOf(McpDocError);
       // The port's `read` gives the same answer without the reason.
-      expect(await ORACLES['npm-dist-tags'].read(ctx, jsProduct, spec('npm-dist-tags'))).toEqual([]);
+      expect(await ORACLES['npm-dist-tags'].read(ctx, jsProduct, spec('npm-dist-tags'))).toEqual(
+        [],
+      );
     },
   );
 
@@ -71,12 +74,17 @@ describe('defineOracle', () => {
 
   it('keeps only the roles a spec declares', async () => {
     const ctx = makeCtx();
-    const oracle = fixed([installable, { ...installable, role: 'prerelease', value: '2.0.0-rc.1' }]);
+    const oracle = fixed([
+      installable,
+      { ...installable, role: 'prerelease', value: '2.0.0-rc.1' },
+    ]);
     const all = await oracle.read(ctx, jsProduct, spec('github-release'));
     expect(all.map((fact) => fact.role)).toEqual(['installable', 'prerelease']);
     const stable = await oracle.read(ctx, jsProduct, spec('github-release', {}, ['installable']));
     expect(stable.map((fact) => fact.role)).toEqual(['installable']);
-    expect(await oracle.read(ctx, jsProduct, spec('github-release', {}, ['lifecycle']))).toEqual([]);
+    expect(await oracle.read(ctx, jsProduct, spec('github-release', {}, ['lifecycle']))).toEqual(
+      [],
+    );
   });
 
   it('relabels a fact when the spec declares the oracle as evidence for the other role', async () => {
@@ -116,7 +124,9 @@ describe('option helpers', () => {
   });
 
   it('resolves registry paths against developers.arcgis.com and substitutes line variables', () => {
-    expect(resolveUrl('/net/{prefix}release-notes/', LINE_200)).toBe(`${D}/net/v200/release-notes/`);
+    expect(resolveUrl('/net/{prefix}release-notes/', LINE_200)).toBe(
+      `${D}/net/v200/release-notes/`,
+    );
     expect(resolveUrl('https://doc.esri.com/x/', undefined)).toBe('https://doc.esri.com/x/');
   });
 
@@ -131,5 +141,15 @@ describe('option helpers', () => {
       `${D}/other/`,
     );
     expect(urlOption(spec('page-regex'), dotnetProduct, LINE_200)).toBeUndefined();
+    // A page under the home page moves with it; one that already names the line stays.
+    expect(lineUrl(`${D}/net/release-notes/`, dotnetProduct, LINE_200)).toBe(
+      `${D}/net/v200/release-notes/`,
+    );
+    expect(lineUrl('/net/{prefix}release-notes/', dotnetProduct, LINE_200)).toBe(
+      `${D}/net/v200/release-notes/`,
+    );
+    expect(lineUrl(`${D}/net/release-notes/`, dotnetProduct, LINE_300)).toBe(
+      `${D}/net/release-notes/`,
+    );
   });
 });

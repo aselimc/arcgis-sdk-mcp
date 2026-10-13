@@ -1,11 +1,14 @@
 import type { Cheerio, CheerioAPI } from 'cheerio';
 import type { Element } from 'domhandler';
-import { BR_PLACEHOLDER, escapeHtml, firstNonEmpty, squash, tagged } from '../dom.js';
+import { BR_PLACEHOLDER, escapeHtml, firstNonEmpty, squash, tagged, unwrap } from '../dom.js';
 import type { Pass, PassCounters } from '../types.js';
 
 /** Content a GFM table cell cannot hold. */
 const BLOCKY = 'pre, ul, ol, table, blockquote, h1, h2, h3, h4, h5, h6';
 const EDGE_BREAKS = new RegExp(`^(?:${BR_PLACEHOLDER}\\s*)+|(?:\\s*${BR_PLACEHOLDER})+$`, 'g');
+/** Line-break marks separated by nothing but whitespace. */
+const BREAK_RUNS = new RegExp(`\\s*${BR_PLACEHOLDER}(?:\\s*${BR_PLACEHOLDER})*\\s*`, 'g');
+const BREAKS = new RegExp(BR_PLACEHOLDER, 'g');
 
 interface Grid {
   table: Cheerio<Element>;
@@ -49,14 +52,14 @@ function inline($: CheerioAPI, cell: Element | undefined): string {
   if (cell === undefined) return '';
   const copy = $(cell).clone();
   copy.find('br').replaceWith(BR_PLACEHOLDER);
-  // Deepest first, so that a wrapper's HTML already has its inner blocks flattened.
-  for (const block of copy.find('p, div').get().reverse()) {
-    const $block = $(block);
-    if ($block.next().length > 0) $block.append(BR_PLACEHOLDER);
-    $block.replaceWith($block.contents());
-  }
+  // A block starts and ends a line: mark both edges, then merge the marks that meet.
+  copy.find('p, div').each((_, block) => {
+    $(block).prepend(BR_PLACEHOLDER).append(BR_PLACEHOLDER);
+  });
+  unwrap($, copy.find('p, div'));
   return (copy.html() ?? '')
     .replace(/\s*\n\s*/g, ' ')
+    .replace(BREAK_RUNS, BR_PLACEHOLDER)
     .trim()
     .replace(EDGE_BREAKS, '');
 }
@@ -93,7 +96,10 @@ function definitionBlocks($: CheerioAPI, grid: Grid): string {
   const lead = grid.hasHeader ? `<p>${tagged('em', grid.headers.join(' / '))}</p>` : '';
   const rows = grid.body.map(([key, value]) => {
     const marked = key !== undefined && $(key).find('a, code').length > 0;
-    const term = marked ? inline($, key) : tagged('code', squash($(key).text()));
+    // A key is one bold line: its paragraphs are joined with a space.
+    const term = marked
+      ? inline($, key).replace(BREAKS, ' ')
+      : tagged('code', squash($(key).text()));
     return `<p><strong>${term}</strong></p>${value === undefined ? '' : ($(value).html() ?? '')}`;
   });
   return `<div>${lead}${rows.join('')}</div>`;

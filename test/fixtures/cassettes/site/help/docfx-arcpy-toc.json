@@ -1,0 +1,77 @@
+{
+  "items": [
+    { "name": "Widget Python reference", "href": "main/widget-python-reference.html" },
+    {
+      "name": "Get started",
+      "items": [{ "name": "What is WidgetPy?", "href": "get-started/what-is-widgetpy-.html" }]
+    },
+    {
+      "name": "ArcPy functions",
+      "items": [
+        {
+          "name": "Listing data",
+          "items": [
+            { "name": "ListWidgets", "href": "functions/listwidgets.html" },
+            { "name": "Widget properties", "href": "functions/widget-properties.html" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ArcPy classes",
+      "items": [
+        {
+          "name": "Geometry",
+          "items": [{ "name": "WidgetShape", "href": "classes/widgetshape.html" }]
+        }
+      ]
+    },
+    {
+      "name": "Data Access module",
+      "items": [
+        {
+          "name": "What is the Data Access module",
+          "href": "data-access/what-is-the-data-access-module-.html"
+        },
+        {
+          "name": "Classes",
+          "items": [{ "name": "WidgetCursor", "href": "data-access/widgetcursor-class.html" }]
+        },
+        { "name": "Functions", "items": [{ "name": "Walk", "href": "data-access/walk.html" }] }
+      ]
+    },
+    {
+      "name": "Network Analyst module",
+      "items": [
+        {
+          "name": "Classes",
+          "items": [
+            { "name": "Route", "href": "network-analyst/route.html" },
+            {
+              "name": "Enumerations",
+              "items": [{ "name": "RouteShapeType", "href": "network-analyst/routeshapetype.html" }]
+            }
+          ]
+        },
+        {
+          "name": "Legacy",
+          "items": [
+            {
+              "name": "Functions",
+              "items": [
+                { "name": "GetSolverProperties", "href": "network-analyst/getsolverproperties.html" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Gadget module",
+      "items": [
+        { "name": "GadgetDraft", "href": "gadget-kit/gadgetdraft-class.html" },
+        { "name": "MakeGadget", "href": "gadget-kit/makegadget.html" }
+      ]
+    }
+  ]
+}

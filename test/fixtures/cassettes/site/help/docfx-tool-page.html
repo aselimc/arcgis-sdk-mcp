@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Wide Bevel (Shaping Tools) | Widgets Pro documentation</title>
+    <meta name="version" content="4.2" />
+  </head>
+  <body>
+    <article data-uid="5230002" id="main">
+      <h1 id="5230002">Wide Bevel (Shaping Tools)</h1>
+      <h2 id="summary">Summary</h2>
+      <div data-summary><p>Cuts a wide slanted edge along the rim of each input widget.</p></div>
+      <h2 id="parameters">Parameters</h2>
+      <section data-tab="python">
+        <p><code>arcpy.2d.Bevel2(in_widgets, out_widgets, {width})</code></p>
+        <table data-param-table="python">
+          <tr data-param="in_widgets">
+            <td><span data-name>in_widgets</span></td>
+            <td data-desc>The widgets to bevel.</td>
+            <td><span data-datatype>Widget Layer</span></td>
+          </tr>
+        </table>
+      </section>
+      <h2 id="code-sample">Code sample</h2>
+      <pre><code class="lang-python">import arcpy
+arcpy.env.workspace = "C:/widgets"
+rounded = arcpy.shape.RoundCorners("widgets", "rounded")
+arcpy.shape.Bevel2(rounded, "bevelled", 4)
+arcpy.shape.Bevel2("other", "other_bevelled")</code></pre>
+    </article>
+  </body>
+</html>

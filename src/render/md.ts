@@ -71,19 +71,23 @@ export function firstSentence(markdown: string | undefined): string {
   }
   const text = oneLine(paragraph.join(' '));
   // A sentence ends at ". " followed by a capital or an opening bracket; "e.g. x" must not cut.
-  const end = /[.!?](?=\s+[A-Z[`(])/.exec(text);
+  const end = /[.!?](?=\s+[A-Z[`(*_])/.exec(text);
   return end === null ? text : text.slice(0, end.index + 1);
 }
 
 /** Cell text for a GFM table: one line, paragraph breaks as `<br>`, pipes escaped. */
 export function tableCell(text: string | undefined): string {
   if (text === undefined) return '';
-  return text
-    .replace(/\r\n?/g, '\n')
-    .trim()
-    .replace(/\n[ \t]*\n+/g, '<br>')
-    .replace(/\s*\n\s*/g, ' ')
-    .replace(/\|/g, '\\|');
+  return (
+    text
+      .replace(/\r\n?/g, '\n')
+      .trim()
+      .replace(/\n[ \t]*\n+/g, '<br>')
+      // List items inside a cell keep their line breaks.
+      .replace(/\n[ \t]*(?=(?:[-*+]|\d+\.) )/g, '<br>')
+      .replace(/\s*\n\s*/g, ' ')
+      .replace(/\|/g, '\\|')
+  );
 }
 
 /** A GFM table. Cells are passed through {@link tableCell}. Empty when there are no rows. */

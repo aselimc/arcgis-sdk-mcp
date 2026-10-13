@@ -29,7 +29,9 @@ describe('page-regex: home banner', () => {
 
   it('ignores versions in scripts and comments, so a page without a banner has no answer', async () => {
     const ctx = sites();
-    expect(await ORACLES['page-regex'].read(ctx, at('/no-banner/'), spec('page-regex'))).toEqual([]);
+    expect(await ORACLES['page-regex'].read(ctx, at('/no-banner/'), spec('page-regex'))).toEqual(
+      [],
+    );
   });
 
   it('follows the version line when the spec names the home page', async () => {
@@ -238,9 +240,9 @@ describe('docesri-sitemap', () => {
     });
     const facts = await ORACLES['docesri-sitemap'].read(ctx, product, spec('docesri-sitemap'));
     expect(facts[0]?.value).toBe('3.7');
-    expect(await ORACLES['docesri-sitemap'].read(ctx, makeProduct(), spec('docesri-sitemap'))).toEqual(
-      [],
-    );
+    expect(
+      await ORACLES['docesri-sitemap'].read(ctx, makeProduct(), spec('docesri-sitemap')),
+    ).toEqual([]);
   });
 });
 

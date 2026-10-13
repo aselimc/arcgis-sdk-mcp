@@ -75,7 +75,14 @@ export function buildPackageIndex(registry: Registry): PackageIndex {
       }
       for (const name of names) {
         const product = byAlias(name);
-        if (product !== undefined) {
+        // An alias names a package only where the product has none on any registry (ArcPy
+        // ships with ArcGIS Pro) or publishes to this one: the npm package `arcgis` is not
+        // the Python API, whatever the alias table says.
+        const plausible =
+          product !== undefined &&
+          (product.packages.length === 0 ||
+            product.packages.some((ref) => ref.registry === found.ecosystem));
+        if (plausible) {
           return { product, package: found.name, primary: product.packages.length === 0 };
         }
       }

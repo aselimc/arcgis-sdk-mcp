@@ -24,7 +24,10 @@ function ofRule(issues: RegistryIssue[], rule: RegistryIssue['rule']): string[] 
 }
 
 describe('registry data', () => {
-  const issues = checkRegistry({ products: data.products, hosts: HOSTS, briefs: data.briefs }, TODAY);
+  const issues = checkRegistry(
+    { products: data.products, hosts: HOSTS, briefs: data.briefs },
+    TODAY,
+  );
 
   it('finds products to check', () => {
     expect(data.products.length).toBeGreaterThanOrEqual(31);
@@ -94,9 +97,7 @@ describe('checkRegistry', () => {
     ]);
 
     const indexOnly = makeProduct({
-      sources: [
-        makeSource('docc', { base: '/widgets/api/' }, { capability: 'package-cdn' }),
-      ],
+      sources: [makeSource('docc', { base: '/widgets/api/' }, { capability: 'package-cdn' })],
     });
     expect(violations([indexOnly])).toEqual([
       'INV-1 widgets-sdk: floor source guide uses adapter docc',
@@ -186,7 +187,8 @@ describe('checkRegistry', () => {
 
   it('INV-5: rejects hashed file names and patterns that do not compile', () => {
     const hashed = makeProduct({
-      homepage: 'https://developers.arcgis.com/widgets/static/f013f9dda2d4e9af0b8d489f7bdaf2c1.store.json',
+      homepage:
+        'https://developers.arcgis.com/widgets/static/f013f9dda2d4e9af0b8d489f7bdaf2c1.store.json',
     });
     expect(violations([hashed])).toEqual([
       `INV-5 widgets-sdk: "${hashed.homepage}" contains a content hash`,

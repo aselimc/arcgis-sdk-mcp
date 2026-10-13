@@ -247,14 +247,14 @@ function declaration(source: string, tokens: readonly Token[], range: Range): Dt
   }
 
   const open = own.findIndex((token, index) => index > cursor && token.text === '{');
-  if (open === -1) return result;
   const openToken = own[open];
-  result.head = openToken === undefined ? text : source.slice(first?.start, openToken.start).trim();
+  if (openToken === undefined) return result;
+  result.head = source.slice(first?.start, openToken.start).trim();
   Object.assign(result, heritage(source, own.slice(cursor + 2, open)));
   if (kind === 'namespace') return result;
 
   // The body is searched in the full token stream so that member JSDoc is seen.
-  const openIndex = tokens.indexOf(openToken as Token);
+  const openIndex = tokens.indexOf(openToken);
   const closeIndex = matchingClose(tokens, openIndex, range.to);
   result.bodyParsed = closeIndex !== -1;
   const body = tokens.slice(openIndex + 1, closeIndex === -1 ? range.to : closeIndex);

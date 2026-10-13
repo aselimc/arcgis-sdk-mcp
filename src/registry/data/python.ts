@@ -61,11 +61,7 @@ function sphinxApi(base: string): SourceDef<'sphinx'> {
 }
 
 /** A repository of Jupyter notebooks. */
-function notebooks(
-  repo: string,
-  title: string,
-  include?: string[],
-): SourceDef<'github-repo'> {
+function notebooks(repo: string, title: string, include?: string[]): SourceDef<'github-repo'> {
   return {
     id: 'samples',
     title,
@@ -74,7 +70,11 @@ function notebooks(
     config: { repo, preset: 'notebooks', ...(include === undefined ? {} : { include }) },
     capability: 'github',
     license: 'apache-2.0',
-    probe: { url: `https://api.github.com/repos/${repo}`, expect: 'json', mustContain: 'full_name' },
+    probe: {
+      url: `https://api.github.com/repos/${repo}`,
+      expect: 'json',
+      mustContain: 'full_name',
+    },
   };
 }
 
@@ -330,9 +330,7 @@ const arcpy: Product = {
       },
     },
   ],
-  oracles: [
-    { type: 'docesri-sitemap', options: { slug: 'arcgis-pro' }, provides: ['documented'] },
-  ],
+  oracles: [{ type: 'docesri-sitemap', options: { slug: 'arcgis-pro' }, provides: ['documented'] }],
   compatibility: [
     {
       name: 'Python libraries shipped with ArcGIS Pro',
@@ -346,7 +344,10 @@ const arcpy: Product = {
       title: 'Python libraries shipped with ArcGIS Pro',
       ref: `${PRO_DOCS}arcpy/get-started/available-python-libraries.html`,
     },
-    { title: "What's new in ArcGIS Pro", ref: `${PRO_DOCS}get-started/whats-new-in-arcgis-pro.html` },
+    {
+      title: "What's new in ArcGIS Pro",
+      ref: `${PRO_DOCS}get-started/whats-new-in-arcgis-pro.html`,
+    },
   ],
   pitfalls: [
     'ArcPy versions are ArcGIS Pro versions; a tool or parameter may not exist in an older Pro release.',

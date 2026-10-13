@@ -49,7 +49,13 @@ describe('table readers', () => {
 
   it('picks the table with the most rows', () => {
     const small = { header: ['a', 'b'], rows: [['1', '2']] };
-    const big = { header: ['a', 'b'], rows: [['1', '2'], ['3', '4']] };
+    const big = {
+      header: ['a', 'b'],
+      rows: [
+        ['1', '2'],
+        ['3', '4'],
+      ],
+    };
     const oneColumn = { header: ['a'], rows: [['1'], ['2'], ['3']] };
     expect(largestTable([small, big, oneColumn])).toBe(big);
     expect(largestTable([])).toBeUndefined();
@@ -58,7 +64,12 @@ describe('table readers', () => {
 
 describe('rowsFromTable', () => {
   const [matrix] = htmlTables(MATRIX_HTML);
-  const about = { product: jsProduct, name: 'Version matrix', source: MATRIX_URL, wanted: new Set<string>() };
+  const about = {
+    product: jsProduct,
+    name: 'Version matrix',
+    source: MATRIX_URL,
+    wanted: new Set<string>(),
+  };
 
   it('finds the column that holds the product itself', () => {
     expect(subjectColumn(matrix!, jsProduct)).toBe(0);
@@ -73,7 +84,12 @@ describe('rowsFromTable', () => {
     const rows = rowsFromTable(matrix!, { ...about, target: '5.1', current: '5.1' });
     expect(rows).toEqual([
       // 5.2 is listed ahead of its release; its empty Enterprise cell is skipped.
-      { with: 'Released', value: 'October 2026 (with JS SDK 5.2.*)', unreleased: true, source: MATRIX_URL },
+      {
+        with: 'Released',
+        value: 'October 2026 (with JS SDK 5.2.*)',
+        unreleased: true,
+        source: MATRIX_URL,
+      },
       { with: 'Calcite', value: '5.2.* (with JS SDK 5.2.*)', unreleased: true, source: MATRIX_URL },
       { with: 'Released', value: 'June 2026', unreleased: false, source: MATRIX_URL },
       { with: 'Enterprise', value: '12.2', unreleased: false, source: MATRIX_URL },
@@ -148,7 +164,10 @@ describe('readCompatibility', () => {
     });
     const ctx = makeCtx({ cassette: SITES, products: [arcpy, python] });
     const { rows } = await readCompatibility(ctx, arcpy, { current: '3.7' });
-    expect(rows.map((row) => `${row.with} ${row.value}`)).toEqual(['arcgis 2.4.3', 'python 3.13.13']);
+    expect(rows.map((row) => `${row.with} ${row.value}`)).toEqual([
+      'arcgis 2.4.3',
+      'python 3.13.13',
+    ]);
   });
 
   it('turns an unreadable or table-less page into a notice', async () => {
@@ -168,7 +187,10 @@ describe('readCompatibility', () => {
   });
 
   it('reads nothing with the website capability off or without configured pages', async () => {
-    const off = makeCtx({ cassette: SITES, config: { capabilities: new Set(['registries'] as const) } });
+    const off = makeCtx({
+      cassette: SITES,
+      config: { capabilities: new Set(['registries'] as const) },
+    });
     expect(await readCompatibility(off, jsProduct, {})).toEqual({ rows: [], notices: [] });
     expect(off.http.count()).toBe(0);
     const ctx = makeCtx();

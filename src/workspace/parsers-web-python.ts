@@ -24,7 +24,7 @@ export function parsePackageJson(text: string): Dependency[] {
   const found: Dependency[] = [];
   for (const section of NPM_SECTIONS) {
     const entries = (manifest as Record<string, unknown>)[section];
-    if (typeof entries !== 'object' || entries === null) continue;
+    if (typeof entries !== 'object' || entries === null || Array.isArray(entries)) continue;
     for (const [name, spec] of Object.entries(entries)) {
       if (typeof spec === 'string') found.push(dependency('npm', name, spec));
     }

@@ -128,7 +128,8 @@ export function parseTreedata(script: string): Map<string, TreeNode> {
  *
  * Order follows each node's `children` list; a node that names a parent without being listed
  * by it is appended to that parent's children, and nodes whose parent is unknown are roots.
- * A node is visited once, so a cyclic script cannot loop.
+ * A node is visited once, so a cyclic script cannot loop; nodes reachable from no root are
+ * listed last.
  */
 export function treePages(nodes: ReadonlyMap<string, TreeNode>): TreePage[] {
   const childrenOf = new Map<string, string[]>();
@@ -147,20 +148,24 @@ export function treePages(nodes: ReadonlyMap<string, TreeNode>): TreePage[] {
 
   const pages: TreePage[] = [];
   const visited = new Set<string>();
-  // Depth-first with an explicit stack: the tool reference of ArcGIS Pro has 11,000 nodes.
-  const stack = roots.reverse().map((id) => ({ id, ancestors: [] as string[] }));
-  for (let next = stack.pop(); next !== undefined; next = stack.pop()) {
-    const node = nodes.get(next.id);
-    if (node === undefined || visited.has(node.id)) continue;
-    visited.add(node.id);
-    if (node.url !== undefined) {
-      pages.push({ url: node.url, title: node.label ?? '', ancestors: next.ancestors });
-    }
-    const ancestors = node.label === undefined ? next.ancestors : [...next.ancestors, node.label];
-    const children = childrenOf.get(node.id) ?? [];
-    for (let index = children.length - 1; index >= 0; index -= 1) {
-      const id = children[index];
-      if (id !== undefined) stack.push({ id, ancestors });
+  // Nodes that only point at each other hang from no root; they follow as trees of their own.
+  for (const start of [...roots, ...nodes.keys()]) {
+    // Depth-first with an explicit stack: the tool reference of ArcGIS Pro has 11,000 nodes.
+    const stack = [{ id: start, ancestors: [] as string[] }];
+    for (let next = stack.pop(); next !== undefined; next = stack.pop()) {
+      const node = nodes.get(next.id);
+      if (node === undefined || visited.has(node.id)) continue;
+      visited.add(node.id);
+      if (node.url !== undefined) {
+        pages.push({ url: node.url, title: node.label ?? '', ancestors: next.ancestors });
+      }
+      const ancestors =
+        node.label === undefined ? next.ancestors : [...next.ancestors, node.label];
+      const children = childrenOf.get(node.id) ?? [];
+      for (let index = children.length - 1; index >= 0; index -= 1) {
+        const id = children[index];
+        if (id !== undefined) stack.push({ id, ancestors });
+      }
     }
   }
   return pages;

@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Example.Tides</name>
+    </assembly>
+    <members>
+        <member name="T:Example.Tides.TideClock">
+            <summary>
+            Follows the tides of one harbour. Create it with
+            <see cref="M:Example.Tides.TideClock.#ctor(System.String)"/>.
+            </summary>
+            <remarks>
+            <para>Readings come from a <see cref="T:Example.Tides.Gauge"/>.</para>
+            <para>Supported units:</para>
+            <list type="bullet">
+                <item><description><c>m</c> for metres</description></item>
+                <item><term>ft</term><description>for feet</description></item>
+            </list>
+            </remarks>
+            <example>
+            Reading the next high tide:
+            <code>
+            var clock = new TideClock("brest");
+
+            Console.WriteLine(clock.NextHighTide);
+            </code>
+            </example>
+            <seealso href="https://example.com/tides">Tide primer</seealso>
+        </member>
+        <member name="M:Example.Tides.TideClock.#ctor(System.String)">
+            <summary>Creates a clock for a harbour.</summary>
+            <param name="harbour">Identifier of the harbour.</param>
+            <exception cref="T:System.ArgumentException">The harbour is unknown.</exception>
+        </member>
+        <member name="P:Example.Tides.TideClock.NextHighTide">
+            <summary>Time of the next high tide.</summary>
+            <value>A UTC time.</value>
+        </member>
+        <member name="P:Example.Tides.TideClock.Item(System.Int32)">
+            <summary>The reading at an index.</summary>
+        </member>
+        <member name="M:Example.Tides.TideClock.Sample``1(System.Collections.Generic.IEnumerable{``0},System.Nullable{System.Int32},System.Double[]@)">
+            <summary>
+            Heights at several moments. Uses <paramref name="precision"/> digits and
+            returns <see langword="null"/> for moments outside the record.
+            </summary>
+            <typeparam name="T">The moment type.</typeparam>
+            <param name="moments">The moments to sample.</param>
+            <param name="precision">Digits after the decimal point.</param>
+            <param name="heights">Receives the heights.</param>
+            <returns><b>true</b> when every moment was found.</returns>
+        </member>
+        <member name="M:Example.Tides.TideClock.Reset">
+            <exclude/>
+        </member>
+        <member name="E:Example.Tides.TideClock.Turned">
+            <summary>Raised when the tide turns.</summary>
+        </member>
+        <member name="F:Example.Tides.TideClock.DefaultUnits">
+            <summary>The unit used when none is given.</summary>
+        </member>
+        <member name="T:Example.Tides.TideClock.Reading">
+            <summary>One reading of a clock.</summary>
+        </member>
+        <member name="P:Example.Tides.TideClock.Reading.Height">
+            <summary>Water height.</summary>
+        </member>
+        <member name="T:Example.Tides.Gauge">
+            <summary>A tide gauge.</summary>
+        </member>
+    </members>
+</doc>

@@ -399,7 +399,10 @@ const cityengine: Product = {
       title: "What's new in CityEngine",
       ref: 'https://doc.arcgis.com/en/cityengine/latest/whats-new/cityengine-whats-new.htm',
     },
-    { title: 'Procedural Runtime API reference', ref: 'https://esri.github.io/cityengine-sdk/html/' },
+    {
+      title: 'Procedural Runtime API reference',
+      ref: 'https://esri.github.io/cityengine-sdk/html/',
+    },
     { title: 'PyPRT API reference', ref: 'https://esri.github.io/pyprt/apidoc/' },
   ],
   pitfalls: [

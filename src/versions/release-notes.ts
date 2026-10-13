@@ -15,12 +15,11 @@ import { isMcpDocError } from '../core/errors.js';
 import type { CallOptions, Ctx, VersionReport } from '../core/ports.js';
 import type { Product, VersionLine } from '../core/types.js';
 import { compareVersions, parseVersion } from '../core/version-key.js';
-import { resolveUrl } from './oracles/kit.js';
+import { lineUrl, resolveUrl } from './oracles/kit.js';
 import {
   RELEASE_NOTES_FILTER,
   compilePattern,
-  defaultSitemapUrl,
-  readSitemapUrls,
+  readProductSitemap,
   versionedPages,
   type VersionedPage,
 } from './sitemap-versions.js';
@@ -89,7 +88,7 @@ async function sitemapPages(
   call: CallOptions | undefined,
 ): Promise<VersionedPage[]> {
   const config = product.releaseNotes ?? {};
-  const urls = await readSitemapUrls(ctx, defaultSitemapUrl(product, line), call);
+  const urls = await readProductSitemap(ctx, product, line, call);
   const filter =
     (config.sitemapFilter === undefined ? undefined : compilePattern(config.sitemapFilter)) ??
     new RegExp(RELEASE_NOTES_FILTER, 'i');
@@ -129,7 +128,10 @@ export async function locateReleaseNotes(
   if (config === undefined) return { refs: [], notices };
 
   let pages: VersionedPage[] = [];
-  const listsVersions = config.sitemapFilter !== undefined || config.pattern !== undefined;
+  // A template builds its URLs without the sitemap; only a filter or a regex needs the listing.
+  const listsVersions =
+    config.sitemapFilter !== undefined ||
+    (config.pattern !== undefined && !isTemplatePattern(config.pattern));
   if (listsVersions && ctx.policy.enabled('website')) {
     try {
       pages = await sitemapPages(ctx, product, request.line, request.call);
@@ -154,7 +156,7 @@ export async function locateReleaseNotes(
     }
   }
   if (config.current !== undefined) {
-    add(request.current ?? CURRENT_LABEL, resolveUrl(config.current, request.line));
+    add(request.current ?? CURRENT_LABEL, lineUrl(config.current, product, request.line));
   }
   for (const page of pages) {
     // The current page already stands for its version; a second ref to it adds nothing.

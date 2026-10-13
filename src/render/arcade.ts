@@ -45,7 +45,8 @@ function itemEntry(item: Json, level: number, detail: SymbolDetail): Entry | und
     str(item.sinceVersion) === undefined ? undefined : `since ${str(item.sinceVersion) ?? ''}`,
     item.consumesCredits === true ? 'consumes credits' : undefined,
   ].filter((fact) => fact !== undefined);
-  const code = signature === undefined ? undefined : fence(signature, 'arcade');
+  // On a page of several functions the heading is the signature already.
+  const code = signature === undefined || level > 1 ? undefined : fence(signature, 'arcade');
   const id = anchorOf(item, name);
   return {
     id,

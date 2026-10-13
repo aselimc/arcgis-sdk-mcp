@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+    <title>How To: Export gauge readings with a script</title>
+    <meta name="article-number" content="000990001" />
+    <meta name="article-type" content="How To" />
+    <meta name="product" content="Harbor Desk" />
+    <meta name="first-published" content="02/03/2025" />
+    <meta name="last-published" content="01/05/2026" />
+    <meta name="description" content="Steps to export gauge readings to a file." />
+  </head>
+  <body>
+    <div class="esri-technical grid-container calcite-theme-light">
+      <div class="esri-text__iconContainer column-24">
+        <img loading="lazy" class="esri-text__icon" alt="" src="https://cdn.example/common/icons/howto.svg" />
+        <div class="sharelinks">
+          <calcite-tooltip placement="top">URL copied</calcite-tooltip>
+          <calcite-link href="" icon-end="copy-to-clipboard">Share URL</calcite-link>
+        </div>
+      </div>
+      <div class="esri-technical-header column-24">
+        <div class="esri-technical-header-content">
+          <p class="esri-text__category">HOW TO</p>
+          <h1 class="esri-text__title">Export gauge readings with a script</h1>
+        </div>
+      </div>
+      <div class="column-24">
+        <div class="esri-technical-container">
+          <div class="item leftcontent">
+            <div class="esri-technical-info-text">
+              <section>
+                <h2>
+                  Summary
+                </h2>
+                <p>The readings of one gauge can be written to a text file from the Python window.</p>
+              </section>
+              <section>
+                <h2>
+                  Procedure
+                </h2>
+                <ol>
+                  <li>Open the Python window.</li>
+                  <li>Run the script below.</li>
+                </ol>
+                <pre class="ckeditor_codeblock">import harbor
+readings = harbor.gauges.read("N4")
+harbor.export(readings, r"C:\temp\n4.txt")</pre>
+                <p>&nbsp;<b>Check the result</b></p>
+                <pre class="ckeditor_codeblock">print(open(r"C:\temp\n4.txt").read())</pre>
+              </section>
+            </div>
+            <div class="esri-technical-info-caption">Article ID: 000990001</div>
+          </div>
+          <div class="item rightcontent"><div class="notification-sidebar">Get support with AI</div></div>
+          <div class="item contactsection">Contact technical support</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://doc.esri.com/en/widgets-pro/4.2/tool-reference/main/widget-tool-reference.html</loc>
+    <lastmod>2026-07-01T03:13:29-07:00</lastmod>
+  </url>
+  <url>
+    <loc>https://doc.esri.com/en/widgets-pro/4.2/tool-reference/shaping/round-corners.html</loc>
+    <lastmod>2026-07-01T03:13:29-07:00</lastmod>
+  </url>
+  <url>
+    <loc>https://doc.esri.com/en/widgets-pro/4.2/tool-reference/shaping/bevel-2.html</loc>
+    <lastmod>2026-07-01T03:13:29-07:00</lastmod>
+  </url>
+  <url>
+    <loc>https://doc.esri.com/en/widgets-pro/4.2/tool-reference/shaping/retired-chamfer-tool.html</loc>
+    <lastmod>2026-07-01T03:13:29-07:00</lastmod>
+  </url>
+  <url>
+    <loc>https://doc.esri.com/en/widgets-pro/4.2/arcpy/functions/listwidgets.html</loc>
+    <lastmod>2026-07-01T03:13:29-07:00</lastmod>
+  </url>
+  <url>
+    <loc>https://doc.esri.com/en/widgets-pro/4.2/arcpy/get-started/python-window.html</loc>
+    <lastmod>2026-07-01T03:13:29-07:00</lastmod>
+  </url>
+  <url>
+    <loc>https://doc.esri.com/en/widgets-pro/4.2/help/projects/create-a-project.html</loc>
+    <lastmod>2026-07-01T03:13:29-07:00</lastmod>
+  </url>
+  <url>
+    <loc>https://doc.esri.com/en/widgets-pro/4.2/install/system-requirements.html</loc>
+    <lastmod>2026-07-01T03:13:29-07:00</lastmod>
+  </url>
+</urlset>

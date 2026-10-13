@@ -105,6 +105,20 @@ describe('gatsby read: HTML pages', () => {
     expect(page.kind).toBe('tutorial');
   });
 
+  it('names the page by the URL a redirect landed on', async () => {
+    const s = guide();
+    const ctx = s.ctx();
+    const old = `${D}/widgets/getting-started.htm`;
+    ctx.http.on(old, {
+      body: '<main><h1>Get started</h1></main>',
+      finalUrl: `${D}/widgets/get-started/`,
+      aliasChain: [old],
+    });
+    const page = await gatsbyAdapter.read(ctx, s.bound(), { url: new URL(`${old}#install`) });
+    expect(page.ref).toBe(`${D}/widgets/get-started/#install`);
+    expect(page.redirectedFrom).toEqual([old]);
+  });
+
   it('reports a missing page as DOC_NOT_FOUND', async () => {
     const s = guide();
     const ctx = s.ctx();
@@ -196,6 +210,8 @@ describe('gatsby read: bodies in page-data', () => {
     expect(call.input.schemas).toBeUndefined();
     expect(call.input.sitePrefix).toBe('/services');
     expect(call.input.target).toBeUndefined();
+    // Read by URL, without a record: a generated operation page is API documentation.
+    expect(call.meta.kind).toBe('api');
   });
 
   it('renders the schemas page and passes a fragment as the target', async () => {
@@ -252,6 +268,18 @@ describe('gatsby read: bodies in page-data', () => {
       kind: 'spec',
     });
     expect(page.license).toBe('cc-by-nd');
+  });
+
+  it('keeps a specification verbatim when it falls back to the HTML page', async () => {
+    const s = spec();
+    const ctx = s.ctx();
+    ctx.http.fail(/\/page-data\//, 404);
+    const url = `${D}/thing-specification/objects/thingLayer/`;
+    await gatsbyAdapter.read(ctx, s.bound(), { url: new URL(url), detail: 'full' });
+    const call = rendered(ctx, 'html');
+    expect(call.meta.res?.url).toBe(url);
+    expect(call.opts).toEqual({ detail: 'full', verbatim: true });
+    expect(call.meta.specName).toBe(s.product.name);
   });
 
   it('ignores a body of another kind than the one the source names', async () => {

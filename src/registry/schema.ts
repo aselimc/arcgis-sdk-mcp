@@ -102,7 +102,9 @@ const adapterConfigs: { [A in AdapterType]: z.ZodType<AdapterConfigMap[A]> } = {
   'legacy-help': z.strictObject({
     host: hostName,
     base: z.string().regex(/^\/.*\/$/, 'must start and end with a slash'),
-    books: z.array(z.strictObject({ path: z.string().min(1), tocScript: z.string().exactOptional() })),
+    books: z.array(
+      z.strictObject({ path: z.string().min(1), tocScript: z.string().exactOptional() }),
+    ),
     lines: z.array(z.string().min(1)).exactOptional(),
     enumerate: z.enum(['eager', 'on-demand']).exactOptional(),
   }),
@@ -114,15 +116,16 @@ const adapterConfigs: { [A in AdapterType]: z.ZodType<AdapterConfigMap[A]> } = {
     kind: kind.exactOptional(),
   }),
   static: z.strictObject({
-    entries: z
-      .array(z.strictObject({ url: urlOrPath, title: z.string().min(1), kind }))
-      .min(1),
+    entries: z.array(z.strictObject({ url: urlOrPath, title: z.string().min(1), kind })).min(1),
   }),
   brief: z.strictObject({ slugs: z.array(z.string().min(1)).min(1) }),
   openapi: z.strictObject({
     specs: z
       .array(
-        z.union([httpsUrl, z.strictObject({ url: httpsUrl, embedded: z.boolean().exactOptional() })]),
+        z.union([
+          httpsUrl,
+          z.strictObject({ url: httpsUrl, embedded: z.boolean().exactOptional() }),
+        ]),
       )
       .min(1),
   }),
@@ -314,7 +317,9 @@ export const productSchema: z.ZodType<Product> = z.strictObject({
         .min(1),
     }),
   ),
-  compatibility: z.array(z.strictObject({ name: z.string().min(1), url: httpsUrl })).exactOptional(),
+  compatibility: z
+    .array(z.strictObject({ name: z.string().min(1), url: httpsUrl }))
+    .exactOptional(),
   releaseNotes: z
     .strictObject({
       current: httpsUrl.exactOptional(),

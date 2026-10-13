@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Release notes for 2.1 | Harbor tools</title>
+    <style>
+      body { font-family: sans-serif; }
+    </style>
+  </head>
+  <body>
+    <header class="site-header"><a href="/">Harbor tools</a><nav><a href="/docs/">Docs</a></nav></header>
+    <article class="release-notes">
+      <h1>Release notes for 2.1</h1>
+      <p>Version 2.1 adds tide alerts and fixes two bugs in the berth finder.</p>
+      <h2 id="new">New</h2>
+      <dl>
+        <dt>Tide alerts:</dt>
+        <dd>Get a message when the water passes a level.</dd>
+      </dl>
+      <h2 id="fixed">Fixed</h2>
+      <table>
+        <tr><th>Issue</th><th>Summary</th></tr>
+        <tr><td>HT-101</td><td>The berth finder ignored <code>minLength</code>.</td></tr>
+      </table>
+      <pre><code class="language-bash">harbor upgrade --to 2.1</code></pre>
+      <script>window.analytics = [];</script>
+    </article>
+    <footer>Example Harbor Ltd.</footer>
+  </body>
+</html>

@@ -3,7 +3,9 @@ import type { VersionFact } from '../../src/core/types.js';
 import { mergeFacts } from '../../src/versions/merge.js';
 import { dotnetProduct, javaProduct, jsProduct, pythonProduct, restJsProduct } from './products.js';
 
-const fact = (partial: Partial<VersionFact> & Pick<VersionFact, 'role' | 'value'>): VersionFact => ({
+const fact = (
+  partial: Partial<VersionFact> & Pick<VersionFact, 'role' | 'value'>,
+): VersionFact => ({
   oracle: 'page-regex',
   url: 'https://developers.arcgis.com/x/',
   ...partial,

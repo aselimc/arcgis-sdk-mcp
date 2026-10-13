@@ -66,7 +66,9 @@ describe('noticeConcerns', () => {
       name: 'ArcGIS Experience Builder branch version management',
       aliases: [],
     });
-    expect(noticeConcerns(notice('arcgis-experience-builder-branch-version-ma'), product)).toBe(true);
+    expect(noticeConcerns(notice('arcgis-experience-builder-branch-version-ma'), product)).toBe(
+      true,
+    );
     expect(noticeConcerns(notice('arcgis-experience'), product)).toBe(false);
   });
 });

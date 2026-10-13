@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { pageKind } from '../../../../src/adapters/site/gatsby/catalog.js';
 import { MAX_ENUMERATE_REQUESTS } from '../../../../src/adapters/site/gatsby/enumerate.js';
 import { gatsbyAdapter } from '../../../../src/adapters/site/gatsby/index.js';
 import { bindSource } from '../../../../src/core/adapter-helpers.js';
@@ -130,6 +131,31 @@ describe('gatsby enumerate: guide site', () => {
     const site = guide({ symbolsFromSlug: '^api-reference/([^/]+' });
     const records = await enumerate(site.ctx(), site.bound());
     expect(records.every((record) => record.symbol === undefined)).toBe(true);
+  });
+});
+
+describe('pageKind', () => {
+  const src = guide().bound();
+
+  it.each([
+    ['release-notes/', 'release-notes'],
+    ['release-notes/release-notes-2-4-0/', 'release-notes'],
+    ['whats-new-world-geocoding-service/', 'release-notes'],
+    ['guide/changelog/', 'release-notes'],
+    ['tutorials/add-a-layer/', 'tutorial'],
+    ['sample-code/Routing/', 'sample'],
+    ['sample-code/', 'guide'],
+    ['api-reference/gauge/', 'api'],
+    ['notes-on-releases/', 'guide'],
+    ['', 'guide'],
+  ] as const)('classifies %s as %s', (rel, kind) => {
+    expect(pageKind(src, rel)).toBe(kind);
+  });
+
+  it('prefers the page type of the store, and the kind of a symbol over both', () => {
+    expect(pageKind(src, 'layers/intro/', { pageType: 'Tutorial' })).toBe('tutorial');
+    expect(pageKind(src, 'layers/intro/', { pageType: 'Sample' })).toBe('sample');
+    expect(pageKind(src, 'whats-new/', { symbolKind: 'api' })).toBe('api');
   });
 });
 

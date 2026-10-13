@@ -6,7 +6,7 @@
  * Options: `url` (default the product's `releaseNotes.current`, else `release-notes/` under
  * its home page); `slug`: `compact` for run-together digits.
  */
-import { defineOracle, homeUrl, requestOptions, resolveUrl, urlOption } from './kit.js';
+import { defineOracle, homeUrl, lineUrl, requestOptions, urlOption } from './kit.js';
 import { slugStyle } from './sitemap-slug.js';
 import { dateOfVersion, versionFromUrl } from '../version-text.js';
 
@@ -20,7 +20,7 @@ export const metaRefreshTargetOracle = defineOracle(
       urlOption(spec, product, run.line) ??
       (configured === undefined
         ? new URL('release-notes/', homeUrl(product, run.line)).href
-        : resolveUrl(configured, run.line));
+        : lineUrl(configured, product, run.line));
     const res = await ctx.http.get({
       url,
       expect: 'html',

@@ -1,0 +1,106 @@
+{
+  "items": [
+    {
+      "name": "Widget tool reference",
+      "href": "main/widget-tool-reference.html",
+      "topicHref": "main/widget-tool-reference.html"
+    },
+    {
+      "name": "Geoprocessing tools",
+      "items": [
+        {
+          "name": "Shaping toolbox",
+          "items": [
+            {
+              "name": "An overview of the Shaping toolbox",
+              "href": "shaping/an-overview-of-the-shaping-toolbox.html",
+              "topicHref": "shaping/an-overview-of-the-shaping-toolbox.html"
+            },
+            {
+              "name": "Shaping toolbox history",
+              "href": "shaping/shaping-toolbox-history.html",
+              "topicHref": "shaping/shaping-toolbox-history.html"
+            },
+            {
+              "name": "Round Corners",
+              "href": "shaping/round-corners.html",
+              "topicHref": "shaping/round-corners.html"
+            },
+            {
+              "name": "Split Widget at Seam",
+              "href": "shaping/split-widget-at-seam.html",
+              "topicHref": "shaping/split-widget-at-seam.html"
+            },
+            {
+              "name": "Edges toolset",
+              "items": [
+                {
+                  "name": "Bevel Edges (multiple)",
+                  "href": "shaping/bevel-edges.html",
+                  "topicHref": "shaping/bevel-edges.html"
+                },
+                {
+                  "name": "Wide Bevel",
+                  "href": "shaping/bevel-2.html",
+                  "topicHref": "shaping/bevel-2.html"
+                },
+                {
+                  "name": "Edges toolset concepts",
+                  "items": [
+                    {
+                      "name": "How Bevel Edges Works",
+                      "href": "shaping/how-bevel-edges-works.html",
+                      "topicHref": "shaping/how-bevel-edges-works.html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Data Management toolbox",
+          "items": [
+            {
+              "name": "Count Widgets",
+              "href": "data-management/count-widgets.html",
+              "topicHref": "data-management/count-widgets.html"
+            },
+            {
+              "name": "80-20 Sorting",
+              "href": "data-management/eighty-twenty-sorting.html",
+              "topicHref": "data-management/eighty-twenty-sorting.html"
+            },
+            {
+              "name": "Open Widget Explorer",
+              "href": "data-management/open-widget-explorer.html",
+              "topicHref": "data-management/open-widget-explorer.html"
+            },
+            {
+              "name": "Round Corners",
+              "href": "shaping/round-corners.html#usage",
+              "topicHref": "shaping/round-corners.html"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tool errors and warnings",
+      "items": [
+        {
+          "name": "000001: The widget is not round",
+          "href": "tool-errors-and-warnings/000001-010000/tool-errors-and-warnings-000001.html",
+          "topicHref": "tool-errors-and-warnings/000001-010000/tool-errors-and-warnings-000001.html"
+        }
+      ]
+    },
+    { "name": "Python reference", "href": "../arcpy/main/widget-python-reference.html" },
+    { "name": "Community", "href": "https://community.example.com/widgets" },
+    { "href": "shaping/entry-without-a-name.html" },
+    "not an entry"
+  ],
+  "buildType": "web-help",
+  "searchProduct": "widgets-pro",
+  "searchVersion": "4.2"
+}

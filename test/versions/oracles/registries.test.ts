@@ -102,7 +102,11 @@ describe('nuget-flat', () => {
     );
     // 300.2.0-beta.1 is listed but is not generally available.
     expect(facts.map((fact) => fact.value)).toEqual(['300.1.0', '200.8.3']);
-    expect(facts[0]).toMatchObject({ role: 'installable', registry: 'nuget', oracle: 'nuget-flat' });
+    expect(facts[0]).toMatchObject({
+      role: 'installable',
+      registry: 'nuget',
+      oracle: 'nuget-flat',
+    });
   });
 
   it('lower-cases the package id of the product in the URL', async () => {

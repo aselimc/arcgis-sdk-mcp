@@ -12,8 +12,8 @@ const ZERO_WIDTH = /[\u200b-\u200d\ufeff]/g;
 
 /**
  * Normalises converted Markdown: cell line breaks become `<br>`, NBSP becomes a space,
- * zero-width characters go, trailing spaces go, and runs of blank lines outside code fences
- * collapse to one. The result has no leading or trailing blank lines and no final newline.
+ * zero-width characters go, trailing spaces and a lone leading space go, and runs of blank
+ * lines outside code fences collapse to one. The result has no leading or trailing blank lines and no final newline.
  */
 export function postProcess(markdown: string): string {
   const out: string[] = [];
@@ -26,7 +26,9 @@ export function postProcess(markdown: string): string {
       .replace(BR_PLACEHOLDERS, '<br>')
       .replace(NBSP, ' ')
       .replace(ZERO_WIDTH, '')
-      .replace(/[ \t]+$/, '');
+      .replace(/[ \t]+$/, '')
+      // One leading space is what an NBSP before a block leaves behind; it indents nothing.
+      .replace(/^ (?=\S)/, '');
     if (text === '' && (out.length === 0 || out.at(-1) === '')) continue;
     out.push(text);
   }

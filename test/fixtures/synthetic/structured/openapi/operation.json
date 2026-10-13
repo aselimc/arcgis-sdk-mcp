@@ -1,0 +1,160 @@
+{
+  "operation": {
+    "operationId": "beaconsNearPointGet",
+    "path": "/beacons/near-point",
+    "endpoint": "https://beacons-api.example.com/v1/beacons/near-point",
+    "method": "get",
+    "summary": "Find beacons close to a coordinate.",
+    "description": "The `/beacons/near-point` request lists the beacons inside a circle\naround a coordinate.\n\nYou must send the `x` and `y` values. You may also send:\n\n- A search radius\n- One or more kind ids\n\n**Note**: results are ordered by distance.",
+    "queryParameters": [
+      {
+        "in": "query",
+        "name": "x",
+        "shortDescription": "Longitude of the search centre.",
+        "description": "Longitude of the search centre, in decimal degrees.",
+        "example": -4.5,
+        "required": true,
+        "type": "number",
+        "displayType": "%%[XCoord](/beacons/types/#xcoord)%%",
+        "minimum": -180,
+        "maximum": 180
+      },
+      {
+        "in": "query",
+        "name": "kindIds",
+        "description": "Keeps only beacons of these kinds.\n\nA beacon matches when it has _any_ of the ids. Useful values:\n\n- `tower` for masonry towers\n- `buoy` for floating marks",
+        "example": ["tower", "buoy"],
+        "required": false,
+        "type": "array",
+        "displayType": "[%%[KindId](/beacons/types/#kindid)%%]"
+      },
+      {
+        "in": "query",
+        "name": "pageSize",
+        "description": "How many beacons one response holds.",
+        "example": 10,
+        "required": false,
+        "default": 10,
+        "type": "integer",
+        "displayType": "integer",
+        "minimum": 1,
+        "maximum": 20
+      },
+      {
+        "in": "query",
+        "name": "f",
+        "description": "Response format, `json` or `pjson` (a | b).",
+        "required": false,
+        "default": "json",
+        "type": "string",
+        "displayType": "string",
+        "enum": ["json", "pjson"]
+      },
+      {
+        "in": "query",
+        "name": "tags",
+        "description": "Free-text tags.",
+        "required": false,
+        "type": "array",
+        "displayType": "[string]"
+      }
+    ],
+    "bodyParameters": [],
+    "pathParameters": [],
+    "headerParameters": [
+      {
+        "in": "header",
+        "name": "X-Request-Id",
+        "description": "Echoed back in the response.",
+        "required": false,
+        "type": "string",
+        "displayType": "string"
+      }
+    ],
+    "examples": [
+      {
+        "language": "curl",
+        "content": "curl 'https://beacons-api.example.com/v1/beacons/near-point?x=-4.5&y=48.4' \\\n  -H 'Authorization: Bearer <TOKEN>'"
+      },
+      {
+        "language": "javascript",
+        "content": "const response = await fetch(url, { headers });\nconsole.log(await response.json());"
+      }
+    ],
+    "responses": [
+      {
+        "status": "200",
+        "meaning": { "code": "200", "phrase": "OK" },
+        "description": "The beacons that were found.",
+        "contentType": "application/json",
+        "type": "object",
+        "displayType": "object",
+        "examples": [
+          {
+            "content": "{\n  \"results\": [\n    { \"beaconId\": \"b-17\", \"distance\": 42.5 }\n  ]\n}"
+          }
+        ],
+        "properties": [
+          {
+            "name": "results",
+            "enums": [],
+            "required": true,
+            "type": "array",
+            "displayType": "[%%[NearPointResult](/beacons/types/#nearpointresult)%%]",
+            "restrictions": "none"
+          },
+          {
+            "name": "paging",
+            "description": "Links to further pages.\n",
+            "enums": [],
+            "required": false,
+            "type": "object",
+            "displayType": "object",
+            "restrictions": "none",
+            "properties": [
+              {
+                "name": "nextUrl",
+                "description": "Address of the next page.",
+                "enums": [],
+                "required": false,
+                "type": "string",
+                "displayType": "string",
+                "minLength": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "status": "400",
+        "meaning": { "code": "400", "phrase": "Bad Request" },
+        "description": "A parameter is missing or out of range.",
+        "contentType": "application/json",
+        "type": "object",
+        "displayType": "%%[Error](/beacons/types/#error)%%",
+        "examples": [],
+        "properties": [
+          {
+            "name": "error",
+            "description": "What went wrong.",
+            "enums": [{ "title": "code", "values": [400, 401] }],
+            "required": true,
+            "type": "object",
+            "displayType": "object",
+            "properties": [
+              {
+                "name": "code",
+                "description": "Numeric error code.",
+                "enums": [{ "title": "code", "values": [400, 401] }],
+                "required": true,
+                "type": "integer",
+                "displayType": "integer"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "title": "/beacons/near-point"
+}

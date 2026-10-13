@@ -174,7 +174,6 @@ function memberOf(child: Json, group: string, context: CommentContext): ApiMembe
     declared.readonly === true ? 'readonly' : undefined,
     flags.isOptional === true ? 'optional' : undefined,
     comment.defaultValue === undefined ? undefined : `default ${inlineCode(comment.defaultValue)}`,
-    sourceLink(child),
   ].filter((fact) => fact !== undefined);
   return {
     id: name,
@@ -221,12 +220,10 @@ function heritage(raw: Json): string[] {
     const names = typeNames(types);
     return names.length === 0 ? undefined : `**${label}:** ${names.join(', ')}`;
   };
-  return [
-    line('Extends', raw.extendedTypes),
-    line('Implements', raw.implementedTypes),
-    line('Extended by', raw.extendedBy),
-    line('Implemented by', raw.implementedBy),
-  ].filter((fact) => fact !== undefined);
+  // Base types are part of the declaration line; only the reverse direction needs saying.
+  return [line('Extended by', raw.extendedBy), line('Implemented by', raw.implementedBy)].filter(
+    (fact) => fact !== undefined,
+  );
 }
 
 function typeDeclaration(raw: Json, name: string): string | undefined {

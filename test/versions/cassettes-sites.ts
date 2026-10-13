@@ -44,7 +44,9 @@ export const SITES: Cassette = {
     {
       url: `${D}/net/`,
       response: {
-        body: page('<p>Current version: <b>300.1</b> &ndash; August 2026. <a href="x">Release notes</a>.</p>'),
+        body: page(
+          '<p>Current version: <b>300.1</b> &ndash; August 2026. <a href="x">Release notes</a>.</p>',
+        ),
       },
     },
     {
@@ -53,7 +55,9 @@ export const SITES: Cassette = {
     },
     {
       url: `${D}/python/latest/`,
-      response: { body: page('<p>Current version: 2.4.4 - September 22, 2026. Release notes.</p>') },
+      response: {
+        body: page('<p>Current version: 2.4.4 - September 22, 2026. Release notes.</p>'),
+      },
     },
     {
       url: `${D}/experience-builder/`,
@@ -62,14 +66,18 @@ export const SITES: Cassette = {
     {
       url: `${D}/calcite-design-system/`,
       response: {
-        body: page('<p>Current version: <code>@esri/calcite-components</code> : 5.1 ( May 2026 )</p>'),
+        body: page(
+          '<p>Current version: <code>@esri/calcite-components</code> : 5.1 ( May 2026 )</p>',
+        ),
       },
     },
     { url: `${D}/no-banner/`, response: { body: page('<p>Nothing about versions here.</p>') } },
     {
       url: `${D}/arcade/guide/release-notes/`,
       response: {
-        body: page('<h2 id="version-138">Version 1.38</h2><p>x</p><h2 id="version-137">Version 1.37</h2>'),
+        body: page(
+          '<h2 id="version-138">Version 1.38</h2><p>x</p><h2 id="version-137">Version 1.37</h2>',
+        ),
       },
     },
     {
@@ -90,6 +98,15 @@ export const SITES: Cassette = {
           `${D}/net/release-notes/prior-releases/release-notes-for-300-0/`,
           `${D}/net/release-notes/prior-releases/release-notes-for-200-8/`,
           `${D}/net/system-requirements/system-requirements-for-300-1/`,
+        ]),
+      },
+    },
+    {
+      url: `${D}/net/v200/sitemap-0.xml`,
+      response: {
+        body: urlset([
+          `${D}/net/v200/release-notes/release-notes-for-200-8/`,
+          `${D}/net/v200/release-notes/prior-releases/release-notes-for-200-7/`,
         ]),
       },
     },
@@ -118,8 +135,7 @@ export const SITES: Cassette = {
       // A sitemap index: the oracle follows it into its first child.
       url: `${D}/indexed/sitemap-0.xml`,
       response: {
-        body:
-          `<?xml version="1.0"?><sitemapindex><sitemap><loc>${D}/indexed/sitemap-pages.xml</loc></sitemap></sitemapindex>`,
+        body: `<?xml version="1.0"?><sitemapindex><sitemap><loc>${D}/indexed/sitemap-pages.xml</loc></sitemap></sitemapindex>`,
       },
     },
     {
@@ -154,7 +170,10 @@ export const SITES: Cassette = {
       },
     },
     { url: `${D}/javascript/latest/version-matrix/`, response: { body: MATRIX_HTML } },
-    { url: 'https://doc.esri.com/en/widgets/latest/libraries.html', response: { body: LIBRARIES_HTML } },
+    {
+      url: 'https://doc.esri.com/en/widgets/latest/libraries.html',
+      response: { body: LIBRARIES_HTML },
+    },
     {
       url: 'https://support.esri.com/en-us/knowledge-base/sitemap-articles.xml',
       response: {

@@ -3,6 +3,8 @@
  * per version, so both the documented version (the highest slug) and the release-notes refs
  * fall out of one request that the gateway caches for everyone.
  */
+import { isMcpDocError } from '../core/errors.js';
+import { DEVELOPERS_ORIGIN } from '../core/names.js';
 import type { CallOptions, Ctx } from '../core/ports.js';
 import { parseSitemap } from '../core/sitemap.js';
 import type { Product, VersionLine } from '../core/types.js';
@@ -51,6 +53,35 @@ export async function readSitemapUrls(
     if (nested.kind === 'urlset') urls.push(...nested.entries.map((entry) => entry.loc));
   }
   return urls;
+}
+
+/**
+ * Page URLs of the product's own sitemap for a line. Most products publish `sitemap-0.xml`
+ * next to their entry page; a site whose entry page is a sub-directory of its host
+ * (location.arcgis.com/help/) publishes it at the host root, which is tried second.
+ */
+export async function readProductSitemap(
+  ctx: Ctx,
+  product: Product,
+  line: VersionLine | undefined,
+  call: CallOptions | undefined,
+): Promise<string[]> {
+  const beside = defaultSitemapUrl(product, line);
+  try {
+    return await readSitemapUrls(ctx, beside, call);
+  } catch (error) {
+    const atRoot = new URL('/sitemap-0.xml', beside).href;
+    const onDevelopers = beside.startsWith(`${DEVELOPERS_ORIGIN}/`);
+    if (
+      !isMcpDocError(error) ||
+      error.code !== 'DOC_NOT_FOUND' ||
+      onDevelopers ||
+      atRoot === beside
+    ) {
+      throw error;
+    }
+    return readSitemapUrls(ctx, atRoot, call);
+  }
 }
 
 /**

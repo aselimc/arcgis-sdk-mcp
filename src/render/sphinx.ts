@@ -169,6 +169,7 @@ function toType($: CheerioAPI, dl: Element, convert: Convert, detail: SymbolDeta
     .join('.');
   return {
     title: ownerName === '' ? object.name : `${ownerName}.${object.name}`,
+    ...(object.id === '' ? {} : { id: object.id }),
     header: `_${object.role}_${module === '' ? '' : ` · ${inlineCode(module)}`}`,
     language: 'python',
     signature: object.signature,

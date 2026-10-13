@@ -83,7 +83,8 @@ export function pageKind(
 function kindFromPath(src: BoundSource<'gatsby'>, rel: string, pageType = ''): DocKind {
   if (/tutorial/i.test(pageType)) return 'tutorial';
   if (/sample/i.test(pageType)) return 'sample';
-  if (/(?:^|\/)(?:release-notes|whats-new|what-s-new|changelog)(?:\/|$)/.test(rel)) {
+  // Slugs carry suffixes: `release-notes-2-4-0/`, `whats-new-world-geocoding-service/`.
+  if (/(?:^|\/)(?:release-notes|whats-new|what-s-new|changelog)[^/]*(?:\/|$)/.test(rel)) {
     return 'release-notes';
   }
   if (/(?:^|\/)tutorials?\//.test(rel)) return 'tutorial';

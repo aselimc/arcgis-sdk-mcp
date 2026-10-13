@@ -2,7 +2,7 @@ import { LANG_ATTR, normalizeLanguage } from '../dom.js';
 import type { Pass } from '../types.js';
 
 /** `lang-csharp`, `language-python`, `brush: js`, `highlight-json`. */
-const PREFIXED = /(?:^|\s)(?:lang|language|highlight|brush:)-?\s*([\w#+-]+)/i;
+const PREFIXED = /(?:^|\s)(?:language-|lang-|highlight-|brush:\s*)([\w#+-]+)/i;
 /** A bare class naming the language, as QDoc (`pre.cpp`) and old highlighters write it. */
 const BARE =
   /(?:^|\s)(cpp|qml|python|csharp|java|kotlin|swift|dart|json|xml|html|js|ts|sql|bash|yaml)(?:\s|$)/i;

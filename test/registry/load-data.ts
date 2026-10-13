@@ -42,7 +42,11 @@ async function load(name: string): Promise<Record<string, unknown> | undefined> 
     const code = (error as { code?: string }).code;
     const text = error instanceof Error ? error.message : String(error);
     // Only "the file is not there" is tolerated; a file that exists and throws is a failure.
-    if (code === 'ERR_MODULE_NOT_FOUND' || /Cannot find module|Failed to load url|does not exist/i.test(text)) {
+    // The first message is how the test runner reports a computed import without a file.
+    if (
+      code === 'ERR_MODULE_NOT_FOUND' ||
+      /Unknown variable dynamic import|Cannot find module|Failed to load url/i.test(text)
+    ) {
       return undefined;
     }
     throw error;

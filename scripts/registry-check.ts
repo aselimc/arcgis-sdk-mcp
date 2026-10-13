@@ -160,7 +160,8 @@ function checkProduct(
     ),
   ];
   for (const repo of new Set(repos)) {
-    if (!isAllowedOwner(repo.split('/')[0])) error('INV-2', `repository ${repo}: owner not allowed`);
+    if (!isAllowedOwner(repo.split('/')[0]))
+      error('INV-2', `repository ${repo}: owner not allowed`);
   }
 
   // INV-4: references inside the product and to other products.
@@ -242,7 +243,12 @@ export function checkRegistry(data: RegistryData, today: Date): RegistryIssue[] 
     }
   }
   for (const host of duplicates(data.hosts.map((row) => row.host))) {
-    issues.push({ rule: 'INV-2', severity: 'error', product: '(hosts)', message: `duplicate ${host}` });
+    issues.push({
+      rule: 'INV-2',
+      severity: 'error',
+      product: '(hosts)',
+      message: `duplicate ${host}`,
+    });
   }
   for (const brief of data.briefs ?? []) {
     const result = briefSchema.safeParse(brief);
@@ -329,11 +335,19 @@ async function probeAll(products: readonly Product[]): Promise<LiveResult[]> {
       if (line === undefined) {
         results.push({ ...base, ok: false, ms: 0, error: 'the source exists on no line' });
       } else if (source.capability !== undefined && !ctx.policy.enabled(source.capability)) {
-        results.push({ ...base, ok: true, ms: 0, skipped: `capability ${source.capability} is off` });
+        results.push({
+          ...base,
+          ok: true,
+          ms: 0,
+          skipped: `capability ${source.capability} is off`,
+        });
       } else {
         try {
           const adapter = adapters.get(source.adapter);
-          results.push({ ...base, ...(await adapter.probe(ctx, bindSource(product, source, line))) });
+          results.push({
+            ...base,
+            ...(await adapter.probe(ctx, bindSource(product, source, line))),
+          });
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           results.push({ ...base, ok: false, ms: 0, error: message });
@@ -369,7 +383,9 @@ async function main(args: readonly string[]): Promise<number> {
     return failed ? 1 : 0;
   }
   for (const issue of issues) {
-    console.log(`${issue.severity.padEnd(7)} ${issue.rule.padEnd(6)} ${issue.product}: ${issue.message}`);
+    console.log(
+      `${issue.severity.padEnd(7)} ${issue.rule.padEnd(6)} ${issue.product}: ${issue.message}`,
+    );
   }
   for (const result of live) {
     const state = result.skipped ?? (result.ok ? 'ok' : `FAILED ${result.error ?? ''}`.trim());

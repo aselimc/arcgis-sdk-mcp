@@ -56,6 +56,8 @@ export interface ApiMember extends ApiDoc {
 /** A documented type, component or module. */
 export interface ApiType extends ApiDoc {
   title: string;
+  /** Section id of the type itself, when it has an anchor of its own; default the title's slug. */
+  id?: string;
   /** Identity block (kind, package, import line); becomes `DocPage.header`. */
   header?: string;
   /** Fence language of every signature on the page. */
@@ -266,7 +268,7 @@ export function renderApiPage(
   const selected = findMember(members, member ?? opts?.select?.member);
   const sectionBlocks =
     selected === undefined
-      ? typeBlocks({ ...type, members }, detail, 1)
+      ? typeBlocks({ ...type, members }, detail, 1, type.id)
       : [memberBlock(selected, type.language, detail, 3)];
   return finishPage(
     renderer,

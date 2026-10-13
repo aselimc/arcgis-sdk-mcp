@@ -27,7 +27,7 @@ const prepare: Pass = ($) => {
   $('div.symbol.monospace').each((_, el) => {
     const symbol = $(el);
     symbol.find('.top-right-position, .copy-icon').remove();
-    replaceWithPre($, symbol, symbol.text(), 'kotlin');
+    replaceWithPre($, symbol, symbol.text().trim(), 'kotlin');
   });
   $('span.kdoc-tag').each((_, el) => {
     const tag = $(el);

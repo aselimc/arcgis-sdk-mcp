@@ -1,0 +1,52 @@
+{
+  "title": "Types",
+  "schemas": [
+    {
+      "name": "KindId",
+      "type": "string",
+      "displayType": "%%[KindId](/beacons/types/#kindid)%%",
+      "description": "Identifies a kind of beacon.\n",
+      "example": "\"tower\"",
+      "properties": [],
+      "required": false,
+      "enums": [{ "title": "KindId", "values": ["tower", "buoy"] }]
+    },
+    {
+      "name": "NearPointResult",
+      "type": "object",
+      "displayType": "%%[NearPointResult](/beacons/types/#nearpointresult)%%",
+      "description": "One beacon found by a `beacons/near-point` request.\n\nIt carries the beacon and how far away it is.",
+      "example": "{\n  \"beaconId\": \"b-17\",\n  \"distance\": 42.5\n}",
+      "properties": [
+        {
+          "name": "beaconId",
+          "description": "Identifier of the beacon.",
+          "enums": [],
+          "required": true,
+          "type": "string",
+          "displayType": "string",
+          "minLength": 1
+        },
+        {
+          "name": "kinds",
+          "description": "Every kind the beacon belongs to.",
+          "enums": [],
+          "required": true,
+          "type": "array",
+          "displayType": "[%%[KindId](/beacons/types/#kindid)%%]"
+        },
+        {
+          "name": "distance",
+          "description": "Distance from the search centre, in metres.",
+          "enums": [],
+          "required": false,
+          "type": "number",
+          "displayType": "number",
+          "minimum": 0
+        }
+      ],
+      "required": false,
+      "enums": []
+    }
+  ]
+}

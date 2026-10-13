@@ -1,0 +1,29 @@
+{
+  "name": "docfx-esri: tool reference and Python reference of an invented product (synthetic)",
+  "interactions": [
+    {
+      "url": "https://doc.esri.com/en/widgets-pro/latest/tool-reference/toc.json",
+      "response": { "bodyFile": "docfx-tools-toc.json" }
+    },
+    {
+      "url": "https://doc.esri.com/en/widgets-pro/latest/arcpy/toc.json",
+      "response": { "bodyFile": "docfx-arcpy-toc.json" }
+    },
+    {
+      "url": "https://doc.esri.com/en/widgets-pro/latest/sitemap.xml",
+      "response": { "contentType": "application/xml", "bodyFile": "docfx-sitemap.xml" }
+    },
+    {
+      "url": "https://doc.esri.com/en/widgets-pro/latest/tool-reference/shaping/bevel-2.html",
+      "response": { "bodyFile": "docfx-tool-page.html" }
+    },
+    {
+      "url": "https://doc.esri.com/en/widgets-pro/latest/tool-reference/data-management/open-widget-explorer.html",
+      "response": { "bodyFile": "docfx-topic-page.html" }
+    },
+    {
+      "url": "https://doc.esri.com/en/widgets-pro/latest/arcpy/functions/listwidgets.html",
+      "response": { "bodyFile": "docfx-topic-page.html" }
+    }
+  ]
+}

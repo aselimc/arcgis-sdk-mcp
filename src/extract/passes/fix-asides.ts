@@ -29,12 +29,12 @@ const RULES: readonly AsideRule[] = [
     label: 'h5',
     unlabelled: 'skip',
   },
+  // Sphinx and QDoc (`div.admonition.note`: before the plain `div.note` rule)
+  { selector: 'div.admonition', label: 'p.admonition-title', unlabelled: 'named' },
   // legacy help
   { selector: 'div.panel', label: 'h5', unlabelled: 'skip' },
   // legacy help with a label; the JavaScript reference without one
   { selector: 'div.note', label: 'h5', unlabelled: 'quote' },
-  // Sphinx and QDoc
-  { selector: 'div.admonition', label: 'p.admonition-title', unlabelled: 'named' },
 ];
 
 /** `admonition warning` names the kind in its second class. */
@@ -59,8 +59,11 @@ export const fixAsides: Pass = ($) => {
         .text()
         .replace(/[:\s]+$/, '')
         .trim();
+      // QDoc writes the label into the text (`<p><b>Note:</b> ...`): do not add a second one.
+      const opening = aside.children().first();
+      const labelled = (opening.is('p') ? opening.contents().first() : opening).is('b, strong');
       const lead =
-        labelEl.length === 0 && rule.unlabelled === 'quote'
+        labelEl.length === 0 && (rule.unlabelled === 'quote' || labelled)
           ? ''
           : `<p>${tagged('strong', `${text === '' ? fallback : text}:`)}</p>`;
       labelEl.remove();

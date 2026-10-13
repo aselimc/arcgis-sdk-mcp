@@ -57,7 +57,13 @@ function guide(
   return {
     id: 'guide',
     title: hasApiIndex ? 'Guide, tutorials, samples and API reference' : 'Guide and tutorials',
-    kinds: ['guide', 'tutorial', 'sample', 'release-notes', ...(hasApiIndex ? ['api' as const] : [])],
+    kinds: [
+      'guide',
+      'tutorial',
+      'sample',
+      'release-notes',
+      ...(hasApiIndex ? ['api' as const] : []),
+    ],
     adapter: 'astro',
     config: {
       base: `/${slug}/{prefix}`,
@@ -386,9 +392,7 @@ const dotnet = nativeSdk({
     'Native mapping SDK for .NET apps on WPF, .NET MAUI and WinUI in C#: 2D/3D maps, offline data, routing, geocoding.',
   keywords: [...MAPS_SDK_KEYWORDS, 'windows', 'xaml', 'nuget', 'desktop', 'cross-platform'],
   languages: ['csharp'],
-  packages: [
-    { registry: 'nuget', name: 'Esri.ArcGISRuntime', license: 'esri-ma', primary: true },
-  ],
+  packages: [{ registry: 'nuget', name: 'Esri.ArcGISRuntime', license: 'esri-ma', primary: true }],
   repos: [
     repo('Esri/arcgis-maps-sdk-dotnet-samples', 'samples'),
     repo('Esri/arcgis-maps-sdk-dotnet-toolkit', 'toolkit'),
@@ -722,8 +726,7 @@ const runtime100: Product = {
   category: 'native',
   tier: 'developer',
   status: 'retired',
-  statusNote:
-    'Retires 2027-09-01; documentation is on an archive host that is linked, not fetched',
+  statusNote: 'Retires 2027-09-01; documentation is on an archive host that is linked, not fetched',
   successor: 'kotlin-maps-sdk',
   summary:
     'Tombstone for ArcGIS Runtime SDKs 100.x (Android, iOS, .NET, Qt, Java). Points to the migration guides of the Maps SDKs.',
@@ -753,7 +756,12 @@ const runtime100: Product = {
       },
       capability: 'website',
       floor: true,
-      probe: { url: `${D}/kotlin/${MIGRATION_PAGE}`, expect: 'html', family: 'astro', minChars: 500 },
+      probe: {
+        url: `${D}/kotlin/${MIGRATION_PAGE}`,
+        expect: 'html',
+        family: 'astro',
+        minChars: 500,
+      },
     },
   ],
   oracles: [

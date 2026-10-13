@@ -71,7 +71,11 @@ function markdownRepo(
     config: { repo, preset: 'markdown-docs', ...options },
     capability: 'github',
     license: 'apache-2.0',
-    probe: { url: `https://api.github.com/repos/${repo}`, expect: 'json', mustContain: 'full_name' },
+    probe: {
+      url: `https://api.github.com/repos/${repo}`,
+      expect: 'json',
+      mustContain: 'full_name',
+    },
     ...extras,
   };
 }
@@ -629,11 +633,7 @@ const experienceBuilder: Product = {
       'Sample widgets, themes and the widget-development skill',
       'Esri/arcgis-experience-builder-sdk-resources',
       {
-        include: [
-          'widgets/**/README.md',
-          'themes/**/README.md',
-          'skills/arcgis-exb-widget-dev/**',
-        ],
+        include: ['widgets/**/README.md', 'themes/**/README.md', 'skills/arcgis-exb-widget-dev/**'],
       },
     ),
   ],
@@ -842,12 +842,7 @@ const webSceneSpec = jsonSpec({
   id: 'web-scene-spec',
   name: 'Web scene specification',
   noun: 'ArcGIS web scene',
-  aliases: [
-    'web scene specification',
-    'webscene spec',
-    'web-scene-specification',
-    'webscene json',
-  ],
+  aliases: ['web scene specification', 'webscene spec', 'web-scene-specification', 'webscene json'],
   base: '/web-scene-specification/',
   source: gatsbySite(
     'spec',

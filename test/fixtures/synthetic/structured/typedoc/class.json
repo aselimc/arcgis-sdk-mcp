@@ -1,0 +1,373 @@
+{
+  "id": 100,
+  "name": "TideClock",
+  "variant": "declaration",
+  "kind": 128,
+  "flags": {},
+  "comment": {
+    "summary": [
+      { "kind": "text", "text": "Keeps track of tide times for one harbour. Create it with " },
+      { "kind": "inline-tag", "tag": "@linkcode", "text": "TideClock.forHarbour", "target": 130 },
+      { "kind": "text", "text": " and read " },
+      { "kind": "inline-tag", "tag": "@link", "text": "()", "target": 121 },
+      { "kind": "text", "text": ".\r\n\r\nSee the " },
+      {
+        "kind": "inline-tag",
+        "tag": "@link",
+        "text": "tide primer",
+        "target": "https://example.com/tides/primer"
+      },
+      { "kind": "text", "text": " and " },
+      { "kind": "inline-tag", "tag": "@linkcode", "text": "HarbourOptions", "target": 900 },
+      { "kind": "text", "text": "." }
+    ],
+    "blockTags": [
+      { "tag": "@since", "content": [{ "kind": "text", "text": "2.1.0" }] },
+      {
+        "tag": "@example",
+        "content": [
+          { "kind": "code", "text": "```ts\nconst clock = TideClock.forHarbour(\"brest\");\n```" }
+        ]
+      }
+    ]
+  },
+  "children": [
+    {
+      "id": 101,
+      "name": "constructor",
+      "variant": "declaration",
+      "kind": 512,
+      "flags": {},
+      "signatures": [
+        {
+          "id": 102,
+          "name": "TideClock",
+          "variant": "signature",
+          "kind": 16384,
+          "flags": {},
+          "parameters": [
+            {
+              "id": 103,
+              "name": "options",
+              "variant": "param",
+              "kind": 32768,
+              "flags": {},
+              "comment": { "summary": [{ "kind": "text", "text": "Where and how to measure." }] },
+              "type": { "type": "reference", "target": 900, "name": "HarbourOptions" }
+            }
+          ],
+          "type": { "type": "reference", "target": 100, "name": "TideClock" }
+        }
+      ]
+    },
+    {
+      "id": 110,
+      "name": "harbour",
+      "variant": "declaration",
+      "kind": 1024,
+      "flags": { "isPublic": true, "isReadonly": true },
+      "comment": { "summary": [{ "kind": "text", "text": "Identifier of the harbour." }] },
+      "type": { "type": "intrinsic", "name": "string" }
+    },
+    {
+      "id": 111,
+      "name": "units",
+      "variant": "declaration",
+      "kind": 1024,
+      "flags": { "isOptional": true },
+      "comment": {
+        "summary": [{ "kind": "text", "text": "Unit of every height this clock reports." }],
+        "blockTags": [
+          { "tag": "@defaultValue", "content": [{ "kind": "code", "text": "```ts\n\"m\"\n```" }] }
+        ]
+      },
+      "type": {
+        "type": "union",
+        "types": [
+          { "type": "literal", "value": "m" },
+          { "type": "literal", "value": "ft" }
+        ]
+      },
+      "defaultValue": "\"m\""
+    },
+    {
+      "id": 112,
+      "name": "secret",
+      "variant": "declaration",
+      "kind": 1024,
+      "flags": { "isPrivate": true },
+      "type": { "type": "intrinsic", "name": "string" }
+    },
+    {
+      "id": 120,
+      "name": "nextHighTide",
+      "variant": "declaration",
+      "kind": 262144,
+      "flags": {},
+      "getSignature": {
+        "id": 121,
+        "name": "nextHighTide",
+        "variant": "signature",
+        "kind": 524288,
+        "flags": {},
+        "comment": {
+          "summary": [{ "kind": "text", "text": "Time of the next high tide." }]
+        },
+        "type": { "type": "reference", "name": "Date", "package": "typescript" }
+      }
+    },
+    {
+      "id": 125,
+      "name": "offset",
+      "variant": "declaration",
+      "kind": 262144,
+      "flags": {},
+      "getSignature": {
+        "id": 126,
+        "name": "offset",
+        "variant": "signature",
+        "kind": 524288,
+        "flags": {},
+        "comment": { "summary": [{ "kind": "text", "text": "Minutes added to every time." }] },
+        "type": { "type": "intrinsic", "name": "number" }
+      },
+      "setSignature": {
+        "id": 127,
+        "name": "offset",
+        "variant": "signature",
+        "kind": 1048576,
+        "flags": {},
+        "parameters": [
+          {
+            "id": 128,
+            "name": "value",
+            "variant": "param",
+            "kind": 32768,
+            "flags": {},
+            "type": { "type": "intrinsic", "name": "number" }
+          }
+        ],
+        "type": { "type": "intrinsic", "name": "void" }
+      }
+    },
+    {
+      "id": 129,
+      "name": "forHarbour",
+      "variant": "declaration",
+      "kind": 2048,
+      "flags": { "isStatic": true },
+      "signatures": [
+        {
+          "id": 130,
+          "name": "forHarbour",
+          "variant": "signature",
+          "kind": 4096,
+          "flags": {},
+          "comment": {
+            "summary": [{ "kind": "text", "text": "Creates a clock for a known harbour." }],
+            "blockTags": [
+              {
+                "tag": "@returns",
+                "content": [{ "kind": "text", "text": "A clock that is ready to use." }]
+              },
+              {
+                "tag": "@throws",
+                "content": [{ "kind": "text", "text": "When the harbour is unknown." }]
+              }
+            ]
+          },
+          "parameters": [
+            {
+              "id": 131,
+              "name": "id",
+              "variant": "param",
+              "kind": 32768,
+              "flags": {},
+              "comment": { "summary": [{ "kind": "text", "text": "Harbour identifier." }] },
+              "type": { "type": "intrinsic", "name": "string" }
+            }
+          ],
+          "type": { "type": "reference", "target": 100, "name": "TideClock" }
+        }
+      ]
+    },
+    {
+      "id": 140,
+      "name": "heightAt",
+      "variant": "declaration",
+      "kind": 2048,
+      "flags": {},
+      "inheritedFrom": { "type": "reference", "target": -1, "name": "ClockBase.heightAt" },
+      "signatures": [
+        {
+          "id": 141,
+          "name": "heightAt",
+          "variant": "signature",
+          "kind": 4096,
+          "flags": {},
+          "comment": {
+            "summary": [
+              { "kind": "text", "text": "Water height at a moment. Uses " },
+              { "kind": "code", "text": "`offset`" },
+              { "kind": "text", "text": "." }
+            ],
+            "blockTags": [
+              {
+                "tag": "@deprecated",
+                "content": [
+                  { "kind": "text", "text": "Use " },
+                  { "kind": "inline-tag", "tag": "@link", "text": "sample", "target": 151 },
+                  { "kind": "text", "text": " instead." }
+                ]
+              },
+              {
+                "tag": "@example",
+                "content": [{ "kind": "text", "text": "clock.heightAt(new Date());" }]
+              }
+            ]
+          },
+          "parameters": [
+            {
+              "id": 142,
+              "name": "when",
+              "variant": "param",
+              "kind": 32768,
+              "flags": {},
+              "type": { "type": "reference", "name": "Date", "package": "typescript" }
+            },
+            {
+              "id": 143,
+              "name": "precision",
+              "variant": "param",
+              "kind": 32768,
+              "flags": { "isOptional": true },
+              "type": { "type": "intrinsic", "name": "number" },
+              "defaultValue": "2"
+            }
+          ],
+          "type": { "type": "intrinsic", "name": "number" }
+        }
+      ]
+    },
+    {
+      "id": 150,
+      "name": "sample",
+      "variant": "declaration",
+      "kind": 2048,
+      "flags": {},
+      "signatures": [
+        {
+          "id": 151,
+          "name": "sample",
+          "variant": "signature",
+          "kind": 4096,
+          "flags": {},
+          "comment": { "summary": [{ "kind": "text", "text": "Heights at several moments." }] },
+          "typeParameters": [
+            {
+              "id": 152,
+              "name": "T",
+              "variant": "typeParam",
+              "kind": 131072,
+              "flags": {},
+              "type": { "type": "reference", "name": "Date", "package": "typescript" }
+            }
+          ],
+          "parameters": [
+            {
+              "id": 153,
+              "name": "moments",
+              "variant": "param",
+              "kind": 32768,
+              "flags": { "isRest": true },
+              "type": { "type": "array", "elementType": { "type": "reference", "name": "T" } }
+            }
+          ],
+          "type": {
+            "type": "reference",
+            "name": "Promise",
+            "package": "typescript",
+            "typeArguments": [
+              {
+                "type": "array",
+                "elementType": {
+                  "type": "union",
+                  "types": [
+                    { "type": "intrinsic", "name": "number" },
+                    { "type": "literal", "value": null }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 154,
+          "name": "sample",
+          "variant": "signature",
+          "kind": 4096,
+          "flags": {},
+          "parameters": [
+            {
+              "id": 155,
+              "name": "range",
+              "variant": "param",
+              "kind": 32768,
+              "flags": {},
+              "type": {
+                "type": "reflection",
+                "declaration": {
+                  "id": 156,
+                  "name": "__type",
+                  "kind": 65536,
+                  "flags": {},
+                  "children": [
+                    {
+                      "id": 157,
+                      "name": "from",
+                      "kind": 1024,
+                      "flags": {},
+                      "type": { "type": "reference", "name": "Date" }
+                    },
+                    {
+                      "id": 158,
+                      "name": "to",
+                      "kind": 1024,
+                      "flags": { "isOptional": true },
+                      "type": { "type": "reference", "name": "Date" }
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "type": {
+            "type": "reference",
+            "name": "Promise",
+            "typeArguments": [
+              { "type": "array", "elementType": { "type": "intrinsic", "name": "number" } }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "groups": [
+    { "title": "Constructors", "children": [101] },
+    { "title": "Properties", "children": [110, 111, 112] },
+    { "title": "Accessors", "children": [120, 125] },
+    { "title": "Methods", "children": [129, 140, 150] }
+  ],
+  "sources": [
+    {
+      "fileName": "packages/tides/src/TideClock.ts",
+      "line": 12,
+      "character": 13,
+      "url": "https://github.com/example/tides/blob/0123abc/packages/tides/src/TideClock.ts#L12"
+    }
+  ],
+  "extendedTypes": [{ "type": "reference", "target": -1, "name": "ClockBase" }],
+  "implementedTypes": [{ "type": "reference", "target": 901, "name": "Disposable" }],
+  "extendedBy": [{ "type": "reference", "target": 950, "name": "StormClock" }],
+  "url": "/api-reference/tides/TideClock"
+}

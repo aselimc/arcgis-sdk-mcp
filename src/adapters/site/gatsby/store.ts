@@ -35,7 +35,7 @@ export interface PaginationEntry {
 const MAX_DESCRIPTION = 240;
 
 /** Tags that sit inside a word or sentence; removing them must not add a space. */
-const INLINE_TAG = /<\/?(?:a|b|code|em|i|span|strong|wbr)[^>]*>/gi;
+const INLINE_TAG = /<\/?(?:a|b|code|em|i|span|strong|wbr)\b[^>]*>/gi;
 
 function text(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;

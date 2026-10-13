@@ -15,22 +15,21 @@
           <p>A chart holds the layers that a view draws. <a href="#details">More...</a></p>
           <div class="table">
             <table class="alignedsummary requisites">
-              <tr><td class="memItemLeft rightAlign topAlign">Header:</td><td class="memItemRight bottomAlign"><span class="preprocessor">#include &lt;Chart.h&gt;</span></td></tr>
-              <tr><td class="memItemLeft rightAlign topAlign">Since:</td><td class="memItemRight bottomAlign">Harbor 2.0</td></tr>
+              <tr><td class="memItemLeft rightAlign topAlign">Header<wbr />:</td><td class="memItemRight bottomAlign"><code translate="no">#include &lt;Chart.h<wbr />&gt;</code></td></tr>
+              <tr><td class="memItemLeft rightAlign topAlign">Since<wbr />:</td><td class="memItemRight bottomAlign">Harbor 2.0</td></tr>
             </table>
           </div>
           <h2 id="public-functions">Public Functions</h2>
           <div class="table">
             <table class="alignedsummary">
-              <tr><td class="memItemLeft rightAlign topAlign"></td><td class="memItemRight bottomAlign"><b><a href="esri-chart.html#Chart">Chart</a></b>(QObject *<i>parent</i> = nullptr)</td></tr>
-              <tr><td class="memItemLeft rightAlign topAlign">double</td><td class="memItemRight bottomAlign"><b><a href="esri-chart.html#maxScale">maxScale</a></b>() const</td></tr>
+              <tr><td class="memItemLeft rightAlign topAlign"></td><td class="memItemRight bottomAlign"><b><a href="harbor-chart.html#Chart">Chart</a></b>(QObject *<i>parent</i> = nullptr)</td></tr>
+              <tr><td class="memItemLeft rightAlign topAlign">double</td><td class="memItemRight bottomAlign"><b><a href="harbor-chart.html#maxScale">maxScale</a></b>() const</td></tr>
             </table>
           </div>
           <h2 id="details">Detailed Description</h2>
           <p>Add layers to a chart, then hand the chart to a view.</p>
           <div class="admonition note">
-            <p class="admonition-title">Note</p>
-            <p>A chart can be shown in one view at a time.</p>
+            <p><b>Note:</b> A chart can be shown in one view at a time.</p>
           </div>
           <pre class="cpp">auto* chart = new Chart(this);
 view-&gt;setChart(chart);</pre>

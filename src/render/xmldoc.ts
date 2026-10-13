@@ -4,11 +4,10 @@
  * from the member id, which encodes the parameter types but not the return type.
  */
 import * as cheerio from 'cheerio';
-// Type-only: cheerio's node types live in its dependency and are not re-exported by name.
-import type { AnyNode, Element } from 'domhandler';
 import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js';
 import type { DocPage } from '../core/types.js';
 import { renderApiPage, type ApiMember, type ApiParam, type ApiType } from './api-page.js';
+import { isElement, isText, type AnyNode, type Element } from './dom.js';
 import { blocks, bullets, decodeEntities, fence, inlineCode, oneLine, table } from './md.js';
 import { invalidInput } from './page.js';
 import { parseMemberId, type MemberId } from './xmldoc-id.js';
@@ -84,8 +83,8 @@ function listBlock($: Api, element: Element): string {
 
 /** Converts one node of a doc comment to Markdown. Block elements are set off by blank lines. */
 function node($: Api, item: AnyNode): string {
-  if (item.type === 'text') return item.data.replace(/\s+/g, ' ');
-  if (item.type !== 'tag') return '';
+  if (isText(item)) return item.data.replace(/\s+/g, ' ');
+  if (!isElement(item)) return '';
   const inner = (): string => children($, item);
   const attr = (name: string): string | undefined => $(item).attr(name);
   switch (item.name.toLowerCase()) {
@@ -129,7 +128,7 @@ function node($: Api, item: AnyNode): string {
 }
 
 function children($: Api, parent: AnyNode | undefined): string {
-  if (parent === undefined || parent.type !== 'tag') return '';
+  if (!isElement(parent)) return '';
   return parent.children.map((child) => node($, child)).join('');
 }
 
@@ -226,7 +225,7 @@ function toMember(slice: Slice): ApiMember | undefined {
   return {
     id: slice.id,
     name: id.name,
-    ...GROUPS[id.prefix],
+    ...(id.constructor ? { group: 'Constructors', kind: 'constructor' } : GROUPS[id.prefix]),
     // With one documented parameter per type in the id, the names can be shown too.
     signature:
       id.prefix === 'M' && params.length > 0 && params.length === id.parameters.length

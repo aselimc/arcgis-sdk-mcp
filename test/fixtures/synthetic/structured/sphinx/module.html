@@ -1,0 +1,58 @@
+<section id="tides-harbour-module">
+<span id="module-tides.harbour"></span><h1>tides.harbour module<a class="headerlink" href="#tides-harbour-module" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">tides.harbour</span></code> module reads tide gauges.</p>
+<section id="tideclock">
+<h2>TideClock<a class="headerlink" href="#tideclock" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tides.harbour.TideClock">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tides.harbour.</span></span><span class="sig-name descname"><span class="pre">TideClock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">harbour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'m'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tides.harbour.TideClock" title="Link to this definition"></a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">TideClock</span></code> class follows the tides of one harbour.
+Readings come from a <a class="reference internal" href="../tides.gauge/#tides.gauge.Gauge" title="tides.gauge.Gauge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Gauge</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Times are reported in UTC.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">clock</span> <span class="o">=</span> <span class="n">TideClock</span><span class="p">(</span><span class="s2">"brest"</span><span class="p">)</span>
+<span class="n">clock</span><span class="o">.</span><span class="n">next_high_tide</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="tides.harbour.TideClock.next_high_tide">
+<span class="sig-name descname"><span class="pre">next_high_tide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">after</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><span class="pre">datetime</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tides.harbour.TideClock.next_high_tide" title="Link to this definition"></a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">next_high_tide</span></code> method finds the next high tide. It never looks back.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>Parameter</strong></p></td>
+<td><p><strong>Description</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>after</p></td>
+<td><p>Optional datetime. Search from this moment; defaults to now.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A <code class="docutils literal notranslate"><span class="pre">datetime</span></code> in UTC.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tides.harbour.TideClock.units">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">units</span></span><a class="headerlink" href="#tides.harbour.TideClock.units" title="Link to this definition"></a></dt>
+<dd><p>The unit of every reported height.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="nearest-harbour">
+<h2>nearest_harbour<a class="headerlink" href="#nearest-harbour" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tides.harbour.nearest_harbour">
+<span class="sig-prename descclassname"><span class="pre">tides.harbour.</span></span><span class="sig-name descname"><span class="pre">nearest_harbour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tides.harbour.nearest_harbour" title="Link to this definition"></a></dt>
+<dd><p>Finds the harbour closest to a coordinate. See <a class="reference internal" href="#tides.harbour.TideClock" title="tides.harbour.TideClock"><code class="xref py py-class docutils literal notranslate"><span class="pre">TideClock</span></code></a>.</p>
+</dd></dl>
+
+</section>
+</section>

@@ -1,0 +1,121 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Beacon registry",
+    "version": "1.2.0",
+    "description": "Registers and lists navigation beacons."
+  },
+  "servers": [{ "url": "https://beacons-api.example.com/v1/" }],
+  "paths": {
+    "/beacons/{beaconId}": {
+      "parameters": [{ "$ref": "#/components/parameters/BeaconId" }],
+      "get": {
+        "operationId": "getBeacon",
+        "summary": "Read one beacon.",
+        "description": "Returns the beacon with the given id.",
+        "parameters": [
+          {
+            "name": "fields",
+            "in": "query",
+            "description": "Properties to return.",
+            "schema": { "type": "array", "items": { "type": "string" } }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The beacon.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Beacon" },
+                "example": { "beaconId": "b-17", "height": 12 }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "operationId": "replaceBeacon",
+        "summary": "Replace one beacon.",
+        "deprecated": true,
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/Beacon" } }
+          }
+        },
+        "responses": { "204": { "description": "Stored." } }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "BeaconId": {
+        "name": "beaconId",
+        "in": "path",
+        "required": true,
+        "description": "Identifier of the beacon.",
+        "schema": { "type": "string", "pattern": "^b-\\d+$" }
+      }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "No beacon has this id.",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Problem" } }
+        }
+      }
+    },
+    "schemas": {
+      "Beacon": {
+        "type": "object",
+        "description": "A navigation beacon.",
+        "required": ["beaconId"],
+        "properties": {
+          "beaconId": { "type": "string", "description": "Identifier." },
+          "height": {
+            "type": "number",
+            "description": "Height above ground, in metres.",
+            "minimum": 0,
+            "default": 10
+          },
+          "position": { "$ref": "#/components/schemas/Position" },
+          "light": {
+            "type": "object",
+            "description": "The light the beacon shows.",
+            "properties": {
+              "colour": { "type": "string", "enum": ["white", "red", "green"] },
+              "period": { "type": "number", "description": "Seconds per cycle." }
+            }
+          },
+          "keepers": {
+            "type": "array",
+            "description": "People responsible for the beacon.",
+            "items": { "$ref": "#/components/schemas/Keeper" }
+          }
+        }
+      },
+      "Keeper": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Position" },
+          {
+            "type": "object",
+            "required": ["name"],
+            "properties": { "name": { "type": "string" } }
+          }
+        ]
+      },
+      "Position": {
+        "type": "object",
+        "required": ["x", "y"],
+        "properties": {
+          "x": { "type": "number", "format": "double" },
+          "y": { "type": "number", "format": "double" }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "properties": { "message": { "type": "string" } }
+      }
+    }
+  }
+}

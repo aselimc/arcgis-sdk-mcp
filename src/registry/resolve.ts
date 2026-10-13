@@ -42,39 +42,38 @@ type Match = Pick<ProductResolution, 'product' | 'how'>;
 const RANK = { id: 0, alias: 1, derived: 2 } as const;
 
 interface Named {
-  product: Product;
+  /** `undefined` when two products claim the key at this rank: it then belongs to neither. */
+  product: Product | undefined;
   rank: (typeof RANK)[keyof typeof RANK];
 }
 
-/** A name table in which a key claimed by two products at the same rank belongs to neither. */
+/**
+ * A name table. A stronger claim replaces a weaker one; two products with equally strong
+ * claims make the key ambiguous at that strength, which only a stronger claim resolves.
+ */
 class NameTable {
-  private readonly entries = new Map<string, Named | 'ambiguous'>();
+  private readonly entries = new Map<string, Named>();
 
   add(key: string, product: Product, rank: Named['rank']): void {
     if (key === '') return;
     const existing = this.entries.get(key);
-    if (existing === undefined) {
+    if (existing === undefined || rank < existing.rank) {
       this.entries.set(key, { product, rank });
-    } else if (existing === 'ambiguous') {
-      if (rank < RANK.derived) this.entries.set(key, { product, rank });
-    } else if (existing.product !== product) {
-      if (rank < existing.rank) this.entries.set(key, { product, rank });
-      else if (rank === existing.rank) this.entries.set(key, 'ambiguous');
-    } else if (rank < existing.rank) {
-      existing.rank = rank;
+    } else if (rank === existing.rank && existing.product !== product) {
+      existing.product = undefined;
     }
   }
 
   get(key: string): Match | undefined {
     const entry = this.entries.get(key);
-    if (entry === undefined || entry === 'ambiguous') return undefined;
+    if (entry?.product === undefined) return undefined;
     return { product: entry.product, how: entry.rank === RANK.id ? 'id' : 'alias' };
   }
 
   /** Every unambiguous key with its product. */
   *all(): Iterable<[string, Product]> {
     for (const [key, entry] of this.entries) {
-      if (entry !== 'ambiguous') yield [key, entry.product];
+      if (entry.product !== undefined) yield [key, entry.product];
     }
   }
 }

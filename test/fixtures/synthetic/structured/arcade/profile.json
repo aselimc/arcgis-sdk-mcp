@@ -1,0 +1,20 @@
+{
+  "name": "Tide alert",
+  "id": "tide-alert",
+  "bundles": ["core", "geometry"],
+  "variables": [
+    {
+      "name": "$gauge",
+      "type": "feature",
+      "description": "The gauge whose reading triggered the alert."
+    },
+    {
+      "name": "$context",
+      "type": "dictionary",
+      "properties": [
+        { "name": "level", "type": "number", "description": "The reading, in metres." },
+        { "name": "rising", "type": "boolean", "description": "Whether the tide is coming in." }
+      ]
+    }
+  ]
+}

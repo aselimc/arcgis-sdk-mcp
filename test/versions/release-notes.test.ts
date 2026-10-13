@@ -6,6 +6,7 @@ import {
   pagesByPattern,
 } from '../../src/versions/release-notes.js';
 import {
+  readProductSitemap,
   readSitemapUrls,
   versionedPages,
   defaultSitemapUrl,
@@ -33,9 +34,9 @@ describe('release-notes patterns', () => {
         LINE_200,
       ),
     ).toBe(`${D}/net/v200/release-notes/release-notes-for-200-8/`);
-    expect(expandReleaseNotesPattern('/x/{version}/{dashed}/{compact}/{patch}/', 'v2.4', undefined)).toBe(
-      `${D}/x/v2.4/2-4/24/0/`,
-    );
+    expect(
+      expandReleaseNotesPattern('/x/{version}/{dashed}/{compact}/{patch}/', 'v2.4', undefined),
+    ).toBe(`${D}/x/v2.4/2-4/24/0/`);
   });
 
   it('reads the version slug captured by a regular expression', () => {
@@ -79,6 +80,27 @@ describe('sitemap reading', () => {
     const urls = await readSitemapUrls(ctx, `${D}/indexed/sitemap-0.xml`, call);
     expect(urls).toEqual([`${D}/indexed/release-notes/release-notes-2-4-0/`]);
     expect(call.budget.used).toBe(2);
+  });
+
+  it('looks for the sitemap at the host root when a site outside developers.arcgis.com has none beside its entry page', async () => {
+    const ctx = makeCtx();
+    const product = makeProduct({ homepage: 'https://location.arcgis.com/help/' });
+    ctx.http
+      .on('https://location.arcgis.com/help/sitemap-0.xml', { status: 404 })
+      .on('https://location.arcgis.com/sitemap-0.xml', {
+        body: '<urlset><url><loc>https://location.arcgis.com/help/release-notes/2026-07/</loc></url></urlset>',
+      });
+    expect(await readProductSitemap(ctx, product, undefined, undefined)).toEqual([
+      'https://location.arcgis.com/help/release-notes/2026-07/',
+    ]);
+
+    // On developers.arcgis.com the root sitemap belongs to the whole site: no second try.
+    const developers = makeCtx();
+    developers.http.on(/./, { status: 404 });
+    await expect(
+      readProductSitemap(developers, dotnetProduct, undefined, undefined),
+    ).rejects.toMatchObject({ code: 'DOC_NOT_FOUND' });
+    expect(developers.http.count()).toBe(1);
   });
 });
 
@@ -138,7 +160,9 @@ describe('locateReleaseNotes', () => {
     ctx.http.fail(/sitemap-0\.xml$/, 'timeout');
     const { refs, notices } = await locateReleaseNotes(ctx, dotnetProduct, { current: '300.1' });
     expect(refs).toEqual([{ version: '300.1', ref: `${D}/net/release-notes/` }]);
-    expect(notices).toEqual(['Per-version release notes could not be listed (UPSTREAM_UNAVAILABLE).']);
+    expect(notices).toEqual([
+      'Per-version release notes could not be listed (UPSTREAM_UNAVAILABLE).',
+    ]);
   });
 
   it('returns nothing for a product without release-notes configuration', async () => {

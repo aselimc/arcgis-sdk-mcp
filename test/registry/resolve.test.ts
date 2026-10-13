@@ -220,9 +220,7 @@ describe('product resolution', () => {
     const error = failure('kotlin-mapz-sdkk-xyz');
     expect(error.code).toBe('UNKNOWN_PRODUCT');
     expect(error.message).toBe('No product matches "kotlin-mapz-sdkk-xyz"');
-    expect(error.details?.next).toBe(
-      'arcgis_docs_list_products({"query":"kotlin-mapz-sdkk-xyz"})',
-    );
+    expect(error.details?.next).toBe('arcgis_docs_list_products({"query":"kotlin-mapz-sdkk-xyz"})');
     expect(error.details?.candidates?.length).toBeLessThanOrEqual(5);
 
     const near = failure('javascript-sdk-thing');
@@ -269,6 +267,23 @@ describe('createResolver', () => {
     expect(local.exact('@acme/shared')).toBeUndefined();
   });
 
+  it('keeps a name ambiguous however many products share it, and suggests nothing by default', () => {
+    const third = makeProduct({
+      id: 'third-sdk',
+      name: 'Third',
+      aliases: [],
+      packages: [{ registry: 'npm', name: '@acme/shared', license: 'apache-2.0' }],
+    });
+    const bare = createResolver([widgets, gadgets, third]);
+    expect(bare.exact('@acme/shared')).toBeUndefined();
+    try {
+      bare.resolve('qqqqqqqq');
+      expect.unreachable();
+    } catch (error) {
+      expect((error as McpDocError).details?.candidates).toEqual([]);
+    }
+  });
+
   it('lets an explicit alias win over a derived name', () => {
     const claimed = makeProduct({ id: 'claimed-sdk', name: 'Claimed', aliases: ['@acme/shared'] });
     const resolver3 = createResolver([widgets, gadgets, claimed]);
@@ -284,8 +299,11 @@ describe('createResolver', () => {
   });
 
   it('accepts a misspelling only when one product is clearly nearest', () => {
-    expect(local.resolve('gadgets-sdc')).toMatchObject({ product: { id: 'gadgets-sdk' }, how: 'fuzzy' });
-    // One edit from `gadgets-sdk` and two from `widgets-sdk`: not a clear margin.
+    expect(local.resolve('gadgets-sdc')).toMatchObject({
+      product: { id: 'gadgets-sdk' },
+      how: 'fuzzy',
+    });
+    // One edit from `gadgets-sdk` and one from `widgets-sdk`: no margin at all.
     expect(() => local.resolve('wadgets-sdk')).toThrow(McpDocError);
     // Names shorter than five characters are never corrected.
     expect(() => local.resolve('gadg')).toThrow(McpDocError);

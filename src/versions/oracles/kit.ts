@@ -177,19 +177,30 @@ export function homeUrl(product: Product, line: VersionLine | undefined): string
 }
 
 /**
- * The URL option of a spec (`url`, `page` or `path`), absolute for the line; `undefined` when
- * not set. A spec that names the product's home page follows the line like the home page
- * does, so one banner oracle serves `/net/` and `/net/v200/`.
+ * A registry URL for one version line. Line variables are substituted; a URL under the
+ * product's home page that does not use them is moved under the line's own home, so one
+ * registry value serves `/net/release-notes/` and `/net/v200/release-notes/`.
  */
+export function lineUrl(
+  urlOrPath: string,
+  product: Product,
+  line: VersionLine | undefined,
+): string {
+  const url = resolveUrl(urlOrPath, line);
+  const home = resolveUrl(product.homepage, line);
+  const lineHome = homeUrl(product, line);
+  if (lineHome === home || !url.startsWith(home) || url.startsWith(lineHome)) return url;
+  return `${lineHome}${url.slice(home.length)}`;
+}
+
+/** The URL option of a spec (`url`, `page` or `path`) for the line; `undefined` when not set. */
 export function urlOption(
   spec: OracleSpec,
   product: Product,
   line: VersionLine | undefined,
 ): string | undefined {
   const value = option(spec, 'url', 'page', 'path');
-  if (value === undefined) return undefined;
-  const url = resolveUrl(value, line);
-  return url === resolveUrl(product.homepage, line) ? homeUrl(product, line) : url;
+  return value === undefined ? undefined : lineUrl(value, product, line);
 }
 
 /** A plain object, or `undefined`: registries occasionally answer with a JSON string or array. */

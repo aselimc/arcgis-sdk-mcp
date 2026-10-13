@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ArcGIS.Desktop.GeoProcessing</name>
+    </assembly>
+    <members>
+        <member name="T:ArcGIS.Desktop.GeoProcessing.FontAlignemt">
+            <summary>
+            Font alignment
+            </summary>
+        </member>
+        <member name="F:ArcGIS.Desktop.GeoProcessing.FontAlignemt.Left">
+            <summary>
+            Left
+            </summary>
+        </member>
+        <member name="F:ArcGIS.Desktop.GeoProcessing.FontAlignemt.Center">
+            <summary>
+            Center
+            </summary>
+        </member>
+        <member name="F:ArcGIS.Desktop.GeoProcessing.FontAlignemt.Right">
+            <summary>
+            Right
+            </summary>
+        </member>
+        <member name="T:ArcGIS.Desktop.GeoProcessing.TaskPropertyItem">
+            <exclude/>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.TaskPropertyItem.Text">
+            <exclude/>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.TaskPropertyItem.Label">
+            <exclude/>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.TaskPropertyItem.IsItemChecked">
+            <exclude/>
+        </member>
+        <member name="M:ArcGIS.Desktop.GeoProcessing.TaskPropertyItem.ToString">
+            <exclude/>
+        </member>
+        <member name="T:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem">
+            <summary>
+            Represents a GeoProcessing project item.
+            </summary>
+        </member>
+        <member name="M:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.#ctor(ESRI.ArcGIS.ItemIndex.ItemInfoValue)">
+            <summary>
+            Represents a GeoProcessing project item.
+            </summary>
+        </member>
+        <member name="M:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.CanOpenView">
+            <exclude></exclude>
+        </member>
+        <member name="M:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.OnOpenView">
+            <exclude></exclude>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.IsSearchable">
+            <summary>
+            Gets whether the item is searchable. Default is true.
+            </summary>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.GPItemInfo">
+            <summary>
+            Gets the underlying GP Item info
+            </summary>
+        </member>
+        <member name="M:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.Fetch(ArcGIS.Desktop.Internal.Core.BrowseConcerns)">
+            <exclude></exclude>
+        </member>
+        <member name="M:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.OnFolderRename(System.String,System.String)">
+            <exclude/>
+        </member>
+        <member name="M:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.HasLimit(System.String)">
+            <summary>
+            Determines if the item has a specific limit.
+            </summary>
+            <param name="name"></param>
+            <returns><see cref="T:System.Boolean"/></returns>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.ContextMenuID">
+            <exclude></exclude>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.ContextMenuID_ProjectItem">
+            <exclude></exclude>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.DisplayType">
+            <summary>
+            Gets the display type of the geoprocessing item.  This is a localized string. 
+            </summary>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.RequiresMainThread">
+            <summary>
+            Gets whether the Item must be refreshed on the MCT within the lambda of a QueuedTask.Run.  Always returns false. 
+            </summary>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.MessageType">
+            <exclude></exclude>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.Text">
+            <summary>
+            Gets the item text
+            </summary>
+        </member>
+        <member name="P:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.HelpID">
+            <summary>
+            Gets the associated help id or null if there is no help id
+            </summary>
+        </member>
+        <member name="M:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.GetRepairPath">
+            <summary>
+            Gets the repair path
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ArcGIS.Desktop.GeoProcessing.GeoprocessingProjectItem.Search(System.String)">
+            <summary>
+            Searches the item for the specified string.
+            </summary>
+            <param name="searchString">the search string.</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

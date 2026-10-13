@@ -1,0 +1,293 @@
+{
+  "schemaVersion": { "major": 0, "minor": 3, "patch": 0 },
+  "kind": "symbol",
+  "identifier": {
+    "url": "doc://com.example.Tides/documentation/Tides/TideClock",
+    "interfaceLanguage": "swift"
+  },
+  "metadata": {
+    "title": "TideClock",
+    "roleHeading": "Class",
+    "role": "symbol",
+    "symbolKind": "class",
+    "modules": [{ "name": "Tides" }],
+    "platforms": [
+      { "name": "iOS", "introducedAt": "17.0", "beta": false, "deprecated": false },
+      { "name": "visionOS", "introducedAt": "2.0", "beta": true, "deprecated": false },
+      { "name": "watchOS", "unavailable": true }
+    ]
+  },
+  "abstract": [
+    { "type": "text", "text": "Tracks tide times for one harbour. Pair it with a " },
+    { "type": "codeVoice", "code": "GaugeView" },
+    { "type": "text", "text": "." }
+  ],
+  "primaryContentSections": [
+    {
+      "kind": "declarations",
+      "declarations": [
+        {
+          "languages": ["swift"],
+          "platforms": ["iOS"],
+          "tokens": [
+            { "kind": "keyword", "text": "final" },
+            { "kind": "text", "text": " " },
+            { "kind": "keyword", "text": "class" },
+            { "kind": "text", "text": " " },
+            { "kind": "identifier", "text": "TideClock" }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "parameters",
+      "parameters": [
+        {
+          "name": "harbour",
+          "content": [
+            {
+              "type": "paragraph",
+              "inlineContent": [
+                { "type": "text", "text": "The harbour to follow. Pass " },
+                { "type": "codeVoice", "code": "nil" },
+                { "type": "text", "text": " for the nearest one." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "content",
+      "content": [
+        { "type": "heading", "level": 2, "anchor": "overview", "text": "Overview" },
+        {
+          "type": "paragraph",
+          "inlineContent": [
+            { "type": "text", "text": "A clock reads from a " },
+            {
+              "type": "reference",
+              "isActive": true,
+              "identifier": "doc://com.example.Tides/documentation/Tides/Harbour"
+            },
+            { "type": "text", "text": " and follows the " },
+            {
+              "type": "reference",
+              "isActive": true,
+              "identifier": "doc://com.example.Tides/documentation/Tides/GettingStarted"
+            },
+            { "type": "text", "text": " article. It is " },
+            { "type": "emphasis", "inlineContent": [{ "type": "text", "text": "not" }] },
+            { "type": "text", "text": " thread-safe; see " },
+            {
+              "type": "reference",
+              "isActive": true,
+              "identifier": "doc://com.example.Tides/s8SendableP"
+            },
+            { "type": "text", "text": " and the " },
+            {
+              "type": "link",
+              "destination": "https://example.com/tides",
+              "title": "tide primer"
+            },
+            { "type": "text", "text": "." }
+          ]
+        },
+        {
+          "type": "unorderedList",
+          "items": [
+            {
+              "content": [
+                {
+                  "type": "paragraph",
+                  "inlineContent": [
+                    { "type": "strong", "inlineContent": [{ "type": "text", "text": "High" }] },
+                    { "type": "text", "text": " tides are reported first." }
+                  ]
+                }
+              ]
+            },
+            {
+              "content": [
+                {
+                  "type": "paragraph",
+                  "inlineContent": [{ "type": "text", "text": "Low tides follow." }]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "codeListing",
+          "syntax": "swift",
+          "code": ["let clock = TideClock(harbour: .brest)", "print(clock.nextHighTide)"]
+        },
+        {
+          "type": "aside",
+          "style": "note",
+          "name": "Since",
+          "content": [
+            { "type": "paragraph", "inlineContent": [{ "type": "text", "text": "2.1" }] }
+          ]
+        },
+        {
+          "type": "aside",
+          "style": "warning",
+          "content": [
+            {
+              "type": "paragraph",
+              "inlineContent": [{ "type": "text", "text": "Times are in UTC." }]
+            },
+            {
+              "type": "paragraph",
+              "inlineContent": [{ "type": "text", "text": "Convert before display." }]
+            }
+          ]
+        },
+        {
+          "type": "table",
+          "header": "row",
+          "rows": [
+            [
+              [{ "type": "paragraph", "inlineContent": [{ "type": "text", "text": "Unit" }] }],
+              [{ "type": "paragraph", "inlineContent": [{ "type": "text", "text": "Meaning" }] }]
+            ],
+            [
+              [{ "type": "paragraph", "inlineContent": [{ "type": "codeVoice", "code": "m" }] }],
+              [{ "type": "paragraph", "inlineContent": [{ "type": "text", "text": "Metres" }] }]
+            ]
+          ]
+        },
+        {
+          "type": "orderedList",
+          "items": [
+            {
+              "content": [
+                { "type": "paragraph", "inlineContent": [{ "type": "text", "text": "Create it." }] }
+              ]
+            },
+            {
+              "content": [
+                { "type": "paragraph", "inlineContent": [{ "type": "text", "text": "Read it." }] }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "termList",
+          "items": [
+            {
+              "term": { "inlineContent": [{ "type": "text", "text": "Spring tide" }] },
+              "definition": {
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "inlineContent": [{ "type": "text", "text": "The largest range." }]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "hologram",
+          "inlineContent": [{ "type": "text", "text": "A node type nobody has seen yet." }]
+        }
+      ]
+    }
+  ],
+  "topicSections": [
+    {
+      "title": "Initializers",
+      "anchor": "Initializers",
+      "identifiers": ["doc://com.example.Tides/documentation/Tides/TideClock/init(harbour:)"]
+    },
+    {
+      "title": "Instance Properties",
+      "anchor": "Instance-Properties",
+      "identifiers": ["doc://com.example.Tides/documentation/Tides/TideClock/nextHighTide"]
+    }
+  ],
+  "relationshipsSections": [
+    {
+      "kind": "relationships",
+      "type": "conformsTo",
+      "title": "Conforms To",
+      "identifiers": ["doc://com.example.Tides/s8SendableP"]
+    }
+  ],
+  "seeAlsoSections": [
+    {
+      "title": "Harbours",
+      "identifiers": ["doc://com.example.Tides/documentation/Tides/Harbour"]
+    }
+  ],
+  "references": {
+    "doc://com.example.Tides/documentation/Tides/Harbour": {
+      "type": "topic",
+      "kind": "symbol",
+      "role": "symbol",
+      "title": "Harbour",
+      "url": "/documentation/tides/harbour",
+      "abstract": [{ "type": "text", "text": "A place with a tide gauge." }],
+      "fragments": [
+        { "kind": "keyword", "text": "struct" },
+        { "kind": "text", "text": " " },
+        { "kind": "identifier", "text": "Harbour" }
+      ]
+    },
+    "doc://com.example.Tides/documentation/Tides/GettingStarted": {
+      "type": "topic",
+      "kind": "article",
+      "role": "article",
+      "title": "Getting started",
+      "url": "/documentation/tides/gettingstarted",
+      "abstract": []
+    },
+    "doc://com.example.Tides/s8SendableP": {
+      "type": "unresolvable",
+      "title": "Swift.Sendable",
+      "identifier": "doc://com.example.Tides/s8SendableP"
+    },
+    "doc://com.example.Tides/documentation/Tides/TideClock/init(harbour:)": {
+      "type": "topic",
+      "kind": "symbol",
+      "role": "symbol",
+      "title": "init(harbour:)",
+      "url": "/documentation/tides/tideclock/init(harbour:)",
+      "abstract": [
+        { "type": "text", "text": "Creates a clock for a " },
+        {
+          "type": "reference",
+          "isActive": true,
+          "identifier": "doc://com.example.Tides/documentation/Tides/Harbour"
+        },
+        { "type": "text", "text": "." }
+      ],
+      "fragments": [
+        { "kind": "identifier", "text": "init" },
+        { "kind": "text", "text": "(" },
+        { "kind": "externalParam", "text": "harbour" },
+        { "kind": "text", "text": ": " },
+        { "kind": "typeIdentifier", "text": "Harbour" },
+        { "kind": "text", "text": "?)" }
+      ]
+    },
+    "doc://com.example.Tides/documentation/Tides/TideClock/nextHighTide": {
+      "type": "topic",
+      "kind": "symbol",
+      "role": "symbol",
+      "title": "nextHighTide",
+      "url": "/documentation/tides/tideclock/nexthightide",
+      "deprecated": true,
+      "abstract": [{ "type": "text", "text": "Time of the next high tide." }],
+      "fragments": [
+        { "kind": "keyword", "text": "var" },
+        { "kind": "text", "text": " " },
+        { "kind": "identifier", "text": "nextHighTide" },
+        { "kind": "text", "text": ": " },
+        { "kind": "typeIdentifier", "text": "Date" }
+      ]
+    }
+  }
+}

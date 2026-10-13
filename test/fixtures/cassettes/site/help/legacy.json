@@ -1,0 +1,48 @@
+{
+  "name": "legacy-help: two books of an invented product, one with a named script (synthetic)",
+  "interactions": [
+    {
+      "url": "https://doc.arcgis.com/en/widget-earth/3.1/automation/4101.js",
+      "response": { "contentType": "application/javascript", "bodyFile": "legacy-4101.js" }
+    },
+    {
+      "url": "https://doc.arcgis.com/en/widget-earth/3.1/get-started/4102.js",
+      "response": { "contentType": "application/javascript", "bodyFile": "legacy-4102.js" }
+    },
+    {
+      "url": "https://doc.arcgis.com/en/widget-earth/latest/automation/flisting.htm",
+      "response": { "bodyFile": "legacy-flisting-automation.htm" }
+    },
+    {
+      "url": "https://doc.arcgis.com/en/widget-earth/latest/get-started/flisting.htm",
+      "response": { "bodyFile": "legacy-flisting-get-started.htm" }
+    },
+    {
+      "url": "https://doc.arcgis.com/en/widget-earth/latest/automation/sitemap.xml",
+      "response": { "contentType": "text/xml", "bodyFile": "legacy-sitemap-automation.xml" }
+    },
+    {
+      "url": "https://doc.arcgis.com/en/widget-earth/latest/get-started/sitemap.xml",
+      "response": {
+        "contentType": "text/xml",
+        "body": "<urlset><url><loc>https://doc.arcgis.com/en/widget-earth/latest/get-started/install.htm</loc></url><url><loc>https://doc.arcgis.com/en/widget-earth/latest/get-started/what-is-widget-earth.htm</loc></url></urlset>"
+      }
+    },
+    {
+      "url": "https://doc.arcgis.com/en/widget-earth/latest/get-started/what-is-widget-earth.htm",
+      "response": { "bodyFile": "legacy-topic.htm" }
+    },
+    {
+      "url": "https://doc.arcgis.com/en/widget-earth/latest/get-started/install.htm",
+      "response": { "bodyFile": "legacy-topic.htm" }
+    },
+    {
+      "url": "https://doc.arcgis.com/en/widget-earth/latest/automation/get-started.htm",
+      "response": { "bodyFile": "legacy-api-topic.htm" }
+    },
+    {
+      "url": "https://doc.arcgis.com/en/widget-earth/latest/automation/add-layer.htm",
+      "response": { "bodyFile": "legacy-api-topic.htm" }
+    }
+  ]
+}

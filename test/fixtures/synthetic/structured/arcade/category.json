@@ -1,0 +1,68 @@
+{
+  "id": "tide_functions",
+  "title": "Tide functions",
+  "items": [
+    {
+      "type": "constant",
+      "name": "meanlevel",
+      "bundle": "core",
+      "sinceVersion": "1.0",
+      "link": "https://example.com/arcade/function-reference/tide_functions/#meanlevel",
+      "description": "The mean water level, in metres.",
+      "examples": "",
+      "completion": {
+        "label": "MeanLevel",
+        "detail": "MeanLevel",
+        "insertText": "MeanLevel",
+        "kind": 21,
+        "documentation": {
+          "kind": "markdown",
+          "value": "**[Since version 1.0](https://example.com/arcade/guide/version-matrix)**\n\nThe mean water level, in metres."
+        }
+      }
+    },
+    [
+      {
+        "type": "function",
+        "name": "tideheight",
+        "bundle": "core",
+        "sinceVersion": "1.4",
+        "link": "https://example.com/arcade/function-reference/tide_functions/#tideheight1",
+        "description": "Returns the water height at a moment.",
+        "examples": "\n**Examples**\n\nHeight right now\n\n```arcade\nTideHeight(Now())\n```\n\nHeight tomorrow\n\n```arcade\nTideHeight(DateAdd(Now(), 1, 'days'))\n```\n\n",
+        "completion": {
+          "label": "TideHeight",
+          "detail": "TideHeight(moment) -> Number",
+          "insertText": "TideHeight(${1:moment_})$0",
+          "kind": 3,
+          "documentation": {
+            "kind": "markdown",
+            "value": "**[Since version 1.4](https://example.com/arcade/guide/version-matrix)**\n\nReturns the water height at a moment.\n\n**Parameter**\n\n- **moment**: [Date](https://example.com/arcade/guide/types/#date) - The moment to look up.\n\n**Return value**: [Number](https://example.com/arcade/guide/types/#number)"
+          }
+        },
+        "parametersInfo": { "min": 1, "max": 1 }
+      },
+      {
+        "type": "function",
+        "name": "tideheight",
+        "bundle": "data-access",
+        "sinceVersion": "1.9",
+        "link": "https://example.com/arcade/function-reference/tide_functions/#tideheight2",
+        "description": "Returns the water heights at several moments.",
+        "examples": "\n**Example**\n\n```arcade\nTideHeight([Now(), Today()])\n```\n\n",
+        "completion": {
+          "label": "TideHeight",
+          "detail": "TideHeight(moments) -> Array<Number>",
+          "insertText": "TideHeight(${1:moments_})$0",
+          "kind": 3,
+          "documentation": {
+            "kind": "markdown",
+            "value": "**[Since version 1.9](https://example.com/arcade/guide/version-matrix)**\n\nReturns the water heights at several moments.\n\n**Parameter**\n\n- **moments**: [Array](https://example.com/arcade/guide/types/#array)&lt;[Date](https://example.com/arcade/guide/types/#date)&gt; - The moments to look up.\n\n**Return value**: [Array](https://example.com/arcade/guide/types/#array)&lt;[Number](https://example.com/arcade/guide/types/#number)&gt;"
+          }
+        },
+        "parametersInfo": { "min": 1, "max": 1 },
+        "consumesCredits": true
+      }
+    ]
+  ]
+}

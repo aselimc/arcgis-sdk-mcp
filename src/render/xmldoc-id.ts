@@ -15,6 +15,8 @@ export interface MemberId {
   name: string;
   /** `Type.Member`, the readable name used at the start of a signature. */
   display: string;
+  /** True for an instance or static constructor (`#ctor`, `#cctor`). */
+  constructor: boolean;
   /** Parameter types in C# spelling, in order. */
   parameters: string[];
   /** Readable declaration: `Type.Method(string, int)`, `Type.Property`, `Ns.Type<T0>`. */
@@ -123,6 +125,7 @@ export function parseMemberId(id: string): MemberId | undefined {
       qualified,
       owner,
       name,
+      constructor: false,
       display: name,
       parameters,
       signature: readable(qualified),
@@ -136,5 +139,5 @@ export function parseMemberId(id: string): MemberId | undefined {
   else if (prefix === 'P' && parameters.length > 0)
     signature = `${ownerShort}.this[${parameters.join(', ')}]`;
   if (match[4] !== undefined) signature += `: ${typeName(match[4])}`;
-  return { prefix, qualified, owner, name, display, parameters, signature };
+  return { prefix, qualified, owner, name, constructor, display, parameters, signature };
 }

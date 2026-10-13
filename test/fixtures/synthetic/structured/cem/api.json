@@ -1,0 +1,146 @@
+{
+  "name": "@example/harbour-components",
+  "schemaVersion": "2.1.0",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "components/harbour-gauge",
+      "sourcePath": "src/components/gauge/gauge.tsx",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "HarbourGauge",
+          "customElement": true,
+          "tagName": "harbour-gauge",
+          "pascalCaseName": "HarbourGauge",
+          "description": "Shows the water level of a harbour as a dial.\n\n## Placing the gauge\n\nPut it inside any container:\n\n```html\n<harbour-gauge harbour=\"brest\"></harbour-gauge>\n```",
+          "docsTags": [{ "name": "since", "text": "1.4" }],
+          "demos": [
+            { "description": "Docs", "url": "https://example.com/components/harbour-gauge/" }
+          ],
+          "superclass": { "name": "HTMLElement", "package": "global:" },
+          "members": [
+            {
+              "kind": "field",
+              "name": "harbour",
+              "description": "Identifier of the harbour to show. Changing it reloads the readings.",
+              "type": { "text": "string | undefined" },
+              "attribute": "harbour",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "scale",
+              "description": "Size of the dial.",
+              "docsTags": [{ "name": "see", "text": "[Sizing guide](https://example.com/sizing/)" }],
+              "type": { "text": "\"s\" | \"m\" | \"l\"" },
+              "default": "\"m\"",
+              "attribute": "scale"
+            },
+            {
+              "kind": "field",
+              "name": "reading",
+              "description": "The latest reading.",
+              "type": { "text": "Reading | undefined" },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "legacyMode",
+              "description": "Draws the dial the old way.",
+              "type": { "text": "boolean" },
+              "default": "false",
+              "attribute": "legacy-mode",
+              "deprecated": "Will be removed in 2.0."
+            },
+            {
+              "kind": "field",
+              "name": "internalTimer",
+              "privacy": "private",
+              "type": { "text": "number" }
+            },
+            {
+              "kind": "method",
+              "name": "refresh",
+              "description": "Loads a new reading now.",
+              "docsTags": [
+                {
+                  "name": "example",
+                  "text": "```js\nconst gauge = document.querySelector(\"harbour-gauge\");\nawait gauge.refresh();\n```"
+                }
+              ],
+              "return": { "type": { "text": "Promise<Reading>" }, "description": "The new reading." },
+              "signature": "(): Promise<Reading>"
+            },
+            {
+              "kind": "method",
+              "name": "setRange",
+              "description": "Sets the lowest and highest level the dial can show.",
+              "parameters": [
+                { "name": "low", "type": { "text": "number" }, "description": "Lowest level." },
+                {
+                  "name": "high",
+                  "type": { "text": "number" },
+                  "optional": true,
+                  "description": "Highest level."
+                }
+              ],
+              "return": { "type": { "text": "void" } }
+            },
+            {
+              "kind": "method",
+              "name": "componentOnReady",
+              "description": "Resolves once the component has rendered.",
+              "return": { "type": { "text": "Promise<this>" } },
+              "inheritedFrom": { "name": "this" },
+              "signature": "(): Promise<this>"
+            }
+          ],
+          "attributes": [
+            { "name": "harbour", "type": { "text": "string" }, "fieldName": "harbour" }
+          ],
+          "events": [
+            {
+              "name": "harbourReadingChange",
+              "description": "Fires when a new reading arrives.",
+              "docsTags": [{ "name": "since", "text": "1.5" }],
+              "type": { "text": "{ level: number; }" }
+            },
+            { "name": "harbourReady", "description": "Fires once after the first render." }
+          ],
+          "slots": [
+            { "name": "", "description": "Content shown under the dial." },
+            { "name": "label", "description": "Replaces the built-in label." }
+          ],
+          "cssProperties": [
+            { "name": "--harbour-gauge-needle-color", "description": "Colour of the needle." }
+          ],
+          "importPath": "components/harbour-gauge"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "harbour-gauge",
+          "declaration": { "name": "HarbourGauge" }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "utils/readings",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "formatReading",
+          "description": "Turns a reading into display text.",
+          "parameters": [
+            { "name": "reading", "type": { "text": "Reading" } },
+            { "name": "locale", "type": { "text": "string" }, "optional": true }
+          ],
+          "return": { "type": { "text": "string" } }
+        }
+      ]
+    }
+  ]
+}

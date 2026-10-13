@@ -13,7 +13,7 @@ import type { OracleSpec, Product } from '../../core/types.js';
 import {
   RELEASE_NOTES_FILTER,
   compilePattern,
-  defaultSitemapUrl,
+  readProductSitemap,
   readSitemapUrls,
   versionedPages,
 } from '../sitemap-versions.js';
@@ -42,11 +42,10 @@ export const sitemapSlugOracle = defineOracle(
   'website',
   async (ctx, product, spec, run) => {
     const configured = option(spec, 'sitemap', 'url');
-    const sitemap =
+    const urls =
       configured === undefined
-        ? defaultSitemapUrl(product, run.line)
-        : resolveUrl(configured, run.line);
-    const urls = await readSitemapUrls(ctx, sitemap, run.call);
+        ? await readProductSitemap(ctx, product, run.line, run.call)
+        : await readSitemapUrls(ctx, resolveUrl(configured, run.line), run.call);
     const newest = versionedPages(urls, sitemapFilter(product, spec), slugStyle(spec))[0];
     if (newest === undefined) return [];
     const date = dateOfVersion(newest.version);

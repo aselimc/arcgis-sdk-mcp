@@ -1,0 +1,66 @@
+{
+  "name": "docfx-esri: a help product with two books (synthetic)",
+  "interactions": [
+    {
+      "url": "https://doc.esri.com/en/widget-server/latest/toc.json",
+      "response": {
+        "json": {
+          "items": [
+            {
+              "name": "Install",
+              "href": "install/system-requirements.html",
+              "tocHref": "install/toc.html"
+            },
+            {
+              "name": "Use",
+              "href": "use/what-is-a-widget-server-.html",
+              "tocHref": "use/toc.html"
+            },
+            { "name": "SDK", "href": "sdk/" }
+          ],
+          "searchProduct": "widget-server",
+          "searchVersion": "9.1"
+        }
+      }
+    },
+    {
+      "url": "https://doc.esri.com/en/widget-server/latest/install/toc.json",
+      "response": {
+        "json": {
+          "items": [
+            {
+              "name": "Before you install",
+              "href": "system-requirements.html",
+              "items": [{ "name": "Supported platforms", "href": "supported-platforms.html" }]
+            },
+            { "name": "Install the server", "href": "install-the-server.html?pivots=os-linux" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "https://doc.esri.com/en/widget-server/latest/use/toc.json",
+      "response": {
+        "json": {
+          "items": [
+            {
+              "name": "Introduction",
+              "items": [
+                { "name": "What is a widget server?", "href": "what-is-a-widget-server-.html" }
+              ]
+            },
+            { "name": "Install guide", "href": "../install/system-requirements.html" }
+          ]
+        }
+      }
+    },
+    {
+      "url": "https://doc.esri.com/en/widget-server/latest/sitemap.xml",
+      "response": { "contentType": "application/xml", "bodyFile": "docfx-help-sitemap.xml" }
+    },
+    {
+      "url": "https://doc.esri.com/en/widget-server/latest/install/system-requirements.html",
+      "response": { "bodyFile": "docfx-topic-page.html" }
+    }
+  ]
+}

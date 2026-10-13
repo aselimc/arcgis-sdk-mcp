@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dredge (Channel Tools)</title>
+    <meta name="docfx:rel" content="../../" />
+  </head>
+  <body>
+    <header class="bg-body border-bottom"><nav id="autocollapse" class="navbar">Harbor Desk</nav></header>
+    <main class="container-xxl">
+      <div class="content">
+        <article data-uid="2040001" id="main">
+          <h1 id="2040001">Dredge (Channel Tools)</h1>
+          <div id="version-switcher-container"><select><option>3.6</option></select></div>
+          <div class="affix-mobile"><nav id="affix-mobile">In this article</nav></div>
+          <h2 id="summary">Summary</h2>
+          <div data-summary="">
+            <p>Lowers the bed of a channel polygon to a target depth and reports the removed volume.</p>
+          </div>
+          <h2 id="usage">Usage</h2>
+          <ul>
+            <li>The channel must be a single polygon.</li>
+          </ul>
+          <div class="alert alert-note">
+            <h5>Note:</h5>
+            <p>Depths are positive downwards. See <a href="../environments/datum.html"><strong>Datum</strong></a>.</p>
+          </div>
+          <h2 id="parameters">Parameters</h2>
+          <div class="tabGroup" id="tabgroup_1">
+            <ul role="tablist">
+              <li role="presentation"><a href="#tabpanel_1_dialog" role="tab" aria-controls="tabpanel_1_dialog" data-tab="dialog" tabindex="0" aria-selected="true">Dialog</a></li>
+              <li role="presentation"><a href="#tabpanel_1_python" role="tab" aria-controls="tabpanel_1_python" data-tab="python" tabindex="-1">Python</a></li>
+            </ul>
+            <section id="tabpanel_1_dialog" role="tabpanel" data-tab="dialog">
+              <table data-param-table="dialog">
+                <tbody>
+                  <tr><th>Label</th><th>Explanation</th><th>Data type</th></tr>
+                  <tr data-param="in_channel" data-param-category="">
+                    <td><p><span data-label="">Input Channel</span></p></td>
+                    <td data-desc=""><p>The channel polygon to dredge.</p></td>
+                    <td><span data-datatype="">Feature Layer</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <section id="tabpanel_1_python" role="tabpanel" data-tab="python" aria-hidden="true" hidden="hidden">
+              <p><code>harbor.channel.Dredge(in_channel, target_depth, {method})</code></p>
+              <table data-param-table="python">
+                <tbody>
+                  <tr><th>Name</th><th>Explanation</th><th>Data type</th></tr>
+                  <tr data-param="in_channel" data-param-category="">
+                    <td><p>in_channel</p></td>
+                    <td data-desc=""><p>The channel polygon to dredge.</p></td>
+                    <td><span data-datatype="">Feature Layer</span></td>
+                  </tr>
+                  <tr data-param="target_depth" data-param-category="">
+                    <td><p>target_depth</p></td>
+                    <td data-desc=""><p>The depth of the bed after dredging, in metres.</p></td>
+                    <td><span data-datatype="">Double</span></td>
+                  </tr>
+                  <tr data-param="method" data-param-category="">
+                    <td><p>method</p><p>(Optional)</p></td>
+                    <td data-desc="">
+                      <p>Specifies how the bed is lowered.</p>
+                      <div data-domains="method">
+                        <ul>
+                          <li><p><span data-name="FLAT">FLAT</span>—<span data-desc="FLAT">The whole bed is set to the target depth. This is the default.</span><span data-image="FLAT"><img src="flat.png" alt="" /></span></p></li>
+                          <li><p><span data-name="SLOPED">SLOPED</span>—<span data-desc="SLOPED">The banks keep a slope of one in three.</span><span data-image="SLOPED"></span></p></li>
+                        </ul>
+                      </div>
+                    </td>
+                    <td><span data-datatype="">String</span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <h3>Code sample</h3>
+              <div purpose="code-sample-title"><p>Dredge example (Python window)</p></div>
+              <p>Lower the north channel to twelve metres.</p>
+              <pre><code class="lang-python"># the channel layer is in the current map
+import harbor
+harbor.channel.Dredge("north_channel", 12.0, "SLOPED")</code></pre>
+            </section>
+          </div>
+          <h2 id="licensing">Licensing information</h2>
+          <ul>
+            <li>Basic: No</li>
+            <li>Standard: Yes</li>
+          </ul>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

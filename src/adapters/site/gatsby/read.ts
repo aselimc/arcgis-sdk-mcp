@@ -6,13 +6,7 @@
 import { toMcpDocError } from '../../../core/errors.js';
 import type { BoundSource, Ctx, ReadTarget, RenderMeta } from '../../../core/ports.js';
 import type { CatalogRecord, DocPage, SymbolDetail } from '../../../core/types.js';
-import {
-  assertLive,
-  continueWithout,
-  licenseOf,
-  readHtmlPage,
-  renderOptionsOf,
-} from '../static.js';
+import { assertLive, budgetOf, continueWithout, licenseOf, renderOptionsOf } from '../static.js';
 import {
   bodyModeOf,
   bodyVariantOf,
@@ -90,8 +84,19 @@ function complete(page: DocPage, target: ReadTarget, title: string): DocPage {
   };
 }
 
+/** Renderer kinds whose input is generated API documentation. */
+const API_RENDERERS: ReadonlySet<BodyVariant['renderer']> = new Set([
+  'openapi',
+  'typedoc',
+  'sphinx',
+] as const);
+
 /**
  * Fetches and converts one page.
+ *
+ * The page's ref is the URL as requested, fragment included; after a redirect or
+ * meta-refresh of the HTML page it is the URL that produced the body. Content of tier
+ * `cc-by-nd` (specifications) is rendered verbatim and attributed to the specification.
  *
  * @throws McpDocError `LINK_ONLY` on a link-only line; otherwise what the gateway reports
  *   for the HTML page (a failing page-data request alone never fails a read).
@@ -103,30 +108,57 @@ export async function readGatsby(
 ): Promise<DocPage> {
   assertLive(src, target.url.href);
   const page = pageKey(target.url.href);
-  const kind = target.record?.kind ?? pageKind(src, relativeTo(src.url(), page) ?? '');
+  const rel = relativeTo(src.url(), page) ?? '';
   const mode = bodyModeOf(src.source.config);
   const found = mode === 'html' ? undefined : await bodyFromPageData(ctx, src, page, mode);
-  if (found === undefined) return complete(await readHtmlPage(ctx, src, target, kind), target, '');
 
   const license = licenseOf(src);
-  const meta: RenderMeta = {
-    url: target.url.href,
+  const base = {
     product: src.product.id,
     source: src.source.id,
     line: src.line.id,
-    kind,
     license,
-    res: found.pageData.res,
     // A specification is quoted under its own name (tier cc-by-nd).
     ...(license === 'cc-by-nd' ? { specName: src.product.name } : {}),
   };
-  const opts = {
+  const options = {
     ...renderOptionsOf(target),
     ...(license === 'cc-by-nd' ? { verbatim: true } : {}),
   };
+  const opts = Object.keys(options).length === 0 ? undefined : options;
+
+  if (found === undefined) {
+    const requested = new URL(target.url.href);
+    requested.hash = '';
+    const res = await ctx.http.get({
+      url: requested.href,
+      expect: 'html',
+      ttl: 'page',
+      ...budgetOf(src),
+    });
+    const landed = res.finalUrl === res.url ? requested.href : res.finalUrl.replace(/#.*$/, '');
+    const family = src.source.probe.family;
+    const meta: RenderMeta = {
+      ...base,
+      url: `${landed}${target.url.hash}`,
+      kind: target.record?.kind ?? pageKind(src, rel),
+      res,
+    };
+    const html = { html: res.text, ...(family === undefined ? {} : { familyHint: family }) };
+    return complete(ctx.render.render('html', html, meta, opts), target, '');
+  }
+
+  // A page that is generated from an API description is API documentation wherever it lives.
+  const symbolKind = API_RENDERERS.has(found.variant.renderer) ? 'api' : undefined;
+  const meta: RenderMeta = {
+    ...base,
+    url: target.url.href,
+    kind: target.record?.kind ?? pageKind(src, rel, { symbolKind }),
+    res: found.pageData.res,
+  };
   const rendered = renderVariant(ctx, found.variant, {
     meta,
-    opts: Object.keys(opts).length === 0 ? undefined : opts,
+    opts,
     fragment: decodedFragment(target.url),
     sitePrefix: sitePrefixPath(found.prefix),
   });

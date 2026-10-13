@@ -92,8 +92,10 @@ function slugSymbols(input: SymbolInput, source: string): SymbolEntry[] {
   return entries;
 }
 
+/** The entries of the configured `symbols` mode; none when the source has no mode. */
 function modeSymbols(input: SymbolInput): SymbolEntry[] {
-  switch (input.config.symbols) {
+  const mode = input.config.symbols;
+  switch (mode) {
     case 'typedoc':
       return typedocSymbols(input);
     case 'openapi':
@@ -108,7 +110,7 @@ function modeSymbols(input: SymbolInput): SymbolEntry[] {
       return glossarySymbols(input);
     case 'rest-operations':
       return restSymbols(input);
-    case undefined:
+    default:
       return [];
   }
 }
