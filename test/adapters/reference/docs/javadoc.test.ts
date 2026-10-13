@@ -220,6 +220,27 @@ describe('javadoc index readers', () => {
     expect(parseSearchIndex('] broken [')).toBeUndefined();
   });
 
+  it('reads an index that a code formatter rewrote as a JavaScript literal', () => {
+    const script = [
+      'memberSearchIndex = [',
+      '  {',
+      '    p: "com.example",',
+      '    c: "Cache",',
+      '    l: "put(K key, V value)",',
+      '    u: "put(K,V)"',
+      '  },',
+      String.raw`  { p: 'com.example', c: 'Cache', l: 'say(\'hi\', "there")', deprecated: true, },`,
+      '];',
+      'updateSearchResults();',
+    ].join('\n');
+
+    expect(parseSearchIndex(script)).toEqual([
+      { p: 'com.example', c: 'Cache', l: 'put(K key, V value)', u: 'put(K,V)' },
+      { p: 'com.example', c: 'Cache', l: `say('hi', "there")`, deprecated: true },
+    ]);
+    expect(parseSearchIndex('x = [{ l: "unterminated }];')).toBeUndefined();
+  });
+
   it('builds URLs without a module directory for a site without modules', () => {
     const modules = packageModules([
       { l: 'All Packages', u: 'allpackages-index.html' },

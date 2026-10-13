@@ -317,6 +317,7 @@ describe('docfx-net record builders', () => {
     const records = xrefRecords(bound(), [
       { uid: 'guide.intro', name: 'Introduction', href: 'concepts/intro.html' },
       { uid: 'Global', name: 'Global()', href: 'api/Global.html', commentId: 'M:Global' },
+      { uid: 'Odd', name: 'Odd', href: 'api/Odd.html', commentId: 'constructor:Odd' },
     ]);
 
     expect(records[0]).toMatchObject({ title: 'Introduction', locator: { uid: 'guide.intro' } });
@@ -329,5 +330,7 @@ describe('docfx-net record builders', () => {
       symbolKind: 'method',
     });
     expect(records[1]?.parent).toBeUndefined();
+    expect(records[2]).toMatchObject({ title: 'Odd' });
+    expect(records[2]?.symbolKind).toBeUndefined();
   });
 });

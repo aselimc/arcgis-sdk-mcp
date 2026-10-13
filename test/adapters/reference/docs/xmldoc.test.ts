@@ -391,6 +391,14 @@ describe('xmldoc: read', () => {
     expect(sliced).toContain('<summary>Joins two parts.</summary>');
     expect(sliceType('<doc/>', 'T:Missing.Type')).toContain('<assembly><name></name></assembly>');
   });
+
+  it('keeps the requested member in the slice even when it is hidden from the catalogue', () => {
+    const hidden = sliceType(CORE, 'M:Widgets.Core.Widget.InternalReset');
+
+    expect(hidden).toContain('name="M:Widgets.Core.Widget.InternalReset"');
+    expect(hidden).toContain('name="T:Widgets.Core.Widget"');
+    expect(hidden).not.toContain('_cache');
+  });
 });
 
 describe('xmldoc: probe', () => {

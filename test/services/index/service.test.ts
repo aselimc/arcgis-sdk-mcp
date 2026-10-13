@@ -23,22 +23,36 @@ function product(overrides: Partial<Product> = {}): Product {
   });
 }
 
-const unavailable = new McpDocError('UPSTREAM_UNAVAILABLE', 'developers.arcgis.com is not responding', {
-  why: 'timeout',
-  retryable: true,
-});
+const unavailable = new McpDocError(
+  'UPSTREAM_UNAVAILABLE',
+  'developers.arcgis.com is not responding',
+  {
+    why: 'timeout',
+    retryable: true,
+  },
+);
 
 describe('index build', () => {
   it('builds on first use and answers from memory afterwards', async () => {
     const h = makeHarness({ products: [product()], records: records(12) });
     const [first] = await h.index.ensure(product(), undefined, makeLine(), h.call());
-    expect(first).toMatchObject({ product: 'widgets-sdk', source: 'guide', state: 'ready', records: 12 });
+    expect(first).toMatchObject({
+      product: 'widgets-sdk',
+      source: 'guide',
+      state: 'ready',
+      records: 12,
+    });
     expect(first?.builtAt).toBe(h.ctx.clock.iso());
 
     await h.index.ensure(product(), undefined, makeLine(), h.call());
     expect(h.adapter('gatsby').count('enumerate')).toBe(1);
     expect(h.index.health()).toEqual([
-      expect.objectContaining({ product: 'widgets-sdk', source: 'guide', state: 'ok', records: 12 }),
+      expect.objectContaining({
+        product: 'widgets-sdk',
+        source: 'guide',
+        state: 'ok',
+        records: 12,
+      }),
     ]);
   });
 
@@ -95,7 +109,12 @@ describe('index build', () => {
     const [state] = await h.index.ensure(product(), undefined, makeLine(), h.call());
     expect(state?.records).toBe(1);
     expect(h.index.toc('widgets-sdk', 'guide', 'latest')).toEqual([
-      expect.objectContaining({ product: 'widgets-sdk', source: 'guide', line: 'latest', title: 'A' }),
+      expect.objectContaining({
+        product: 'widgets-sdk',
+        source: 'guide',
+        line: 'latest',
+        title: 'A',
+      }),
     ]);
   });
 
@@ -105,7 +124,11 @@ describe('index build', () => {
       sources: [
         makeSource('gatsby', { base: '/widgets/' }, { id: 'late', priority: 9 }),
         makeSource('astro', { base: '/widgets/ref/' }, { id: 'early', priority: 1, floor: false }),
-        makeSource('docc', { base: '/widgets/old/' }, { id: 'v1-only', floor: false, lines: ['v1'] }),
+        makeSource(
+          'docc',
+          { base: '/widgets/old/' },
+          { id: 'v1-only', floor: false, lines: ['v1'] },
+        ),
       ],
     });
     const h = makeHarness({ products: [p], records: [] });
@@ -136,7 +159,9 @@ describe('index persistence', () => {
     const first = makeHarness({ products: [product()], records: records(7) });
     await first.index.ensure(product(), undefined, makeLine(), first.call());
 
-    const changed = product({ sources: [makeSource('gatsby', { base: '/widgets/', exclude: ['^old/'] })] });
+    const changed = product({
+      sources: [makeSource('gatsby', { base: '/widgets/', exclude: ['^old/'] })],
+    });
     const second = makeHarness({ products: [changed], records: records(3), ctx: first.ctx });
     const [state] = await second.index.ensure(changed, undefined, makeLine(), second.call());
     expect(second.adapter('gatsby').count('enumerate')).toBe(1);
@@ -146,7 +171,11 @@ describe('index persistence', () => {
   it('discards a snapshot of another schema version, and one that is not a snapshot', async () => {
     for (const stored of [{ v: 0, fingerprint: 'x', builtAt: 0, records: [] }, 'garbage']) {
       const h = makeHarness({ products: [product()], records: records(2) });
-      await h.ctx.cache.putDerived('catalog', snapshotKey('widgets-sdk', 'guide', 'latest'), stored);
+      await h.ctx.cache.putDerived(
+        'catalog',
+        snapshotKey('widgets-sdk', 'guide', 'latest'),
+        stored,
+      );
       const [state] = await h.index.ensure(product(), undefined, makeLine(), h.call());
       expect(state).toMatchObject({ state: 'ready', records: 2 });
       expect(h.adapter('gatsby').count('enumerate')).toBe(1);
@@ -274,7 +303,11 @@ describe('swap rule', () => {
   it('marks a first index below probe.minRecords as degraded but uses it', async () => {
     const p = product({
       sources: [
-        makeSource('gatsby', { base: '/widgets/' }, { probe: { url: BASE, expect: 'html', minRecords: 50 } }),
+        makeSource(
+          'gatsby',
+          { base: '/widgets/' },
+          { probe: { url: BASE, expect: 'html', minRecords: 50 } },
+        ),
       ],
     });
     const h = makeHarness({ products: [p], records: records(3) });
@@ -295,7 +328,9 @@ describe('deadline and background completion', () => {
 
     const [early] = await h.index.ensure(product(), undefined, makeLine(), h.call());
     expect(early).toMatchObject({ state: 'building', records: 0 });
-    expect(h.index.query({ text: 'widget', products: ['widgets-sdk'], limit: 5, offset: 0 }).total).toBe(0);
+    expect(
+      h.index.query({ text: 'widget', products: ['widgets-sdk'], limit: 5, offset: 0 }).total,
+    ).toBe(0);
 
     release();
     await h.index.idle();
@@ -398,7 +433,9 @@ describe('enumeration ladder', () => {
     const h = makeHarness({ products: [product()], records: [] });
     h.adapter('gatsby').failOn(
       'enumerate',
-      new McpDocError('SOURCE_DISABLED', 'needs capability "site-index"', { capability: 'site-index' }),
+      new McpDocError('SOURCE_DISABLED', 'needs capability "site-index"', {
+        capability: 'site-index',
+      }),
     );
     const [state] = await h.index.ensure(product(), undefined, makeLine(), h.call());
     expect(state?.state).toBe('unavailable');
@@ -431,7 +468,9 @@ describe('enumeration ladder', () => {
       throw unavailable;
     };
     await h.index.ensure(product(), undefined, makeLine(), h.call());
-    expect(h.index.reason('widgets-sdk', 'guide')).toMatch(/^request budget of the index build spent/);
+    expect(h.index.reason('widgets-sdk', 'guide')).toMatch(
+      /^request budget of the index build spent/,
+    );
   });
 });
 
@@ -441,7 +480,11 @@ describe('memory bound', () => {
     const b = product({ id: 'b-sdk', sources: [makeSource('astro', { base: '/b/' })] });
     const many = (id: string): CatalogRecord[] =>
       Array.from({ length: 1500 }, (_, i) =>
-        makeRecord({ product: id, ref: `https://developers.arcgis.com/${id}/p${i}/`, title: `Page ${i}` }),
+        makeRecord({
+          product: id,
+          ref: `https://developers.arcgis.com/${id}/p${i}/`,
+          title: `Page ${i}`,
+        }),
       );
     const h = makeHarness({
       products: [a, b],

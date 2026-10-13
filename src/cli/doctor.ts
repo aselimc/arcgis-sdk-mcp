@@ -166,14 +166,15 @@ function adaptersCheck(container: Container): DoctorCheck {
 
 function githubCheck(container: Container): DoctorCheck {
   const quota = container.github.quota();
-  const remaining = quota.remaining === undefined ? 'not yet known' : String(quota.remaining);
-  const spent = quota.remaining === 0;
+  // The quota is learned from response headers, so it is unknown until an API call was made.
+  const remaining =
+    quota.remaining === undefined ? 'quota not read yet' : `${quota.remaining} requests remaining`;
   return {
     id: 'github',
-    status: spent || !quota.authenticated ? 'warn' : 'ok',
+    status: quota.remaining === 0 || !quota.authenticated ? 'warn' : 'ok',
     summary: quota.authenticated
-      ? `authenticated with GITHUB_TOKEN, ${remaining} requests remaining`
-      : `unauthenticated (60 requests per hour), ${remaining} remaining`,
+      ? `authenticated with GITHUB_TOKEN, ${remaining}`
+      : `unauthenticated (60 requests per hour), ${remaining}`,
     detail: [
       ...(quota.resetAt === undefined ? [] : [`quota resets at ${quota.resetAt}`]),
       ...(quota.authenticated ? [] : ['set GITHUB_TOKEN to raise the quota to 5000 per hour']),

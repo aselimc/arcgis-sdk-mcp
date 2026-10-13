@@ -157,11 +157,14 @@ describe('docc: enumerate', () => {
       { children: [{ path: '/documentation/widgets/gadget', title: 'Gadget' }] },
       { path: '/documentation/widgets/tour', title: 'Tour', type: 'tutorial' },
       { path: 7, title: 'No path' },
+      // A node type that is also the name of an Object property is still just a type.
+      { path: '/documentation/widgets/odd', title: 'odd', type: 'constructor' },
     ]);
 
     expect(records.map((record) => [record.title, record.kind, record.symbolKind])).toEqual([
       ['Gadget', 'api', undefined],
       ['Tour', 'tutorial', undefined],
+      ['odd', 'api', 'constructor'],
     ]);
   });
 });

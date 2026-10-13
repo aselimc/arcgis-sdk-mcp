@@ -155,7 +155,9 @@ export function parseCli(argv: readonly string[]): Command {
   try {
     parsed = parseArgs({ args: [...argv], options: OPTIONS, allowPositionals: true, strict: true });
   } catch (error) {
-    throw new UsageError(error instanceof Error ? error.message : String(error));
+    // Node appends advice about `--` that does not apply here; the first sentence says it all.
+    const message = error instanceof Error ? error.message : String(error);
+    throw new UsageError(message.split('. ')[0] ?? message);
   }
   const { values, positionals } = parsed;
   const [first, ...rest] = positionals;

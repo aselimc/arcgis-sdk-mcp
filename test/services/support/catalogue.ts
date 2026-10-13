@@ -18,7 +18,9 @@ export const jsSdk: Product = makeProduct({
   keywords: ['javascript', 'web', 'browser', 'featurelayer', 'mapview', 'webmap', 'arcgis-map'],
   languages: ['javascript', 'typescript'],
   homepage: `${ORIGIN}/javascript/latest/`,
-  startHere: [{ title: 'Get started with the SDK', ref: `${ORIGIN}/javascript/latest/get-started/` }],
+  startHere: [
+    { title: 'Get started with the SDK', ref: `${ORIGIN}/javascript/latest/get-started/` },
+  ],
   sources: [
     makeSource(
       'gatsby',
@@ -28,7 +30,13 @@ export const jsSdk: Product = makeProduct({
     makeSource(
       'astro',
       { base: '/javascript/latest/references/core/' },
-      { id: 'core', title: 'Core API reference', kinds: ['api'], floor: false, fallbacks: ['typings'] },
+      {
+        id: 'core',
+        title: 'Core API reference',
+        kinds: ['api'],
+        floor: false,
+        fallbacks: ['typings'],
+      },
     ),
     makeSource(
       'npm-dts',
@@ -254,36 +262,88 @@ export const JS_RECORDS: CatalogRecord[] = [
     kind: 'release-notes',
     description: 'What changed in this release, including breaking changes.',
   }),
-  rec(
+  rec(jsSdk, 'guide', '/javascript/latest/tutorials/display-a-map/', 'Tutorial: display a map', {
+    kind: 'tutorial',
+    description: 'Step by step: create a page with a map and a basemap.',
+  }),
+  rec(jsSdk, 'guide', '/javascript/latest/migration/components/', 'Migrate widgets to components', {
+    description: 'Replace widget classes with web components, one at a time.',
+    keywords: ['upgrade', 'widgets', 'components'],
+  }),
+  type(
     jsSdk,
-    'guide',
-    '/javascript/latest/tutorials/display-a-map/',
-    'Tutorial: display a map',
-    {
-      kind: 'tutorial',
-      description: 'Step by step: create a page with a map and a basemap.',
-    },
+    'core',
+    `${JS_CORE}/layers/FeatureLayer/`,
+    'FeatureLayer',
+    'A layer of features from a service or client-side graphics.',
   ),
-  rec(
+  member(
     jsSdk,
-    'guide',
-    '/javascript/latest/migration/components/',
-    'Migrate widgets to components',
-    {
-      description: 'Replace widget classes with web components, one at a time.',
-      keywords: ['upgrade', 'widgets', 'components'],
-    },
+    'core',
+    `${JS_CORE}/layers/FeatureLayer/`,
+    'FeatureLayer',
+    'queryFeatures',
+    'method',
+    'Runs a query against the layer and resolves to a feature set.',
   ),
-  type(jsSdk, 'core', `${JS_CORE}/layers/FeatureLayer/`, 'FeatureLayer', 'A layer of features from a service or client-side graphics.'),
-  member(jsSdk, 'core', `${JS_CORE}/layers/FeatureLayer/`, 'FeatureLayer', 'queryFeatures', 'method', 'Runs a query against the layer and resolves to a feature set.'),
-  member(jsSdk, 'core', `${JS_CORE}/layers/FeatureLayer/`, 'FeatureLayer', 'applyEdits', 'method', 'Sends adds, updates and deletes to the service.'),
-  member(jsSdk, 'core', `${JS_CORE}/layers/FeatureLayer/`, 'FeatureLayer', 'featureReduction', 'property', 'Configures clustering or binning of point features.'),
-  type(jsSdk, 'core', `${JS_CORE}/layers/GraphicsLayer/`, 'GraphicsLayer', 'A layer holding client-side graphics.'),
+  member(
+    jsSdk,
+    'core',
+    `${JS_CORE}/layers/FeatureLayer/`,
+    'FeatureLayer',
+    'applyEdits',
+    'method',
+    'Sends adds, updates and deletes to the service.',
+  ),
+  member(
+    jsSdk,
+    'core',
+    `${JS_CORE}/layers/FeatureLayer/`,
+    'FeatureLayer',
+    'featureReduction',
+    'property',
+    'Configures clustering or binning of point features.',
+  ),
+  type(
+    jsSdk,
+    'core',
+    `${JS_CORE}/layers/GraphicsLayer/`,
+    'GraphicsLayer',
+    'A layer holding client-side graphics.',
+  ),
   type(jsSdk, 'core', `${JS_CORE}/views/MapView/`, 'MapView', 'A two-dimensional view of a map.'),
-  member(jsSdk, 'core', `${JS_CORE}/views/MapView/`, 'MapView', 'goTo', 'method', 'Animates the view to a target.'),
-  type(jsSdk, 'core', `${JS_CORE}/views/SceneView/`, 'SceneView', 'A three-dimensional view of a scene.'),
-  member(jsSdk, 'core', `${JS_CORE}/views/SceneView/`, 'SceneView', 'goTo', 'method', 'Animates the camera to a target.'),
-  type(jsSdk, 'core', `${JS_CORE}/geometry/Point/`, 'Point', 'A location with x and y coordinates.'),
+  member(
+    jsSdk,
+    'core',
+    `${JS_CORE}/views/MapView/`,
+    'MapView',
+    'goTo',
+    'method',
+    'Animates the view to a target.',
+  ),
+  type(
+    jsSdk,
+    'core',
+    `${JS_CORE}/views/SceneView/`,
+    'SceneView',
+    'A three-dimensional view of a scene.',
+  ),
+  member(
+    jsSdk,
+    'core',
+    `${JS_CORE}/views/SceneView/`,
+    'SceneView',
+    'goTo',
+    'method',
+    'Animates the camera to a target.',
+  ),
+  type(
+    jsSdk,
+    'core',
+    `${JS_CORE}/geometry/Point/`,
+    'Point',
+    'A location with x and y coordinates.',
+  ),
   rec(jsSdk, 'core', `${JS_CORE}/rest/support/Query/`, 'Query', {
     symbol: 'Query',
     qualified: 'rest.support.Query',
@@ -296,7 +356,13 @@ export const JS_RECORDS: CatalogRecord[] = [
     symbolKind: 'class',
     description: 'A statistics helper that happens to share a name.',
   }),
-  type(jsSdk, 'typings', `${JS_CORE}/layers/FeatureLayer/`, 'FeatureLayer', 'Typings of the feature layer class.'),
+  type(
+    jsSdk,
+    'typings',
+    `${JS_CORE}/layers/FeatureLayer/`,
+    'FeatureLayer',
+    'Typings of the feature layer class.',
+  ),
   rec(
     jsSdk,
     'samples',
@@ -307,10 +373,16 @@ export const JS_RECORDS: CatalogRecord[] = [
       keywords: ['cluster', 'popup'],
     },
   ),
-  rec(jsSdk, 'samples', '/javascript/latest/sample-code/editing-applyedits/', 'Apply edits sample', {
-    description: 'Adds and deletes features with applyEdits on a FeatureLayer.',
-    keywords: ['FeatureLayer', 'applyEdits', 'editing'],
-  }),
+  rec(
+    jsSdk,
+    'samples',
+    '/javascript/latest/sample-code/editing-applyedits/',
+    'Apply edits sample',
+    {
+      description: 'Adds and deletes features with applyEdits on a FeatureLayer.',
+      keywords: ['FeatureLayer', 'applyEdits', 'editing'],
+    },
+  ),
   rec(jsSdk, 'samples', '/javascript/latest/sample-code/layers-scenelayer/', 'Scene layer sample', {
     description: 'Shows textured buildings in a scene.',
   }),
@@ -336,23 +408,41 @@ export const KOTLIN_RECORDS: CatalogRecord[] = [
     line: 'v200',
     description: 'Download a map area with the 200.x API.',
   }),
-  rec(kotlinSdk, 'api', '/kotlin/api-reference/arcgis/com.arcgismaps.mapping/-arc-g-i-s-map/', 'ArcGISMap', {
-    symbol: 'ArcGISMap',
-    qualified: 'com.arcgismaps.mapping.ArcGISMap',
-    symbolKind: 'class',
-    description: 'A map: basemap, operational layers and tables.',
-  }),
-  rec(kotlinSdk, 'api', '/kotlin/api-reference/arcgis/com.arcgismaps.mapping.layers/-feature-layer/', 'FeatureLayer', {
-    symbol: 'FeatureLayer',
-    qualified: 'com.arcgismaps.mapping.layers.FeatureLayer',
-    symbolKind: 'class',
-    description: 'A layer that draws features of a feature table.',
-  }),
-  rec(kotlinSdk, 'samples', `${KT_SAMPLES}/samples/download-preplanned-map-area`, 'Download preplanned map area', {
-    description: 'Takes a preplanned map area offline.',
-    platform: 'android',
-    language: 'kotlin',
-  }),
+  rec(
+    kotlinSdk,
+    'api',
+    '/kotlin/api-reference/arcgis/com.arcgismaps.mapping/-arc-g-i-s-map/',
+    'ArcGISMap',
+    {
+      symbol: 'ArcGISMap',
+      qualified: 'com.arcgismaps.mapping.ArcGISMap',
+      symbolKind: 'class',
+      description: 'A map: basemap, operational layers and tables.',
+    },
+  ),
+  rec(
+    kotlinSdk,
+    'api',
+    '/kotlin/api-reference/arcgis/com.arcgismaps.mapping.layers/-feature-layer/',
+    'FeatureLayer',
+    {
+      symbol: 'FeatureLayer',
+      qualified: 'com.arcgismaps.mapping.layers.FeatureLayer',
+      symbolKind: 'class',
+      description: 'A layer that draws features of a feature table.',
+    },
+  ),
+  rec(
+    kotlinSdk,
+    'samples',
+    `${KT_SAMPLES}/samples/download-preplanned-map-area`,
+    'Download preplanned map area',
+    {
+      description: 'Takes a preplanned map area offline.',
+      platform: 'android',
+      language: 'kotlin',
+    },
+  ),
   rec(kotlinSdk, 'samples', `${KT_SAMPLES}/samples/add-feature-layers`, 'Add feature layers', {
     description: 'Shows feature layers from different data sources.',
     platform: 'android',
@@ -364,24 +454,36 @@ const REST_SVC = '/rest/services-reference/enterprise';
 
 /** Records of the REST APIs. */
 export const REST_RECORDS: CatalogRecord[] = [
-  rec(restApi, 'services', `${REST_SVC}/apply-edits-feature-service-layer/`, '/applyEdits: Apply Edits (Feature Service/Layer)', {
-    symbol: 'applyEdits',
-    qualified: 'FeatureService.Layer.applyEdits',
-    symbolKind: 'operation',
-    description: 'Adds, updates and deletes features of one layer in a single request.',
-  }),
+  rec(
+    restApi,
+    'services',
+    `${REST_SVC}/apply-edits-feature-service-layer/`,
+    '/applyEdits: Apply Edits (Feature Service/Layer)',
+    {
+      symbol: 'applyEdits',
+      qualified: 'FeatureService.Layer.applyEdits',
+      symbolKind: 'operation',
+      description: 'Adds, updates and deletes features of one layer in a single request.',
+    },
+  ),
   rec(restApi, 'services', `${REST_SVC}/add-attachment/`, '/addAttachment: Add Attachment', {
     symbol: 'addAttachment',
     qualified: 'FeatureService.Layer.Feature.addAttachment',
     symbolKind: 'operation',
     description: 'Uploads a file and attaches it to a feature.',
   }),
-  rec(restApi, 'services', `${REST_SVC}/query-feature-service-layer/`, '/query: Query (Feature Service/Layer)', {
-    symbol: 'query',
-    qualified: 'FeatureService.Layer.query',
-    symbolKind: 'operation',
-    description: 'Returns the features of a layer that satisfy a filter.',
-  }),
+  rec(
+    restApi,
+    'services',
+    `${REST_SVC}/query-feature-service-layer/`,
+    '/query: Query (Feature Service/Layer)',
+    {
+      symbol: 'query',
+      qualified: 'FeatureService.Layer.query',
+      symbolKind: 'operation',
+      description: 'Returns the features of a layer that satisfy a filter.',
+    },
+  ),
   rec(restApi, 'portal', '/rest/users-groups-and-items/add-item/', '/addItem: Add Item', {
     symbol: 'addItem',
     qualified: 'User.addItem',
@@ -413,9 +515,15 @@ export const AI_RECORDS: CatalogRecord[] = [
 
 /** Records of the retired and link-tier products. */
 export const OTHER_RECORDS: CatalogRecord[] = [
-  rec(arcObjects, 'help', 'https://desktop.arcgis.com/en/arcobjects/feature-layer/', 'FeatureLayer', {
-    description: 'The feature layer class of the retired desktop SDK.',
-  }),
+  rec(
+    arcObjects,
+    'help',
+    'https://desktop.arcgis.com/en/arcobjects/feature-layer/',
+    'FeatureLayer',
+    {
+      description: 'The feature layer class of the retired desktop SDK.',
+    },
+  ),
   rec(linkProduct, 'help', 'https://doc.arcgis.com/en/cityengine/latest/rules/', 'Rule files', {
     description: 'Write procedural rules that generate buildings.',
   }),

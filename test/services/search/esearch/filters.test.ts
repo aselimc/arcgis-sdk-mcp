@@ -19,7 +19,11 @@ const HOST = 'developers.arcgis.com';
 describe('serializeFilter: rows the backend accepts', () => {
   it.each([
     ['exact term', term('product', 'api-kotlin'), 'product:api-kotlin'],
-    ['value case is kept (matching is case-sensitive)', term('product', 'API-Kotlin'), 'product:API-Kotlin'],
+    [
+      'value case is kept (matching is case-sensitive)',
+      term('product', 'API-Kotlin'),
+      'product:API-Kotlin',
+    ],
     [
       'OR of two terms',
       or(term('product', 'api-swift'), term('product', 'api-kotlin')),
@@ -114,7 +118,11 @@ describe('serializeFilter: rows that must be refused', () => {
     ],
     ['negation by key', term('-product', 'api-flutter'), 'requiredfields' as const],
     ['negation by value', term('product', '-api-flutter'), 'requiredfields' as const],
-    ['a percent escape other than the generated %2E', term('content_type', 'Guide%20Topic'), 'requiredfields' as const],
+    [
+      'a percent escape other than the generated %2E',
+      term('content_type', 'Guide%20Topic'),
+      'requiredfields' as const,
+    ],
     ['a top-level document field', term('language', 'en'), 'requiredfields' as const],
     ['a key containing a colon', term('article:published_time', '2025'), 'partialfields' as const],
     ['a value containing a colon', term('published_at', '10:30'), 'partialfields' as const],
@@ -123,10 +131,26 @@ describe('serializeFilter: rows that must be refused', () => {
     ['a value with a control character', term('product', 'a\nb'), 'requiredfields' as const],
     ['an empty value', term('product', ''), 'requiredfields' as const],
     ['a padded value', term('product', ' api-kotlin'), 'requiredfields' as const],
-    ['a URL prefix in requiredfields (HTTP 500)', term('Content-Location', `${HOST}/kotlin`), 'requiredfields' as const],
-    ['a URL prefix with a scheme', term('Content-Location', `https://${HOST}/kotlin`), 'partialfields' as const],
-    ['a URL prefix without its host', term('Content-Location', 'com/kotlin'), 'partialfields' as const],
-    ['an unanchored URL token', term('Content-Location', 'documentation'), 'partialfields' as const],
+    [
+      'a URL prefix in requiredfields (HTTP 500)',
+      term('Content-Location', `${HOST}/kotlin`),
+      'requiredfields' as const,
+    ],
+    [
+      'a URL prefix with a scheme',
+      term('Content-Location', `https://${HOST}/kotlin`),
+      'partialfields' as const,
+    ],
+    [
+      'a URL prefix without its host',
+      term('Content-Location', 'com/kotlin'),
+      'partialfields' as const,
+    ],
+    [
+      'an unanchored URL token',
+      term('Content-Location', 'documentation'),
+      'partialfields' as const,
+    ],
     ['an empty group', and(), 'requiredfields' as const],
     ['an empty group inside a group', and(term('product', 'a'), or()), 'requiredfields' as const],
   ])('%s', (_name, node, param) => {

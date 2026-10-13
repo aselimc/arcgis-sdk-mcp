@@ -8,12 +8,7 @@ import type {
   SourceAdapter,
 } from '../../../src/core/ports.js';
 import { sectionSubtree } from '../../../src/core/sections.js';
-import type {
-  AdapterType,
-  CatalogRecord,
-  DocPage,
-  SymbolDetail,
-} from '../../../src/core/types.js';
+import type { AdapterType, CatalogRecord, DocPage, SymbolDetail } from '../../../src/core/types.js';
 
 /** A method of {@link TestAdapter} that can be scripted. */
 export type Method = 'enumerate' | 'read' | 'symbol' | 'sample';

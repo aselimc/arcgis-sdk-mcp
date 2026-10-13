@@ -269,6 +269,8 @@ async function read(ctx: Ctx, src: BoundSource<'xmldoc'>, target: ReadTarget): P
  * `xmldoc`: the repository tree lists the documentation files (one API call, plus one for
  * the default branch when no ref is configured); each file is one raw download. Two sources
  * may share a repository, so the adapter claims only `.xml` files under its directory.
+ * The canary lists that directory instead of requesting the registry's probe URL: what has
+ * to exist is the documentation files, and `probe.minRecords` counts them.
  */
 export const xmldocAdapter: SourceAdapter<'xmldoc'> = {
   type: 'xmldoc',

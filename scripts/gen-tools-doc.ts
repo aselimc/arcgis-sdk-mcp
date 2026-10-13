@@ -6,7 +6,8 @@
  * not a second description that could drift from it. Every example below is checked against
  * the schema of its tool before the file is written.
  *
- * Usage: `tsx scripts/gen-tools-doc.ts [--check]` (`--check` fails when the file is stale)
+ * Usage: `tsx scripts/gen-tools-doc.ts [--check] [--out=<file>]` (`--check` fails when the
+ * file is stale; `--out` writes somewhere other than docs/tools.md)
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -268,7 +269,10 @@ async function main(): Promise<void> {
   )) as { tools: ToolListing[] };
 
   const text = renderToolsDoc(listed.tools);
-  const target = resolve(fileURLToPath(import.meta.url), '..', '..', 'docs', 'tools.md');
+  const out = process.argv.find((arg) => arg.startsWith('--out='))?.slice('--out='.length);
+  const target = resolve(
+    out ?? resolve(fileURLToPath(import.meta.url), '..', '..', 'docs', 'tools.md'),
+  );
   if (!process.argv.includes('--check')) {
     writeFileSync(target, text);
     console.log(`wrote ${target}`);

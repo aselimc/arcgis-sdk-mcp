@@ -106,7 +106,15 @@ export function createBodyIndex(ctx: Ctx): BodyIndex {
   const remove = (bodies: ProductBodies, url: string): void => {
     const page = bodies.pages.get(url);
     if (page === undefined) return;
-    for (const section of page.sections) bodies.engine.discard(`${url}${SEPARATOR}${section.id}`);
+    // `remove` takes the document as it was indexed and is synchronous; `discard` would
+    // schedule a background vacuum that cannot run while pages are being added.
+    bodies.engine.removeAll(
+      page.sections.map((section) => ({
+        id: `${url}${SEPARATOR}${section.id}`,
+        heading: section.heading,
+        text: section.text,
+      })),
+    );
     bodies.sections -= page.sections.length;
     bodies.pages.delete(url);
   };

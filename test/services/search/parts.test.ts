@@ -1,0 +1,181 @@
+import { describe, expect, it } from 'vitest';
+import { classifyQuery } from '../../../src/services/search/classify.js';
+import {
+  MAX_EXCERPT_CHARS,
+  clip,
+  excerptOf,
+  stripHighlight,
+} from '../../../src/services/search/excerpt.js';
+import {
+  BRIEF_WEIGHT,
+  EXACT_TITLE_WEIGHT,
+  LEGACY_WEIGHT,
+  LINK_TIER_WEIGHT,
+  OTHER_LINE_WEIGHT,
+  WORKSPACE_WEIGHT,
+  dedupe,
+  multiplier,
+  rerank,
+  type RankContext,
+} from '../../../src/services/search/rank.js';
+import { SYNONYMS, synonymsOf } from '../../../src/services/search/synonyms.js';
+import { indexNotes, scopeNote } from '../../../src/services/notes.js';
+import { makeHit } from '../../support/builders.js';
+import { aiAgents, arcObjects, jsSdk, kotlinSdk, linkProduct } from '../support/catalogue.js';
+
+describe('classifyQuery', () => {
+  it.each([
+    ['FeatureLayer.queryFeatures', ['FeatureLayer.queryFeatures', 'queryFeatures']],
+    ['new FeatureLayer()', ['FeatureLayer']],
+    ['FeatureLayer#queryFeatures', ['FeatureLayer.queryFeatures', 'queryFeatures']],
+    ['<arcgis-map>', ['arcgis-map']],
+    ['arcpy.da.SearchCursor', ['arcpy.da.SearchCursor', 'SearchCursor']],
+  ])('%s is a symbol', (query, names) => {
+    expect(classifyQuery(query)).toEqual({ shape: 'symbol', names });
+  });
+
+  it.each(['cluster points with popups', 'offline', '5.1', '   '])('"%s" is text', (query) => {
+    expect(classifyQuery(query)).toEqual({ shape: 'text', names: [] });
+  });
+});
+
+describe('synonyms', () => {
+  it('expands in both directions between single words', () => {
+    expect(synonymsOf('popup')).toEqual(['pop up', 'popups']);
+    expect(synonymsOf('Popups')).toEqual(['popup', 'pop up']);
+    expect(synonymsOf('upgrade')).toEqual(['migrate', 'migration']);
+    expect(synonymsOf('zebra')).toEqual([]);
+  });
+
+  it('has only single-word keys, all lower-case', () => {
+    for (const key of SYNONYMS.keys()) expect(key).toMatch(/^[a-z0-9]+$/);
+  });
+});
+
+describe('excerpts', () => {
+  it('strips highlight markup and entities', () => {
+    expect(stripHighlight('Call <b>applyEdits</b> on a &lt;layer&gt; &amp;  wait&nbsp;for it')).toBe(
+      'Call applyEdits on a <layer> & wait for it',
+    );
+  });
+
+  it('clips at a word boundary within the cap', () => {
+    const long = 'word '.repeat(100);
+    const clipped = clip(long);
+    expect(clipped.length).toBeLessThanOrEqual(MAX_EXCERPT_CHARS);
+    expect(clipped.endsWith('word…')).toBe(true);
+    expect(clip('short  text\n here')).toBe('short text here');
+    expect(clip('x'.repeat(300)).length).toBe(MAX_EXCERPT_CHARS);
+  });
+
+  it('turns nothing into nothing', () => {
+    expect(excerptOf(undefined)).toBeUndefined();
+    expect(excerptOf('   ')).toBeUndefined();
+    expect(excerptOf(' a ')).toBe('a');
+  });
+});
+
+describe('multipliers', () => {
+  const context = (overrides: Partial<RankContext> = {}): RankContext => ({
+    query: 'cluster points',
+    versionGiven: false,
+    lines: new Map([
+      ['js-maps-sdk', 'latest'],
+      ['kotlin-maps-sdk', 'latest'],
+    ]),
+    products: new Map(
+      [jsSdk, kotlinSdk, arcObjects, linkProduct, aiAgents].map((product) => [product.id, product]),
+    ),
+    workspace: new Set(),
+    ...overrides,
+  });
+  const hit = (overrides = {}) => makeHit({ product: 'js-maps-sdk', title: 'Something', ...overrides });
+
+  it('leaves an ordinary current-line hit alone', () => {
+    expect(multiplier(hit(), context())).toBe(1);
+    expect(multiplier(hit({ product: 'unknown-product' }), context())).toBe(1);
+  });
+
+  it('down-weights other version lines unless a version was asked for', () => {
+    const lts = hit({ product: 'kotlin-maps-sdk', line: 'v200' });
+    expect(multiplier(lts, context())).toBe(OTHER_LINE_WEIGHT);
+    expect(multiplier(lts, context({ versionGiven: true }))).toBe(1);
+    expect(multiplier(hit({ line: '' }), context())).toBe(1);
+  });
+
+  it('applies tier, status, workspace, exact-title and brief weights', () => {
+    expect(multiplier(hit({ product: 'cityengine' }), context())).toBe(LINK_TIER_WEIGHT);
+    expect(multiplier(hit({ product: 'arcobjects' }), context())).toBe(LEGACY_WEIGHT);
+    expect(multiplier(hit(), context({ workspace: new Set(['js-maps-sdk']) }))).toBe(WORKSPACE_WEIGHT);
+    expect(multiplier(hit({ title: 'Cluster Points!' }), context())).toBe(EXACT_TITLE_WEIGHT);
+    expect(multiplier(hit({ product: 'ai-agents', kind: 'brief' }), context())).toBe(BRIEF_WEIGHT);
+    expect(multiplier(hit({ kind: 'brief' }), context())).toBe(1);
+  });
+
+  it('multiplies weights that apply together and re-sorts', () => {
+    const ranked = rerank(
+      [
+        hit({ ref: 'https://developers.arcgis.com/a/', score: 1 }),
+        hit({ ref: 'https://developers.arcgis.com/b/', score: 0.6, title: 'cluster points' }),
+        hit({ ref: 'https://desktop.arcgis.com/c/', score: 2, product: 'arcobjects' }),
+      ],
+      context({ workspace: new Set(['js-maps-sdk']) }),
+    );
+    expect(ranked.map((entry) => entry.ref.slice(-3))).toEqual(['/b/', '/a/', '/c/']);
+    expect(ranked[0]?.score).toBeCloseTo(0.6 * EXACT_TITLE_WEIGHT * WORKSPACE_WEIGHT);
+  });
+
+  it('de-duplicates on the canonical URL and keeps member anchors apart', () => {
+    const kept = dedupe([
+      hit({ ref: 'https://developers.arcgis.com/x/?utm_source=a' }),
+      hit({ ref: 'https://developers.arcgis.com/x/' }),
+      hit({ ref: 'https://developers.arcgis.com/x/#member' }),
+      hit({ ref: 'brief:ai/overview' }),
+      hit({ ref: 'brief:ai/overview' }),
+    ]);
+    expect(kept.map((entry) => entry.ref)).toEqual([
+      'https://developers.arcgis.com/x/?utm_source=a',
+      'https://developers.arcgis.com/x/#member',
+      'brief:ai/overview',
+    ]);
+  });
+});
+
+describe('notes', () => {
+  const state = (source: string, value: 'ready' | 'stale' | 'building' | 'partial' | 'unavailable') => ({
+    product: 'p',
+    source,
+    line: 'latest',
+    state: value,
+    records: 0,
+  });
+
+  it('describes every state that is not ready', () => {
+    const notes = indexNotes(
+      [state('a', 'ready'), state('b', 'building'), state('c', 'stale'), state('d', 'partial'), state('e', 'unavailable'), state('f', 'unavailable')],
+      (_product, source) => (source === 'c' || source === 'e' ? 'timeout' : undefined),
+    );
+    expect(notes).toEqual([
+      'not searched yet: p/b (index is building, retry)',
+      'degraded: p/c answered from an older index snapshot: timeout',
+      'degraded: p/d has no index, only its entry links were used',
+      'not searched: p/e: timeout',
+      'not searched: p/f (not available in this configuration)',
+    ]);
+  });
+
+  it('summarises long lists', () => {
+    const many = Array.from({ length: 7 }, (_, i) => state(`s${i}`, 'building'));
+    const notes = indexNotes(many, () => undefined);
+    expect(notes).toHaveLength(5);
+    expect(notes.at(-1)).toBe('... and 3 more sources in the same state');
+  });
+
+  it('explains a scope the caller did not choose', () => {
+    expect(scopeNote('argument', ['a'])).toBeUndefined();
+    expect(scopeNote('none', [])).toBeUndefined();
+    expect(scopeNote('workspace', ['a'])).toContain('detected in the project');
+    expect(scopeNote('query', ['a'])).toContain('named by the query');
+    expect(scopeNote('router', ['a', 'b'])).toContain('a, b (most likely products');
+  });
+});

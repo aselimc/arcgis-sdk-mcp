@@ -300,7 +300,8 @@ export function createSearchService(deps: SearchDeps): SearchService {
       if (note !== undefined) notes.push(note);
       notes.push(...indexNotes(states, (product, source) => index.reason(product, source)));
 
-      let total = Math.max(ranked.length, catalogue.total);
+      // The fused list is exact unless the catalogue had more matches than were fused.
+      let total = catalogue.total > CANDIDATE_DEPTH ? catalogue.total : ranked.length;
       if (ranked.length === 0) {
         if (!anySearchable(states)) {
           // Nothing could be searched: answer with the products' entry links and say so.
