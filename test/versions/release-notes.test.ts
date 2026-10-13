@@ -75,6 +75,23 @@ describe('release-notes patterns', () => {
     ]);
   });
 
+  it('prefers the v<major>-<minor> JavaScript page over its dotted redirect stub and finds 5.0', () => {
+    const config = createRegistry().get('js-maps-sdk')?.releaseNotes;
+    const filter = new RegExp(config?.sitemapFilter ?? '^$');
+    const urls = [
+      `${D}/javascript/latest/4.24/`,
+      `${D}/javascript/latest/4.34/`,
+      `${D}/javascript/latest/v4-34/`,
+      `${D}/javascript/latest/v5-0/`,
+      `${D}/javascript/latest/vector-tiles-v2-0/`,
+    ].filter((url) => filter.test(url));
+    expect(pagesByPattern(urls, new RegExp(config?.pattern ?? '^$'))).toEqual([
+      { version: '5.0', url: `${D}/javascript/latest/v5-0/` },
+      { version: '4.34', url: `${D}/javascript/latest/v4-34/` },
+      { version: '4.24', url: `${D}/javascript/latest/4.24/` },
+    ]);
+  });
+
   it('keeps the first URL of a version and sorts newest first', () => {
     const urls = [
       `${D}/x/release-notes/release-notes-for-300-0/`,

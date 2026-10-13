@@ -9,6 +9,7 @@ import type { Ctx } from '../../core/ports.js';
 import { LEAD_SECTION_ID } from '../../core/sections.js';
 import { tokenize } from '../../core/tokenize.js';
 import type { DocKind, DocPage, LicenseTier, SearchHit } from '../../core/types.js';
+import { plainText } from '../search/excerpt.js';
 import { matchOptions, termQuery } from './minisearch-index.js';
 import { queryTerms } from './query-terms.js';
 import type { BodyQuery } from './types.js';
@@ -75,8 +76,18 @@ function sectionText(markdown: string): string {
     .slice(0, BODY_SECTION_CHARS);
 }
 
+/**
+ * The opening of a section as one line of plain text. A notice that opens it (a deprecation
+ * callout in a block quote) is said about the page, not what the section covers, so the
+ * excerpt starts at the first block after it. Markdown is removed while the text still has
+ * its lines: quote and list markers are only recognisable at the start of one, and a link
+ * cut in the middle of its URL can no longer be reduced to its label.
+ */
 function excerptOf(text: string): string {
-  return text.replace(/\s+/g, ' ').trim().slice(0, EXCERPT_CHARS);
+  const blocks = text.split(/\n\s*\n/);
+  const start = blocks.findIndex((block) => !/^ {0,3}>/.test(block));
+  const body = start > 0 ? blocks.slice(start).join('\n\n') : text;
+  return plainText(body).replace(/\s+/g, ' ').trim().slice(0, EXCERPT_CHARS);
 }
 
 /** Creates the body index. */

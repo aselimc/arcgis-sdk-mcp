@@ -248,6 +248,29 @@ describe('body index', () => {
     expect(bodies.query({ text: '', products: ['widgets-sdk'], limit: 5 })).toEqual([]);
   });
 
+  it('starts the excerpt after an opening notice and writes it as plain text', () => {
+    const bodies = createBodyIndex(makeCtx());
+    bodies.add(
+      page(
+        URL_A,
+        [
+          '# Alpha',
+          '> **Warning:**\n>\n> This page shows an [older pattern](https://example.org/a/very/long/path/).',
+          'Shows how to *throttle* a [request queue](https://example.org/queue/).',
+        ].join('\n\n'),
+      ),
+    );
+    const [hit] = bodies.query({ text: 'throttle', products: ['widgets-sdk'], limit: 5 });
+    expect(hit?.excerpt).toBe('Shows how to throttle a request queue.');
+  });
+
+  it('keeps a section that is only a notice, without its quote markers', () => {
+    const bodies = createBodyIndex(makeCtx());
+    bodies.add(page(URL_A, '# Alpha\n\n> **Note:**\n>\n> > The throttle is retired.'));
+    const [hit] = bodies.query({ text: 'throttle', products: ['widgets-sdk'], limit: 5 });
+    expect(hit?.excerpt).toBe('Note: The throttle is retired.');
+  });
+
   it('ignores pages without a product and link-only placeholders', () => {
     const bodies = createBodyIndex(makeCtx());
     const { product: _product, ...anonymous } = page(URL_A, '# A\n\nthrottle');

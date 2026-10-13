@@ -319,9 +319,10 @@ const jsMapsSdk: Product = {
   compatibility: [{ name: 'Version matrix', url: `${D}${JS}version-matrix/` }],
   releaseNotes: {
     current: `${D}${JS}release-notes/`,
-    // 4.0 to 4.10 live under release-notes/; later releases have a page named by the version alone.
-    sitemapFilter: `${JS}(?:release-notes/)?\\d+\\.\\d+/$`,
-    pattern: `${JS}(?:release-notes/)?(\\d+\\.\\d+)/$`,
+    // Since 4.25 a release has its page at v<major>-<minor>/ (5.0 has no other); the page named
+    // by the dotted version is a redirect stub to it. 4.0 to 4.10 live under release-notes/.
+    sitemapFilter: `${JS}(?:v\\d+-\\d+|(?:release-notes/)?\\d+\\.\\d+)/$`,
+    pattern: `${JS}(?:v(\\d+-\\d+)|(?:release-notes/)?(\\d+\\.\\d+))/$`,
   },
   startHere: [
     { title: 'Get started', ref: `${D}${JS}get-started/` },

@@ -5,9 +5,9 @@
  * `Product.releaseNotes` gives up to three ways to find a page:
  * - `current`: the page (or meta-refresh stub) of the current release;
  * - `sitemapFilter`: a URL regex over the product sitemap, which lists one page per version;
- * - `pattern`, in one of two forms. A regular expression whose first capture group is the
- *   version slug of a per-version page (`/release-notes-for-(\d+-\d+)/$`) names the pages
- *   among the sitemap URLs. A URL template with `{version}` (also `{dashed}`, `{compact}`,
+ * - `pattern`, in one of two forms. A regular expression whose capture group is the version
+ *   slug of a per-version page (`/release-notes-for-(\d+-\d+)/$`) names the pages among the
+ *   sitemap URLs (several groups: the earlier one is the preferred URL shape). A URL template with `{version}` (also `{dashed}`, `{compact}`,
  *   `{major}`, `{minor}`, `{patch}` and the line variables) builds the page of a version
  *   without any request.
  */

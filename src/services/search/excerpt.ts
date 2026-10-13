@@ -42,7 +42,9 @@ export function plainText(markdown: string): string {
       .replace(/\*\*(?=\S)(.+?)(?<=\S)\*\*/g, '$1')
       // Single markers only when they wrap words: `snake_case` and `a * b` stay as they are.
       .replace(/(?<![\p{L}\p{N}*_])([*_])(?=\S)([^*_\n]+?)(?<=\S)\1(?![\p{L}\p{N}*_])/gu, '$2')
-      .replace(/^ {0,3}(?:#{1,6}|>+|[-*+]|\d+\.)[ \t]+/gm, '')
+      // Quote markers nest (`> > text`) and stand alone on the empty lines of a quote.
+      .replace(/^ {0,3}(?:>[ \t]?)+/gm, '')
+      .replace(/^ {0,3}(?:#{1,6}|[-*+]|\d+\.)[ \t]+/gm, '')
   );
 }
 
