@@ -3,6 +3,7 @@
  * does its metadata or code confirm it, does it fit a platform, and in which order hits go.
  */
 import { estimateTokens } from '../../core/budget.js';
+import type { SampleHit } from '../../core/ports.js';
 import { normalizeSymbol, tokenize } from '../../core/tokenize.js';
 import type { CatalogRecord, DocPage } from '../../core/types.js';
 
@@ -150,6 +151,47 @@ export function mergeSampleTwins(ranked: readonly CatalogRecord[]): CatalogRecor
     else twins.forEach(place);
   }
   return merged;
+}
+
+/** Tokens the rank, the bracketed tags, the labels and the indentation of one listed hit take. */
+const HIT_OVERHEAD_TOKENS = 30;
+
+/** Tokens one hit takes in a listing: title, ref, summary, location, APIs and a line per source file. */
+export function hitTokens(hit: SampleHit): number {
+  const text = [
+    hit.record.title,
+    hit.record.ref,
+    hit.summary,
+    hit.record.breadcrumb ?? '',
+    (hit.relevantApis ?? []).join(', '),
+    ...(hit.files ?? []).map((file) => `File: ${file.name} ${file.ref}`),
+  ].join('\n');
+  return estimateTokens(text) + HIT_OVERHEAD_TOKENS;
+}
+
+/**
+ * Makes a listing fit `maxTokens` by leaving out the file lists of the lowest-ranked hits
+ * first. A file list is one long URL per file and is the only part of a hit that can be had
+ * again by reading the hit, so it goes before any hit does. The top hit keeps its files.
+ *
+ * @returns the hits to list, their size, and how many lost their file list.
+ */
+export function fitListing(
+  hits: readonly SampleHit[],
+  maxTokens: number,
+): { hits: SampleHit[]; tokens: number; trimmed: number } {
+  const fitted = [...hits];
+  let tokens = fitted.reduce((total, hit) => total + hitTokens(hit), 0);
+  let trimmed = 0;
+  for (let index = fitted.length - 1; index >= 1 && tokens > maxTokens; index -= 1) {
+    const hit = fitted[index];
+    if (hit?.files === undefined) continue;
+    const { files: _files, ...withoutFiles } = hit;
+    tokens -= hitTokens(hit) - hitTokens(withoutFiles);
+    fitted[index] = withoutFiles;
+    trimmed += 1;
+  }
+  return { hits: fitted, tokens, trimmed };
 }
 
 /** Cuts source text at a line boundary within `maxTokens`. */

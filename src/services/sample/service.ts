@@ -25,6 +25,7 @@ import { SYNONYMS } from '../search/synonyms.js';
 import {
   confirmsApi,
   fitCode,
+  fitListing,
   isGithubSample,
   matchesPlatform,
   mentionsApi,
@@ -39,11 +40,11 @@ export const MAX_METADATA_FETCHES = 10;
 /** Text-ranked candidates considered before narrowing. */
 const CANDIDATE_DEPTH = 100;
 
-/** Tokens reserved per listed hit when the main source file is also returned. */
-const TOKENS_PER_HIT = 150;
-
 /** Smallest budget given to the code of the top hit. */
 const MIN_CODE_TOKENS = 200;
+
+/** Share of the budget kept for the code when it was asked for; the listing gets the rest. */
+const CODE_SHARE = 0.5;
 
 function firstSentence(page: DocPage | undefined): string | undefined {
   const lead = page?.sections[0]?.markdown.replace(/^ {0,3}#{1,6}[ \t]+.*$/m, '').trim();
@@ -245,7 +246,15 @@ export function createSampleService(
       }
 
       const total = hits.length;
-      hits = hits.slice(0, req.limit);
+      // With `with_code` the caller wants code first: file lists give way before the code does.
+      const reserved = req.withCode ? Math.floor(req.maxTokens * CODE_SHARE) : 0;
+      const listing = fitListing(hits.slice(0, req.limit), req.maxTokens - reserved);
+      hits = listing.hits;
+      if (listing.trimmed > 0) {
+        notes.push(
+          `The file lists of ${listing.trimmed} lower-ranked hit(s) were left out to fit max_tokens; reading a hit lists its files.`,
+        );
+      }
       if (total === 0 && api === undefined) {
         notes.push(
           `No sample matched. Guides and tutorials are found with ${formatCall(TOOLS.search, { query: req.query, product: product.id })}.`,
@@ -265,7 +274,8 @@ export function createSampleService(
             `The source of the top hit is not available here; read it with ${formatCall(TOOLS.read, { ref: top.record.ref, section: 'source' })}.`,
           );
         } else {
-          const budget = Math.max(MIN_CODE_TOKENS, req.maxTokens - TOKENS_PER_HIT * hits.length);
+          // The listing is paid for first; the code gets what is left of the budget.
+          const budget = Math.max(MIN_CODE_TOKENS, req.maxTokens - listing.tokens);
           response.code = {
             ref: main.ref,
             file: main.name,

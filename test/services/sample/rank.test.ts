@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { estimateTokens } from '../../../src/core/budget.js';
+import type { SampleHit } from '../../../src/core/ports.js';
 import type { DocPage } from '../../../src/core/types.js';
 import {
   confirmsApi,
   fitCode,
+  fitListing,
+  hitTokens,
   matchesPlatform,
   mentionsApi,
   mergeSampleTwins,
@@ -132,6 +136,69 @@ describe('sample rank helpers', () => {
       winuiPage.ref,
       maui.ref,
     ]);
+  });
+
+  describe('listing budget', () => {
+    const repo = 'https://github.com/Esri/widgets-samples/blob/v3.1.0/samples';
+    const hit = (slug: string, files: number): SampleHit => ({
+      record: makeRecord({ ref: `${repo}/${slug}/README.md`, title: slug, kind: 'sample' }),
+      summary: 'Shows one thing the toolkit can do, in a sentence.',
+      relevantApis: ['TideLayer', 'TideLayer.refresh'],
+      origin: 'github',
+      ...(files === 0
+        ? {}
+        : {
+            files: Array.from({ length: files }, (_, index) => ({
+              name: `src/main/java/com/example/widgets/${slug}/Screen${index}.kt`,
+              ref: `${repo}/${slug}/src/main/java/com/example/widgets/${slug}/Screen${index}.kt`,
+            })),
+          }),
+    });
+
+    it('counts the file lines of a hit, which are most of its size', () => {
+      const bare = hitTokens(hit('show-tides', 0));
+      const withFiles = hitTokens(hit('show-tides', 3));
+      expect(withFiles).toBeGreaterThan(bare * 2);
+      // The estimate covers what the listing prints for the hit.
+      const printed = hit('show-tides', 3);
+      const text = [
+        printed.record.title,
+        printed.record.ref,
+        printed.summary,
+        ...(printed.files ?? []).map((file) => `File: ${file.name} ${file.ref}`),
+      ].join('\n');
+      expect(withFiles).toBeGreaterThanOrEqual(estimateTokens(text));
+    });
+
+    it('keeps everything when the listing fits', () => {
+      const hits = [hit('a', 3), hit('b', 3)];
+      const fitted = fitListing(hits, 5000);
+      expect(fitted.hits).toEqual(hits);
+      expect(fitted.trimmed).toBe(0);
+      expect(fitted.tokens).toBe(hitTokens(hits[0]!) + hitTokens(hits[1]!));
+    });
+
+    it('drops file lists from the lowest-ranked hits first and never from the top hit', () => {
+      const hits = [hit('a', 3), hit('b', 3), hit('c', 0), hit('d', 3)];
+      const all = hits.reduce((total, entry) => total + hitTokens(entry), 0);
+      const one = fitListing(hits, all - 1);
+      expect(one.trimmed).toBe(1);
+      expect(one.hits.map((entry) => entry.files?.length)).toEqual([3, 3, undefined, undefined]);
+      expect(one.tokens).toBeLessThan(all);
+      expect(one.tokens).toBe(one.hits.reduce((total, entry) => total + hitTokens(entry), 0));
+
+      const tight = fitListing(hits, 1);
+      expect(tight.trimmed).toBe(2);
+      expect(tight.hits.map((entry) => entry.files?.length)).toEqual([
+        3,
+        undefined,
+        undefined,
+        undefined,
+      ]);
+      // Hits themselves are never dropped: the caller asked for this many.
+      expect(tight.hits.map((entry) => entry.record.ref)).toEqual(hits.map((e) => e.record.ref));
+      expect(hits[3]?.files).toHaveLength(3);
+    });
   });
 
   it('cuts code at a line boundary', () => {

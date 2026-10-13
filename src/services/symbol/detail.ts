@@ -74,9 +74,17 @@ function typeSummary(page: DocPage, sections: readonly DocSection[]): DocSection
   if (memberSections.size === 0) return [...sections];
   const own = sections.filter((section) => !memberSections.has(section.id));
   // A page that is nothing but member sections documents the symbol itself (an Arcade
-  // function, a specification object listed as the only member of its page): an index of
-  // one would replace the documentation that was asked for.
-  if (own.length === 0) return [...sections];
+  // function with its overloads under a bare title, a specification object listed as the
+  // only member of its page): an index would replace the documentation that was asked for.
+  const ownText = own.some(
+    (section) =>
+      section.markdown
+        .split('\n')
+        .filter((line) => !HEADING.test(line))
+        .join('')
+        .trim() !== '',
+  );
+  if (!ownText) return [...sections];
   return [...own, memberIndexSection(members)];
 }
 
