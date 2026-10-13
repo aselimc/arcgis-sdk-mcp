@@ -1,0 +1,33 @@
+{
+  "name": "sitemap source: a sitemap index with four files, of which three are recorded (synthetic)",
+  "interactions": [
+    {
+      "url": "https://support.esri.com/en-us/knowledge-base/sitemap-articles.xml",
+      "response": {
+        "contentType": "application/xml",
+        "bodyFile": "kb-sitemap-index.xml"
+      }
+    },
+    {
+      "url": "https://support.esri.com/en-us/knowledge-base/sitemap-a.xml",
+      "response": {
+        "contentType": "application/xml",
+        "bodyFile": "kb-sitemap-a.xml"
+      }
+    },
+    {
+      "url": "https://support.esri.com/en-us/knowledge-base/sitemap-b.xml",
+      "response": {
+        "contentType": "application/xml",
+        "bodyFile": "kb-sitemap-b.xml"
+      }
+    },
+    {
+      "url": "https://support.esri.com/en-us/knowledge-base/sitemap-c.xml",
+      "response": {
+        "contentType": "application/xml",
+        "bodyFile": "kb-sitemap-c.xml"
+      }
+    }
+  ]
+}

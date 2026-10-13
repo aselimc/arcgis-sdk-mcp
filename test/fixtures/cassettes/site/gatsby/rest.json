@@ -1,0 +1,297 @@
+{
+  "name": "gatsby REST reference: nav, search and resource hierarchy in a static query",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/rest/gadgets/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://developers.arcgis.com/rest/gadgets/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/rest/gadgets/gadget-service/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/rest/gadgets/apply-changes-gadget-service/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/rest/gadgets/query-gadget-layer/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/rest/gadgets/find-gadget-candidates/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/rest/gadgets/whats-new/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n</urlset>\n"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/rest/gadgets/page-data/index/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "Gadget services",
+                "url": "/",
+                "context": {
+                  "nav": "rest/gadgets/topic"
+                }
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "2000000002",
+            "1000000002",
+            "1000000003",
+            "3000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/rest/gadgets/page-data/sq/d/1000000001.json",
+      "response": {
+        "json": {
+          "data": {
+            "siteConfig": {
+              "raw": {
+                "buildMode": "default"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/rest/gadgets/page-data/sq/d/1000000002.json",
+      "response": {
+        "json": {
+          "data": {
+            "topNavData": {
+              "links": [
+                {
+                  "label": "Documentation",
+                  "url": "/DEVSITE/documentation/"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/rest/gadgets/page-data/sq/d/1000000003.json",
+      "response": {
+        "json": {
+          "data": {
+            "siteConfig": {
+              "raw": {
+                "siteId": "synthetic",
+                "redirects": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/rest/gadgets/page-data/sq/d/2000000002.json",
+      "response": {
+        "json": {
+          "data": {
+            "glossaryData": {
+              "terms": [
+                {
+                  "uid": "glossary-gadget",
+                  "url": "/DEVSITE/documentation/glossary/gadget/",
+                  "shortDef": "<p>A <strong>gadget</strong> is an invented thing.</p>",
+                  "name": "gadget",
+                  "aliases": []
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/rest/gadgets/page-data/sq/d/3000000003.json",
+      "response": {
+        "json": {
+          "data": {
+            "nav": {
+              "nav": {
+                "type": "root",
+                "id": "NavigationYaml-root",
+                "publicPaginationURL": "/rest/gadgets/static/99887766554433221100ffeeddccbbaa.pagination.json",
+                "children": [
+                  {
+                    "title": "Overview",
+                    "url": "/",
+                    "type": "page",
+                    "id": "NavigationYaml-Overview"
+                  },
+                  {
+                    "title": "Resources",
+                    "children": [
+                      {
+                        "title": "Gadget Service",
+                        "url": "/gadget-service/",
+                        "type": "page",
+                        "id": "NavigationYaml-Gadget Service"
+                      }
+                    ],
+                    "type": "folder",
+                    "id": "NavigationYaml-Resources"
+                  },
+                  {
+                    "title": "Operations",
+                    "children": [
+                      {
+                        "title": "Apply Changes",
+                        "url": "/apply-changes-gadget-service/",
+                        "type": "page",
+                        "id": "NavigationYaml-Apply Changes"
+                      },
+                      {
+                        "title": "Query",
+                        "url": "/query-gadget-layer/",
+                        "type": "page",
+                        "id": "NavigationYaml-Query"
+                      },
+                      {
+                        "title": "Find Gadget Candidates",
+                        "url": "/find-gadget-candidates/",
+                        "type": "page",
+                        "id": "NavigationYaml-Find Gadget Candidates"
+                      }
+                    ],
+                    "type": "folder",
+                    "id": "NavigationYaml-Operations"
+                  },
+                  {
+                    "title": "What's new",
+                    "url": "/whats-new/",
+                    "type": "page",
+                    "id": "NavigationYaml-What's new"
+                  }
+                ]
+              },
+              "error": null
+            },
+            "resourceHierarchy": {
+              "childRawYaml": {
+                "raw": [
+                  {
+                    "name": "Gadget Root",
+                    "url": "/",
+                    "children": [
+                      {
+                        "name": "Gadget Service",
+                        "url": "/gadget-service",
+                        "children": [
+                          {
+                            "name": "Apply Changes",
+                            "url": "/apply-changes-gadget-service"
+                          },
+                          {
+                            "name": "Gadget Layer",
+                            "children": [
+                              {
+                                "name": "Query",
+                                "url": "/query-gadget-layer"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "search": {
+              "publicStoreURL": "/rest/gadgets/static/aa11bb22cc33dd44ee55ff6600778899.store.json",
+              "publicIndexURL": "/rest/gadgets/static/aa11bb22cc33dd44ee55ff6600778899.index.json"
+            },
+            "siteConfig": {
+              "raw": {
+                "siteId": "gadgets",
+                "pathPrefix": "/rest/gadgets/",
+                "redirects": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/rest/gadgets/static/aa11bb22cc33dd44ee55ff6600778899.store.json",
+      "response": {
+        "json": [
+          {
+            "id": "r1",
+            "title": "Gadget services",
+            "description": "An invented REST reference.",
+            "keywords": [],
+            "url": "/",
+            "pageType": "Topic",
+            "boost": null,
+            "image": null
+          },
+          {
+            "id": "r2",
+            "title": "Gadget Service",
+            "description": "The root resource of the service.",
+            "keywords": [],
+            "url": "/gadget-service/",
+            "pageType": "Topic",
+            "boost": null,
+            "image": null
+          },
+          {
+            "id": "r3",
+            "title": "/applyChanges: Apply Changes (Gadget Service)",
+            "description": "Adds, updates and deletes gadgets in one request.",
+            "keywords": [],
+            "url": "/apply-changes-gadget-service/",
+            "pageType": "Topic",
+            "boost": null,
+            "image": null
+          },
+          {
+            "id": "r4",
+            "title": "/query: Query (Gadget Layer)",
+            "description": "Returns the gadgets that match a filter.",
+            "keywords": [],
+            "url": "/query-gadget-layer/",
+            "pageType": "Topic",
+            "boost": null,
+            "image": null
+          },
+          {
+            "id": "r5",
+            "title": "/findGadgetCandidates",
+            "description": null,
+            "keywords": [],
+            "url": "/find-gadget-candidates/",
+            "pageType": "Topic",
+            "boost": null,
+            "image": null
+          },
+          {
+            "id": "r6",
+            "title": "What's new",
+            "description": "Changes per release.",
+            "keywords": [],
+            "url": "/whats-new/",
+            "pageType": "Topic",
+            "boost": null,
+            "image": null
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/rest/gadgets/apply-changes-gadget-service/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>/applyChanges</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">/applyChanges</h1></header><div id=\"skip-to-content\" class=\"page-content\"><dl class=\"grid\"><dt>URL</dt><dd>https://example.invalid/gadgets/applyChanges</dd><dt>Methods</dt><dd>POST</dd></dl><h2 id=\"description\">Description</h2><p>Adds, updates and deletes gadgets in one request.</p></div></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/rest/gadgets/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Gadget services</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Gadget services</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>An invented REST reference.</p></div></main></body></html>"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "sitemap source: one urlset and one article page (synthetic)",
+  "interactions": [
+    {
+      "url": "https://support.esri.com/en-us/knowledge-base/sitemap-articles.xml",
+      "response": {
+        "contentType": "application/xml",
+        "bodyFile": "kb-sitemap.xml"
+      }
+    },
+    {
+      "url": "https://support.esri.com/en-us/knowledge-base/how-to-reset-a-widget-000010001",
+      "response": {
+        "bodyFile": "page.html"
+      }
+    }
+  ]
+}

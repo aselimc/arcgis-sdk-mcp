@@ -1,0 +1,17 @@
+{
+  "name": "static source: two fixed pages (synthetic)",
+  "interactions": [
+    {
+      "url": "https://location.arcgis.com/help/widgets-overview/",
+      "response": {
+        "bodyFile": "page.html"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/v2/migrate/",
+      "response": {
+        "bodyFile": "page.html"
+      }
+    }
+  ]
+}

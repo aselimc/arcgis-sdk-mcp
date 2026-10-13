@@ -100,7 +100,8 @@ const REGISTRY_HOSTS = new Set([
   'plc-api.esri.com',
 ]);
 const SPEC_HOSTS = new Set(['hub.arcgis.com', 'sitescan-api.arcgis.com']);
-const SPEC_PATH = /(?:openapi|swagger|apidocs|docs-json)[^/]*$/i;
+/** A file named like an OpenAPI document; a guide page about OpenAPI is still a page. */
+const SPEC_PATH = /(?:(?:openapi|swagger|apidocs)[^/]*\.(?:json|ya?ml)|\/docs-json)$/i;
 const INDEX_PATH = /(?:\.(?:json|xml|ya?ml|inv|js)|\/sitemap[^/]*)$/i;
 
 function githubRawClass(segments: string[]): TtlClass {

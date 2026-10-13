@@ -43,7 +43,9 @@ export function presetCapabilities(preset: Preset, mode: Mode): Set<Capability> 
  * file-system capabilities in HTTP mode; the policy applies the rule again so that a
  * hand-built `Config` cannot switch them on.
  */
-export function effectiveCapabilities(config: Pick<Config, 'capabilities' | 'mode'>): Set<Capability> {
+export function effectiveCapabilities(
+  config: Pick<Config, 'capabilities' | 'mode'>,
+): Set<Capability> {
   return withoutStdioOnly(config.capabilities, config.mode);
 }
 

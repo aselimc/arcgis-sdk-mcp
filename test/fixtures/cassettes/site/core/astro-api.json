@@ -1,0 +1,36 @@
+{
+  "name": "astro API source: one symbol index and one reference page (synthetic)",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/widgets/references-search.json",
+      "response": {
+        "json": {
+          "options": {
+            "fields": [
+              "title",
+              "keywords"
+            ],
+            "storeFields": [
+              "title",
+              "url",
+              "breadcrumb",
+              "boost",
+              "pageType"
+            ],
+            "searchOptions": {
+              "prefix": true,
+              "fuzzy": true
+            }
+          },
+          "index": "{\"documentCount\":18,\"nextId\":18,\"documentIds\":{\"0\":\"synthetic::0\",\"1\":\"synthetic::1\",\"2\":\"synthetic::2\",\"3\":\"synthetic::3\",\"4\":\"synthetic::4\",\"5\":\"synthetic::5\",\"6\":\"synthetic::6\",\"7\":\"synthetic::7\",\"8\":\"synthetic::8\",\"9\":\"synthetic::9\",\"10\":\"synthetic::10\",\"11\":\"synthetic::11\",\"12\":\"synthetic::12\",\"13\":\"synthetic::13\",\"14\":\"synthetic::14\",\"15\":\"synthetic::15\",\"16\":\"synthetic::16\",\"17\":\"synthetic::17\"},\"fieldIds\":{\"title\":0,\"keywords\":1},\"fieldLength\":{},\"averageFieldLength\":[],\"storedFields\":{\"0\":{\"title\":\"units\",\"url\":\"/references/core/support/units/\",\"breadcrumb\":\"@example/widgets-core/support/units\",\"boost\":0.45,\"pageType\":\"module\"},\"1\":{\"title\":\"toPixels()\",\"url\":\"/references/core/support/units/#toPixels\",\"breadcrumb\":\"@example/widgets-core/support/units\",\"boost\":0.2,\"pageType\":\"function\"},\"2\":{\"title\":\"UnitKinds\",\"url\":\"/references/core/support/units/#UnitKinds\",\"breadcrumb\":\"@example/widgets-core/support/units\",\"boost\":0.3,\"pageType\":\"type\"},\"3\":{\"title\":\"UnitKinds\",\"url\":\"/references/core/support/units/#UnitKinds\",\"breadcrumb\":\"@example/widgets-core/support/units\",\"boost\":0.1,\"pageType\":\"var\"},\"4\":{\"title\":\"Canvas\",\"url\":\"/references/core/drawing/Canvas/#Canvas\",\"breadcrumb\":\"@example/widgets-core\",\"boost\":0.5,\"pageType\":\"class\"},\"5\":{\"title\":\"CanvasEvents\",\"url\":\"/references/core/drawing/Canvas/#CanvasEvents\",\"breadcrumb\":\"@example/widgets-core/drawing/Canvas\",\"boost\":0.3,\"pageType\":\"type\"},\"6\":{\"title\":\"redraw\",\"url\":\"/references/core/drawing/Canvas/#CanvasEvents-redraw\",\"breadcrumb\":\"@example/widgets-core/drawing/Canvas/CanvasEvents\",\"boost\":0.05,\"pageType\":\"property\"},\"7\":{\"title\":\"size\",\"url\":\"/references/core/drawing/Canvas/#size\",\"breadcrumb\":\"@example/widgets-core/Canvas\",\"boost\":0.05,\"pageType\":\"property\"},\"8\":{\"title\":\"draw()\",\"url\":\"/references/core/drawing/Canvas/#draw\",\"breadcrumb\":\"@example/widgets-core/Canvas\",\"boost\":0.08,\"pageType\":\"method\"},\"9\":{\"title\":\"[Symbol.iterator]()\",\"url\":\"/references/core/drawing/Canvas/#%5BSymbol.iterator%5D\",\"breadcrumb\":\"@example/widgets-core/Canvas\",\"boost\":0.08,\"pageType\":\"method\"},\"10\":{\"title\":\"redraw\",\"url\":\"/references/core/drawing/Canvas/#event-redraw\",\"breadcrumb\":\"@example/widgets-core/Canvas\",\"boost\":0.08,\"pageType\":\"event\"},\"11\":{\"title\":\"widget-map\",\"url\":\"/references/components/widget-map/\",\"breadcrumb\":\"@example/widgets-components\",\"boost\":1,\"pageType\":\"component\"},\"12\":{\"title\":\"Renderer\",\"url\":\"/references/core/cpp/renderer.html\",\"boost\":1.25,\"pageType\":\"Class\"},\"13\":{\"title\":\"Renderer\",\"url\":\"/references/core/cpp/renderer.html#Renderer\",\"breadcrumb\":\"Renderer\",\"pageType\":\"Function\"},\"14\":{\"title\":\"paint\",\"url\":\"/references/core/cpp/renderer.html#paint\",\"breadcrumb\":\"Renderer\",\"pageType\":\"Function\"},\"15\":{\"title\":\"BlendMode\",\"url\":\"/references/core/cpp/rendertypes-h.html#BlendMode-enum\",\"boost\":1.25,\"pageType\":\"Enumeration\"},\"16\":{\"title\":\"<RenderTypes.h> - Render Enums\",\"url\":\"/references/core/cpp/rendertypes-h.html\",\"pageType\":\"Enums\"},\"17\":{\"title\":\"All classes\",\"url\":\"/references/core/cpp/class-list.html\",\"pageType\":\"\"}},\"dirtCount\":0,\"index\":[],\"serializationVersion\":2}"
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/references/core/drawing/Canvas/",
+      "response": {
+        "bodyFile": "page.html"
+      }
+    }
+  ]
+}

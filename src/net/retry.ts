@@ -25,7 +25,8 @@ export function parseRetryAfter(value: string | null, now: number): number | und
   if (value === null) return undefined;
   const text = value.trim();
   if (/^\d+$/.test(text)) return Number(text) * 1000;
-  const at = Date.parse(text);
+  // `Date.parse` accepts a great deal; an HTTP date at least names a four-digit year.
+  const at = /\b\d{4}\b/.test(text) ? Date.parse(text) : Number.NaN;
   return Number.isNaN(at) ? undefined : Math.max(0, at - now);
 }
 

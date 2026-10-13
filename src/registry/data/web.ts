@@ -12,7 +12,6 @@ import type {
   VersionLine,
   WorkspaceSignal,
 } from '../../core/types.js';
-import { VERSION_BANNER_PATTERN } from '../schema.js';
 
 const VERIFIED_ON = '2026-10-13';
 
@@ -104,7 +103,7 @@ const npmDistTags = (pkg: string, tags?: string): Product['oracles'][number] => 
 
 const banner = (path: string): Product['oracles'][number] => ({
   type: 'page-regex',
-  options: { url: `${D}${path}`, pattern: VERSION_BANNER_PATTERN, dateGroup: '2' },
+  options: { url: `${D}${path}` },
   provides: ['documented', 'released'],
 });
 
@@ -372,7 +371,7 @@ const calcite: Product = {
   oracles: [npmDistTags('@esri/calcite-components'), banner('/calcite-design-system/')],
   releaseNotes: {
     current: `${D}/calcite-design-system/whats-new/`,
-    pattern: '/calcite-design-system/releases/changelogs/([\\d.]+)/$',
+    pattern: `${D}/calcite-design-system/releases/changelogs/{version}/`,
     sitemapFilter: '/releases/|/whats-new/',
   },
   startHere: [
@@ -475,7 +474,11 @@ const arcade: Product = {
     },
   ],
   compatibility: [{ name: 'Version matrix', url: `${D}/arcade/guide/version-matrix/` }],
-  releaseNotes: { current: `${D}/arcade/guide/release-notes/` },
+  releaseNotes: {
+    current: `${D}/arcade/guide/release-notes/`,
+    // One page for every version, with a heading id such as `version-138` for 1.38.
+    pattern: `${D}/arcade/guide/release-notes/#version-{major}{minor}`,
+  },
   startHere: [
     { title: 'Arcade', ref: `${D}/arcade/` },
     { title: 'Function reference', ref: `${D}/arcade/function-reference/` },
@@ -643,7 +646,7 @@ const experienceBuilder: Product = {
   ],
   releaseNotes: {
     current: `${D}/experience-builder/guide/whats-new/`,
-    pattern: '/experience-builder/guide/(\\d+\\.\\d+)/whats-new/$',
+    pattern: `${D}/experience-builder/guide/{major}.{minor}/whats-new/`,
   },
   startHere: [
     { title: 'Experience Builder developer edition', ref: `${D}/experience-builder/` },

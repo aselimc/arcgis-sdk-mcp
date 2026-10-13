@@ -1,0 +1,216 @@
+{
+  "name": "gatsby specification site: body, page list and store embedded in page-data",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/thing-specification/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://developers.arcgis.com/thing-specification/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/thing-specification/objects/thing/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/thing-specification/objects/thingLayer/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/thing-specification/objects/thingStyle/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n</urlset>\n"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/thing-specification/page-data/index/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "thing",
+                "slug": "thing",
+                "url": "objects/thing/",
+                "childMarkdownRemark": {
+                  "html": "<p>The thing object describes one part of a thing document.</p><h3>Properties</h3><table><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td>id</td><td>A unique string.</td></tr></tbody></table>"
+                }
+              },
+              "navigationYaml": {
+                "nav": {
+                  "title": "Specification",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "Overview",
+                      "url": "/",
+                      "type": "page",
+                      "id": "NavigationYaml-Overview"
+                    },
+                    {
+                      "title": "Objects",
+                      "children": [
+                        {
+                          "title": "thing",
+                          "url": "/objects/thing/",
+                          "type": "page",
+                          "id": "NavigationYaml-thing"
+                        },
+                        {
+                          "title": "thingLayer",
+                          "url": "/objects/thingLayer/",
+                          "type": "page",
+                          "id": "NavigationYaml-thingLayer"
+                        },
+                        {
+                          "title": "thingStyle",
+                          "url": "/objects/thingStyle/",
+                          "type": "page",
+                          "id": "NavigationYaml-thingStyle"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Objects"
+                    }
+                  ]
+                }
+              },
+              "allMdxPage": {
+                "edges": [
+                  {
+                    "node": {
+                      "id": "thing",
+                      "title": "thing",
+                      "url": "objects/thing/"
+                    }
+                  },
+                  {
+                    "node": {
+                      "id": "thingLayer",
+                      "title": "thingLayer",
+                      "url": "objects/thingLayer/"
+                    }
+                  },
+                  {
+                    "node": {
+                      "id": "thingStyle",
+                      "title": "thingStyle",
+                      "url": "objects/thingStyle/"
+                    }
+                  }
+                ]
+              },
+              "search": {
+                "index": "{\"keys\":[],\"records\":[]}",
+                "store": "[{\"title\":\"thing\",\"url\":\"objects/thing/\",\"pageType\":\"Object\",\"image\":null},{\"title\":\"thingLayer\",\"url\":\"objects/thingLayer/\",\"pageType\":\"Object\",\"image\":null},{\"title\":\"thingStyle\",\"url\":\"objects/thingStyle/\",\"pageType\":\"Object\",\"image\":null}]"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/thing-specification/page-data/objects/thingLayer/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/objects/thingLayer/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "thingLayer",
+                "slug": "thinglayer",
+                "url": "objects/thingLayer/",
+                "childMarkdownRemark": {
+                  "html": "<p>The thingLayer object describes one part of a thing document.</p><h3>Properties</h3><table><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td>id</td><td>A unique string.</td></tr></tbody></table>"
+                }
+              },
+              "navigationYaml": {
+                "nav": {
+                  "title": "Specification",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "Overview",
+                      "url": "/",
+                      "type": "page",
+                      "id": "NavigationYaml-Overview"
+                    },
+                    {
+                      "title": "Objects",
+                      "children": [
+                        {
+                          "title": "thing",
+                          "url": "/objects/thing/",
+                          "type": "page",
+                          "id": "NavigationYaml-thing"
+                        },
+                        {
+                          "title": "thingLayer",
+                          "url": "/objects/thingLayer/",
+                          "type": "page",
+                          "id": "NavigationYaml-thingLayer"
+                        },
+                        {
+                          "title": "thingStyle",
+                          "url": "/objects/thingStyle/",
+                          "type": "page",
+                          "id": "NavigationYaml-thingStyle"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Objects"
+                    }
+                  ]
+                }
+              },
+              "allMdxPage": {
+                "edges": [
+                  {
+                    "node": {
+                      "id": "thing",
+                      "title": "thing",
+                      "url": "objects/thing/"
+                    }
+                  },
+                  {
+                    "node": {
+                      "id": "thingLayer",
+                      "title": "thingLayer",
+                      "url": "objects/thingLayer/"
+                    }
+                  },
+                  {
+                    "node": {
+                      "id": "thingStyle",
+                      "title": "thingStyle",
+                      "url": "objects/thingStyle/"
+                    }
+                  }
+                ]
+              },
+              "search": {
+                "index": "{\"keys\":[],\"records\":[]}",
+                "store": "[{\"title\":\"thing\",\"url\":\"objects/thing/\",\"pageType\":\"Object\",\"image\":null},{\"title\":\"thingLayer\",\"url\":\"objects/thingLayer/\",\"pageType\":\"Object\",\"image\":null},{\"title\":\"thingStyle\",\"url\":\"objects/thingStyle/\",\"pageType\":\"Object\",\"image\":null}]"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/thing-specification/objects/thingLayer/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>thingLayer</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">thingLayer</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>The thingLayer object.</p></div></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/thing-specification/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Thing specification</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Thing specification</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>The format of a thing document.</p></div></main></body></html>"
+      }
+    }
+  ]
+}

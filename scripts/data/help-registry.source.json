@@ -1,0 +1,6660 @@
+{
+ "generated": "2026-10-13",
+ "note": "All values from live checks on 2026-10-13 unless marked UNVERIFIED.",
+ "entries": [
+  {
+   "id": "esri-accessibility",
+   "name": "Esri digital accessibility",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/accessibility/latest/",
+   "url_slug": "accessibility",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "esri-a11y"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "esri-a11y": 24
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get started"
+    },
+    {
+     "path": "accessible-navigation",
+     "title": "Accessible navigation"
+    },
+    {
+     "path": "content",
+     "title": "Content"
+    },
+    {
+     "path": "data-visualization",
+     "title": "Data visualization"
+    },
+    {
+     "path": "theme",
+     "title": "Theme"
+    }
+   ],
+   "pages_en": 24,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/accessibility/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/accessibility/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/accessibility/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/accessibility/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-allsource",
+   "name": "ArcGIS AllSource",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-allsource/latest/",
+   "url_slug": "arcgis-allsource",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "allsource"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "allsource": 221
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "1.6",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "projects",
+     "title": "Projects"
+    },
+    {
+     "path": "visualization",
+     "title": "Visualization"
+    },
+    {
+     "path": "data",
+     "title": "Data"
+    },
+    {
+     "path": "analysis",
+     "title": "Analysis"
+    },
+    {
+     "path": "production",
+     "title": "Production"
+    },
+    {
+     "path": "customization",
+     "title": "Customization"
+    },
+    {
+     "path": "reference",
+     "title": "Reference"
+    }
+   ],
+   "pages_en": 221,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-allsource/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-allsource/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-allsource/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-allsource/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-autodesk-forma",
+   "name": "ArcGIS for Autodesk Forma",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-autodesk-forma/latest/",
+   "url_slug": "arcgis-autodesk-forma",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-for-autodesk-forma"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-for-autodesk-forma": 9
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "workflows",
+     "title": "Workflows"
+    }
+   ],
+   "pages_en": 9,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-autodesk-forma/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-autodesk-forma/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-autodesk-forma/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-autodesk-forma/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-data-interoperability",
+   "name": "ArcGIS Data Interoperability",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-data-interoperability/latest/",
+   "url_slug": "arcgis-data-interoperability",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "data-interop"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "data-interop": 21
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "install",
+     "title": "Install"
+    },
+    {
+     "path": "help",
+     "title": "Help"
+    }
+   ],
+   "pages_en": 21,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-data-interoperability/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-data-interoperability/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-data-interoperability/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-data-interoperability/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-data-pipelines",
+   "name": "ArcGIS Data Pipelines",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-data-pipelines/latest/",
+   "url_slug": "arcgis-data-pipelines",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "data-pipelines"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "data-pipelines": 168
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [
+    "12.0"
+   ],
+   "books": [
+    {
+     "path": "install-and-administer",
+     "title": "Install and administer"
+    },
+    {
+     "path": "get-started",
+     "title": "Get started"
+    },
+    {
+     "path": "connect",
+     "title": "Connect"
+    },
+    {
+     "path": "process",
+     "title": "Process and output"
+    }
+   ],
+   "pages_en": 75,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-data-pipelines/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-data-pipelines/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-data-pipelines/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-data-pipelines/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-data-reviewer",
+   "name": "ArcGIS Data Reviewer",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-data-reviewer/latest/",
+   "url_slug": "arcgis-data-reviewer",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "data-reviewer",
+     "ext-server-reviewer"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "data-reviewer": 11,
+     "ext-server-reviewer": 11
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get started"
+    },
+    {
+     "path": "validate-data",
+     "title": "Validate data"
+    }
+   ],
+   "pages_en": 11,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-data-reviewer/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-data-reviewer/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-data-reviewer/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-data-reviewer/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 4
+  },
+  {
+   "id": "esri-arcgis-doc-center",
+   "name": "ArcGIS Documentation Center (offline help app)",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-doc-center/latest/",
+   "url_slug": "arcgis-doc-center",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-doc-center"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-doc-center": 35
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get started"
+    },
+    {
+     "path": "use-the-app",
+     "title": "Use the app"
+    },
+    {
+     "path": "usage-scenarios",
+     "title": "Usage scenarios"
+    }
+   ],
+   "pages_en": 35,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-doc-center/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-doc-center/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-doc-center/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-doc-center/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-drone2map",
+   "name": "ArcGIS Drone2Map",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-drone2map/latest/",
+   "url_slug": "arcgis-drone2map",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "drone2map"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "drone2map": 148
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "help",
+     "title": "Help"
+    }
+   ],
+   "pages_en": 148,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-drone2map/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-drone2map/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-drone2map/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-drone2map/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-enterprise",
+   "name": "ArcGIS Enterprise (Windows and Linux)",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-enterprise/latest/",
+   "url_slug": "arcgis-enterprise",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-enterprise"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-enterprise": 1257
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "introduction",
+     "title": "Introduction"
+    },
+    {
+     "path": "plan",
+     "title": "Plan"
+    },
+    {
+     "path": "deploy",
+     "title": "Deploy"
+    },
+    {
+     "path": "administer",
+     "title": "Administer"
+    },
+    {
+     "path": "create",
+     "title": "Create"
+    },
+    {
+     "path": "analyze",
+     "title": "Analyze"
+    },
+    {
+     "path": "share",
+     "title": "Share"
+    },
+    {
+     "path": "apps",
+     "title": "Apps"
+    }
+   ],
+   "pages_en": 1230,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-enterprise/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-enterprise/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-enterprise/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-enterprise/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-enterprise-cloud-tools",
+   "name": "ArcGIS Enterprise cloud tools (AWS, Azure)",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-enterprise-cloud-tools/latest/",
+   "url_slug": "arcgis-enterprise-cloud-tools",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-enterprise-cloud"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-enterprise-cloud": 133
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "amazon",
+     "title": "AWS"
+    },
+    {
+     "path": "azure",
+     "title": "Azure"
+    }
+   ],
+   "pages_en": 132,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-enterprise-cloud-tools/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-enterprise-cloud-tools/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-enterprise-cloud-tools/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-enterprise-cloud-tools/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-enterprise-k8s",
+   "name": "ArcGIS Enterprise on Kubernetes",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-enterprise-k8s/latest/",
+   "url_slug": "arcgis-enterprise-k8s",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-enterprise-k8s"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-enterprise-k8s": 836
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "introduction",
+     "title": "Introduction"
+    },
+    {
+     "path": "deploy",
+     "title": "Deploy"
+    },
+    {
+     "path": "administer",
+     "title": "Administer"
+    },
+    {
+     "path": "create",
+     "title": "Create"
+    },
+    {
+     "path": "analyze",
+     "title": "Analyze"
+    },
+    {
+     "path": "share",
+     "title": "Share"
+    },
+    {
+     "path": "apps",
+     "title": "Apps"
+    }
+   ],
+   "pages_en": 836,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-enterprise-k8s/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-enterprise-k8s/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-enterprise-k8s/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-enterprise-k8s/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-excalibur",
+   "name": "ArcGIS Excalibur",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-excalibur/latest/",
+   "url_slug": "arcgis-excalibur",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "excalibur"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "excalibur": 64
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026.2",
+   "other_versions_on_host": [
+    "12.1"
+   ],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "reference",
+     "title": "Reference"
+    }
+   ],
+   "pages_en": 32,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-excalibur/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-excalibur/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-excalibur/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-excalibur/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-flight",
+   "name": "ArcGIS Flight",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-flight/latest/",
+   "url_slug": "arcgis-flight",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-flight"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-flight": 12
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026.2",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get started"
+    },
+    {
+     "path": "plan-and-prepare",
+     "title": "Plan and prepare"
+    }
+   ],
+   "pages_en": 12,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-flight/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-flight/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-flight/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-flight/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-hub",
+   "name": "ArcGIS Hub",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-hub/latest/",
+   "url_slug": "arcgis-hub",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-hub"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-hub": 63
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "build",
+     "title": "Build and Share"
+    },
+    {
+     "path": "collaborate",
+     "title": "Collaborate"
+    },
+    {
+     "path": "engage",
+     "title": "Engage"
+    },
+    {
+     "path": "administer",
+     "title": "Administer"
+    }
+   ],
+   "pages_en": 63,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-hub/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-hub/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-hub/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-hub/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-image-server",
+   "name": "ArcGIS Image Server",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-image-server/latest/",
+   "url_slug": "arcgis-image-server",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "image-server"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "image-server": 274
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Introduction"
+    },
+    {
+     "path": "image-hosting",
+     "title": "Image Hosting"
+    },
+    {
+     "path": "raster-analytics",
+     "title": "Raster Analytics"
+    }
+   ],
+   "pages_en": 274,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-image-server/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-image-server/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-image-server/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-image-server/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-indoors",
+   "name": "ArcGIS Indoors",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-indoors/latest/",
+   "url_slug": "arcgis-indoors",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-indoors"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-indoors": 85
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "viewer",
+     "title": "Viewer"
+    },
+    {
+     "path": "mobile",
+     "title": "Mobile"
+    },
+    {
+     "path": "space-planner",
+     "title": "Space Planner"
+    },
+    {
+     "path": "floor-plan-editor",
+     "title": "Floor Plan Editor"
+    }
+   ],
+   "pages_en": 85,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-indoors/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-indoors/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-indoors/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-indoors/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-knowledge",
+   "name": "ArcGIS Knowledge",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-knowledge/latest/",
+   "url_slug": "arcgis-knowledge",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-knowledge"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-knowledge": 43
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "deploy",
+     "title": "Install and administer"
+    },
+    {
+     "path": "introduction",
+     "title": "Get started"
+    },
+    {
+     "path": "knowledge-studio",
+     "title": "Studio"
+    }
+   ],
+   "pages_en": 43,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-knowledge/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-knowledge/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-knowledge/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-knowledge/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-maps-microsoft-fabric",
+   "name": "ArcGIS Maps for Microsoft Fabric",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-maps-microsoft-fabric/latest/",
+   "url_slug": "arcgis-maps-microsoft-fabric",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "maps-for-fabric"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "maps-for-fabric": 57
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "1.0",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "view",
+     "title": "View"
+    },
+    {
+     "path": "create",
+     "title": "Create"
+    },
+    {
+     "path": "configure",
+     "title": "Configure"
+    }
+   ],
+   "pages_en": 57,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-maps-microsoft-fabric/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-maps-microsoft-fabric/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-maps-microsoft-fabric/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-maps-microsoft-fabric/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-maritime",
+   "name": "ArcGIS Maritime",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-maritime/latest/",
+   "url_slug": "arcgis-maritime",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-maritime"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-maritime": 35
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "install",
+     "title": "Install"
+    },
+    {
+     "path": "intro",
+     "title": "Introduction"
+    },
+    {
+     "path": "chart-service",
+     "title": "Maritime Chart Service"
+    },
+    {
+     "path": "chart-builder",
+     "title": "Custom Chart Builder"
+    }
+   ],
+   "pages_en": 35,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-maritime/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-maritime/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-maritime/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-maritime/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-mission",
+   "name": "ArcGIS Mission",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-mission/latest/",
+   "url_slug": "arcgis-mission",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-mission"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-mission": 82
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "essentials",
+     "title": "Essentials"
+    },
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "manager",
+     "title": "Manager"
+    },
+    {
+     "path": "responder",
+     "title": "Responder"
+    },
+    {
+     "path": "server",
+     "title": "Server"
+    }
+   ],
+   "pages_en": 82,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-mission/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-mission/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-mission/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-mission/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-monitor",
+   "name": "ArcGIS Monitor",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-monitor/latest/",
+   "url_slug": "arcgis-monitor",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-monitor"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-monitor": 126
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026.0",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "install",
+     "title": "Install"
+    },
+    {
+     "path": "get-started",
+     "title": "Get started"
+    },
+    {
+     "path": "administration",
+     "title": "Administration"
+    }
+   ],
+   "pages_en": 126,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-monitor/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-monitor/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-monitor/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-monitor/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-notebooks",
+   "name": "ArcGIS Notebook Server / Notebooks",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-notebooks/latest/",
+   "url_slug": "arcgis-notebooks",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "notebook-server",
+     "arcgis-notebooks"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-notebooks": 70,
+     "notebook-server": 70
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "install",
+     "title": "Install"
+    },
+    {
+     "path": "use",
+     "title": "Use"
+    },
+    {
+     "path": "python",
+     "title": "Python"
+    },
+    {
+     "path": "administer",
+     "title": "Administer"
+    }
+   ],
+   "pages_en": 70,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-notebooks/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-notebooks/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-notebooks/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-notebooks/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-pipeline-referencing",
+   "name": "ArcGIS Pipeline Referencing",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-pipeline-referencing/latest/",
+   "url_slug": "arcgis-pipeline-referencing",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "ext-server-pipeline"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "ext-server-pipeline": 8
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "set-up",
+     "title": "Set up"
+    },
+    {
+     "path": "get-started",
+     "title": "Get started"
+    }
+   ],
+   "pages_en": 8,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-pipeline-referencing/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-pipeline-referencing/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-pipeline-referencing/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-pipeline-referencing/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-pro",
+   "name": "ArcGIS Pro (help, tool reference, ArcPy, Pro SDK)",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-pro/latest/",
+   "url_slug": "arcgis-pro",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-pro",
+     "arcgis-pro-net"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-pro": 16422
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "3.7",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "help",
+     "title": "Help"
+    },
+    {
+     "path": "tool-reference",
+     "title": "Tool Reference"
+    },
+    {
+     "path": "arcpy",
+     "title": "Python"
+    },
+    {
+     "path": "sdk",
+     "title": "SDK"
+    },
+    {
+     "path": "sdk/api-reference",
+     "title": "Pro SDK API reference (Document! X, topicN.html; selector div#i-body-content)"
+    }
+   ],
+   "pages_en": 16424,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-pro/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-pro/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-pro/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-pro/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    },
+    "sdk_sitemap": "https://doc.esri.com/en/arcgis-pro/latest/sdk/sitemap.xml"
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7,
+   "notes": "previous versions 2.6-3.6 remain on pro.arcgis.com (see legacy-pro-app)"
+  },
+  {
+   "id": "esri-arcgis-quickcapture",
+   "name": "ArcGIS QuickCapture",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-quickcapture/latest/",
+   "url_slug": "arcgis-quickcapture",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "quickcapture"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "quickcapture": 32
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "1.25",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get started"
+    },
+    {
+     "path": "create",
+     "title": "Create"
+    },
+    {
+     "path": "capture",
+     "title": "Capture"
+    }
+   ],
+   "pages_en": 32,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-quickcapture/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-quickcapture/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-quickcapture/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-quickcapture/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-reality-server",
+   "name": "ArcGIS Reality Server",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-reality-server/latest/",
+   "url_slug": "arcgis-reality-server",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "ArcGIS Reality Server"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "ArcGIS Reality Server": 18
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [
+    "12.0"
+   ],
+   "books": [
+    {
+     "path": "introduction",
+     "title": "Introduction"
+    },
+    {
+     "path": "explore",
+     "title": "Explore"
+    },
+    {
+     "path": "deploy",
+     "title": "Deploy"
+    }
+   ],
+   "pages_en": 8,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-reality-server/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-reality-server/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-reality-server/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-reality-server/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-reality-studio",
+   "name": "ArcGIS Reality Studio",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-reality-studio/latest/",
+   "url_slug": "arcgis-reality-studio",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgisrealitystudio"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgisrealitystudio": 8
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026.1",
+   "other_versions_on_host": [
+    "2025.1"
+   ],
+   "books": [
+    {
+     "path": "help",
+     "title": "Help"
+    }
+   ],
+   "pages_en": 70,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-reality-studio/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-reality-studio/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-reality-studio/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-reality-studio/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    },
+    "note": "product sitemap index has an extra level: /arcgis-reality-studio/{latest,previous}/sitemap.xml -> per-language sitemaps"
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-roads-and-highways",
+   "name": "ArcGIS Roads and Highways",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-roads-and-highways/latest/",
+   "url_slug": "arcgis-roads-and-highways",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "ext-server-roads"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "ext-server-roads": 8
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "set-up",
+     "title": "Set up"
+    },
+    {
+     "path": "get-started",
+     "title": "Get started"
+    }
+   ],
+   "pages_en": 8,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-roads-and-highways/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-roads-and-highways/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-roads-and-highways/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-roads-and-highways/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-server",
+   "name": "ArcGIS Server (stand-alone)",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-server/latest/",
+   "url_slug": "arcgis-server",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-server",
+     "arcgis-enterprise"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-server": 25,
+     "arcgis-enterprise": 1257
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "stand-alone-server",
+     "title": "Stand-alone server"
+    }
+   ],
+   "pages_en": 25,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-server/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-server/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-server/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-server/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-storymaps",
+   "name": "ArcGIS StoryMaps",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-storymaps/latest/",
+   "url_slug": "arcgis-storymaps",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-storymaps"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-storymaps": 95
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "author-and-share",
+     "title": "Create"
+    },
+    {
+     "path": "share-and-collaborate",
+     "title": "Share and Collaborate"
+    },
+    {
+     "path": "learn",
+     "title": "Learn"
+    },
+    {
+     "path": "reference",
+     "title": "Reference"
+    }
+   ],
+   "pages_en": 76,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-storymaps/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-storymaps/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-storymaps/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-storymaps/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-topographic-mapping",
+   "name": "ArcGIS Topographic Mapping",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-topographic-mapping/latest/",
+   "url_slug": "arcgis-topographic-mapping",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "ArcGIS Topographic Mapping"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "ArcGIS Topographic Mapping": 100
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [
+    "12.0"
+   ],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get started"
+    },
+    {
+     "path": "workflows",
+     "title": "Workflows"
+    },
+    {
+     "path": "map-production-system",
+     "title": "MPS app"
+    },
+    {
+     "path": "topographic-production-manager",
+     "title": "TPM app"
+    }
+   ],
+   "pages_en": 50,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-topographic-mapping/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-topographic-mapping/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-topographic-mapping/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-topographic-mapping/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-urban",
+   "name": "ArcGIS Urban",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-urban/latest/",
+   "url_slug": "arcgis-urban",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "urban"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "urban": 86
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "2026.2",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "data",
+     "title": "Prepare"
+    },
+    {
+     "path": "help",
+     "title": "Create"
+    }
+   ],
+   "pages_en": 86,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-urban/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-urban/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-urban/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-urban/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 1
+  },
+  {
+   "id": "esri-arcgis-velocity",
+   "name": "ArcGIS Velocity",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-velocity/latest/",
+   "url_slug": "arcgis-velocity",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-velocity"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-velocity": 167
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "ingest",
+     "title": "Ingest"
+    },
+    {
+     "path": "analyze",
+     "title": "Analyze"
+    },
+    {
+     "path": "disseminate-and-notify",
+     "title": "Disseminate and Notify"
+    },
+    {
+     "path": "reference",
+     "title": "Reference"
+    }
+   ],
+   "pages_en": 167,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-velocity/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-velocity/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-velocity/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-velocity/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-video-server",
+   "name": "ArcGIS Video Server",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-video-server/latest/",
+   "url_slug": "arcgis-video-server",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "arcgis-video-server"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "arcgis-video-server": 23
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "install",
+     "title": "Install and administer"
+    },
+    {
+     "path": "use",
+     "title": "Use"
+    }
+   ],
+   "pages_en": 23,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-video-server/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-video-server/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-video-server/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-video-server/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-arcgis-workflow-manager",
+   "name": "ArcGIS Workflow Manager",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/arcgis-workflow-manager/latest/",
+   "url_slug": "arcgis-workflow-manager",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "workflow-manager"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "workflow-manager": 112
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "deploy",
+     "title": "Deploy"
+    },
+    {
+     "path": "help",
+     "title": "Help"
+    },
+    {
+     "path": "administer",
+     "title": "Administer"
+    }
+   ],
+   "pages_en": 112,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/arcgis-workflow-manager/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/arcgis-workflow-manager/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/arcgis-workflow-manager/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/arcgis-workflow-manager/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "full",
+   "languages": 7
+  },
+  {
+   "id": "esri-deep-learning-studio",
+   "name": "Deep Learning Studio",
+   "host": "doc.esri.com",
+   "base_url": "https://doc.esri.com/en/deep-learning-studio/latest/",
+   "url_slug": "deep-learning-studio",
+   "search": {
+    "site": "esri_docs_main",
+    "product": [
+     "deep-learning-studio"
+    ],
+    "filter": "requiredfields (exact match); partialfields is a substring match",
+    "exact_hits": {
+     "deep-learning-studio": 15
+    }
+   },
+   "version_scheme": "latest alias + numbered; /<current>/ 301s to /latest/",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "title": "Get Started"
+    },
+    {
+     "path": "essentials",
+     "title": "Essentials"
+    }
+   ],
+   "pages_en": 15,
+   "enumeration": {
+    "sitemap": "https://doc.esri.com/en/deep-learning-studio/latest/sitemap.xml",
+    "toc": "https://doc.esri.com/en/deep-learning-studio/latest/toc.json (+ <book>/toc.json)",
+    "manifest": "https://doc.esri.com/en/deep-learning-studio/latest/manifest.json",
+    "xrefmap": "https://doc.esri.com/en/deep-learning-studio/latest/xrefmap.yml",
+    "verified": {
+     "toc.json": 200,
+     "manifest.json": 200,
+     "xrefmap.yml": 200,
+     "sitemap.xml": 200
+    }
+   },
+   "content_selector": "article#main",
+   "status": "active",
+   "scope": "search-and-link",
+   "languages": 7
+  },
+  {
+   "id": "arcgis-online",
+   "name": "ArcGIS Online",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/arcgis-online/",
+   "url_slug": "arcgis-online",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-online"
+    ],
+    "filter": "requiredfields",
+    "exact_hits": {
+     "arcgis-online": 1056
+    }
+   },
+   "version_scheme": "unversioned (always current)",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 51,
+     "sitemap_urls": 63,
+     "toc_script": "/en/arcgis-online/get-started/1893.js"
+    },
+    {
+     "path": "create-maps",
+     "pages": 126,
+     "sitemap_urls": 174,
+     "toc_script": "/en/arcgis-online/create-maps/1304.js"
+    },
+    {
+     "path": "manage-data",
+     "pages": 70,
+     "sitemap_urls": 77,
+     "toc_script": "/en/arcgis-online/manage-data/2241.js"
+    },
+    {
+     "path": "analyze",
+     "pages": 355,
+     "sitemap_urls": 425,
+     "toc_script": "/en/arcgis-online/analyze/1934.js"
+    },
+    {
+     "path": "share-maps",
+     "pages": 17,
+     "sitemap_urls": 46,
+     "toc_script": "/en/arcgis-online/share-maps/1303.js"
+    },
+    {
+     "path": "administer",
+     "pages": 44,
+     "sitemap_urls": 57,
+     "toc_script": null
+    },
+    {
+     "path": "reference",
+     "pages": 72,
+     "sitemap_urls": 147,
+     "toc_script": null
+    }
+   ],
+   "pages_en": 735,
+   "enumeration": {
+    "method": "flisting.htm per book (live TOC pages only); sitemap.xml per book also lists meta-refresh stubs; NNNN.js tree gives hierarchy",
+    "pattern": "https://doc.arcgis.com/en/arcgis-online/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-online/resources"
+  },
+  {
+   "id": "doc-3d",
+   "name": "3D workflows",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/3d/",
+   "url_slug": "3d",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "3d-workflows"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": "12",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "workflows/analysis",
+     "pages": 11,
+     "sitemap_urls": 12,
+     "toc_script": "/en/3d/workflows/analysis/3309.js"
+    },
+    {
+     "path": "workflows/content",
+     "pages": 18,
+     "sitemap_urls": 19,
+     "toc_script": "/en/3d/workflows/content/3308.js"
+    },
+    {
+     "path": "workflows/help",
+     "pages": 1,
+     "sitemap_urls": 2,
+     "toc_script": "/en/3d/workflows/help/3287.js"
+    },
+    {
+     "path": "workflows/immersive-experiences",
+     "pages": 5,
+     "sitemap_urls": 6,
+     "toc_script": "/en/3d/workflows/immersive-experiences/3307.js"
+    },
+    {
+     "path": "workflows/visualization",
+     "pages": 12,
+     "sitemap_urls": 13,
+     "toc_script": "/en/3d/workflows/visualization/3306.js"
+    }
+   ],
+   "pages_en": 47,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/3d/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/capabilities/3d-gis/overview",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-allsource",
+   "name": "ArcGIS AllSource",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/allsource/latest/",
+   "url_slug": "allsource",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "allsource"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [],
+   "pages_en": 0,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/allsource/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.esri.com/en/arcgis-allsource/latest/get-started/introduction-to-arcgis-allsource.html",
+   "root_final_status": 200,
+   "moved_to": "https://doc.esri.com/en/arcgis-allsource/latest/get-started/introduction-to-arcgis-allsource.html",
+   "notes": "-> esri-arcgis-allsource"
+  },
+  {
+   "id": "doc-appstudio",
+   "name": "ArcGIS AppStudio",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/appstudio/",
+   "url_slug": "appstudio",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "appstudio"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "configure-apps",
+     "pages": 21,
+     "sitemap_urls": 29,
+     "toc_script": "/en/appstudio/configure-apps/1655.js"
+    },
+    {
+     "path": "extend-apps",
+     "pages": 46,
+     "sitemap_urls": 47,
+     "toc_script": "/en/appstudio/extend-apps/1680.js"
+    }
+   ],
+   "pages_en": 67,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/appstudio/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "retired",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-appstudio/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "retirement status from Esri announcements, not re-verified here; developer docs on developers.arcgis.com/appstudio"
+  },
+  {
+   "id": "doc-arcgis-earth",
+   "name": "ArcGIS Earth",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/arcgis-earth/",
+   "url_slug": "arcgis-earth",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-earth"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": "10.9",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "administer",
+     "pages": 2,
+     "sitemap_urls": 3,
+     "toc_script": "/en/arcgis-earth/administer/1784.js"
+    },
+    {
+     "path": "automation-api",
+     "pages": 30,
+     "sitemap_urls": 31,
+     "toc_script": "/en/arcgis-earth/automation-api/2108.js"
+    },
+    {
+     "path": "faq",
+     "pages": 1,
+     "sitemap_urls": 2,
+     "toc_script": "/en/arcgis-earth/faq/980.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 10,
+     "sitemap_urls": 11,
+     "toc_script": "/en/arcgis-earth/get-started/1881.js"
+    },
+    {
+     "path": "mobile",
+     "pages": 14,
+     "sitemap_urls": 15,
+     "toc_script": "/en/arcgis-earth/mobile/2479.js"
+    },
+    {
+     "path": "use",
+     "pages": 31,
+     "sitemap_urls": 33,
+     "toc_script": "/en/arcgis-earth/use/1783.js"
+    }
+   ],
+   "pages_en": 88,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/arcgis-earth/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-earth/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "automation-api book = REST automation API"
+  },
+  {
+   "id": "doc-arcgis-solutions",
+   "name": "ArcGIS Solutions",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/arcgis-solutions/latest/",
+   "url_slug": "arcgis-solutions",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-solutions",
+     "arcgis-enterprise-solutions"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "12.1",
+   "other_versions_on_host": [
+    "11.0",
+    "11.1",
+    "11.3",
+    "11.5",
+    "12.0",
+    "12.1"
+   ],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 8
+    },
+    {
+     "path": "reference",
+     "pages": 492
+    },
+    {
+     "path": "app",
+     "pages": 7
+    },
+    {
+     "path": "tool-reference",
+     "pages": 4
+    },
+    {
+     "path": "tool-reference/utility-network-package",
+     "pages": 17
+    },
+    {
+     "path": "tool-reference/utility-solutions",
+     "pages": null
+    },
+    {
+     "path": "tool-reference/data-loading",
+     "pages": null
+    }
+   ],
+   "pages_en": 528,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/arcgis-solutions/12.1/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-solutions/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "latest = ArcGIS Online flavour; numbered = Enterprise"
+  },
+  {
+   "id": "doc-arcgis-for-autocad",
+   "name": "ArcGIS for AutoCAD",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/arcgis-for-autocad/latest/",
+   "url_slug": "arcgis-for-autocad",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-for-autocad"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "11.2/11.4",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "commands-api",
+     "pages": 219,
+     "sitemap_urls": 220,
+     "toc_script": "/en/arcgis-for-autocad/latest/commands-api/3085.js"
+    },
+    {
+     "path": "extensions",
+     "pages": 11,
+     "sitemap_urls": 12,
+     "toc_script": "/en/arcgis-for-autocad/latest/extensions/3316.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 7,
+     "sitemap_urls": 8,
+     "toc_script": "/en/arcgis-for-autocad/latest/get-started/3082.js"
+    },
+    {
+     "path": "gis-content",
+     "pages": 10,
+     "sitemap_urls": 11,
+     "toc_script": "/en/arcgis-for-autocad/latest/gis-content/3083.js"
+    },
+    {
+     "path": "manage",
+     "pages": 85,
+     "sitemap_urls": 73,
+     "toc_script": "/en/arcgis-for-autocad/latest/manage/3084.js"
+    }
+   ],
+   "pages_en": 332,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/arcgis-for-autocad/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://doc.arcgis.com/en/arcgis-for-autocad/latest/get-started/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "commands-api book = AutoLISP/.NET API"
+  },
+  {
+   "id": "doc-excel",
+   "name": "ArcGIS for Excel",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/excel/latest/",
+   "url_slug": "excel",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-for-excel"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "agol",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 13,
+     "sitemap_urls": 40,
+     "toc_script": "/en/excel/latest/get-started/3641.js"
+    },
+    {
+     "path": "workflows",
+     "pages": 32,
+     "sitemap_urls": 33,
+     "toc_script": "/en/excel/latest/workflows/3642.js"
+    }
+   ],
+   "pages_en": 45,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/excel/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/excel/latest/get-started/install-on-a-single-computer.htm",
+   "root_final_status": 404,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-power-automate",
+   "name": "ArcGIS for Power Automate",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/power-automate/latest/",
+   "url_slug": "power-automate",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-for-power-automate"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "agol",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "automate",
+     "pages": 23,
+     "sitemap_urls": 24,
+     "toc_script": "/en/power-automate/latest/automate/3637.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 9,
+     "sitemap_urls": 12,
+     "toc_script": "/en/power-automate/latest/get-started/3638.js"
+    }
+   ],
+   "pages_en": 32,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/power-automate/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/power-automate/",
+   "root_final_status": 403,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-power-bi",
+   "name": "ArcGIS for Power BI",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/power-bi/latest/",
+   "url_slug": "power-bi",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-for-power-bi"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "agol",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 18,
+     "sitemap_urls": 53,
+     "toc_script": "/en/power-bi/latest/get-started/3639.js"
+    },
+    {
+     "path": "workflows",
+     "pages": 36,
+     "sitemap_urls": 37,
+     "toc_script": "/en/power-bi/latest/workflows/3640.js"
+    }
+   ],
+   "pages_en": 54,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/power-bi/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-for-microsoft/get-started",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-sharepoint",
+   "name": "ArcGIS for SharePoint",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/sharepoint/latest/",
+   "url_slug": "sharepoint",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-for-sharepoint"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "agol",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 15,
+     "sitemap_urls": 49,
+     "toc_script": "/en/sharepoint/latest/get-started/3632.js"
+    },
+    {
+     "path": "workflows",
+     "pages": 37,
+     "sitemap_urls": 39,
+     "toc_script": "/en/sharepoint/latest/workflows/3633.js"
+    }
+   ],
+   "pages_en": 52,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/sharepoint/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/sharepoint/",
+   "root_final_status": 403,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-teams",
+   "name": "ArcGIS for Teams",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/teams/latest/",
+   "url_slug": "teams",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-for-teams"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "agol",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 14,
+     "sitemap_urls": 22,
+     "toc_script": "/en/teams/latest/get-started/3635.js"
+    },
+    {
+     "path": "workflows",
+     "pages": 19,
+     "sitemap_urls": 20,
+     "toc_script": "/en/teams/latest/workflows/3636.js"
+    }
+   ],
+   "pages_en": 33,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/teams/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/teams/",
+   "root_final_status": 403,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-geoplanner",
+   "name": "ArcGIS GeoPlanner",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/geoplanner/latest/",
+   "url_slug": "geoplanner",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-geoplanner"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "agol",
+   "other_versions_on_host": [
+    "10.7",
+    "10.8",
+    "10.9",
+    "10.9.1",
+    "11.0",
+    "11.1",
+    "11.2"
+   ],
+   "books": [
+    {
+     "path": "documentation",
+     "pages": 46,
+     "sitemap_urls": 48,
+     "toc_script": "/en/geoplanner/latest/documentation/1543.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 5,
+     "sitemap_urls": 6,
+     "toc_script": "/en/geoplanner/latest/get-started/1541.js"
+    }
+   ],
+   "pages_en": 51,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/geoplanner/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-geoplanner/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-hub",
+   "name": "ArcGIS Hub",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/hub/",
+   "url_slug": "hub",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-hub"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [],
+   "pages_en": 0,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/hub/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-hub/resources",
+   "root_final_status": 200,
+   "moved_to": "https://doc.esri.com/en/arcgis-hub/latest/administer/",
+   "notes": "-> esri-arcgis-hub"
+  },
+  {
+   "id": "doc-indoors",
+   "name": "ArcGIS Indoors (older versions; current on doc.esri.com)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/indoors/latest/",
+   "url_slug": "indoors",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-indoors",
+     "indoors-viewer",
+     "indoors-space-planner",
+     "indoors-fpe"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "11.5",
+   "other_versions_on_host": [
+    "10.9",
+    "10.9.1",
+    "11.0",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0"
+   ],
+   "books": [
+    {
+     "path": "floor-plan-editor",
+     "pages": 10,
+     "sitemap_urls": 11,
+     "toc_script": "/en/indoors/latest/floor-plan-editor/3456.js"
+    },
+    {
+     "path": "space-planner",
+     "pages": 18,
+     "sitemap_urls": 23,
+     "toc_script": "/en/indoors/latest/space-planner/2601.js"
+    },
+    {
+     "path": "viewer",
+     "pages": 30,
+     "sitemap_urls": 41,
+     "toc_script": "/en/indoors/latest/viewer/2572.js"
+    }
+   ],
+   "pages_en": 58,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/indoors/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-indoors/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "/en/indoors/12.1/ 301s to doc.esri.com"
+  },
+  {
+   "id": "doc-ips",
+   "name": "ArcGIS IPS",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/ips/latest/",
+   "url_slug": "ips",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-ips",
+     "arcgis-ips-android",
+     "arcgis-ips-ios"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "android/mobile",
+     "pages": 14,
+     "sitemap_urls": 15,
+     "toc_script": "/en/ips/latest/android/mobile/2905.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 10,
+     "sitemap_urls": 18,
+     "toc_script": "/en/ips/latest/get-started/2915.js"
+    },
+    {
+     "path": "ios/mobile",
+     "pages": 14,
+     "sitemap_urls": 15,
+     "toc_script": "/en/ips/latest/ios/mobile/2904.js"
+    }
+   ],
+   "pages_en": 38,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/ips/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-ips/overview#documentation",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-mission",
+   "name": "ArcGIS Mission (old versions)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/mission/latest/",
+   "url_slug": "mission",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-mission"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": null,
+   "other_versions_on_host": [
+    "10.8",
+    "10.9",
+    "10.9.1",
+    "11.0",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0"
+   ],
+   "books": [],
+   "pages_en": 0,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/mission/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.esri.com/en/arcgis-mission/latest/",
+   "root_final_status": 200,
+   "moved_to": "https://doc.esri.com/en/arcgis-mission/latest/",
+   "notes": "-> esri-arcgis-mission"
+  },
+  {
+   "id": "doc-monitor",
+   "name": "ArcGIS Monitor (2023.0-2025.1)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/monitor/latest/",
+   "url_slug": "monitor",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-monitor"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": null,
+   "other_versions_on_host": [
+    "2023.0",
+    "2023.1",
+    "2023.2",
+    "2023.3",
+    "2024.0",
+    "2024.1",
+    "2025.0",
+    "2025.1"
+   ],
+   "books": [],
+   "pages_en": 0,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/monitor/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-monitor/overview#resources",
+   "root_final_status": 200,
+   "moved_to": "https://doc.esri.com/en/arcgis-monitor/latest/administration/",
+   "notes": "-> esri-arcgis-monitor"
+  },
+  {
+   "id": "doc-velocity",
+   "name": "ArcGIS Velocity (ArcGIS Online SaaS)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/velocity/",
+   "url_slug": "velocity",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgis-velocity"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": "agol",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "analyze",
+     "pages": 51,
+     "sitemap_urls": 52,
+     "toc_script": null
+    },
+    {
+     "path": "disseminate-and-notify",
+     "pages": 21,
+     "sitemap_urls": 22,
+     "toc_script": null
+    },
+    {
+     "path": "get-started",
+     "pages": 6,
+     "sitemap_urls": 8,
+     "toc_script": null
+    },
+    {
+     "path": "ingest",
+     "pages": 65,
+     "sitemap_urls": 66,
+     "toc_script": null
+    },
+    {
+     "path": "manage-data",
+     "pages": 5,
+     "sitemap_urls": 6,
+     "toc_script": null
+    },
+    {
+     "path": "reference",
+     "pages": 12,
+     "sitemap_urls": 13,
+     "toc_script": null
+    },
+    {
+     "path": "visualize",
+     "pages": 3,
+     "sitemap_urls": 4,
+     "toc_script": null
+    }
+   ],
+   "pages_en": 163,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/velocity/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://doc.arcgis.com/en/velocity/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "Enterprise 12.1 flavour on doc.esri.com"
+  },
+  {
+   "id": "doc-reality-studio",
+   "name": "ArcGIS Reality Studio (old versions; current on doc.esri.com)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/reality-studio/2024.2/",
+   "url_slug": "reality-studio",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "arcgisrealitystudio"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "numbered only",
+   "current_version": "reality2024.2",
+   "other_versions_on_host": [
+    "2023.1",
+    "2024.1",
+    "2024.2"
+   ],
+   "books": [
+    {
+     "path": "help",
+     "pages": 52,
+     "sitemap_urls": 53,
+     "toc_script": "/en/reality-studio/2024.2/help/3258.js"
+    }
+   ],
+   "pages_en": 52,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/reality-studio/2024.2/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.esri.com/en/arcgis-reality-studio/latest/help/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-business-analyst",
+   "name": "ArcGIS Business Analyst (web, mobile, enterprise)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/business-analyst/",
+   "url_slug": "business-analyst",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "bus-analyst-online"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": "10.5/12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "desktop",
+     "pages": 15,
+     "sitemap_urls": 16,
+     "toc_script": "/en/business-analyst/desktop/1799.js"
+    },
+    {
+     "path": "enterprise/latest/linux",
+     "pages": 13,
+     "sitemap_urls": 17,
+     "toc_script": "/en/business-analyst/enterprise/12.1/linux/2800.js"
+    },
+    {
+     "path": "enterprise/latest/windows",
+     "pages": 13,
+     "sitemap_urls": 17,
+     "toc_script": "/en/business-analyst/enterprise/12.1/windows/259.js"
+    },
+    {
+     "path": "mobile",
+     "pages": 13,
+     "sitemap_urls": 15,
+     "toc_script": "/en/business-analyst/mobile/1660.js"
+    },
+    {
+     "path": "web",
+     "pages": 60,
+     "sitemap_urls": 95,
+     "toc_script": "/en/business-analyst/web/2034.js"
+    }
+   ],
+   "pages_en": 114,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/business-analyst/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-business-analyst/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "enterprise/<ver>/<os> books are versioned inside the path"
+  },
+  {
+   "id": "doc-cityengine",
+   "name": "ArcGIS CityEngine",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/cityengine/latest/",
+   "url_slug": "cityengine",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "city-engine"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "ce2026.0",
+   "other_versions_on_host": [
+    "2019.0",
+    "2019.1",
+    "2020.0",
+    "2020.1",
+    "2021.0",
+    "2021.1",
+    "2022.0",
+    "2022.1",
+    "2023.0",
+    "2023.1",
+    "2024.0",
+    "2024.1",
+    "2025.0",
+    "2025.1"
+   ],
+   "books": [
+    {
+     "path": "cga",
+     "pages": 224,
+     "sitemap_urls": 230,
+     "toc_script": "/en/cityengine/2026.0/cga/1787.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 13,
+     "sitemap_urls": 16,
+     "toc_script": "/en/cityengine/2026.0/get-started/1752.js"
+    },
+    {
+     "path": "help",
+     "pages": 236,
+     "sitemap_urls": 246,
+     "toc_script": "/en/cityengine/2026.0/help/2295.js"
+    },
+    {
+     "path": "install/linux",
+     "pages": 6,
+     "sitemap_urls": 11,
+     "toc_script": "/en/cityengine/2026.0/install/linux/1400.js"
+    },
+    {
+     "path": "install/windows",
+     "pages": 8,
+     "sitemap_urls": 12,
+     "toc_script": "/en/cityengine/2026.0/install/windows/1415.js"
+    },
+    {
+     "path": "python",
+     "pages": 77,
+     "sitemap_urls": 79,
+     "toc_script": "/en/cityengine/2026.0/python/2296.js"
+    },
+    {
+     "path": "tutorials",
+     "pages": 31,
+     "sitemap_urls": 33,
+     "toc_script": "/en/cityengine/2026.0/tutorials/1161.js"
+    },
+    {
+     "path": "whats-new",
+     "pages": 47,
+     "sitemap_urls": 48,
+     "toc_script": "/en/cityengine/2026.0/whats-new/2433.js"
+    }
+   ],
+   "pages_en": 642,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/cityengine/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-cityengine/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "CGA reference and Python API reference"
+  },
+  {
+   "id": "doc-collector-classic",
+   "name": "Collector for ArcGIS (classic)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/collector-classic/",
+   "url_slug": "collector-classic",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "collector-android",
+     "collector-ios",
+     "collector-windows"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "android/collect-data",
+     "pages": 11,
+     "sitemap_urls": 13,
+     "toc_script": null
+    },
+    {
+     "path": "android/create-maps",
+     "pages": 11,
+     "sitemap_urls": 14,
+     "toc_script": "/en/collector-classic/android/create-maps/1190.js"
+    },
+    {
+     "path": "ios/collect-data",
+     "pages": 11,
+     "sitemap_urls": 13,
+     "toc_script": null
+    },
+    {
+     "path": "ios/create-maps",
+     "pages": 11,
+     "sitemap_urls": 14,
+     "toc_script": "/en/collector-classic/ios/create-maps/1203.js"
+    },
+    {
+     "path": "overview",
+     "pages": 4,
+     "sitemap_urls": 7,
+     "toc_script": null
+    },
+    {
+     "path": "windows/collect-data",
+     "pages": 11,
+     "sitemap_urls": 13,
+     "toc_script": null
+    },
+    {
+     "path": "windows/create-maps",
+     "pages": 11,
+     "sitemap_urls": 14,
+     "toc_script": "/en/collector-classic/windows/create-maps/1756.js"
+    }
+   ],
+   "pages_en": 70,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/collector-classic/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "retired",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/collector-classic/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-data-appliance",
+   "name": "ArcGIS Data Appliance",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/data-appliance/latest/",
+   "url_slug": "data-appliance",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "data-appliance"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "2026",
+   "other_versions_on_host": [
+    "7.2",
+    "2022",
+    "2023",
+    "2024",
+    "2025"
+   ],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 4,
+     "sitemap_urls": 21,
+     "toc_script": "/en/data-appliance/2026/get-started/1593.js"
+    },
+    {
+     "path": "imagery-elevation",
+     "pages": 39,
+     "sitemap_urls": 40,
+     "toc_script": "/en/data-appliance/2026/imagery-elevation/3656.js"
+    },
+    {
+     "path": "open-vector-basemaps",
+     "pages": 13,
+     "sitemap_urls": 31,
+     "toc_script": "/en/data-appliance/2026/open-vector-basemaps/3657.js"
+    },
+    {
+     "path": "vector-basemaps",
+     "pages": 20,
+     "sitemap_urls": 24,
+     "toc_script": "/en/data-appliance/2026/vector-basemaps/2220.js"
+    },
+    {
+     "path": "world-gazetteer",
+     "pages": 9,
+     "sitemap_urls": 10,
+     "toc_script": "/en/data-appliance/2026/world-gazetteer/3366.js"
+    }
+   ],
+   "pages_en": 85,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/data-appliance/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-data-appliance/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-data-pipelines",
+   "name": "ArcGIS Data Pipelines (legacy-host copy)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/data-pipelines/latest/",
+   "url_slug": "data-pipelines",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "data-pipelines"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "connect",
+     "pages": 10,
+     "sitemap_urls": 12,
+     "toc_script": "/en/data-pipelines/latest/connect/3019.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 29,
+     "sitemap_urls": 31,
+     "toc_script": "/en/data-pipelines/latest/get-started/3020.js"
+    },
+    {
+     "path": "process",
+     "pages": 26,
+     "sitemap_urls": 27,
+     "toc_script": "/en/data-pipelines/latest/process/3021.js"
+    }
+   ],
+   "pages_en": 65,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/data-pipelines/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://doc.arcgis.com/en/data-pipelines/latest/get-started/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "also on doc.esri.com (12.1, 12.0)"
+  },
+  {
+   "id": "doc-deep-learning-studio",
+   "name": "Deep Learning Studio (old versions)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/deep-learning-studio/latest/",
+   "url_slug": "deep-learning-studio",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "deep-learning-studio"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.0",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0"
+   ],
+   "books": [],
+   "pages_en": 0,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/deep-learning-studio/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.esri.com/en/deep-learning-studio/latest/latest/",
+   "root_final_status": 404,
+   "moved_to": "https://doc.esri.com/en/deep-learning-studio/latest/latest/",
+   "notes": "root redirect lands on a 404 (/latest/latest/)"
+  },
+  {
+   "id": "doc-drone2map",
+   "name": "ArcGIS Drone2Map (old versions)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/drone2map/latest/",
+   "url_slug": "drone2map",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "drone2map"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": null,
+   "other_versions_on_host": [
+    "2023.1",
+    "2023.2",
+    "2024.1",
+    "2024.2",
+    "2025.1",
+    "2025.2"
+   ],
+   "books": [],
+   "pages_en": 0,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/drone2map/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-reality/resources/arcgis-drone2map",
+   "root_final_status": 200,
+   "moved_to": "https://doc.esri.com/en/arcgis-drone2map/latest/get-started/",
+   "notes": "-> esri-arcgis-drone2map"
+  },
+  {
+   "id": "doc-esri-demographics",
+   "name": "Esri Demographics / ArcGIS Places data reference",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/esri-demographics/latest/",
+   "url_slug": "esri-demographics",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "esri-demographics"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "arcgis-places",
+     "pages": 13,
+     "sitemap_urls": 14,
+     "toc_script": "/en/esri-demographics/latest/arcgis-places/3611.js"
+    },
+    {
+     "path": "esri-demographics",
+     "pages": 259,
+     "sitemap_urls": 269,
+     "toc_script": "/en/esri-demographics/latest/esri-demographics/3612.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 4,
+     "sitemap_urls": 32,
+     "toc_script": "/en/esri-demographics/latest/get-started/3035.js"
+    },
+    {
+     "path": "reference",
+     "pages": 9,
+     "sitemap_urls": 59,
+     "toc_script": "/en/esri-demographics/latest/reference/1528.js"
+    }
+   ],
+   "pages_en": 285,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/esri-demographics/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-data/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-redistricting",
+   "name": "Esri Redistricting",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/redistricting/",
+   "url_slug": "redistricting",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "esri-redistricting"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "administer",
+     "pages": 22,
+     "sitemap_urls": 26,
+     "toc_script": "/en/redistricting/administer/602.js"
+    },
+    {
+     "path": "analyze",
+     "pages": 35,
+     "sitemap_urls": 36,
+     "toc_script": "/en/redistricting/analyze/2657.js"
+    },
+    {
+     "path": "collaborate",
+     "pages": 15,
+     "sitemap_urls": 16,
+     "toc_script": "/en/redistricting/collaborate/2656.js"
+    },
+    {
+     "path": "create-edit",
+     "pages": 24,
+     "sitemap_urls": 25,
+     "toc_script": "/en/redistricting/create-edit/2655.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 16,
+     "sitemap_urls": 21,
+     "toc_script": "/en/redistricting/get-started/673.js"
+    },
+    {
+     "path": "review",
+     "pages": 25,
+     "sitemap_urls": 26,
+     "toc_script": "/en/redistricting/review/2658.js"
+    }
+   ],
+   "pages_en": 137,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/redistricting/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/esri-redistricting/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-excalibur",
+   "name": "ArcGIS Excalibur (legacy-host copy + old versions)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/excalibur/latest/",
+   "url_slug": "excalibur",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "excalibur"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "agol",
+   "other_versions_on_host": [
+    "10.7",
+    "10.8",
+    "10.9",
+    "10.9.1",
+    "11.0",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0"
+   ],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 31,
+     "sitemap_urls": 32,
+     "toc_script": "/en/excalibur/latest/get-started/3634.js"
+    },
+    {
+     "path": "reference",
+     "pages": 2,
+     "sitemap_urls": 3,
+     "toc_script": "/en/excalibur/latest/reference/3648.js"
+    }
+   ],
+   "pages_en": 33,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/excalibur/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/excalibur/latest/get-started/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "also on doc.esri.com"
+  },
+  {
+   "id": "doc-experience-builder",
+   "name": "ArcGIS Experience Builder (user help)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/experience-builder/latest/",
+   "url_slug": "experience-builder",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "experience-builder"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "agol",
+   "other_versions_on_host": [
+    "10.8",
+    "10.9",
+    "10.9.1",
+    "11.0",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0",
+    "12.1"
+   ],
+   "books": [
+    {
+     "path": "build-apps",
+     "pages": 14,
+     "sitemap_urls": 15,
+     "toc_script": "/en/experience-builder/latest/build-apps/2533.js"
+    },
+    {
+     "path": "configure-widgets",
+     "pages": 75,
+     "sitemap_urls": 81,
+     "toc_script": "/en/experience-builder/latest/configure-widgets/2546.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 7,
+     "sitemap_urls": 8,
+     "toc_script": "/en/experience-builder/latest/get-started/2543.js"
+    }
+   ],
+   "pages_en": 96,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/experience-builder/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-experience-builder/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "developer guide is on developers.arcgis.com"
+  },
+  {
+   "id": "doc-explorer",
+   "name": "ArcGIS Explorer",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/explorer/",
+   "url_slug": "explorer",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "explorer-android-phone",
+     "explorer-android-tablet",
+     "explorer-ipad",
+     "explorer-iphone",
+     "explorer-windows"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "android-phone/help",
+     "pages": 7,
+     "sitemap_urls": 8,
+     "toc_script": null
+    },
+    {
+     "path": "android-tablet/help",
+     "pages": 7,
+     "sitemap_urls": 8,
+     "toc_script": null
+    },
+    {
+     "path": "faqs",
+     "pages": 4,
+     "sitemap_urls": 6,
+     "toc_script": null
+    },
+    {
+     "path": "ipad/help",
+     "pages": 7,
+     "sitemap_urls": 12,
+     "toc_script": null
+    },
+    {
+     "path": "iphone/help",
+     "pages": 7,
+     "sitemap_urls": 12,
+     "toc_script": null
+    },
+    {
+     "path": "windows/help",
+     "pages": 7,
+     "sitemap_urls": 8,
+     "toc_script": null
+    }
+   ],
+   "pages_en": 39,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/explorer/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "retired",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/arcgis-blog/products/explorer/field-mobility/deprecation-notice-for-selected-field-apps/",
+   "root_final_status": 403,
+   "moved_to": null,
+   "notes": "root redirects to deprecation blog"
+  },
+  {
+   "id": "doc-field-maps",
+   "name": "ArcGIS Field Maps",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/field-maps/",
+   "url_slug": "field-maps",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "field-maps",
+     "field-maps-android",
+     "field-maps-ios"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "mixed: prepare-maps book is latest alias + numbered; get-started and <os>/use-maps are unversioned",
+   "current_version": "11.2",
+   "other_versions_on_host": [
+    "10.8.1",
+    "10.9",
+    "10.9.1",
+    "11.0",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0",
+    "12.1"
+   ],
+   "books": [
+    {
+     "path": "latest/prepare-maps",
+     "pages": 16,
+     "sitemap_urls": 17,
+     "toc_script": "/en/field-maps/latest/prepare-maps/3368.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 5
+    },
+    {
+     "path": "android/use-maps",
+     "pages": 10
+    },
+    {
+     "path": "ios/use-maps",
+     "pages": 10
+    }
+   ],
+   "pages_en": 41,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/field-maps/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-field-maps/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "prepare-maps is versioned (latest + numbered); mobile books are unversioned"
+  },
+  {
+   "id": "doc-geobim",
+   "name": "ArcGIS GeoBIM",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/geobim/latest/",
+   "url_slug": "geobim",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "geobim"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "agol",
+   "other_versions_on_host": [
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0",
+    "12.1"
+   ],
+   "books": [
+    {
+     "path": "create",
+     "pages": 11,
+     "sitemap_urls": 28,
+     "toc_script": "/en/geobim/latest/create/2873.js"
+    },
+    {
+     "path": "engage",
+     "pages": 30,
+     "sitemap_urls": 31,
+     "toc_script": "/en/geobim/latest/engage/3660.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 10,
+     "sitemap_urls": 12,
+     "toc_script": "/en/geobim/latest/get-started/2874.js"
+    },
+    {
+     "path": "manage",
+     "pages": 8,
+     "sitemap_urls": 9,
+     "toc_script": "/en/geobim/latest/manage/3661.js"
+    },
+    {
+     "path": "sync",
+     "pages": 7,
+     "sitemap_urls": 8,
+     "toc_script": "/en/geobim/latest/sync/3659.js"
+    }
+   ],
+   "pages_en": 66,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/geobim/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-geobim/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-imagery",
+   "name": "Imagery workflows",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/imagery/",
+   "url_slug": "imagery",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "imagery-workflows"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": "10.5/12.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "workflows/best-practices",
+     "pages": 31,
+     "sitemap_urls": 32,
+     "toc_script": "/en/imagery/workflows/best-practices/2399.js"
+    },
+    {
+     "path": "workflows/browse-imagery/workflow",
+     "pages": 5,
+     "sitemap_urls": 6,
+     "toc_script": "/en/imagery/workflows/browse-imagery/workflow/2023.js"
+    },
+    {
+     "path": "workflows/managing-elevation/try-it-out",
+     "pages": 5,
+     "sitemap_urls": 6,
+     "toc_script": "/en/imagery/workflows/managing-elevation/try-it-out/1972.js"
+    },
+    {
+     "path": "workflows/managing-elevation/workflow",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/imagery/workflows/managing-elevation/workflow/1971.js"
+    },
+    {
+     "path": "workflows/managing-high-resolution-satellite-data/overview",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/imagery/workflows/managing-high-resolution-satellite-data/overview/2126.js"
+    },
+    {
+     "path": "workflows/managing-high-resolution-satellite-data/try-it-out",
+     "pages": 5,
+     "sitemap_urls": 6,
+     "toc_script": "/en/imagery/workflows/managing-high-resolution-satellite-data/try-it-out/2127.js"
+    },
+    {
+     "path": "workflows/managing-high-resolution-satellite-data/workflow",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/imagery/workflows/managing-high-resolution-satellite-data/workflow/2128.js"
+    },
+    {
+     "path": "workflows/managing-preprocessed-orthophotos/try-it-out",
+     "pages": 5,
+     "sitemap_urls": 6,
+     "toc_script": "/en/imagery/workflows/managing-preprocessed-orthophotos/try-it-out/2016.js"
+    },
+    {
+     "path": "workflows/managing-scanned-maps/workflow",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/imagery/workflows/managing-scanned-maps/workflow/2026.js"
+    },
+    {
+     "path": "workflows/resources",
+     "pages": 40,
+     "sitemap_urls": 42,
+     "toc_script": "/en/imagery/workflows/resources/2371.js"
+    },
+    {
+     "path": "workflows/standard-workflow/overview",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/imagery/workflows/standard-workflow/overview/2049.js"
+    },
+    {
+     "path": "workflows/standard-workflow/publishing-and-maintenance",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/imagery/workflows/standard-workflow/publishing-and-maintenance/2047.js"
+    },
+    {
+     "path": "workflows/tutorials",
+     "pages": 13,
+     "sitemap_urls": 15,
+     "toc_script": "/en/imagery/workflows/tutorials/2393.js"
+    },
+    {
+     "path": "workflows/browse-imagery/overview",
+     "pages": 1,
+     "sitemap_urls": 2,
+     "toc_script": "/en/imagery/workflows/browse-imagery/overview/2021.js"
+    },
+    {
+     "path": "workflows/browse-imagery/try-it-out",
+     "pages": 3,
+     "sitemap_urls": 4,
+     "toc_script": "/en/imagery/workflows/browse-imagery/try-it-out/2022.js"
+    },
+    {
+     "path": "workflows/managing-elevation/overview",
+     "pages": 1,
+     "sitemap_urls": 2,
+     "toc_script": "/en/imagery/workflows/managing-elevation/overview/1970.js"
+    },
+    {
+     "path": "workflows/managing-preprocessed-orthophotos/overview",
+     "pages": 1,
+     "sitemap_urls": 2,
+     "toc_script": "/en/imagery/workflows/managing-preprocessed-orthophotos/overview/2015.js"
+    },
+    {
+     "path": "workflows/managing-preprocessed-orthophotos/workflow",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/imagery/workflows/managing-preprocessed-orthophotos/workflow/2017.js"
+    },
+    {
+     "path": "workflows/managing-scanned-maps/overview",
+     "pages": 1,
+     "sitemap_urls": 2,
+     "toc_script": "/en/imagery/workflows/managing-scanned-maps/overview/2024.js"
+    },
+    {
+     "path": "workflows/standard-workflow/creating-mosaic-datasets",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/imagery/workflows/standard-workflow/creating-mosaic-datasets/2046.js"
+    },
+    {
+     "path": "workflows/standard-workflow/preparing-your-data",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/imagery/workflows/standard-workflow/preparing-your-data/2048.js"
+    }
+   ],
+   "pages_en": 147,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/imagery/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/imagery/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-insights",
+   "name": "ArcGIS Insights",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/insights/latest/",
+   "url_slug": "insights",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "insights"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "insights2025.1",
+   "other_versions_on_host": [
+    "2022.1",
+    "2023.1",
+    "2023.2",
+    "2023.3",
+    "2024.1",
+    "2024.2"
+   ],
+   "books": [
+    {
+     "path": "administer",
+     "pages": 17,
+     "sitemap_urls": 39,
+     "toc_script": "/en/insights/2025.1/administer/2180.js"
+    },
+    {
+     "path": "analyze",
+     "pages": 37,
+     "sitemap_urls": 39,
+     "toc_script": "/en/insights/2025.1/analyze/2177.js"
+    },
+    {
+     "path": "create",
+     "pages": 49,
+     "sitemap_urls": 70,
+     "toc_script": "/en/insights/2025.1/create/2176.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 50,
+     "sitemap_urls": 55,
+     "toc_script": "/en/insights/2025.1/get-started/2161.js"
+    },
+    {
+     "path": "share",
+     "pages": 23,
+     "sitemap_urls": 24,
+     "toc_script": "/en/insights/2025.1/share/2178.js"
+    }
+   ],
+   "pages_en": 176,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/insights/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "retired",
+   "scope": "search-and-link",
+   "root_redirect": "https://support.esri.com/en-us/knowledge-base/deprecation-arcgis-insights-000034240",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "root redirects to deprecation KB 000034240"
+  },
+  {
+   "id": "doc-instant-apps",
+   "name": "ArcGIS Instant Apps",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/instant-apps/latest/",
+   "url_slug": "instant-apps",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "instant-apps"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "agol",
+   "other_versions_on_host": [
+    "10.9.1",
+    "11.0",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0",
+    "12.1"
+   ],
+   "books": [
+    {
+     "path": "create-apps",
+     "pages": 29,
+     "sitemap_urls": 31,
+     "toc_script": "/en/instant-apps/latest/create-apps/2834.js"
+    },
+    {
+     "path": "customize",
+     "pages": 11,
+     "sitemap_urls": 12,
+     "toc_script": "/en/instant-apps/latest/customize/2833.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 7,
+     "sitemap_urls": 10,
+     "toc_script": "/en/instant-apps/latest/get-started/2832.js"
+    }
+   ],
+   "pages_en": 47,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/instant-apps/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-instant-apps/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "URL parameters, custom templates"
+  },
+  {
+   "id": "doc-maps-for-adobecc",
+   "name": "ArcGIS Maps for Adobe Creative Cloud",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/maps-for-adobecc/latest/",
+   "url_slug": "maps-for-adobecc",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "maps-for-adobecc"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "adobecc-1.0",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "compile-maps",
+     "pages": 10,
+     "sitemap_urls": 11,
+     "toc_script": "/en/maps-for-adobecc/latest/compile-maps/1523.js"
+    },
+    {
+     "path": "install",
+     "pages": 19,
+     "sitemap_urls": 21,
+     "toc_script": "/en/maps-for-adobecc/latest/install/753.js"
+    },
+    {
+     "path": "mapboards",
+     "pages": 3,
+     "sitemap_urls": 5,
+     "toc_script": "/en/maps-for-adobecc/latest/mapboards/1938.js"
+    },
+    {
+     "path": "sync-content",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/maps-for-adobecc/latest/sync-content/1964.js"
+    }
+   ],
+   "pages_en": 36,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/maps-for-adobecc/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/maps-for-adobecc/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-microsoft-planetary-computer",
+   "name": "ArcGIS for Microsoft Planetary Computer",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/microsoft-planetary-computer/latest/",
+   "url_slug": "microsoft-planetary-computer",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "microsoft-planetary-computer"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "2023.1",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 2,
+     "sitemap_urls": 3,
+     "toc_script": "/en/microsoft-planetary-computer/2023.1/get-started/3415.js"
+    },
+    {
+     "path": "help",
+     "pages": 3,
+     "sitemap_urls": 4,
+     "toc_script": "/en/microsoft-planetary-computer/2023.1/help/3416.js"
+    }
+   ],
+   "pages_en": 5,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/microsoft-planetary-computer/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/microsoft-planetary-computer/latest/get-started/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-navigator",
+   "name": "ArcGIS Navigator",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/navigator/",
+   "url_slug": "navigator",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "navigator-android-phone",
+     "navigator-android-tablet",
+     "navigator-ipad",
+     "navigator-iphone"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "android-phone/help",
+     "pages": 11,
+     "sitemap_urls": 16,
+     "toc_script": null
+    },
+    {
+     "path": "android-tablet/help",
+     "pages": 11,
+     "sitemap_urls": 16,
+     "toc_script": null
+    },
+    {
+     "path": "faqs",
+     "pages": 4,
+     "sitemap_urls": 6,
+     "toc_script": null
+    },
+    {
+     "path": "ipad/help",
+     "pages": 11,
+     "sitemap_urls": 16,
+     "toc_script": null
+    },
+    {
+     "path": "iphone/help",
+     "pages": 11,
+     "sitemap_urls": 16,
+     "toc_script": null
+    }
+   ],
+   "pages_en": 48,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/navigator/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-navigator/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-dashboards",
+   "name": "ArcGIS Dashboards",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/dashboards/latest/",
+   "url_slug": "dashboards",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "ops-dashboard"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "agol",
+   "other_versions_on_host": [
+    "10.7",
+    "10.8",
+    "10.9",
+    "10.9.1",
+    "11.0",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0",
+    "12.1"
+   ],
+   "books": [
+    {
+     "path": "create-and-share",
+     "pages": 14,
+     "sitemap_urls": 16,
+     "toc_script": "/en/dashboards/latest/create-and-share/2539.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 38,
+     "sitemap_urls": 55,
+     "toc_script": "/en/dashboards/latest/get-started/2171.js"
+    },
+    {
+     "path": "reference",
+     "pages": 13,
+     "sitemap_urls": 14,
+     "toc_script": "/en/dashboards/latest/reference/2199.js"
+    }
+   ],
+   "pages_en": 65,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/dashboards/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-dashboards/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "URL parameters, Arcade data expressions"
+  },
+  {
+   "id": "doc-pretrained-models",
+   "name": "ArcGIS pretrained deep learning models",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/pretrained-models/latest/",
+   "url_slug": "pretrained-models",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "pretrained-models"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "10.9",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 4,
+     "sitemap_urls": 5,
+     "toc_script": "/en/pretrained-models/latest/get-started/1701.js"
+    },
+    {
+     "path": "imagery",
+     "pages": 226,
+     "sitemap_urls": 227,
+     "toc_script": "/en/pretrained-models/latest/imagery/2863.js"
+    },
+    {
+     "path": "point-cloud",
+     "pages": 9,
+     "sitemap_urls": 10,
+     "toc_script": "/en/pretrained-models/latest/point-cloud/2864.js"
+    },
+    {
+     "path": "text",
+     "pages": 19,
+     "sitemap_urls": 20,
+     "toc_script": "/en/pretrained-models/latest/text/3039.js"
+    },
+    {
+     "path": "timeseries",
+     "pages": 2,
+     "sitemap_urls": 3,
+     "toc_script": "/en/pretrained-models/latest/timeseries/3628.js"
+    },
+    {
+     "path": "vector",
+     "pages": 9,
+     "sitemap_urls": 10,
+     "toc_script": "/en/pretrained-models/latest/vector/3728.js"
+    }
+   ],
+   "pages_en": 269,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/pretrained-models/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/pretrained-models/latest/get-started/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-pro-intelligence",
+   "name": "ArcGIS Pro Intelligence",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/pro-intelligence/latest/",
+   "url_slug": "pro-intelligence",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "pro-intelligence"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "10.9",
+   "other_versions_on_host": [
+    "2.9"
+   ],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 10,
+     "sitemap_urls": 11,
+     "toc_script": "/en/pro-intelligence/3.0/get-started/2827.js"
+    },
+    {
+     "path": "help",
+     "pages": 24,
+     "sitemap_urls": 47,
+     "toc_script": "/en/pro-intelligence/3.0/help/2830.js"
+    }
+   ],
+   "pages_en": 34,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/pro-intelligence/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "retired",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/pro-intelligence/3.0/help/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "superseded by AllSource"
+  },
+  {
+   "id": "doc-streetmap-premium",
+   "name": "ArcGIS StreetMap Premium",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/streetmap-premium/latest/",
+   "url_slug": "streetmap-premium",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "streetmap-premium"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": "12",
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "coverage",
+     "pages": 3,
+     "sitemap_urls": 7,
+     "toc_script": "/en/streetmap-premium/latest/coverage/1703.js"
+    },
+    {
+     "path": "current-releases",
+     "pages": 1,
+     "sitemap_urls": 2,
+     "toc_script": "/en/streetmap-premium/latest/current-releases/2414.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 33,
+     "sitemap_urls": 37,
+     "toc_script": "/en/streetmap-premium/latest/get-started/1704.js"
+    }
+   ],
+   "pages_en": 37,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/streetmap-premium/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-streetmap-premium/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-survey123",
+   "name": "ArcGIS Survey123",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/survey123/",
+   "url_slug": "survey123",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "survey123"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "analyze",
+     "pages": 22,
+     "sitemap_urls": 25,
+     "toc_script": "/en/survey123/analyze/1883.js"
+    },
+    {
+     "path": "capture/field-app",
+     "pages": 13,
+     "sitemap_urls": 16,
+     "toc_script": "/en/survey123/capture/field-app/1886.js"
+    },
+    {
+     "path": "capture/main",
+     "pages": 4,
+     "sitemap_urls": 2,
+     "toc_script": "/en/survey123/capture/main/3719.js"
+    },
+    {
+     "path": "capture/mobile",
+     "pages": 7,
+     "sitemap_urls": 8,
+     "toc_script": "/en/survey123/capture/mobile/3714.js"
+    },
+    {
+     "path": "capture/web-app",
+     "pages": 5,
+     "sitemap_urls": 12,
+     "toc_script": "/en/survey123/capture/web-app/1885.js"
+    },
+    {
+     "path": "create/connect",
+     "pages": 18,
+     "sitemap_urls": 33,
+     "toc_script": "/en/survey123/create/connect/1884.js"
+    },
+    {
+     "path": "create/main",
+     "pages": 29,
+     "sitemap_urls": 27,
+     "toc_script": "/en/survey123/create/main/3720.js"
+    },
+    {
+     "path": "create/studio",
+     "pages": 11,
+     "sitemap_urls": 12,
+     "toc_script": "/en/survey123/create/studio/3715.js"
+    },
+    {
+     "path": "create/web-designer",
+     "pages": 15,
+     "sitemap_urls": 48,
+     "toc_script": "/en/survey123/create/web-designer/1882.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 23,
+     "sitemap_urls": 31,
+     "toc_script": "/en/survey123/get-started/3396.js"
+    }
+   ],
+   "pages_en": 147,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/survey123/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-survey123/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "XLSForm, webhooks, URL scheme, JS functions"
+  },
+  {
+   "id": "doc-tracker",
+   "name": "ArcGIS Tracker",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/tracker/",
+   "url_slug": "tracker",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "tracker"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "faq",
+     "pages": 4,
+     "sitemap_urls": 6,
+     "toc_script": null
+    },
+    {
+     "path": "help",
+     "pages": 8,
+     "sitemap_urls": 9,
+     "toc_script": null
+    }
+   ],
+   "pages_en": 12,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/tracker/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "retired",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/arcgis-blog/products/explorer/field-mobility/deprecation-notice-for-selected-field-apps/",
+   "root_final_status": 403,
+   "moved_to": null,
+   "notes": "root redirects to deprecation blog"
+  },
+  {
+   "id": "doc-urban",
+   "name": "ArcGIS Urban (old numbered versions; current on doc.esri.com)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/urban/12.1/",
+   "url_slug": "urban",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "urban"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "numbered only",
+   "current_version": "12.1",
+   "other_versions_on_host": [
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0",
+    "12.1"
+   ],
+   "books": [
+    {
+     "path": "data",
+     "pages": 10,
+     "sitemap_urls": 12,
+     "toc_script": "/en/urban/12.1/data/3483.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 11,
+     "sitemap_urls": 16,
+     "toc_script": "/en/urban/12.1/get-started/3472.js"
+    },
+    {
+     "path": "help",
+     "pages": 44,
+     "sitemap_urls": 46,
+     "toc_script": "/en/urban/12.1/help/3479.js"
+    }
+   ],
+   "pages_en": 65,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/urban/12.1/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-urban/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-web-appbuilder",
+   "name": "ArcGIS Web AppBuilder",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/web-appbuilder/latest/",
+   "url_slug": "web-appbuilder",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "web-appbuilder"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "agol",
+   "other_versions_on_host": [
+    "10.7",
+    "10.8",
+    "10.9",
+    "10.9.1",
+    "11.0",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5"
+   ],
+   "books": [
+    {
+     "path": "create-apps",
+     "pages": 99,
+     "sitemap_urls": 102,
+     "toc_script": "/en/web-appbuilder/latest/create-apps/1309.js"
+    },
+    {
+     "path": "manage-apps",
+     "pages": 5,
+     "sitemap_urls": 6,
+     "toc_script": "/en/web-appbuilder/latest/manage-apps/1532.js"
+    }
+   ],
+   "pages_en": 104,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/web-appbuilder/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "retired",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-web-appbuilder/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": "last numbered version 11.5; /12.0/ is 404"
+  },
+  {
+   "id": "doc-web-editor",
+   "name": "ArcGIS Web Editor",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/web-editor/latest/",
+   "url_slug": "web-editor",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "web-editor"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "agol",
+   "other_versions_on_host": [
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0",
+    "12.1"
+   ],
+   "books": [
+    {
+     "path": "create-and-edit",
+     "pages": 16,
+     "sitemap_urls": 17,
+     "toc_script": "/en/web-editor/latest/create-and-edit/3486.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 5,
+     "sitemap_urls": 6,
+     "toc_script": "/en/web-editor/latest/get-started/3487.js"
+    }
+   ],
+   "pages_en": 21,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/web-editor/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://doc.arcgis.com/en/web-editor/latest/get-started/",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-workforce",
+   "name": "ArcGIS Workforce",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/workforce/",
+   "url_slug": "workforce",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "workforce-android-phone",
+     "workforce-android-tablet",
+     "workforce-ipad",
+     "workforce-iphone"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "android-phone/help",
+     "pages": 13,
+     "sitemap_urls": 18,
+     "toc_script": "/en/workforce/android-phone/help/2133.js"
+    },
+    {
+     "path": "android-tablet/help",
+     "pages": 13,
+     "sitemap_urls": 18,
+     "toc_script": "/en/workforce/android-tablet/help/2134.js"
+    },
+    {
+     "path": "faqs",
+     "pages": 3,
+     "sitemap_urls": 8,
+     "toc_script": "/en/workforce/faqs/2170.js"
+    },
+    {
+     "path": "ipad/help",
+     "pages": 13,
+     "sitemap_urls": 18,
+     "toc_script": "/en/workforce/ipad/help/2135.js"
+    },
+    {
+     "path": "iphone/help",
+     "pages": 13,
+     "sitemap_urls": 18,
+     "toc_script": "/en/workforce/iphone/help/2136.js"
+    }
+   ],
+   "pages_en": 55,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/workforce/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-workforce/resources",
+   "root_final_status": 200,
+   "moved_to": null,
+   "notes": ""
+  },
+  {
+   "id": "doc-quickcapture",
+   "name": "ArcGIS QuickCapture",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/quickcapture/",
+   "url_slug": "quickcapture",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "quickcapture"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [],
+   "pages_en": 0,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/quickcapture/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-quickcapture/resources",
+   "root_final_status": 200,
+   "moved_to": "https://doc.esri.com/en/arcgis-quickcapture/latest/help/",
+   "notes": "-> esri-arcgis-quickcapture"
+  },
+  {
+   "id": "doc-workflow-manager",
+   "name": "ArcGIS Workflow Manager (ArcGIS Online flavour + old Enterprise versions)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/workflow-manager/latest/",
+   "url_slug": "workflow-manager",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "workflow-manager"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias + numbered",
+   "current_version": "agol",
+   "other_versions_on_host": [
+    "10.8",
+    "10.9",
+    "10.9.1",
+    "11.0",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "12.0"
+   ],
+   "books": [
+    {
+     "path": "administer",
+     "pages": 30,
+     "sitemap_urls": 31,
+     "toc_script": "/en/workflow-manager/latest/administer/3259.js"
+    },
+    {
+     "path": "help",
+     "pages": 59,
+     "sitemap_urls": 60,
+     "toc_script": "/en/workflow-manager/latest/help/3241.js"
+    }
+   ],
+   "pages_en": 89,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/workflow-manager/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "full",
+   "root_redirect": "https://doc.arcgis.com/en/workflow-manager/",
+   "root_final_status": 403,
+   "moved_to": null,
+   "notes": "12.1 Enterprise flavour is on doc.esri.com"
+  },
+  {
+   "id": "doc-microsoft-365",
+   "name": "ArcGIS for Microsoft 365 (alias)",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/microsoft-365/latest/",
+   "url_slug": "microsoft-365",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (no numbered versions seen)",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [],
+   "pages_en": 0,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/microsoft-365/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/microsoft-365/",
+   "root_final_status": 403,
+   "moved_to": "https://www.esri.com/en-us/arcgis/products/arcgis-for-microsoft/get-started",
+   "notes": "alias: /microsoft-365/latest/<app>/ redirects to /en/<app>/latest/"
+  },
+  {
+   "id": "doc-community-analyst",
+   "name": "ArcGIS Community Analyst",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/community-analyst/",
+   "url_slug": "community-analyst",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "unversioned",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [],
+   "pages_en": 0,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/community-analyst/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "retired",
+   "scope": "search-and-link",
+   "root_redirect": "https://www.esri.com/en-us/arcgis/products/arcgis-community-analyst/resources",
+   "root_final_status": 200,
+   "moved_to": "https://www.esri.com/en-us/arcgis/products/arcgis-community-analyst/overview?rsource=https%3A%2F%2Flinks.esri.com%2Fcommunity-analyst%2Fretired",
+   "notes": "redirects to marketing (retired)"
+  },
+  {
+   "id": "doc-site-scan",
+   "name": "Site Scan for ArcGIS",
+   "host": "doc.arcgis.com",
+   "base_url": "https://doc.arcgis.com/en/site-scan/latest/",
+   "url_slug": "site-scan",
+   "search": {
+    "site": "arcgis_doc_col",
+    "product": [
+     "site-scan"
+    ],
+    "filter": "requiredfields"
+   },
+   "version_scheme": "latest alias (only form observed)",
+   "current_version": null,
+   "other_versions_on_host": [],
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 16
+    },
+    {
+     "path": "process",
+     "pages": 9
+    },
+    {
+     "path": "share-and-export",
+     "pages": 7
+    }
+   ],
+   "pages_en": 32,
+   "enumeration": {
+    "method": "flisting.htm per book; sitemap.xml per book; NNNN.js treedata",
+    "pattern": "https://doc.arcgis.com/en/site-scan/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); title = header.trailer-1 h1",
+   "status": "active",
+   "scope": "search-and-link",
+   "root_redirect": "https://doc.arcgis.com/en/site-scan/",
+   "root_final_status": 403,
+   "moved_to": null,
+   "notes": "books from search + flisting check"
+  },
+  {
+   "id": "ent-geoevent",
+   "name": "ArcGIS GeoEvent Server",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/geoevent/latest/",
+   "url_slug": "geoevent",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q, then keep hits whose url starts with /en/geoevent/latest/ or /12.1/"
+   },
+   "version_scheme": "latest alias (= 12.1) + numbered",
+   "current_version": "12.1",
+   "other_versions_on_host": [
+    "12.1",
+    "12.0",
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5",
+    "10.4",
+    "10.3"
+   ],
+   "books": [
+    {
+     "path": "administer",
+     "pages": 27,
+     "toc_script": "/en/geoevent/12.1/administer/1334.js"
+    },
+    {
+     "path": "analyze",
+     "pages": 33,
+     "toc_script": "/en/geoevent/12.1/analyze/2577.js"
+    },
+    {
+     "path": "deploy",
+     "pages": 15,
+     "toc_script": "/en/geoevent/12.1/deploy/2585.js"
+    },
+    {
+     "path": "disseminate-and-notify",
+     "pages": 23,
+     "toc_script": "/en/geoevent/12.1/disseminate-and-notify/2578.js"
+    },
+    {
+     "path": "geoevent-services",
+     "pages": 9,
+     "toc_script": "/en/geoevent/12.1/geoevent-services/2579.js"
+    },
+    {
+     "path": "get-started",
+     "pages": 7,
+     "toc_script": "/en/geoevent/12.1/get-started/1255.js"
+    },
+    {
+     "path": "ingest",
+     "pages": 23,
+     "toc_script": "/en/geoevent/12.1/ingest/2576.js"
+    },
+    {
+     "path": "reference",
+     "pages": 10,
+     "toc_script": "/en/geoevent/12.1/reference/2580.js"
+    }
+   ],
+   "pages_en": 147,
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book",
+    "pattern": "https://enterprise.arcgis.com/en/geoevent/latest/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "active",
+   "scope": "full",
+   "notes": "only Enterprise component whose current docs are still on the legacy host"
+  },
+  {
+   "id": "ent-legacy-portal",
+   "name": "Portal for ArcGIS (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/portal/<version>/",
+   "url_slug": "portal",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "arcgis-portal-windows",
+     "arcgis-enterprise-windows"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "12.0",
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5",
+    "10.4",
+    "10.3"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "administer/windows",
+     "pages": 217
+    },
+    {
+     "path": "install/windows",
+     "pages": 21
+    },
+    {
+     "path": "use",
+     "pages": 705
+    },
+    {
+     "path": "administer/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    },
+    {
+     "path": "install/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/portal/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-enterprise"
+  },
+  {
+   "id": "ent-legacy-server",
+   "name": "ArcGIS Server (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/server/<version>/",
+   "url_slug": "server",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5",
+    "10.4",
+    "10.3"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "administer/windows",
+     "pages": 99
+    },
+    {
+     "path": "deploy/windows",
+     "pages": 37
+    },
+    {
+     "path": "develop/windows",
+     "pages": 23
+    },
+    {
+     "path": "get-started/windows",
+     "pages": 7
+    },
+    {
+     "path": "install/windows",
+     "pages": 38
+    },
+    {
+     "path": "manage-data/windows",
+     "pages": 28
+    },
+    {
+     "path": "publish-services/windows",
+     "pages": 128
+    },
+    {
+     "path": "administer/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    },
+    {
+     "path": "deploy/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    },
+    {
+     "path": "develop/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    },
+    {
+     "path": "get-started/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    },
+    {
+     "path": "install/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    },
+    {
+     "path": "manage-data/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    },
+    {
+     "path": "publish-services/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    },
+    {
+     "path": "cloud/amazon",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    },
+    {
+     "path": "cloud/azure",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/server/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-enterprise"
+  },
+  {
+   "id": "ent-legacy-data-store",
+   "name": "ArcGIS Data Store (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/data-store/<version>/",
+   "url_slug": "data-store",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "12.0",
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5",
+    "10.4",
+    "10.3"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "install/windows",
+     "pages": 21
+    },
+    {
+     "path": "install/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/data-store/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-enterprise"
+  },
+  {
+   "id": "ent-legacy-web-adaptor",
+   "name": "ArcGIS Web Adaptor (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/web-adaptor/<version>/",
+   "url_slug": "web-adaptor",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "12.0",
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5",
+    "10.4",
+    "10.3"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "install/iis",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    },
+    {
+     "path": "install/java-linux",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    },
+    {
+     "path": "install/java-windows",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/web-adaptor/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-enterprise"
+  },
+  {
+   "id": "ent-legacy-cloud",
+   "name": "ArcGIS Enterprise in the cloud (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/cloud/<version>/",
+   "url_slug": "cloud",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "12.0",
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "intro",
+     "pages": 4
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/cloud/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-enterprise"
+  },
+  {
+   "id": "ent-legacy-enterprise",
+   "name": "ArcGIS Enterprise (install/Builder) (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/enterprise/<version>/",
+   "url_slug": "enterprise",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "12.0",
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "install/windows",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    },
+    {
+     "path": "install/linux",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/enterprise/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-enterprise"
+  },
+  {
+   "id": "ent-legacy-get-started",
+   "name": "ArcGIS Enterprise get started (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/get-started/<version>/",
+   "url_slug": "get-started",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "12.0",
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "windows",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    },
+    {
+     "path": "linux",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/get-started/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-enterprise"
+  },
+  {
+   "id": "ent-legacy-system-requirements",
+   "name": "ArcGIS Enterprise system requirements (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/system-requirements/<version>/",
+   "url_slug": "system-requirements",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "12.0",
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5",
+    "10.4",
+    "10.3"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "windows",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    },
+    {
+     "path": "linux",
+     "pages": null,
+     "note": "flisting.htm 200 verified at 11.5 for the windows/iis/amazon variant; other variants from the legacy sitemap index"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/system-requirements/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-enterprise"
+  },
+  {
+   "id": "ent-legacy-notebook",
+   "name": "ArcGIS Notebook Server (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/notebook/<version>/",
+   "url_slug": "notebook",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "administer/linux",
+     "pages": 20
+    },
+    {
+     "path": "administer/windows",
+     "pages": 19
+    },
+    {
+     "path": "install/linux",
+     "pages": 26
+    },
+    {
+     "path": "python/linux",
+     "pages": 3
+    },
+    {
+     "path": "use/linux",
+     "pages": 20
+    },
+    {
+     "path": "install/windows",
+     "pages": null,
+     "note": "windows twin of a verified linux book; UNVERIFIED individually"
+    },
+    {
+     "path": "python/windows",
+     "pages": null,
+     "note": "windows twin of a verified linux book; UNVERIFIED individually"
+    },
+    {
+     "path": "use/windows",
+     "pages": null,
+     "note": "windows twin of a verified linux book; UNVERIFIED individually"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/notebook/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-notebooks"
+  },
+  {
+   "id": "ent-legacy-image",
+   "name": "ArcGIS Image Server (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/image/<version>/",
+   "url_slug": "image",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "get-started/windows",
+     "pages": 4
+    },
+    {
+     "path": "raster-analytics",
+     "pages": 264
+    },
+    {
+     "path": "get-started/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/image/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-image-server"
+  },
+  {
+   "id": "ent-legacy-geoanalytics",
+   "name": "ArcGIS GeoAnalytics Server (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/geoanalytics/<version>/",
+   "url_slug": "geoanalytics",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7"
+   ],
+   "books_sampled_at": "11.3",
+   "books": [
+    {
+     "path": "install/windows",
+     "pages": 7
+    },
+    {
+     "path": "perform-analysis",
+     "pages": 8
+    },
+    {
+     "path": "install/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/geoanalytics/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "retired",
+   "scope": "search-and-link",
+   "current_docs": null
+  },
+  {
+   "id": "ent-legacy-knowledge",
+   "name": "ArcGIS Knowledge Server (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/knowledge/<version>/",
+   "url_slug": "knowledge",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "deploy",
+     "pages": 6
+    },
+    {
+     "path": "introduction",
+     "pages": 5
+    },
+    {
+     "path": "knowledge-studio",
+     "pages": 25
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/knowledge/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "versioned-on-demand",
+   "current_docs": "esri-arcgis-knowledge"
+  },
+  {
+   "id": "ent-legacy-video",
+   "name": "ArcGIS Video Server (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/video/<version>/",
+   "url_slug": "video",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "use",
+     "pages": 10
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/video/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "current_docs": "esri-arcgis-video-server"
+  },
+  {
+   "id": "ent-legacy-workflow-manager",
+   "name": "ArcGIS Workflow Manager Server (classic) (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/workflow-manager/<version>/",
+   "url_slug": "workflow-manager",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5"
+   ],
+   "books_sampled_at": "11.4",
+   "books": [
+    {
+     "path": "help",
+     "pages": 12
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/workflow-manager/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "current_docs": "esri-arcgis-workflow-manager"
+  },
+  {
+   "id": "ent-legacy-data-reviewer",
+   "name": "ArcGIS Data Reviewer Server (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/data-reviewer/<version>/",
+   "url_slug": "data-reviewer",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5",
+    "10.4"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "help",
+     "pages": 7
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/data-reviewer/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "current_docs": "esri-arcgis-data-reviewer"
+  },
+  {
+   "id": "ent-legacy-maritime",
+   "name": "ArcGIS Maritime server (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/maritime/<version>/",
+   "url_slug": "maritime",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "12.0",
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1"
+   ],
+   "books_sampled_at": "12.0",
+   "books": [
+    {
+     "path": "chart-builder/windows",
+     "pages": 6
+    },
+    {
+     "path": "chart-service/windows",
+     "pages": 12
+    },
+    {
+     "path": "intro/windows",
+     "pages": 2
+    },
+    {
+     "path": "chart-builder/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    },
+    {
+     "path": "chart-service/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    },
+    {
+     "path": "intro/linux",
+     "pages": null,
+     "note": "linux twin of a verified windows book; UNVERIFIED individually"
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/maritime/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "current_docs": "esri-arcgis-maritime"
+  },
+  {
+   "id": "ent-legacy-production-mapping",
+   "name": "ArcGIS Production Mapping server (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/production-mapping/<version>/",
+   "url_slug": "production-mapping",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 5
+    },
+    {
+     "path": "map-production-system",
+     "pages": 17
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/production-mapping/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "current_docs": "esri-arcgis-topographic-mapping (UNVERIFIED mapping)"
+  },
+  {
+   "id": "ent-legacy-roads-highways",
+   "name": "ArcGIS Roads and Highways (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/roads-highways/<version>/",
+   "url_slug": "roads-highways",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 5
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/roads-highways/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "current_docs": "esri-arcgis-roads-and-highways"
+  },
+  {
+   "id": "ent-legacy-pipeline-referencing",
+   "name": "ArcGIS Pipeline Referencing (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/pipeline-referencing/<version>/",
+   "url_slug": "pipeline-referencing",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "11.5",
+    "11.4",
+    "11.3",
+    "11.2",
+    "11.1",
+    "11.0",
+    "10.9.1",
+    "10.9",
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5"
+   ],
+   "books_sampled_at": "11.5",
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 9
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/pipeline-referencing/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "current_docs": "esri-arcgis-pipeline-referencing"
+  },
+  {
+   "id": "ent-legacy-monitor",
+   "name": "ArcGIS Monitor (classic 10.x) (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/monitor/<version>/",
+   "url_slug": "monitor",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "10.8",
+    "10.7",
+    "10.6"
+   ],
+   "books_sampled_at": "10.8",
+   "books": [
+    {
+     "path": "administration",
+     "pages": 41
+    },
+    {
+     "path": "get-started",
+     "pages": 2
+    },
+    {
+     "path": "install",
+     "pages": 13
+    },
+    {
+     "path": "reports",
+     "pages": 24
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/monitor/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "migrated",
+   "scope": "search-and-link",
+   "current_docs": "esri-arcgis-monitor"
+  },
+  {
+   "id": "ent-legacy-inspire",
+   "name": "ArcGIS for INSPIRE (legacy versions)",
+   "host": "enterprise.arcgis.com",
+   "base_url": "https://enterprise.arcgis.com/en/inspire/<version>/",
+   "url_slug": "inspire",
+   "search": {
+    "site": "enterprise_arcgis",
+    "product": [
+     "UNVERIFIED"
+    ],
+    "filter": "q + requiredfields version:<v> (dots as %2E)"
+   },
+   "version_scheme": "numbered only on this host; latest (and usually 12.1) redirect to doc.esri.com",
+   "current_version": null,
+   "other_versions_on_host": [
+    "10.8",
+    "10.7",
+    "10.6",
+    "10.5",
+    "10.4",
+    "10.3"
+   ],
+   "books_sampled_at": "10.8",
+   "books": [
+    {
+     "path": "get-started",
+     "pages": 13
+    },
+    {
+     "path": "inspire-services",
+     "pages": 8
+    }
+   ],
+   "enumeration": {
+    "method": "flisting.htm / sitemap.xml / NNNN.js per book; book list from the component landing page /en/<component>/ and treedata.mapping",
+    "pattern": "https://enterprise.arcgis.com/en/inspire/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section)",
+   "status": "retired",
+   "scope": "search-and-link",
+   "current_docs": null
+  },
+  {
+   "id": "legacy-pro-app",
+   "name": "ArcGIS Pro (previous versions 2.6-3.6)",
+   "host": "pro.arcgis.com",
+   "base_url": "https://pro.arcgis.com/en/pro-app/<version>/",
+   "url_slug": "pro-app",
+   "search": {
+    "site": "UNVERIFIED (esri_docs_main holds 3.7 only)",
+    "product": [
+     "arcgis-pro"
+    ],
+    "filter": ""
+   },
+   "version_scheme": "numbered only; latest and 3.7 301 to doc.esri.com; <=2.5 and unversioned URLs 301 to a doc.esri.com 404",
+   "current_version": null,
+   "other_versions_on_host": [
+    "3.6",
+    "3.5",
+    "3.4",
+    "3.3",
+    "3.2",
+    "3.1",
+    "3.0",
+    "2.9",
+    "2.8",
+    "2.7",
+    "2.6"
+   ],
+   "books": {
+    "3.6": {
+     "arcpy": [
+      "arcpy/main",
+      "arcpy/get-started",
+      "arcpy/geoprocessing_and_python",
+      "arcpy/functions",
+      "arcpy/classes",
+      "arcpy/charts",
+      "arcpy/data-access",
+      "arcpy/geocoding",
+      "arcpy/image-analyst",
+      "arcpy/mapping",
+      "arcpy/metadata",
+      "arcpy/network-analyst",
+      "arcpy/sharing",
+      "arcpy/spatial-analyst",
+      "arcpy/utility-network"
+     ],
+     "help": [
+      "help/main",
+      "help/projects",
+      "help/mapping/introduction",
+      "help/mapping/map-authoring",
+      "help/mapping/text",
+      "help/mapping/properties",
+      "help/mapping/layer-properties",
+      "help/mapping/navigation",
+      "help/mapping/device-location",
+      "help/mapping/animation",
+      "help/mapping/time",
+      "help/mapping/range",
+      "help/mapping/exploratory-analysis",
+      "help/mapping/simulation",
+      "help/data/main",
+      "help/editing",
+      "help/data/databases",
+      "help/data/geodatabases/overview",
+      "help/data/geodatabases/introduction",
+      "help/data/geodatabases/manage-file-gdb",
+      "help/data/geodatabases/manage-mobile-gdb",
+      "help/data/geodatabases/manage-db2",
+      "help/data/geodatabases/manage-oracle",
+      "help/data/geodatabases/manage-postgresql",
+      "help/data/geodatabases/manage-saphana",
+      "help/data/geodatabases/manage-sql-server",
+      "help/data/introduction",
+      "help/data/3d-objects",
+      "help/data/annotation",
+      "help/data/revit",
+      "help/data/cad",
+      "help/data/dimensions",
+      "help/data/excel",
+      "help/data/feature-classes",
+      "help/data/feature-datasets",
+      "help/data/kml",
+      "help/data/las-dataset",
+      "help/data/big-data-connections",
+      "help/data/multidimensional",
+      "help/data/nitf",
+      "help/data/parquet",
+      "help/data/relationships",
+      "help/data/services",
+      "help/data/shapefiles",
+      "help/data/tables",
+      "help/data/terrain-dataset",
+      "help/data/tin",
+      "help/data/topologies",
+      "help/data/knowledge",
+      "help/data/coordinate-conversion",
+      "help/data/data-interoperability",
+      "help/data/validating-data",
+      "help/data/distance-direction",
+      "help/data/geocoding",
+      "help/data/indoors",
+      "help/data/indoor-positioning",
+      "help/data/linear-referencing",
+      "help/data/locatext",
+      "help/data/network-diagrams",
+      "help/data/parcel-editing",
+      "help/data/streetmap-premium",
+      "help/data/trace-network",
+      "help/data/utility-network",
+      "help/analysis/introduction",
+      "help/analysis/geoprocessing/basics",
+      "help/analysis/geoprocessing/modelbuilder",
+      "tool-reference/modelbuilder-toolbox",
+      "help/analysis/geoprocessing/share-analysis",
+      "help/analysis/raster-functions",
+      "help/analysis/geoprocessing/charts",
+      "help/analysis/geoprocessing/data-engineering",
+      "help/analysis/ai",
+      "help/analysis/deep-learning",
+      "help/analysis/3d-analyst",
+      "help/analysis/business-analyst",
+      "help/analysis/geostatistical-analyst",
+      "help/analysis/image-analyst",
+      "help/analysis/link-charts",
+      "help/analysis/networks",
+      "help/analysis/spatial-analyst/basics",
+      "help/analysis/spatial-analyst/model-solve-spatial-problems",
+      "help/analysis/spatial-analyst/performing-analysis",
+      "help/analysis/spatial-analyst/mapalgebra",
+      "help/analysis/spatial-analyst/multidimensional-analysis",
+      "help/analysis/spatial-analyst/raster-cell-iterator",
+      "help/analysis/spatial-analyst/suitability-modeler",
+      "help/analysis/visibility-analysis",
+      "help/data/imagery",
+      "help/metadata",
+      "help/layouts",
+      "help/reports",
+      "help/mapping/presentations",
+      "help/production/introduction",
+      "help/production/aviation",
+      "help/production/bathymetry",
+      "help/production/clearing-grids",
+      "help/production/maritime",
+      "help/production/military-symbology-editor",
+      "help/production/location-referencing-pipelines",
+      "help/production/roads-highways",
+      "help/production/topographic-mapping",
+      "help/workflows",
+      "help/workflow",
+      "help/tasks",
+      "help/sharing/overview",
+      "help/sharing/analyzer-error-messages",
+      "help/sharing/analyzer-warning-messages"
+     ],
+     "tool-reference": [
+      "tool-reference/main",
+      "tool-reference/introduction-anatomy",
+      "tool-reference/3d-analyst",
+      "tool-reference/intelligence",
+      "tool-reference/analysis",
+      "tool-reference/aviation",
+      "tool-reference/bathymetry",
+      "tool-reference/business-analyst",
+      "tool-reference/cartography",
+      "tool-reference/conversion",
+      "tool-reference/crime-analysis",
+      "tool-reference/data-interoperability",
+      "tool-reference/data-management",
+      "tool-reference/data-reviewer",
+      "tool-reference/defense",
+      "tool-reference/editing",
+      "tool-reference/geoai",
+      "tool-reference/geoanalytics-desktop",
+      "tool-reference/big-data-analytics",
+      "tool-reference/geocoding",
+      "tool-reference/geostatistical-analyst",
+      "tool-reference/image-analyst",
+      "tool-reference/indoors",
+      "tool-reference/indoor-positioning",
+      "tool-reference/knowledge-graph",
+      "tool-reference/linear-referencing",
+      "tool-reference/location-referencing",
+      "tool-reference/maritime",
+      "tool-reference/multidimension",
+      "tool-reference/network-analyst",
+      "tool-reference/network-diagram",
+      "tool-reference/oriented-imagery",
+      "tool-reference/parcel",
+      "tool-reference/public-transit",
+      "tool-reference/raster-analysis",
+      "tool-reference/ready-to-use",
+      "tool-reference/reality-mapping",
+      "tool-reference/server",
+      "tool-reference/space-time-pattern-mining",
+      "tool-reference/spatial-analyst",
+      "tool-reference/spatial-statistics",
+      "tool-reference/feature-analysis",
+      "tool-reference/territory-design",
+      "tool-reference/topographic-production",
+      "tool-reference/trace-network",
+      "tool-reference/utility-networks",
+      "tool-reference/environment-settings",
+      "tool-reference/appendices"
+     ],
+     "get-started": [
+      "get-started"
+     ]
+    },
+    "counts": {
+     "3.6": {
+      "arcpy": 15,
+      "help": 107,
+      "tool-reference": 48,
+      "get-started": 1
+     },
+     "3.5": {
+      "arcpy": 15,
+      "help": 108,
+      "tool-reference": 47,
+      "get-started": 1
+     },
+     "2.6": {
+      "arcpy": 14,
+      "help": 91,
+      "tool-reference": 42,
+      "get-started": 1
+     }
+    }
+   },
+   "enumeration": {
+    "method": "section master script <section>/main/NNNN.js (arcpy 1520.js, help 1868.js, tool-reference 1518.js) -> treedata.mapping lists every book dir; then <book>/flisting.htm or sitemap.xml",
+    "pattern": "https://pro.arcgis.com/en/pro-app/<version>/<book>/flisting.htm"
+   },
+   "content_selector": "main (inside div.content-section); SDK: /sdk/api-reference/topicN.html",
+   "status": "migrated",
+   "scope": "versioned-on-demand (3.5, 3.6); search-and-link (<=3.4)",
+   "current_docs": "esri-arcgis-pro"
+  }
+ ],
+ "hosts": {
+  "doc.esri.com": {
+   "conditional": {
+    "If-None-Match": "NOT honoured (200) on 5 URLs incl. html, toc.json, sitemap.xml, manifest.json; ETag is weak",
+    "If-Modified-Since": "304"
+   },
+   "content_selector": "article#main",
+   "bom": true,
+   "md_variant": ".md 301s to .html",
+   "llms_txt": 404,
+   "robots_disallow": [
+    "/public/",
+    "/loginHandler/",
+    "/feedback/",
+    "/404/",
+    "/search/",
+    "/*/config/"
+   ]
+  },
+  "doc.arcgis.com": {
+   "conditional": {
+    "If-None-Match": "304 (from earlier research)",
+    "If-Modified-Since": "304 (from earlier research)"
+   },
+   "content_selector": "main; title in header.trailer-1 h1",
+   "dir_status": {
+    "403": "directory exists",
+    "404": "absent",
+    "300": "absent (mod_speling suggestions)"
+   },
+   "root": "/ and /en/ 301 to https://doc.esri.com/en/",
+   "robots_disallow": [
+    "/en/asset/",
+    "/en/test/",
+    "/js/"
+   ]
+  },
+  "enterprise.arcgis.com": {
+   "conditional": {
+    "If-None-Match": "304",
+    "If-Modified-Since": "304"
+   },
+   "content_selector": "main; title in header.trailer-1 h1",
+   "dir_status": {
+    "403": "directory exists",
+    "404": "absent",
+    "300": "absent (mod_speling suggestions)"
+   },
+   "robots_disallow": [
+    "/login/",
+    "/sign-in/",
+    "/sign-up/",
+    "/search"
+   ]
+  },
+  "pro.arcgis.com": {
+   "versions_served": [
+    "3.6",
+    "3.5",
+    "3.4",
+    "3.3",
+    "3.2",
+    "3.1",
+    "3.0",
+    "2.9",
+    "2.8",
+    "2.7",
+    "2.6"
+   ],
+   "latest_and_3.7": "301 to doc.esri.com, path kept, .htm becomes .html",
+   "le_2.5_and_unversioned": "301 to a doc.esri.com 404"
+  }
+ },
+ "search_semantics": {
+  "endpoint": "POST https://esearchapi.esri.com/search",
+  "requiredfields": "exact match on product",
+  "partialfields": "substring match (arcgis-pro also matches arcgis-pro-net: 53305 hits vs 16422 exact)",
+  "empty_q_lists_all": true,
+  "num_max_tested": 200,
+  "start_max_tested": 9800
+ },
+ "book_discovery": [
+  "search listing: empty q + requiredfields product:<id>, group result URLs by directory",
+  "treedata.mapping in the master tree script (<section>/main/NNNN.js)",
+  "top-nav links href=\"/en/<slug>/(<version>/)?<book>/\"",
+  "per book: <book>/flisting.htm (live pages only), <book>/sitemap.xml (includes redirect stubs), <book>/NNNN.js (hierarchy)"
+ ],
+ "arcgis_online_developer_pages": {
+  "developer entry point": [
+   "reference/develop-with-agol.htm"
+  ],
+  "supported HTML": [
+   "reference/supported-html.htm"
+  ],
+  "URL parameters": [
+   "reference/use-url-parameters.htm",
+   "reference/use-url-parameters-scenes.htm",
+   "share-maps/share-custom-links.htm",
+   "create-maps/scene-add-custom-parameters.htm"
+  ],
+  "webhooks": [
+   "reference/webhooks-online.htm",
+   "reference/webhook-trigger.htm",
+   "reference/webhook-payloads.htm",
+   "manage-data/create-manage-webhooks-nonadmin.htm",
+   "administer/configure-webhooks.htm"
+  ],
+  "security settings (allowed origins/CORS, trusted servers, mentions API keys)": [
+   "administer/configure-security.htm"
+  ],
+  "app registration, OAuth credentials, API keys": [
+   "manage-data/add-app-url.htm"
+  ],
+  "hosted layer security": [
+   "reference/hosted-service-security.htm",
+   "manage-data/limit-usage-of-secure-services.htm"
+  ],
+  "SQL": [
+   "reference/sql-agol.htm"
+  ],
+  "Arcade (no language reference on this host)": [
+   "reference/understand-arcade-assistant.htm",
+   "reference/use-arcade-assistant.htm",
+   "create-maps/calculate-fields-mv.htm",
+   "create-maps/configure-pop-ups-mv.htm"
+  ],
+  "logins": [
+   "administer/saml-logins.htm",
+   "administer/openid-connect-logins.htm"
+  ],
+  "roles and privileges": [
+   "administer/privileges-for-roles-orgs.htm",
+   "administer/member-roles.htm",
+   "administer/configure-roles.htm"
+  ],
+  "notebooks and Python": [
+   "reference/available-python-libraries.htm",
+   "reference/use-the-arcgis-api-for-python-in-your-notebook.htm",
+   "reference/use-arcpy-in-your-notebook.htm",
+   "create-maps/publish-a-notebook-as-a-web-tool.htm",
+   "create-maps/prepare-a-notebook-for-automated-execution.htm"
+  ],
+  "services and formats": [
+   "reference/arcgis-server-services.htm",
+   "reference/feature-layers.htm",
+   "reference/ogc.htm",
+   "reference/geojson.htm",
+   "reference/csv-gpx.htm",
+   "reference/supported-items.htm",
+   "reference/what-is-web-map.htm",
+   "reference/what-is-web-scene.htm"
+  ],
+  "release notes": [
+   "reference/whats-new.htm"
+  ],
+  "_verified": "17 of these fetched with status 200 on 2026-10-13; the rest are present in the book flisting.htm"
+ },
+ "legacy_link_mapping_test": {
+  "enterprise_redirect_follow": {
+   "tested": 58,
+   "deep_200": 55,
+   "404": 3,
+   "note": "2 invented slugs fell back to the product root"
+  },
+  "pro_redirect_follow": {
+   "tested": 30,
+   "deep_200": 30
+  },
+  "manifest_basename_lookup": {
+   "tested": 36,
+   "unique": 26,
+   "agree_with_redirect": 25,
+   "rescued_404": 1
+  },
+  "title_search_clean_10": {
+   "top1": 7,
+   "top5": 8
+  },
+  "title_search_unclean_56": {
+   "top1": 38,
+   "top5": 45
+  },
+  "manifest_redirection_stubs": "arcgis-enterprise manifest.json has 1715 Redirection entries at old paths, e.g. https://doc.esri.com/en/arcgis-enterprise/latest/portal/administer/windows/<slug>.html (meta-refresh); 34 of 36 tested resolved to 200"
+ },
+ "legacy_redirects_to_404": [
+  "https://enterprise.arcgis.com/en/notebook/latest/python/windows/what-is-arcgis-notebook-server.htm",
+  "https://pro.arcgis.com/en/pro-app/latest/help/data/data-interoperability/what-is-the-data-interoperability-extension-.htm",
+  "https://enterprise.arcgis.com/en/portal/latest/administer/windows/configure-the-portal-to-perform-analysis.htm",
+  "https://enterprise.arcgis.com/en/server/latest/publish-services/windows/check-services-with-arcmapservicecheck.htm",
+  "https://enterprise.arcgis.com/en/data-store/latest/install/windows/update-ads-ssl-certificate.htm (real page: deploy/update-ads-ssl-certificate.html)",
+  "https://enterprise.arcgis.com/en/workflow/latest/help/what-is-workflow-manager.htm",
+  "https://pro.arcgis.com/en/pro-app/arcpy/functions/listfeatureclasses.htm (unversioned form; insert /latest/)",
+  "https://pro.arcgis.com/en/pro-app/2.5/ and older",
+  "https://doc.arcgis.com/en/deep-learning-studio/ (lands on doc.esri.com/en/deep-learning-studio/latest/latest/)",
+  "https://doc.arcgis.com/en/excel/"
+ ]
+}

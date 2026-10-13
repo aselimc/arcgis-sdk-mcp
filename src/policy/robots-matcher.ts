@@ -69,7 +69,7 @@ export function robotsPatternMatches(pattern: string, target: string): boolean {
 
   const tail = pieces[last] ?? '';
   if (anchored) return subject.length - tail.length >= position && subject.endsWith(tail);
-  return subject.indexOf(tail, position) !== -1;
+  return subject.includes(tail, position);
 }
 
 /** Length of the most specific pattern that matches, or -1 when none does. */

@@ -1,0 +1,24 @@
+{
+  "name": "astro samples source: sitemap, sample index page, one sample page (synthetic)",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/widgets/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "bodyFile": "astro-samples-sitemap.xml"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/sample-code/",
+      "response": {
+        "bodyFile": "sample-index.html"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/sample-code/draw-circle/",
+      "response": {
+        "bodyFile": "sample-page.html"
+      }
+    }
+  ]
+}

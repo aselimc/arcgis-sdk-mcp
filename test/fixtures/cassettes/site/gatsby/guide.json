@@ -1,0 +1,213 @@
+{
+  "name": "gatsby guide site: nav and store pointers inline in page-data",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/widgets/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://developers.arcgis.com/widgets/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/widgets/get-started/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/widgets/layers/feature-layers/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/widgets/tutorials/add-a-widget/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/widgets/release-notes/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/widgets/api-reference/gauge/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/widgets/api-reference/dial/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/widgets/faq/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n</urlset>\n"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/page-data/index/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "Overview",
+                "url": "/",
+                "description": "What the Widgets SDK is for."
+              },
+              "topicNavigation": {
+                "nav": {
+                  "title": "Guide",
+                  "type": "root",
+                  "id": "NavigationYaml-root",
+                  "publicPaginationURL": "/widgets/static/11223344556677889900aabbccddeeff.pagination.json",
+                  "children": [
+                    {
+                      "title": "Overview",
+                      "url": "/",
+                      "type": "page",
+                      "id": "NavigationYaml-Overview"
+                    },
+                    {
+                      "title": "Get started",
+                      "url": "/get-started/",
+                      "type": "page",
+                      "id": "NavigationYaml-Get started"
+                    },
+                    {
+                      "title": "Layers",
+                      "children": [
+                        {
+                          "title": "Feature layers",
+                          "url": "/layers/feature-layers/",
+                          "type": "page",
+                          "id": "NavigationYaml-Feature layers"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Layers"
+                    },
+                    {
+                      "title": "Tutorials",
+                      "children": [
+                        {
+                          "title": "Add a widget",
+                          "url": "/tutorials/add-a-widget/",
+                          "type": "page",
+                          "id": "NavigationYaml-Add a widget"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Tutorials"
+                    },
+                    {
+                      "title": "",
+                      "url": "/__undefined/",
+                      "type": "divider",
+                      "id": "NavigationYaml-divider"
+                    },
+                    {
+                      "title": "Release notes",
+                      "url": "/release-notes/",
+                      "type": "page",
+                      "id": "NavigationYaml-Release notes"
+                    },
+                    {
+                      "title": "API reference",
+                      "children": [
+                        {
+                          "title": "Gauge",
+                          "url": "/api-reference/gauge/",
+                          "type": "page",
+                          "id": "NavigationYaml-Gauge"
+                        },
+                        {
+                          "title": "Dial",
+                          "url": "/api-reference/dial/",
+                          "type": "page",
+                          "id": "NavigationYaml-Dial"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-API reference"
+                    },
+                    {
+                      "title": "Glossary",
+                      "url": "/DEVSITE/documentation/glossary/",
+                      "type": "page",
+                      "id": "NavigationYaml-Glossary"
+                    }
+                  ]
+                },
+                "error": null
+              },
+              "search": {
+                "publicStoreURL": "/widgets/static/0f1e2d3c4b5a69788796a5b4c3d2e1f0.store.json",
+                "publicIndexURL": "/widgets/static/0f1e2d3c4b5a69788796a5b4c3d2e1f0.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/static/0f1e2d3c4b5a69788796a5b4c3d2e1f0.store.json",
+      "response": {
+        "json": [
+          {
+            "id": "a1",
+            "title": "Widgets SDK overview",
+            "description": "What the Widgets SDK is for.",
+            "keywords": [
+              "widgets"
+            ],
+            "url": "/",
+            "pageType": "Topic",
+            "boost": null,
+            "image": null
+          },
+          {
+            "id": "a2",
+            "title": "Get started",
+            "description": "<p>Install the package &amp; draw a first widget.</p>",
+            "keywords": [
+              "install",
+              "setup"
+            ],
+            "url": "/get-started/",
+            "pageType": "Topic",
+            "boost": 2,
+            "image": null
+          },
+          {
+            "id": "a3",
+            "title": "Feature layers",
+            "description": null,
+            "keywords": [],
+            "url": "/layers/feature-layers/",
+            "pageType": "Topic",
+            "breadcrumb": "Layers",
+            "boost": null,
+            "image": null
+          },
+          {
+            "id": "a4",
+            "title": "Add a widget",
+            "description": "A first tutorial.",
+            "keywords": [],
+            "url": "/tutorials/add-a-widget/",
+            "pageType": "Tutorial",
+            "breadcrumb": "Tutorials",
+            "boost": null,
+            "image": null
+          },
+          {
+            "id": "a5",
+            "title": "Release notes",
+            "description": "Changes per version.",
+            "keywords": [],
+            "url": "/release-notes/",
+            "pageType": "Topic",
+            "boost": null,
+            "image": null
+          },
+          {
+            "id": "a6",
+            "title": "Gauge",
+            "description": "A round indicator.",
+            "keywords": [],
+            "url": "/api-reference/gauge/",
+            "pageType": "Topic",
+            "boost": null,
+            "image": null
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/get-started/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Get started</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Get started</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Install the package and draw a first widget.</p><h2 id=\"install\">Install</h2><p>Use your package manager.</p></div></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Widgets SDK overview</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Widgets SDK overview</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>The Widgets SDK draws gauges and dials.</p></div></main></body></html>"
+      }
+    }
+  ]
+}

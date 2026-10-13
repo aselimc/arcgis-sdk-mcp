@@ -27,6 +27,9 @@ export interface Converted {
 interface RuleNode {
   nodeName: string;
   textContent: string | null;
+  parentNode: RuleNode | null;
+  nextSibling: unknown;
+  children: ArrayLike<unknown>;
   getAttribute(name: string): string | null;
   querySelector(selector: string): unknown;
 }
@@ -80,6 +83,28 @@ export function createMarkdownConverter(): (html: string) => Converted {
       );
     },
     replacement: () => '',
+  });
+
+  // Turndown pads every marker to four columns (`-   item`). One space after the marker and a
+  // continuation indent of the marker's width is the same Markdown in fewer characters, and
+  // keeps the fences of list items within the three spaces a strict fence tracker accepts.
+  service.addRule('compactListItem', {
+    filter: 'li',
+    replacement: (content, node) => {
+      const item = asRuleNode(node);
+      const list = item.parentNode;
+      let marker = '- ';
+      if (list?.nodeName === 'OL') {
+        const start = Number(list.getAttribute('start') ?? '1');
+        const index = Array.prototype.indexOf.call(list.children, node);
+        marker = String((Number.isFinite(start) ? start : 1) + index) + '. ';
+      }
+      const body = content
+        .replace(/^\n+/, '')
+        .replace(/\n+$/, '\n')
+        .replace(/\n(?!\n|$)/g, '\n' + ' '.repeat(marker.length));
+      return marker + body + (item.nextSibling !== null && !body.endsWith('\n') ? '\n' : '');
+    },
   });
 
   service.addRule('markedHeading', {

@@ -6,9 +6,9 @@ import { BR_PLACEHOLDER } from './dom.js';
 import { scanLines } from './diagnostics.js';
 
 const BR_PLACEHOLDERS = new RegExp(BR_PLACEHOLDER, 'g');
-const NBSP = / /g;
+const NBSP = /\u00a0/g;
 /** Zero-width space, non-joiner, joiner and the byte order mark. */
-const ZERO_WIDTH = /[​-‍﻿]/g;
+const ZERO_WIDTH = /[\u200b-\u200d\ufeff]/g;
 
 /**
  * Normalises converted Markdown: cell line breaks become `<br>`, NBSP becomes a space,

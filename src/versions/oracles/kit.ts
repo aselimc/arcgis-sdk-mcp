@@ -57,15 +57,20 @@ type Role = VersionFact['role'];
 
 /**
  * Applies `OracleSpec.provides`. A fact whose role is listed (or any fact when the list is
- * empty) is kept. An oracle that naturally reports `installable` can be declared as
- * `documented` evidence and the other way round (a GitHub release that marks the documented
- * version, a banner that is the only install signal): the fact is relabelled. Everything else
- * is dropped.
+ * empty) is kept; `released` stands for the release date of the documented version, so it
+ * admits `documented` facts. An oracle that naturally reports `installable` can be declared
+ * as `documented` evidence and the other way round (a GitHub release that dates the
+ * documented version, a banner that is the only install signal): the fact is relabelled.
+ * Everything else is dropped.
  */
 function applyProvides(facts: VersionFact[], spec: OracleSpec): VersionFact[] {
   const provides = new Set<string>(spec.provides);
   if (provides.size === 0) return facts;
-  const swap: Partial<Record<Role, Role>> = { installable: 'documented', documented: 'installable' };
+  if (provides.has('released')) provides.add('documented');
+  const swap: Partial<Record<Role, Role>> = {
+    installable: 'documented',
+    documented: 'installable',
+  };
   const natural = new Set(facts.map((fact) => fact.role));
   return facts.flatMap((fact) => {
     if (provides.has(fact.role)) return [fact];
@@ -171,10 +176,20 @@ export function homeUrl(product: Product, line: VersionLine | undefined): string
   return base.endsWith(`/${prefix}`) ? base : `${base}${prefix}`;
 }
 
-/** The URL option of a spec (`url`, `page` or `path`), absolute for the line; `undefined` when not set. */
-export function urlOption(spec: OracleSpec, line: VersionLine | undefined): string | undefined {
+/**
+ * The URL option of a spec (`url`, `page` or `path`), absolute for the line; `undefined` when
+ * not set. A spec that names the product's home page follows the line like the home page
+ * does, so one banner oracle serves `/net/` and `/net/v200/`.
+ */
+export function urlOption(
+  spec: OracleSpec,
+  product: Product,
+  line: VersionLine | undefined,
+): string | undefined {
   const value = option(spec, 'url', 'page', 'path');
-  return value === undefined ? undefined : resolveUrl(value, line);
+  if (value === undefined) return undefined;
+  const url = resolveUrl(value, line);
+  return url === resolveUrl(product.homepage, line) ? homeUrl(product, line) : url;
 }
 
 /** A plain object, or `undefined`: registries occasionally answer with a JSON string or array. */

@@ -14,37 +14,31 @@ sources:
 
 # ArcGIS Maps SDK for JavaScript - moving from 4.x to 5.x
 
-5.x continues the 4.x API under semantic versioning ([FAQ](https://developers.arcgis.com/javascript/latest/faq/)); it is not a rewrite like 3.x to 4.x was. Three things still trip up agents: documentation URLs, widgets, and how the SDK is loaded. Ask `arcgis_docs_get_versions` for the current release instead of assuming one.
+5.x continues the 4.x API under semantic versioning ([FAQ](https://developers.arcgis.com/javascript/latest/faq/)); it is not a rewrite as 3.x to 4.x was. Three things still mislead agents: documentation URLs, widgets and loading. Ask `arcgis_docs_get_versions` for the current release.
 
-## 1. Documentation URLs changed at 5.0
+## Documentation URLs changed at 5.0
 
-| | 4.x | 5.x |
-| --- | --- | --- |
-| Class reference | `api-reference/esri-views-MapView.html` | `references/core/views/MapView/` |
-| Component reference | (same tree) | `references/<package>/components/<tag>/` |
+- Class reference: 4.x `api-reference/esri-views-MapView.html`, 5.x `references/core/views/MapView/`. Components: `references/<package>/components/<tag>/`.
+- `developers.arcgis.com/javascript/latest/` documents only the latest release; old `api-reference/esri-*.html` addresses answer with a redirect stub.
+- Earlier releases are on Esri's archive host ([previous versions](https://developers.arcgis.com/javascript/latest/downloads-and-previous-versions/)), which disallows crawlers: this server returns a link. For an older release use `arcgis_docs_lookup_symbol` with `version`, which reads the typings of that `@arcgis/core` release.
 
-- Only the latest release is documented on `developers.arcgis.com/javascript/latest/`. Old `api-reference/esri-*.html` addresses answer with a redirect stub to the new page.
-- Earlier releases are on Esri's archive host, linked from [Downloads and previous versions](https://developers.arcgis.com/javascript/latest/downloads-and-previous-versions/). That host disallows crawlers, so this server returns a link instead of the page; for an older release use the typings of the matching `@arcgis/core` npm version (`arcgis_docs_lookup_symbol` with `version`).
+## Widgets are deprecated
 
-## 2. Widgets are deprecated, components replace them
+- Every widget is deprecated as of 5.0 and removal is planned ([transition plan](https://developers.arcgis.com/javascript/latest/components-transition-plan/), [notice](https://support.esri.com/en-us/knowledge-base/deprecation-widgets-in-arcgis-maps-sdk-for-javascript-000040437)).
+- New code uses `<arcgis-map>`, `<arcgis-scene>` and the other `@arcgis/map-components` elements, not `new MapView(...)` plus widgets.
+- Existing code: [Migrate to components](https://developers.arcgis.com/javascript/latest/migrating-to-components/). Keep the SDK theme stylesheet while a widget or a programmatically created view remains.
+- Many samples still show widget patterns under a legacy-patterns note. Prefer samples without it.
 
-- Web components arrived during 4.x; every widget is deprecated as of 5.0 and Esri plans to remove widgets in a later release ([transition plan](https://developers.arcgis.com/javascript/latest/components-transition-plan/), [deprecation notice](https://support.esri.com/en-us/knowledge-base/deprecation-widgets-in-arcgis-maps-sdk-for-javascript-000040437)).
-- New code: `<arcgis-map>`, `<arcgis-scene>` and the other elements of `@arcgis/map-components`, not `new MapView(...)` plus widgets.
-- Existing code: follow [Migrate to components](https://developers.arcgis.com/javascript/latest/migrating-to-components/). Keep the SDK theme stylesheet while any widget or programmatically created view remains; component-only apps do not need it.
-- Many samples still show widget patterns and carry a legacy-patterns note. Prefer a sample without it.
+## Loading
 
-## 3. Loading
-
-- CDN: since 5.0 a single module script, `<script type="module" src="https://js.arcgis.com/<major.minor>/">`, serves the core API, map components and Calcite; modules are loaded with `$arcgis.import(...)`.
-- npm: the `@arcgis/*` packages are versioned together; change them in one step.
+- CDN: since 5.0 one module script, `https://js.arcgis.com/<major.minor>/`, serves the core API, map components and Calcite; load modules with `$arcgis.import(...)`.
+- npm: `@arcgis/*` packages share one version. Change them together.
 - `arcgis-js-api`, `esri-loader` and `@arcgis/cli` are dead ends (`brief:legacy/do-not-use`).
 
-## Upgrade procedure (Esri's own, [Upgrade with AI](https://developers.arcgis.com/javascript/latest/ai-assisted-development/upgrade-with-ai/))
+## Upgrade procedure ([Upgrade with AI](https://developers.arcgis.com/javascript/latest/ai-assisted-development/upgrade-with-ai/))
 
-1. Inventory first: current and target version, npm or CDN, widgets in use, validation commands.
-2. Read the [release notes](https://developers.arcgis.com/javascript/latest/release-notes/) of every release crossed, including the intermediate ones, especially the breaking-changes sections.
-3. Update dependencies or CDN URLs together.
-4. TypeScript apps that use the deprecated `__esri` namespace types: `npx @arcgis/codemod run refactor-out-esri-namespace`, from a clean working tree. It converts those types to explicit `@arcgis/core` imports and nothing else.
-5. Fix the remaining breaking changes, then test. Widget migration can be a separate step ([guide](https://developers.arcgis.com/javascript/latest/ai-assisted-development/migrate-widgets-to-components/)).
-
-Verify each symbol with `arcgis_docs_lookup_symbol` before using it: names remembered from 4.x examples may be deprecated.
+1. Inventory: current and target version, npm or CDN, widgets in use.
+2. Read the [release notes](https://developers.arcgis.com/javascript/latest/release-notes/) of every release crossed, intermediate ones included.
+3. Update dependencies or CDN URLs in one step.
+4. TypeScript apps using the deprecated `__esri` types: run `npx @arcgis/codemod run refactor-out-esri-namespace` from a clean working tree. It only rewrites those types to `@arcgis/core` imports.
+5. Fix remaining breaking changes, test, and verify symbols with `arcgis_docs_lookup_symbol`.

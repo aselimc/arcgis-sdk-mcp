@@ -18,12 +18,7 @@ import type {
 } from '../../core/ports.js';
 import { parseSitemap } from '../../core/sitemap.js';
 import { expandTemplate } from '../../core/source-urls.js';
-import type {
-  CatalogRecord,
-  DocKind,
-  DocPage,
-  LicenseTier,
-} from '../../core/types.js';
+import type { CatalogRecord, DocKind, DocPage, LicenseTier } from '../../core/types.js';
 
 /**
  * Makes a registry URL absolute for a bound source: line variables are substituted, a full
@@ -160,7 +155,8 @@ function jsonRecordCount(text: string): number | undefined {
     data = JSON.parse(text);
     // Astro search files hold the MiniSearch dump as a JSON string inside the JSON document.
     const inner = (data as { index?: unknown } | null)?.index;
-    if (typeof inner === 'string') data = (JSON.parse(inner) as { storedFields?: unknown }).storedFields;
+    if (typeof inner === 'string')
+      data = (JSON.parse(inner) as { storedFields?: unknown }).storedFields;
   } catch {
     return undefined;
   }
@@ -231,7 +227,9 @@ export async function probeSource(
     } else if (probe.family !== undefined && family !== undefined && family !== probe.family) {
       error = `Expected page family ${probe.family}, detected ${family}`;
     }
-    return finish(error === undefined ? { ok: true, ...measured } : { ok: false, ...measured, error });
+    return finish(
+      error === undefined ? { ok: true, ...measured } : { ok: false, ...measured, error },
+    );
   } catch (thrown) {
     const typed = toMcpDocError(thrown);
     const why = typed.details?.why;
@@ -274,4 +272,3 @@ export const staticAdapter: SourceAdapter<'static'> = {
 
   probe: (ctx, src) => probeSource(ctx, src),
 };
-

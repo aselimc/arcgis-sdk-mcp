@@ -14,39 +14,35 @@ sources:
 
 # MCP for ArcGIS Location Services (beta)
 
-An Esri-hosted remote MCP server that lets an AI client call ArcGIS Location Services. It is a beta: tool names have already been renamed between beta releases, so read the [release notes](https://developers.arcgis.com/ai/mcp-arcgis-location-services/release-notes/beta/) before hard-coding one.
+A remote MCP server hosted by Esri that lets an AI client call ArcGIS Location Services. Tools have been renamed between beta releases: read the [release notes](https://developers.arcgis.com/ai/mcp-arcgis-location-services/release-notes/beta/) before hard-coding a name.
 
-## Endpoint and transport
+## Endpoint
 
-- `https://location-services-mcp.arcgis.com/beta/mcp`, Streamable HTTP only. There is no stdio build and no package to install.
-- Every request needs a bearer access token; without one the server answers `401`.
+`https://location-services-mcp.arcgis.com/beta/mcp`, Streamable HTTP only; there is no stdio build. Requests without a bearer access token get `401`.
 
-## Authentication ([get started](https://developers.arcgis.com/ai/mcp-arcgis-location-services/get-started/))
+## Authentication
 
-- An ArcGIS Location Platform account issues the token: either API key credentials with selected privileges, or OAuth 2.0 user or app authentication.
-- The credential needs the beta-access privilege plus one privilege per service it will call.
-- The server lists only the tools the token's privileges allow ([FAQ](https://developers.arcgis.com/ai/mcp-arcgis-location-services/faq/)). A missing tool usually means a missing privilege, not a missing feature.
+- The token comes from an ArcGIS Location Platform account: API key credentials with selected privileges, or OAuth 2.0 user or app authentication ([get started](https://developers.arcgis.com/ai/mcp-arcgis-location-services/get-started/)).
+- The server lists only the tools that the token's privileges allow ([FAQ](https://developers.arcgis.com/ai/mcp-arcgis-location-services/faq/)). A missing tool usually means a missing privilege.
 
-## Tools ([reference](https://developers.arcgis.com/ai/mcp-arcgis-location-services/tools/))
+## Tools and required privilege ([reference](https://developers.arcgis.com/ai/mcp-arcgis-location-services/tools/))
 
-| Group | Tools | Privilege |
-| --- | --- | --- |
-| Geocoding | `find_address_candidates`, `reverse_geocode` | Geocoding, stored geocodes (pay-as-you-go accounts only) |
-| Routing | `solve_route` | Routing, simple routing |
-| Elevation | `elevation_at_locations` | Elevation |
-| Static maps | `map_with_overlay` (PNG with points, lines, polygons) | Static maps |
-| Data enrichment | `get_topic_fields`, then `describe_location` | GeoEnrichment (pay-as-you-go accounts only) |
-| Geometry | `buffer` (point input, metres) | Allow beta access |
+| Tools                                                 | Privilege                              |
+| ----------------------------------------------------- | -------------------------------------- |
+| `find_address_candidates`, `reverse_geocode`          | Geocoding, stored (pay-as-you-go only) |
+| `solve_route`                                         | Routing, simple routing                |
+| `elevation_at_locations`                              | Elevation                              |
+| `map_with_overlay` (PNG with points, lines, polygons) | Static maps                            |
+| `get_topic_fields`, then `describe_location`          | GeoEnrichment (pay-as-you-go only)     |
+| `buffer` (point input, metres)                        | Allow beta access                      |
 
-Basemap styles, places and static basemap tiles are not exposed through MCP ([support table](https://location.arcgis.com/help/agentic-ai/)).
-
-The server also publishes prompt templates such as a route between two addresses or a map of an address ([prompts](https://developers.arcgis.com/ai/mcp-arcgis-location-services/prompts/)).
+Basemap styles, places and static basemap tiles are not available through MCP ([support table](https://location.arcgis.com/help/agentic-ai/)). The server also offers [prompt templates](https://developers.arcgis.com/ai/mcp-arcgis-location-services/prompts/), for example a route between two addresses.
 
 ## Pricing rule
 
-There is no MCP surcharge. Each successful call to the underlying service is metered at that service's normal rate ([pricing](https://developers.arcgis.com/ai/mcp-arcgis-location-services/pricing/)), so an agent loop that geocodes repeatedly costs real money: cache results and cap iterations.
+No MCP surcharge: every successful call to an underlying service is metered at that service's rate ([pricing](https://developers.arcgis.com/ai/mcp-arcgis-location-services/pricing/)). An agent loop that geocodes repeatedly costs money, so cache results and cap iterations.
 
 ## Caveats
 
-- Esri's own pages disagree on details (tool spelling on the pricing page, the protocol revision linked from the references page). Trust the tools page and the live `tools/list` answer.
-- This server covers Esri-hosted location services only. For content in an ArcGIS Enterprise portal see `brief:ai/mcp-enterprise-beta`; for an assistant inside a web app see `brief:ai/js-ai-components-constraints`.
+- Esri's pages disagree on details such as a tool's spelling or the linked protocol revision. Trust the tools page and the live `tools/list` answer.
+- Only Esri-hosted location services are covered. For an Enterprise portal read `brief:ai/mcp-enterprise-beta`; for an assistant inside a web app read `brief:ai/js-ai-components-constraints`.

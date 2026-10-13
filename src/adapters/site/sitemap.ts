@@ -4,7 +4,7 @@
  * adapter, whose lowest rung is the same file.
  */
 import { classifyUrl, humanizeSlug, matchUrlFilter } from '../../core/adapter-helpers.js';
-import { McpDocError } from '../../core/errors.js';
+import { McpDocError, toMcpDocError } from '../../core/errors.js';
 import type { BoundSource, Ctx, SourceAdapter } from '../../core/ports.js';
 import { parseSitemap } from '../../core/sitemap.js';
 import { sourceBaseUrls } from '../../core/source-urls.js';
@@ -21,6 +21,9 @@ import {
 
 /** A sitemap index may fan out; this many requests are spent on one sitemap at most. */
 const MAX_REQUESTS_PER_SITEMAP = 4;
+
+/** Request budget of one `sitemap` enumeration, over all of its sitemap files. */
+const MAX_ENUMERATE_REQUESTS = 8;
 
 function emptySitemap(url: string): McpDocError {
   return new McpDocError('UPSTREAM_UNAVAILABLE', `${url} lists no pages`, {
@@ -68,14 +71,14 @@ export async function readSitemap(
     });
   }
   const locs = new Set<string>();
-  let firstFailure: unknown;
+  let firstFailure: McpDocError | undefined;
   for (const child of reachable) {
     try {
       const nested = await fetchSitemap(ctx, src, child);
       // A second level of indexes does not occur on the documentation hosts; it is not followed.
       if (nested.kind === 'urlset') for (const entry of nested.entries) locs.add(entry.loc);
     } catch (error) {
-      firstFailure ??= error;
+      firstFailure ??= toMcpDocError(error);
       continueWithout(ctx, src, error, `Sitemap ${child}`);
     }
   }
@@ -127,19 +130,19 @@ function fallbackKind(src: BoundSource<'sitemap'>): DocKind {
  */
 export const sitemapAdapter: SourceAdapter<'sitemap'> = {
   type: 'sitemap',
-  maxEnumerateRequests: 8,
+  maxEnumerateRequests: MAX_ENUMERATE_REQUESTS,
 
   async enumerate(ctx, src) {
     const urls = sitemapUrls(src);
     // Each sitemap gets an equal share of the budget, so a large index cannot starve the rest.
-    const share = Math.max(1, Math.floor(this.maxEnumerateRequests / Math.max(1, urls.length)));
+    const share = Math.max(1, Math.floor(MAX_ENUMERATE_REQUESTS / Math.max(1, urls.length)));
     const locs: string[] = [];
-    let firstFailure: unknown;
-    for (const url of urls.slice(0, this.maxEnumerateRequests)) {
+    let firstFailure: McpDocError | undefined;
+    for (const url of urls.slice(0, MAX_ENUMERATE_REQUESTS)) {
       try {
         locs.push(...(await readSitemap(ctx, src, url, Math.min(share, MAX_REQUESTS_PER_SITEMAP))));
       } catch (error) {
-        firstFailure ??= error;
+        firstFailure ??= toMcpDocError(error);
         continueWithout(ctx, src, error, `Sitemap ${url}`);
       }
     }
@@ -152,11 +155,15 @@ export const sitemapAdapter: SourceAdapter<'sitemap'> = {
     );
     if (records.length > 0) return records;
     if (firstFailure !== undefined) throw firstFailure;
-    throw new McpDocError('UPSTREAM_UNAVAILABLE', `No page of ${src.source.title} could be listed`, {
-      why: 'No sitemap URL lies under the source base and passes its URL filter',
-      ...(urls[0] === undefined ? {} : { url: urls[0], host: new URL(urls[0]).host }),
-      retryable: false,
-    });
+    throw new McpDocError(
+      'UPSTREAM_UNAVAILABLE',
+      `No page of ${src.source.title} could be listed`,
+      {
+        why: 'No sitemap URL lies under the source base and passes its URL filter',
+        ...(urls[0] === undefined ? {} : { url: urls[0], host: new URL(urls[0]).host }),
+        retryable: false,
+      },
+    );
   },
 
   read(ctx, src, target) {

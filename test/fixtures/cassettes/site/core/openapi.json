@@ -1,0 +1,186 @@
+{
+  "name": "openapi source: OpenAPI 3.0 JSON, embedded Swagger 2, OpenAPI 3.1 without operation ids (synthetic)",
+  "interactions": [
+    {
+      "url": "https://hub.arcgis.com/api/events/v1/docs-json",
+      "response": {
+        "json": {
+          "openapi": "3.0.0",
+          "info": {
+            "title": "Widget Events Service",
+            "version": "0.0.1",
+            "description": "Create and list widget events.\nSecond line of the description."
+          },
+          "paths": {
+            "/api/events/v1/events": {
+              "get": {
+                "operationId": "getEvents",
+                "summary": "List events",
+                "tags": [
+                  "Events",
+                  "Public"
+                ],
+                "parameters": [
+                  {
+                    "name": "limit",
+                    "in": "query",
+                    "schema": {
+                      "type": "integer"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "A page of events"
+                  }
+                }
+              },
+              "post": {
+                "operationId": "createEvent",
+                "summary": "Create an event",
+                "tags": [
+                  "Events"
+                ],
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Event"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "The created event"
+                  }
+                }
+              }
+            },
+            "/api/events/v1/events/{id}": {
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "get": {
+                "operationId": "getEvent",
+                "description": "Returns one event by its id.",
+                "parameters": [
+                  {
+                    "name": "expand",
+                    "in": "query",
+                    "schema": {
+                      "type": "boolean"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "The event"
+                  }
+                }
+              },
+              "delete": {
+                "operationId": "deleteEvent",
+                "summary": "Delete an event",
+                "deprecated": true,
+                "responses": {
+                  "204": {
+                    "description": "Deleted"
+                  }
+                }
+              },
+              "x-internal": true
+            },
+            "/api/events/v1/broken": "not an object"
+          },
+          "components": {
+            "schemas": {
+              "Event": {
+                "type": "object",
+                "description": "A scheduled widget event.",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              },
+              "EventList": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://hub.arcgis.com/api/feed/definition/swagger-ui-init.js",
+      "response": {
+        "contentType": "application/javascript",
+        "bodyFile": "swagger-ui-init.js"
+      }
+    },
+    {
+      "url": "https://sitescan-api.arcgis.com/api/v2/apidocs.json",
+      "response": {
+        "json": {
+          "openapi": "3.1.0",
+          "info": {
+            "title": "Widget Scan API",
+            "version": "2.0.0"
+          },
+          "paths": {
+            "/api/v2/projects": {
+              "get": {
+                "summary": "List Projects",
+                "tags": [
+                  "Projects"
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Projects"
+                  }
+                }
+              },
+              "post": {
+                "summary": "List Projects",
+                "tags": [
+                  "Projects"
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Same summary on purpose"
+                  }
+                }
+              }
+            },
+            "/api/v2/missions/{id}": {
+              "get": {
+                "tags": [
+                  "Missions"
+                ],
+                "responses": {
+                  "200": {
+                    "description": "No summary and no id"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

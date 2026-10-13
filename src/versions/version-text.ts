@@ -65,13 +65,35 @@ export function belongsToLine(version: string, line: VersionLine): boolean {
 /** How a URL slug spells a version: separated (`300-1`, `2-4-0`, `1.20`) or run together (`244`). */
 export type SlugStyle = 'auto' | 'compact';
 
+/** `244` is 2.4.4 and `100` is 1.0.0: one digit each for major and minor, the rest is the patch. */
+function fromCompactDigits(digits: string): string {
+  return `${digits.charAt(0)}.${digits.charAt(1)}.${Number(digits.slice(2))}`;
+}
+
+const DATED = /^(?:19|20)\d{2}-\d{2}(?:-\d{2})?$/;
+
+/**
+ * A version as a URL slug writes it, in dotted form: `300-1` gives `300.1`, a run of three
+ * or more digits is read as compact (`244` gives `2.4.4`), a date-named release
+ * (`2026-07-21`) and anything already dotted stay as written.
+ */
+export function versionFromSlugText(text: string): string {
+  const value = text.trim();
+  if (DATED.test(value)) return value;
+  if (/^\d{3,}$/.test(value)) return fromCompactDigits(value);
+  return value.replaceAll('-', '.');
+}
+
+/** The release date of a version that is named after its date (`2026-07-21`, `2026-07`). */
+export function dateOfVersion(version: string): string | undefined {
+  return DATED.test(version) ? version : undefined;
+}
+
 function versionInSegment(segment: string, style: SlugStyle): string | undefined {
   const name = segment.replace(/\.(?:html?|md)$/i, '');
   if (style === 'compact') {
     const digits = /(\d{3,})$/.exec(name)?.[1];
-    if (digits === undefined) return undefined;
-    // `244` is 2.4.4 and `100` is 1.0.0: one digit each for major and minor, the rest is the patch.
-    return `${digits.charAt(0)}.${digits.charAt(1)}.${Number(digits.slice(2))}`;
+    return digits === undefined ? undefined : fromCompactDigits(digits);
   }
   const date = /(?:^|[^\d])((?:19|20)\d{2}-\d{2}(?:-\d{2})?)$/.exec(name)?.[1];
   if (date !== undefined) return date;

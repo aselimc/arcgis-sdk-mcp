@@ -56,7 +56,7 @@ function repoProbe(repo: string): SourceDef['probe'] {
   return {
     url: `https://api.github.com/repos/${repo}`,
     expect: 'json',
-    mustContain: 'default_branch',
+    mustContain: 'full_name',
   };
 }
 
@@ -468,7 +468,10 @@ const hubDev: Product = {
           'https://hub.arcgis.com/api/events/v1/docs-json',
           'https://hub.arcgis.com/api/discussions/v2/docs-json',
           'https://hub.arcgis.com/api/newsletters/v1/docs-json',
-          { url: 'https://hub.arcgis.com/api/search/definition/swagger-ui-init.js', embedded: true },
+          {
+            url: 'https://hub.arcgis.com/api/search/definition/swagger-ui-init.js',
+            embedded: true,
+          },
           { url: 'https://hub.arcgis.com/api/feed/definition/swagger-ui-init.js', embedded: true },
         ],
       },
@@ -609,7 +612,7 @@ const workflowManagerDev: Product = {
   repos: [apacheRepo('Esri/workflowmanager-samples', 'samples', 'master')],
   workspaceSignals: [
     {
-      files: ['**/package.json'],
+      files: ['package.json'],
       pattern: '"@arcgis/workflow-manager"\\s*:\\s*"[~^]?([0-9][^"]*)"',
       versionGroup: 1,
     },
@@ -633,9 +636,7 @@ const workflowManagerDev: Product = {
       pagesApprox: 211,
       probe: { ...sitemapProbe('/workflow-manager/', 211), family: 'gatsby' },
     },
-    markdownRepo('samples', 'Workflow Manager samples', 'Esri/workflowmanager-samples', [
-      'sample',
-    ]),
+    markdownRepo('samples', 'Workflow Manager samples', 'Esri/workflowmanager-samples', ['sample']),
   ],
   oracles: [
     {
@@ -671,7 +672,16 @@ const survey123Dev: Product = {
   aliases: ['survey123-api', 'survey123-web-app-api', 'survey123-developer'],
   summary:
     'Embedding and automating ArcGIS Survey123: the web app JavaScript API, the report REST API, URL parameters, webhooks and Python tools.',
-  keywords: ['survey', 'form', 'xlsform', 'web form', 'embed', 'report', 'webhook', 'feature report'],
+  keywords: [
+    'survey',
+    'form',
+    'xlsform',
+    'web form',
+    'embed',
+    'report',
+    'webhook',
+    'feature report',
+  ],
   languages: ['javascript', 'python', 'rest'],
   homepage: `${D}/survey123/`,
   repos: [
@@ -690,9 +700,12 @@ const survey123Dev: Product = {
       pagesApprox: 26,
       probe: { ...sitemapProbe('/survey123/', 26), family: 'gatsby' },
     },
-    markdownRepo('tools', 'Survey123 tools (Python notebooks and scripts)', 'Esri/Survey123-tools', [
-      'sample',
-    ]),
+    markdownRepo(
+      'tools',
+      'Survey123 tools (Python notebooks and scripts)',
+      'Esri/Survey123-tools',
+      ['sample'],
+    ),
     markdownRepo('webhooks', 'Webhook samples', 'Esri/webhooks-samples', ['sample']),
   ],
   esearch: { index: DEVELOPERS_INDEX, products: ['survey123'] },

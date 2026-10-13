@@ -1,0 +1,257 @@
+{
+  "name": "gatsby .NET reference: apiRef body, nav tree in a static query",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/server-sdk/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://developers.arcgis.com/server-sdk/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/server-sdk/guide/extend-a-service/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/server-sdk/api-reference/net/Carto_library/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/server-sdk/api-reference/net/ICenterPoint/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/server-sdk/api-reference/net/IScaleRange/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/server-sdk/api-reference/net/CenterPointClass/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/server-sdk/api-reference/net/esriGadgetType/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n</urlset>\n"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/server-sdk/page-data/index/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "Server SDK"
+              },
+              "nav": {
+                "nav": {
+                  "title": "Server SDK",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "Overview",
+                      "url": "/",
+                      "type": "page",
+                      "id": "NavigationYaml-Overview"
+                    },
+                    {
+                      "title": "Guide",
+                      "children": [
+                        {
+                          "title": "Extend a service",
+                          "url": "/guide/extend-a-service/",
+                          "type": "page",
+                          "id": "NavigationYaml-Extend a service"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Guide"
+                    }
+                  ]
+                }
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/server-sdk/page-data/sq/d/1000000001.json",
+      "response": {
+        "json": {
+          "data": {
+            "siteConfig": {
+              "raw": {
+                "buildMode": "default"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/server-sdk/page-data/sq/d/1000000002.json",
+      "response": {
+        "json": {
+          "data": {
+            "topNavData": {
+              "links": [
+                {
+                  "label": "Documentation",
+                  "url": "/DEVSITE/documentation/"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/server-sdk/page-data/sq/d/1000000003.json",
+      "response": {
+        "json": {
+          "data": {
+            "siteConfig": {
+              "raw": {
+                "siteId": "synthetic",
+                "redirects": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/server-sdk/page-data/api-reference/net/ICenterPoint/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/api-reference/net/ICenterPoint/",
+          "result": {
+            "data": {
+              "apiRef": {
+                "title": "ICenterPoint",
+                "tocData": "{\"items\":[]}",
+                "id": "x1",
+                "html": "<p>Describes the centre of an extent.</p><h2 id=\"members\">Members<a href=\"#members\" class=\"anchor-link\"></a></h2><table><tr><th>Name</th><th>Description</th></tr><tr><td>X</td><td>The x coordinate.</td></tr></table>"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003",
+            "5000000005"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/server-sdk/page-data/api-reference/net/IScaleRange/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/api-reference/net/IScaleRange/",
+          "result": {
+            "data": {
+              "apiRef": {
+                "title": "IScaleRange",
+                "html": "<p>Limits the scales a layer draws at.</p>"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003",
+            "5000000005"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/server-sdk/page-data/sq/d/5000000005.json",
+      "response": {
+        "json": {
+          "data": {
+            "nav": {
+              "nav": {
+                "url": "/api-reference/net/reference/",
+                "title": "Server SDK Namespaces",
+                "children": [
+                  {
+                    "title": "EXAMPLE.Server.Carto",
+                    "url": "/api-reference/net/Carto_library/",
+                    "children": [
+                      {
+                        "title": "Interfaces",
+                        "children": [
+                          {
+                            "title": "ICenterPoint",
+                            "url": "/api-reference/net/ICenterPoint/",
+                            "type": "page",
+                            "id": "NavigationYaml-ICenterPoint"
+                          },
+                          {
+                            "title": "IScaleRange",
+                            "url": "/api-reference/net/IScaleRange/",
+                            "type": "page",
+                            "id": "NavigationYaml-IScaleRange"
+                          }
+                        ]
+                      },
+                      {
+                        "title": "Classes",
+                        "children": [
+                          {
+                            "title": "CenterPointClass",
+                            "url": "/api-reference/net/CenterPointClass/",
+                            "type": "page",
+                            "id": "NavigationYaml-CenterPointClass"
+                          }
+                        ]
+                      },
+                      {
+                        "title": "Enumerations",
+                        "children": [
+                          {
+                            "title": "esriGadgetType",
+                            "url": "/api-reference/net/esriGadgetType/",
+                            "type": "page",
+                            "id": "NavigationYaml-esriGadgetType"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/server-sdk/page-data/guide/extend-a-service/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/guide/extend-a-service/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "Extend a service"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/server-sdk/guide/extend-a-service/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Extend a service</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Extend a service</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Write an extension and deploy it.</p></div></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/server-sdk/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Server SDK</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Server SDK</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Extend services with your own code.</p></div></main></body></html>"
+      }
+    }
+  ]
+}

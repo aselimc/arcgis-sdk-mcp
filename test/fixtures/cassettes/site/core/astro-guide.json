@@ -1,0 +1,106 @@
+{
+  "name": "astro guide source: sitemap, guide index, two sample indexes, two pages (synthetic)",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/widgets/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "bodyFile": "astro-sitemap.xml",
+        "etag": "W/\"sitemap-1\""
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/__starship-mdx/search/mdxPages.json",
+      "response": {
+        "json": {
+          "options": {
+            "fields": [
+              "title",
+              "keywords"
+            ],
+            "storeFields": [
+              "title",
+              "url",
+              "description",
+              "image",
+              "breadcrumb",
+              "boost",
+              "pageType"
+            ],
+            "searchOptions": {
+              "prefix": true,
+              "fuzzy": true
+            }
+          },
+          "index": "{\"documentCount\":6,\"nextId\":6,\"documentIds\":{\"0\":\"synthetic::0\",\"1\":\"synthetic::1\",\"2\":\"synthetic::2\",\"3\":\"synthetic::3\",\"4\":\"synthetic::4\",\"5\":\"synthetic::5\"},\"fieldIds\":{\"title\":0,\"keywords\":1},\"fieldLength\":{},\"averageFieldLength\":[],\"storedFields\":{\"0\":{\"title\":\"Get started\",\"url\":\"/get-started/\",\"description\":\"Install the package and place a first widget.\",\"breadcrumb\":\"Introduction\",\"boost\":2},\"1\":{\"title\":\"Feature layers\",\"url\":\"/layers/feature-layers/\",\"description\":\"Show vector data on a canvas widget.\",\"breadcrumb\":\"Layers>Vector layers\"},\"2\":{\"title\":\"Build your first map\",\"url\":\"/tutorials/first-map/\",\"description\":\"A step-by-step tutorial.\",\"breadcrumb\":\"Tutorials\"},\"3\":{\"title\":\"Legacy map class\",\"url\":\"/api-reference/legacy-Map.html\"},\"4\":{\"title\":\"Offline maps\",\"url\":\"/offline/maps/\",\"description\":\"Take widgets offline.\"},\"5\":{\"description\":\"An entry without title and url is skipped.\"}},\"dirtCount\":0,\"index\":[],\"serializationVersion\":2}"
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/sample-code-search.json",
+      "response": {
+        "json": {
+          "options": {
+            "fields": [
+              "title",
+              "keywords"
+            ],
+            "storeFields": [
+              "title",
+              "url",
+              "description",
+              "image",
+              "breadcrumb",
+              "boost",
+              "pageType"
+            ],
+            "searchOptions": {
+              "prefix": true,
+              "fuzzy": true
+            }
+          },
+          "index": "{\"documentCount\":2,\"nextId\":2,\"documentIds\":{\"0\":\"synthetic::0\",\"1\":\"synthetic::1\"},\"fieldIds\":{\"title\":0,\"keywords\":1},\"fieldLength\":{},\"averageFieldLength\":[],\"storedFields\":{\"0\":{\"title\":\"Draw a circle\",\"url\":\"sample-code/draw-circle\",\"description\":\"Draw one circle on a canvas widget.\",\"image\":\"/widgets/_astro/draw-circle.png\",\"breadcrumb\":\"Graphics\"},\"1\":{\"title\":\"Add a tile layer\",\"url\":\"sample-code/add-tile-layer\",\"description\":\"Add a layer of image tiles.\",\"breadcrumb\":\"Layers\"}},\"dirtCount\":0,\"index\":[],\"serializationVersion\":2}"
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/sample-code-wpf-search.json",
+      "response": {
+        "json": {
+          "options": {
+            "fields": [
+              "title",
+              "keywords"
+            ],
+            "storeFields": [
+              "title",
+              "url",
+              "description",
+              "image",
+              "breadcrumb",
+              "boost",
+              "pageType"
+            ],
+            "searchOptions": {
+              "prefix": true,
+              "fuzzy": true
+            }
+          },
+          "index": "{\"documentCount\":1,\"nextId\":1,\"documentIds\":{\"0\":\"synthetic::0\"},\"fieldIds\":{\"title\":0,\"keywords\":1},\"fieldLength\":{},\"averageFieldLength\":[],\"storedFields\":{\"0\":{\"title\":\"Draw a circle\",\"url\":\"wpf/sample-code/draw-circle\",\"description\":\"Draw one circle on a canvas widget (desktop).\",\"breadcrumb\":\"Graphics\"}},\"dirtCount\":0,\"index\":[],\"serializationVersion\":2}"
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/get-started/",
+      "response": {
+        "bodyFile": "page.html"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/sample-code/draw-circle/",
+      "response": {
+        "bodyFile": "sample-page.html"
+      }
+    }
+  ]
+}

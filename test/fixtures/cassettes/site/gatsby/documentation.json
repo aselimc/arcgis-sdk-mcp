@@ -1,0 +1,364 @@
+{
+  "name": "gatsby developer guide: per-section nav and store, glossary static query",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/documentation/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://developers.arcgis.com/documentation/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/mapping/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/mapping/basemaps/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/mapping/layers/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/mapping/styles/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/mapping/tutorial-first-map/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/security/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/security/api-keys/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/security/oauth/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/security/tokens/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/glossary/feature-subtype/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/glossary/basemap/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/documentation/glossary/token/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n</urlset>\n"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/page-data/index/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/",
+          "result": {
+            "data": {
+              "pagesYaml": {
+                "documentationPageConfig": [
+                  {
+                    "title": "Guides",
+                    "items": []
+                  }
+                ]
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003",
+            "4000000004"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/page-data/sq/d/1000000001.json",
+      "response": {
+        "json": {
+          "data": {
+            "siteConfig": {
+              "raw": {
+                "buildMode": "default"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/page-data/sq/d/1000000002.json",
+      "response": {
+        "json": {
+          "data": {
+            "topNavData": {
+              "links": [
+                {
+                  "label": "Documentation",
+                  "url": "/DEVSITE/documentation/"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/page-data/sq/d/1000000003.json",
+      "response": {
+        "json": {
+          "data": {
+            "siteConfig": {
+              "raw": {
+                "siteId": "synthetic",
+                "redirects": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/page-data/sq/d/4000000004.json",
+      "response": {
+        "json": {
+          "data": {
+            "glossaryData": {
+              "terms": [
+                {
+                  "uid": "glossary-feature-subtype",
+                  "url": "/DEVSITE/documentation/glossary/feature-subtype/",
+                  "shortDef": "<p>A <strong>feature subtype</strong> groups the rows of one table.</p>",
+                  "name": "feature subtype",
+                  "aliases": [
+                    "subtype"
+                  ]
+                },
+                {
+                  "uid": "glossary-basemap",
+                  "url": "/DEVSITE/documentation/glossary/basemap/",
+                  "shortDef": "<p>The background layer of a map.</p>",
+                  "name": "basemap",
+                  "aliases": []
+                },
+                {
+                  "uid": "glossary-token",
+                  "url": "/DEVSITE/documentation/glossary/token/",
+                  "shortDef": "<p>A string that proves who is asking.</p>",
+                  "name": "token",
+                  "aliases": [
+                    "access token"
+                  ]
+                },
+                {
+                  "uid": "glossary-broken",
+                  "shortDef": "<p>No URL and no name.</p>"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/page-data/mapping/layers/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/mapping/layers/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "A page",
+                "url": "/mapping/layers/"
+              },
+              "topics": {
+                "nav": {
+                  "title": "Mapping",
+                  "type": "root",
+                  "id": "NavigationYaml-mapping",
+                  "children": [
+                    {
+                      "title": "Introduction",
+                      "url": "/mapping/",
+                      "type": "page",
+                      "id": "NavigationYaml-Introduction"
+                    },
+                    {
+                      "title": "Basemaps",
+                      "url": "/mapping/basemaps/",
+                      "type": "page",
+                      "id": "NavigationYaml-Basemaps"
+                    },
+                    {
+                      "title": "Layers",
+                      "url": "/mapping/layers/",
+                      "type": "page",
+                      "id": "NavigationYaml-Layers"
+                    },
+                    {
+                      "title": "Styles",
+                      "url": "/mapping/styles/",
+                      "type": "page",
+                      "id": "NavigationYaml-Styles"
+                    },
+                    {
+                      "title": "Make a first map",
+                      "url": "/mapping/tutorial-first-map/",
+                      "type": "page",
+                      "id": "NavigationYaml-Make a first map"
+                    }
+                  ]
+                }
+              },
+              "search": {
+                "publicStoreURL": "/documentation/static/5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a.store.json",
+                "publicIndexURL": "/documentation/static/5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/static/5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a.store.json",
+      "response": {
+        "json": [
+          {
+            "id": "mapping-0",
+            "title": "Mapping introduction",
+            "description": "Start of Mapping.",
+            "keywords": [],
+            "url": "/mapping/",
+            "pageType": "Topic",
+            "breadcrumb": "Mapping"
+          },
+          {
+            "id": "mapping-1",
+            "title": "Basemaps",
+            "description": "About basemaps.",
+            "keywords": [],
+            "url": "/mapping/basemaps/",
+            "pageType": "Topic",
+            "breadcrumb": "Mapping"
+          },
+          {
+            "id": "mapping-2",
+            "title": "Layers",
+            "description": "About layers.",
+            "keywords": [],
+            "url": "/mapping/layers/",
+            "pageType": "Topic",
+            "breadcrumb": "Mapping"
+          },
+          {
+            "id": "mapping-3",
+            "title": "Styles",
+            "description": "About styles.",
+            "keywords": [],
+            "url": "/mapping/styles/",
+            "pageType": "Topic",
+            "breadcrumb": "Mapping"
+          },
+          {
+            "id": "mapping-4",
+            "title": "Make a first map",
+            "description": "About make a first map.",
+            "keywords": [],
+            "url": "/mapping/tutorial-first-map/",
+            "pageType": "Tutorial",
+            "breadcrumb": "Mapping"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/page-data/security/oauth/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/security/oauth/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "A page",
+                "url": "/security/oauth/"
+              },
+              "topics": {
+                "nav": {
+                  "title": "Security",
+                  "type": "root",
+                  "id": "NavigationYaml-security",
+                  "children": [
+                    {
+                      "title": "Introduction",
+                      "url": "/security/",
+                      "type": "page",
+                      "id": "NavigationYaml-Introduction"
+                    },
+                    {
+                      "title": "API keys",
+                      "url": "/security/api-keys/",
+                      "type": "page",
+                      "id": "NavigationYaml-API keys"
+                    },
+                    {
+                      "title": "OAuth",
+                      "url": "/security/oauth/",
+                      "type": "page",
+                      "id": "NavigationYaml-OAuth"
+                    },
+                    {
+                      "title": "Tokens",
+                      "url": "/security/tokens/",
+                      "type": "page",
+                      "id": "NavigationYaml-Tokens"
+                    }
+                  ]
+                }
+              },
+              "search": {
+                "publicStoreURL": "/documentation/static/6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b.store.json",
+                "publicIndexURL": "/documentation/static/6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/static/6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b.store.json",
+      "response": {
+        "json": [
+          {
+            "id": "security-0",
+            "title": "Security introduction",
+            "description": "Start of Security.",
+            "keywords": [],
+            "url": "/security/",
+            "pageType": "Topic",
+            "breadcrumb": "Security"
+          },
+          {
+            "id": "security-1",
+            "title": "API keys",
+            "description": "About api keys.",
+            "keywords": [],
+            "url": "/security/api-keys/",
+            "pageType": "Topic",
+            "breadcrumb": "Security"
+          },
+          {
+            "id": "security-2",
+            "title": "OAuth",
+            "description": "About oauth.",
+            "keywords": [],
+            "url": "/security/oauth/",
+            "pageType": "Topic",
+            "breadcrumb": "Security"
+          },
+          {
+            "id": "security-3",
+            "title": "Tokens",
+            "description": "About tokens.",
+            "keywords": [],
+            "url": "/security/tokens/",
+            "pageType": "Topic",
+            "breadcrumb": "Security"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/mapping/layers/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Layers</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Layers</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>A layer draws one kind of data.</p></div></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/documentation/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Documentation</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Documentation</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Guides for every product.</p></div></main></body></html>"
+      }
+    }
+  ]
+}

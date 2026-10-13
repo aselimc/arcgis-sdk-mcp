@@ -18,10 +18,14 @@ export interface PassCounters {
 export interface PassEnv {
   /** Page URL without fragment; relative links resolve against it. */
   url: string;
+  /** The page title, as the pipeline will write it in the opening heading. */
+  title: string;
   /** Astro tutorials: keep only the lines each step shows expanded. */
   focusedCode: boolean;
   /** Fence language for code blocks that do not name one. Empty for none. */
   defaultLanguage: string;
+  /** API pages: keep the introduction and the member index, drop the member bodies. */
+  overview: boolean;
   counters: PassCounters;
 }
 
@@ -39,13 +43,8 @@ export interface OutlineNode {
   title: string;
   level: number;
   el: Element;
-}
-
-/** Which part of a page to cut out before cleaning. Exactly one field is set. */
-export interface SliceTarget {
-  section?: OutlineNode;
-  /** A `MemberEntry.id`. */
-  member?: string;
+  /** A second id the section answers to. */
+  alias?: string;
 }
 
 /** Everything a profile needs to look at the original (uncleaned) page. */
@@ -59,8 +58,8 @@ export interface PageView {
 
 /**
  * The rules of one page family. `root`, `title`, `outline`, `members`, `header`, `files` and
- * `slice` read the original page; `prepare` and `clean` run on the working document, before
- * and after the shared passes.
+ * `sliceMember` read the original page; `prepare` and `clean` run on the working document,
+ * before and after the shared passes.
  */
 export interface FamilyProfile {
   readonly id: HtmlFamily;
@@ -71,8 +70,11 @@ export interface FamilyProfile {
   title($: CheerioAPI): string;
   /** Stamps section ids on the headings (see `outline.ts`) and returns them in document order. */
   outline(page: PageView): OutlineNode[];
-  /** The nodes of one section or member, or `undefined` when the family cannot cut it out. */
-  slice(page: PageView, target: SliceTarget): AnyNode[] | undefined;
+  /**
+   * The nodes of one member, or `undefined` when members are not documented on the page.
+   * Sections are cut by `sliceByHeading` for every family.
+   */
+  sliceMember?(page: PageView, id: string): AnyNode[] | undefined;
   /** Every member documented or listed on an API page. */
   members?(page: PageView): MemberEntry[];
   /** Detaches and returns the metadata block that is shown before the body. */

@@ -1,0 +1,307 @@
+{
+  "name": "gatsby Sphinx reference and notebook guide: site prefix above the source base",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/api-reference/sitemap-0.xml",
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://developers.arcgis.com/pylib/latest/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/pylib/latest/guide/install/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/pylib/latest/guide/first-notebook/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/pylib/latest/api-reference/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/pylib/latest/api-reference/pylib.gis.toc.html</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/pylib/latest/api-reference/pylib.geocoding.html</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/pylib/latest/api-reference/pylib.features.html</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n</urlset>\n"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/api-reference/page-data/index/page-data.json",
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/page-data/index/page-data.json",
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/api-reference/page-data/pylib.geocoding.html/page-data.json",
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/page-data/api-reference/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-pages-api-reference-tsx",
+          "path": "/api-reference/",
+          "result": {
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/page-data/sq/d/1000000001.json",
+      "response": {
+        "json": {
+          "data": {
+            "siteConfig": {
+              "raw": {
+                "buildMode": "default"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/page-data/sq/d/1000000002.json",
+      "response": {
+        "json": {
+          "data": {
+            "topNavData": {
+              "links": [
+                {
+                  "label": "Documentation",
+                  "url": "/DEVSITE/documentation/"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/page-data/sq/d/1000000003.json",
+      "response": {
+        "json": {
+          "data": {
+            "siteConfig": {
+              "raw": {
+                "siteId": "synthetic",
+                "redirects": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/page-data/api-reference/pylib.geocoding.html/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/api-reference/pylib.geocoding.html",
+          "result": {
+            "data": {
+              "sphinxJson": {
+                "html": "<html><head></head><body><section id=\"module-pylib.geocoding\"><p>Functions that turn text into places.</p><section id=\"geocode\"><h2>geocode</h2><dl class=\"py function\"><dt class=\"sig sig-object py\" id=\"pylib.geocoding.geocode\"><span class=\"sig-name descname\">geocode</span>(address)</dt><dd><p>Finds the place an address names.</p></dd></dl></section></section></body></html>",
+                "title": "pylib.geocoding module"
+              },
+              "nav": {
+                "nav": {
+                  "title": "API Reference",
+                  "type": "root",
+                  "publicPaginationURL": "/pylib/latest/static/e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2.pagination.json",
+                  "children": [
+                    {
+                      "level": 1,
+                      "title": "pylib.gis module",
+                      "url": "/api-reference/pylib.gis.toc.html",
+                      "children": [],
+                      "type": "page"
+                    },
+                    {
+                      "level": 1,
+                      "title": "pylib.geocoding module",
+                      "url": "/api-reference/pylib.geocoding.html",
+                      "children": [],
+                      "type": "page"
+                    },
+                    {
+                      "level": 1,
+                      "title": "pylib.features module",
+                      "url": "/api-reference/pylib.features.html",
+                      "children": [],
+                      "type": "page"
+                    }
+                  ]
+                },
+                "error": null
+              },
+              "search": {
+                "publicStoreURL": "/pylib/latest/static/f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3.store.json",
+                "publicIndexURL": "/pylib/latest/static/f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/static/f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3.store.json",
+      "response": {
+        "json": [
+          {
+            "title": "geocode",
+            "url": "/api-reference/pylib.geocoding.html#geocode",
+            "breadcrumb": "pylib.geocoding module",
+            "pageType": " "
+          },
+          {
+            "title": "GIS",
+            "url": "/api-reference/pylib.gis.toc.html#gis",
+            "breadcrumb": "pylib.gis module",
+            "pageType": " "
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/static/e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2.pagination.json",
+      "response": {
+        "json": [
+          {
+            "title": "pylib.gis module",
+            "url": "/pylib/latest/api-reference/pylib.gis.toc.html"
+          },
+          {
+            "title": "GIS",
+            "url": "/pylib/latest/api-reference/pylib.gis.toc.html#gis",
+            "section": "pylib.gis module"
+          },
+          {
+            "title": "GIS",
+            "url": "/pylib/latest/api-reference/pylib.gis.toc.html#pylib.gis.GIS",
+            "section": "GIS"
+          },
+          {
+            "title": "GIS.admin",
+            "url": "/pylib/latest/api-reference/pylib.gis.toc.html#pylib.gis.GIS.admin",
+            "section": "GIS"
+          },
+          {
+            "title": "GIS.map()",
+            "url": "/pylib/latest/api-reference/pylib.gis.toc.html#pylib.gis.GIS.map",
+            "section": "GIS"
+          },
+          {
+            "title": "pylib.geocoding module",
+            "url": "/pylib/latest/api-reference/pylib.geocoding.html"
+          },
+          {
+            "title": "geocode",
+            "url": "/pylib/latest/api-reference/pylib.geocoding.html#geocode",
+            "section": "pylib.geocoding module"
+          },
+          {
+            "title": "Usage notes",
+            "url": "/pylib/latest/api-reference/pylib.geocoding.html#usage-notes",
+            "section": "pylib.geocoding module"
+          },
+          {
+            "title": "pylib.features module",
+            "url": "/pylib/latest/api-reference/pylib.features.html"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/page-data/guide/first-notebook/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/guide/first-notebook/",
+          "result": {
+            "data": {
+              "jupyterNotebook": {
+                "title": "A first notebook",
+                "html": "<div class=\"cell\"><p>Connect and list what you own.</p><pre><code>gis = connect()</code></pre></div>",
+                "toc": []
+              },
+              "nav": {
+                "nav": {
+                  "title": "Guide",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "Install",
+                      "url": "/guide/install/",
+                      "type": "page",
+                      "id": "NavigationYaml-Install"
+                    },
+                    {
+                      "title": "A first notebook",
+                      "url": "/guide/first-notebook/",
+                      "type": "page",
+                      "id": "NavigationYaml-A first notebook"
+                    }
+                  ]
+                }
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/page-data/guide/install/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/guide/install/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "Install"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/guide/install/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Install</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Install</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Install the library with your package manager.</p></div></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/pylib/latest/api-reference/pylib.geocoding.html",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>pylib.geocoding module</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">pylib.geocoding module</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Functions that turn text into places.</p></div></main></body></html>"
+      }
+    }
+  ]
+}

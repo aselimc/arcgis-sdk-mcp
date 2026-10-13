@@ -1,0 +1,151 @@
+{
+  "name": "gatsby game-engine site: store lists API types and members",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/engine/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://developers.arcgis.com/engine/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/engine/maps/camera/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/engine/api-reference/core/geometry/envelopebuilder/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/engine/sample-code/Routing/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n</urlset>\n"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/engine/page-data/index/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "Engine SDK"
+              },
+              "nav": {
+                "nav": {
+                  "title": "Engine SDK",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "Overview",
+                      "url": "/",
+                      "type": "page",
+                      "id": "NavigationYaml-Overview"
+                    },
+                    {
+                      "title": "Maps",
+                      "children": [
+                        {
+                          "title": "Camera",
+                          "url": "/maps/camera/",
+                          "type": "page",
+                          "id": "NavigationYaml-Camera"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Maps"
+                    }
+                  ]
+                }
+              },
+              "search": {
+                "publicStoreURL": "/engine/static/abababababababababababababababab.store.json",
+                "publicIndexURL": "/engine/static/abababababababababababababababab.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/engine/static/abababababababababababababababab.store.json",
+      "response": {
+        "json": [
+          {
+            "title": "Engine SDK",
+            "description": "Maps inside a game engine.",
+            "url": "/",
+            "pageType": "Topic"
+          },
+          {
+            "title": "Camera",
+            "description": "Move the camera.",
+            "url": "/maps/camera/",
+            "pageType": "Topic",
+            "breadcrumb": "Maps"
+          },
+          {
+            "title": "EnvelopeBuilder",
+            "description": "Builds envelopes.",
+            "url": "/api-reference/core/geometry/envelopebuilder/",
+            "pageType": "Class",
+            "breadcrumb": "Core > Geometry > EnvelopeBuilder"
+          },
+          {
+            "title": "changeAspectRatio",
+            "description": "EnvelopeBuilder.changeAspectRatio",
+            "url": "/api-reference/core/geometry/envelopebuilder/#changeaspectratio",
+            "pageType": "Method",
+            "breadcrumb": "Core > Geometry > EnvelopeBuilder > changeAspectRatio"
+          },
+          {
+            "title": "width",
+            "description": "EnvelopeBuilder.width",
+            "url": "/api-reference/core/geometry/envelopebuilder/#width",
+            "pageType": "Property"
+          },
+          {
+            "title": "Notes",
+            "url": "/maps/camera/#notes"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/engine/page-data/maps/camera/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/maps/camera/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "Camera"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/engine/maps/camera/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Camera</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Camera</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Move the camera with a component.</p></div></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/engine/api-reference/core/geometry/envelopebuilder/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>EnvelopeBuilder</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">EnvelopeBuilder</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Builds envelopes.</p><h3 id=\"changeaspectratio\">changeAspectRatio</h3><p>Changes the ratio.</p></div></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/engine/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Engine SDK</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Engine SDK</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Maps inside a game engine.</p></div></main></body></html>"
+      }
+    }
+  ]
+}

@@ -12,37 +12,34 @@ sources:
 
 # Choosing an ArcGIS authentication type
 
-Every request to a secure ArcGIS resource carries an access token. ArcGIS has three ways to obtain one ([types of authentication](https://developers.arcgis.com/documentation/security-and-authentication/types-of-authentication/)). Pick by answering one question first: does the end user sign in with an ArcGIS account?
+Every request to a secure ArcGIS resource carries an access token, and there are three ways to get one ([types of authentication](https://developers.arcgis.com/documentation/security-and-authentication/types-of-authentication/)). First question: does the end user sign in with an ArcGIS account?
 
-## Decision table
-
-| Situation | Use | Why |
-| --- | --- | --- |
-| Public app, nobody signs in, only location services and public or your own items | API key authentication | simplest; the key is embedded in the app |
-| Users sign in and work with their own or their organization's content | User authentication (OAuth 2.0) | acts on the user's behalf with the user's privileges |
-| A web server or script acts for the app, no user sign-in | App authentication (OAuth 2.0 client credentials) | short-lived tokens; the secret stays on the server |
+| Situation                                                                           | Use                                                 |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Public app without sign-in that uses location services and public or your own items | API key authentication                              |
+| Users sign in and work with their own or their organization's content               | User authentication (OAuth 2.0)                     |
+| A web server or script acts for the app, without user sign-in                       | App authentication (OAuth 2.0 client id and secret) |
 
 ## API key authentication
 
-- A long-lived access token created from API key credentials, valid for up to one year, limited to the privileges and items selected on the credential ([introduction](https://developers.arcgis.com/documentation/security-and-authentication/api-key-authentication/)).
-- Esri recommends it only for public information and basic location services. It does not protect confidential data: for private items or sensitive hosted data use one of the other two types.
-- Usage is billed to the developer account that owns the key.
+- A long-lived token created from API key credentials, valid for up to one year and limited to the privileges and items selected on the credential ([introduction](https://developers.arcgis.com/documentation/security-and-authentication/api-key-authentication/)).
+- Recommended by Esri only for public information and basic location services. It does not protect confidential data.
+- Usage is billed to the subscription of the developer who created the key.
+- Set allowed referrers and monitor usage ([best practices](https://developers.arcgis.com/documentation/security-and-authentication/security-best-practices/)).
 
 ## User authentication
 
-- Users sign in with an ArcGIS account; the app receives a token through an OAuth 2.0 flow, normally authorization code ([introduction](https://developers.arcgis.com/documentation/security-and-authentication/user-authentication/)). Older material calls this named user login or ArcGIS identity.
-- What the app can do depends on the user's type, role and privileges, and service usage is billed to the user's account.
-- Needs OAuth credentials (client id and redirect URLs) registered in the portal.
+- The user signs in and the app receives a token through an OAuth 2.0 flow, normally authorization code ([introduction](https://developers.arcgis.com/documentation/security-and-authentication/user-authentication/)). Older material says "named user login" or "ArcGIS identity".
+- The app can do what the user's type, role and privileges allow; usage is billed to the user's account.
+- Requires OAuth credentials (client id, redirect URLs).
 
 ## App authentication
 
-- Exchanges a client id and client secret for a short-lived token tied to the developer's account ([introduction](https://developers.arcgis.com/documentation/security-and-authentication/app-authentication/)).
-- Belongs on a web server or in a console script. Never ship the client secret in a browser or mobile app, and do not use it where users must sign in.
+- A client id and client secret are exchanged for a short-lived token tied to the developer's account ([introduction](https://developers.arcgis.com/documentation/security-and-authentication/app-authentication/)).
+- For web servers and console scripts. Do not put the secret in a browser or mobile app, and do not use this type where users must sign in.
 
-## Checks before writing code
+## Before writing code
 
-- Which portal issues the token: ArcGIS Location Platform, ArcGIS Online or ArcGIS Enterprise. Credentials are created in that portal and privileges differ between them.
-- Scope a credential to the privileges the app needs and restrict referrers where the portal allows it ([security best practices](https://developers.arcgis.com/documentation/security-and-authentication/security-best-practices/)).
-- Some features dictate the type: the JavaScript AI components require user authentication (`brief:ai/js-ai-components-constraints`).
-
-For the SDK-specific code, search the product's own guide, for example `arcgis_docs_search` with `query: "user authentication"` and the product id; the pages above explain the concepts only.
+- Establish which portal issues the token: ArcGIS Location Platform, ArcGIS Online or ArcGIS Enterprise. The credentials are created there.
+- Some features dictate the type: the JavaScript AI components need user authentication (`brief:ai/js-ai-components-constraints`).
+- These pages explain concepts. For SDK code call `arcgis_docs_search` with a query such as "user authentication" and the product id.

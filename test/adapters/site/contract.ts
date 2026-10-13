@@ -9,7 +9,9 @@ import {
   describeAdapterContract,
   type AdapterContractCase,
 } from '../../support/adapter-contract.js';
+import { FakeHttp, type Cassette, type RecordedResponse } from '../../support/fake-http.js';
 import { fakePolicy } from '../../support/fake-policy.js';
+import { FakeRenderer } from '../../support/fake-render.js';
 import type { TestCtx } from '../../support/make-ctx.js';
 
 /**
@@ -26,7 +28,10 @@ import type { TestCtx } from '../../support/make-ctx.js';
  *   readRef: 'https://developers.arcgis.com/widgets/get-started/',
  *   siteIndexFiles: [/search\.json$/],
  *   failures: {
- *     renamedField: { arrange: (ctx) => ctx.http.on(indexUrl, { json: renamed }), outcome: 'degraded' },
+ *     renamedField: {
+ *       arrange: (ctx) => replaceResponses(ctx, cassette, { [indexUrl]: { json: renamed } }),
+ *       outcome: 'degraded',
+ *     },
  *     missingFile: { arrange: (ctx) => ctx.http.fail(sitemapUrl, 404), outcome: 'typed-failure' },
  *     emptyIndex: { arrange: (ctx) => ctx.http.fail(sitemapUrl, 'empty'), outcome: 'typed-failure' },
  *     htmlInsteadOfJson: { notApplicable: 'the source reads no JSON' },
@@ -50,8 +55,8 @@ export type SiteFailureMode = (typeof SITE_FAILURE_MODES)[number];
 export interface SiteFailureScenario {
   /**
    * Injects the failure into a fresh happy-path context: `ctx.http.fail(url, 404)`,
-   * `ctx.http.fail(url, 'html')`, or `ctx.http.on(url, { json: ... })` on a context whose
-   * cassette does not already record that URL.
+   * `ctx.http.fail(url, 'html')`, or {@link replaceResponses} to answer a recorded URL with a
+   * different body (a renamed field, an index without entries).
    */
   arrange: (ctx: TestCtx) => void;
   /**
@@ -87,6 +92,32 @@ export interface SiteContractCase<A extends AdapterType> extends AdapterContract
    * when the source's capability is `website` or `site-index` and `readRef` is set.
    */
   linkOnlyRead?: boolean;
+}
+
+/**
+ * Gives a context a new HTTP fake over `cassette` in which the listed URLs answer with other
+ * responses. `FakeHttp.on` can only queue a response behind a recorded one, so a scenario
+ * that needs a recorded URL to answer differently from the first request on uses this.
+ */
+export function replaceResponses(
+  ctx: TestCtx,
+  cassette: Cassette,
+  responses: Readonly<Record<string, RecordedResponse>>,
+): void {
+  const kept = cassette.interactions.filter((interaction) => !(interaction.url in responses));
+  const replaced = Object.entries(responses).map(([url, response]) => ({ url, response }));
+  ctx.http = new FakeHttp({ clock: ctx.clock, cassette: { interactions: [...kept, ...replaced] } });
+}
+
+/**
+ * The context's renderer as the fake it is, to script it (`when`, `family`) and to inspect
+ * what an adapter passed in (`calls`). `TestCtx` types it as the port only.
+ */
+export function rendererOf(ctx: TestCtx): FakeRenderer {
+  if (!(ctx.render instanceof FakeRenderer)) {
+    throw new Error('this context was built with a renderer of its own');
+  }
+  return ctx.render;
 }
 
 function boundTo<A extends AdapterType>(c: SiteContractCase<A>): BoundSource<A> {

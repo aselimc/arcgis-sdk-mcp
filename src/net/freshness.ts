@@ -38,7 +38,9 @@ export function freshnessWindow(
   now: number,
 ): Pick<CachedHttpEntry, 'freshUntil' | 'staleUntil'> {
   const freshUntil = now + TTL_MS[ttl];
-  const staleUntil = NEVER_STALE.has(ttl) ? freshUntil : Math.max(freshUntil, now + STALE_IF_ERROR_MS);
+  const staleUntil = NEVER_STALE.has(ttl)
+    ? freshUntil
+    : Math.max(freshUntil, now + STALE_IF_ERROR_MS);
   return { freshUntil, staleUntil };
 }
 

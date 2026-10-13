@@ -3,6 +3,7 @@
  * not proof of a document: catch-all hosts answer any path with an HTML shell, and some
  * serve their "not found" page with status 200.
  */
+import { TextDecoder } from 'node:util';
 import type { HttpRequest } from '../core/ports.js';
 import type { HostPolicy } from '../core/types.js';
 

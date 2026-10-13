@@ -78,7 +78,7 @@ export function unwrap($: CheerioAPI, elements: Cheerio<Element>): void {
  */
 export function replaceWithPre(
   $: CheerioAPI,
-  target: Cheerio<Element>,
+  target: Cheerio<AnyNode>,
   code: string,
   language: string | undefined,
 ): void {
@@ -103,6 +103,11 @@ export function firstSentence(text: string): string {
   const flat = squash(text);
   const match = /^(.{20,240}?[.!?])(?:\s|$)/.exec(flat);
   return (match?.[1] ?? flat.slice(0, 200)).trim();
+}
+
+/** The first value that is neither `undefined` nor empty; empty when there is none. */
+export function firstNonEmpty(...values: Array<string | undefined>): string {
+  return values.find((value) => value !== undefined && value !== '') ?? '';
 }
 
 /** Builds `<tag>` holding `text` (escaped) and returns its HTML. */

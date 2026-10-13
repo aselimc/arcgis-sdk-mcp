@@ -1,0 +1,527 @@
+{
+  "name": "gatsby OpenAPI sections: operations and schemas in page-data, no store",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/services/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://developers.arcgis.com/services/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/services/beacons/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/services/beacons/get-started/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/services/beacons/near-point-get/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/services/beacons/beacon-id-get/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/services/beacons/categories-get/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/services/beacons/types/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n</urlset>\n"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/services/page-data/index/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/",
+          "result": {
+            "data": {
+              "pagesYaml": {
+                "homepageConfig": [
+                  {
+                    "title": "Location services"
+                  }
+                ]
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/services/page-data/sq/d/1000000001.json",
+      "response": {
+        "json": {
+          "data": {
+            "siteConfig": {
+              "raw": {
+                "buildMode": "default"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/services/page-data/sq/d/1000000002.json",
+      "response": {
+        "json": {
+          "data": {
+            "topNavData": {
+              "links": [
+                {
+                  "label": "Documentation",
+                  "url": "/DEVSITE/documentation/"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/services/page-data/sq/d/1000000003.json",
+      "response": {
+        "json": {
+          "data": {
+            "siteConfig": {
+              "raw": {
+                "siteId": "synthetic",
+                "redirects": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/services/page-data/beacons/categories-get/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/beacons/categories-get/",
+          "result": {
+            "data": {
+              "openApiOperationPage": {
+                "title": "/categories",
+                "operation": {
+                  "operationId": "categoriesGet",
+                  "path": "/categories",
+                  "endpoint": "https://example.invalid/beacons-service/v1/beacons/near-point",
+                  "method": "get",
+                  "summary": "Finds beacons around a point.",
+                  "description": "Returns the beacons within a radius of a point.",
+                  "queryParameters": [
+                    {
+                      "in": "query",
+                      "name": "x",
+                      "description": "Longitude.",
+                      "required": true,
+                      "type": "number",
+                      "displayType": "%%[XCoord](/beacons/types/#xcoord)%%"
+                    }
+                  ],
+                  "bodyParameters": [],
+                  "pathParameters": [],
+                  "headerParameters": [],
+                  "examples": [],
+                  "responses": [
+                    {
+                      "status": "200",
+                      "description": "The beacons found.",
+                      "contentType": "application/json",
+                      "type": "object"
+                    }
+                  ]
+                }
+              },
+              "openApiSchemasPage": null,
+              "topics": {
+                "nav": {
+                  "title": "Beacons service",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "Overview",
+                      "url": "/beacons/",
+                      "type": "page",
+                      "id": "NavigationYaml-Overview"
+                    },
+                    {
+                      "title": "Get started",
+                      "url": "/beacons/get-started/",
+                      "type": "page",
+                      "id": "NavigationYaml-Get started"
+                    },
+                    {
+                      "title": "Requests",
+                      "children": [
+                        {
+                          "title": "/beacons",
+                          "children": [
+                            {
+                              "title": "/near-point",
+                              "url": "/beacons/near-point-get/",
+                              "type": "page",
+                              "id": "NavigationYaml-/near-point"
+                            },
+                            {
+                              "title": "/{beaconId}",
+                              "url": "/beacons/beacon-id-get/",
+                              "type": "page",
+                              "id": "NavigationYaml-/{beaconId}"
+                            }
+                          ],
+                          "type": "folder",
+                          "id": "NavigationYaml-/beacons"
+                        },
+                        {
+                          "title": "/categories",
+                          "url": "/beacons/categories-get/",
+                          "type": "page",
+                          "id": "NavigationYaml-/categories"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Requests"
+                    },
+                    {
+                      "title": "Reference",
+                      "children": [
+                        {
+                          "title": "Types",
+                          "url": "/beacons/types/",
+                          "type": "page",
+                          "id": "NavigationYaml-Types"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Reference"
+                    }
+                  ]
+                }
+              },
+              "secondary": {
+                "childRawYaml": {
+                  "raw": {
+                    "title": "Beacons service",
+                    "url": "/beacons/"
+                  }
+                }
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/services/page-data/beacons/near-point-get/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/beacons/near-point-get/",
+          "result": {
+            "data": {
+              "openApiOperationPage": {
+                "title": "/beacons/near-point",
+                "operation": {
+                  "operationId": "nearPointGet",
+                  "path": "/beacons/near-point",
+                  "endpoint": "https://example.invalid/beacons-service/v1/beacons/near-point",
+                  "method": "get",
+                  "summary": "Finds beacons around a point.",
+                  "description": "Returns the beacons within a radius of a point.",
+                  "queryParameters": [
+                    {
+                      "in": "query",
+                      "name": "x",
+                      "description": "Longitude.",
+                      "required": true,
+                      "type": "number",
+                      "displayType": "%%[XCoord](/beacons/types/#xcoord)%%"
+                    }
+                  ],
+                  "bodyParameters": [],
+                  "pathParameters": [],
+                  "headerParameters": [],
+                  "examples": [],
+                  "responses": [
+                    {
+                      "status": "200",
+                      "description": "The beacons found.",
+                      "contentType": "application/json",
+                      "type": "object"
+                    }
+                  ]
+                }
+              },
+              "openApiSchemasPage": null,
+              "topics": {
+                "nav": {
+                  "title": "Beacons service",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "Overview",
+                      "url": "/beacons/",
+                      "type": "page",
+                      "id": "NavigationYaml-Overview"
+                    },
+                    {
+                      "title": "Get started",
+                      "url": "/beacons/get-started/",
+                      "type": "page",
+                      "id": "NavigationYaml-Get started"
+                    },
+                    {
+                      "title": "Requests",
+                      "children": [
+                        {
+                          "title": "/beacons",
+                          "children": [
+                            {
+                              "title": "/near-point",
+                              "url": "/beacons/near-point-get/",
+                              "type": "page",
+                              "id": "NavigationYaml-/near-point"
+                            },
+                            {
+                              "title": "/{beaconId}",
+                              "url": "/beacons/beacon-id-get/",
+                              "type": "page",
+                              "id": "NavigationYaml-/{beaconId}"
+                            }
+                          ],
+                          "type": "folder",
+                          "id": "NavigationYaml-/beacons"
+                        },
+                        {
+                          "title": "/categories",
+                          "url": "/beacons/categories-get/",
+                          "type": "page",
+                          "id": "NavigationYaml-/categories"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Requests"
+                    },
+                    {
+                      "title": "Reference",
+                      "children": [
+                        {
+                          "title": "Types",
+                          "url": "/beacons/types/",
+                          "type": "page",
+                          "id": "NavigationYaml-Types"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Reference"
+                    }
+                  ]
+                }
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/services/page-data/beacons/types/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/beacons/types/",
+          "result": {
+            "data": {
+              "openApiOperationPage": null,
+              "openApiSchemasPage": {
+                "title": "Types",
+                "schemas": [
+                  {
+                    "name": "XCoord",
+                    "type": "number",
+                    "description": "A longitude."
+                  }
+                ]
+              },
+              "topics": {
+                "nav": {
+                  "title": "Beacons service",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "Overview",
+                      "url": "/beacons/",
+                      "type": "page",
+                      "id": "NavigationYaml-Overview"
+                    },
+                    {
+                      "title": "Get started",
+                      "url": "/beacons/get-started/",
+                      "type": "page",
+                      "id": "NavigationYaml-Get started"
+                    },
+                    {
+                      "title": "Requests",
+                      "children": [
+                        {
+                          "title": "/beacons",
+                          "children": [
+                            {
+                              "title": "/near-point",
+                              "url": "/beacons/near-point-get/",
+                              "type": "page",
+                              "id": "NavigationYaml-/near-point"
+                            },
+                            {
+                              "title": "/{beaconId}",
+                              "url": "/beacons/beacon-id-get/",
+                              "type": "page",
+                              "id": "NavigationYaml-/{beaconId}"
+                            }
+                          ],
+                          "type": "folder",
+                          "id": "NavigationYaml-/beacons"
+                        },
+                        {
+                          "title": "/categories",
+                          "url": "/beacons/categories-get/",
+                          "type": "page",
+                          "id": "NavigationYaml-/categories"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Requests"
+                    },
+                    {
+                      "title": "Reference",
+                      "children": [
+                        {
+                          "title": "Types",
+                          "url": "/beacons/types/",
+                          "type": "page",
+                          "id": "NavigationYaml-Types"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Reference"
+                    }
+                  ]
+                }
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/services/page-data/beacons/get-started/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/beacons/get-started/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "Get started"
+              },
+              "topics": {
+                "nav": {
+                  "title": "Beacons service",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "Overview",
+                      "url": "/beacons/",
+                      "type": "page",
+                      "id": "NavigationYaml-Overview"
+                    },
+                    {
+                      "title": "Get started",
+                      "url": "/beacons/get-started/",
+                      "type": "page",
+                      "id": "NavigationYaml-Get started"
+                    },
+                    {
+                      "title": "Requests",
+                      "children": [
+                        {
+                          "title": "/beacons",
+                          "children": [
+                            {
+                              "title": "/near-point",
+                              "url": "/beacons/near-point-get/",
+                              "type": "page",
+                              "id": "NavigationYaml-/near-point"
+                            },
+                            {
+                              "title": "/{beaconId}",
+                              "url": "/beacons/beacon-id-get/",
+                              "type": "page",
+                              "id": "NavigationYaml-/{beaconId}"
+                            }
+                          ],
+                          "type": "folder",
+                          "id": "NavigationYaml-/beacons"
+                        },
+                        {
+                          "title": "/categories",
+                          "url": "/beacons/categories-get/",
+                          "type": "page",
+                          "id": "NavigationYaml-/categories"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Requests"
+                    },
+                    {
+                      "title": "Reference",
+                      "children": [
+                        {
+                          "title": "Types",
+                          "url": "/beacons/types/",
+                          "type": "page",
+                          "id": "NavigationYaml-Types"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-Reference"
+                    }
+                  ]
+                }
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/services/beacons/get-started/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Get started</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Get started</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Create a key and call the service.</p></div></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/services/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Services</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Services</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Invented services.</p></div></main></body></html>"
+      }
+    }
+  ]
+}

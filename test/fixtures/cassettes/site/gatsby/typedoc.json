@@ -1,0 +1,920 @@
+{
+  "name": "gatsby TypeDoc reference: manifest and reflection in page-data",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/sitemap-0.xml",
+      "response": {
+        "contentType": "application/xml",
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url><loc>https://developers.arcgis.com/toolkit-js/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/toolkit-js/get-started/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/toolkit-js/authentication/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/toolkit-js/api-reference/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/toolkit-js/api-reference/toolkit-request/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/toolkit-js/api-reference/toolkit-geocoding/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/toolkit-js/api-reference/toolkit-request/RequestManager/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/toolkit-js/api-reference/toolkit-request/IRequestOptions/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/toolkit-js/api-reference/toolkit-request/request/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/toolkit-js/api-reference/toolkit-request/DEFAULT_TIMEOUT/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n<url><loc>https://developers.arcgis.com/toolkit-js/api-reference/toolkit-geocoding/geocode/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n</urlset>\n"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/page-data/index/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "Toolkit JS",
+                "url": "/"
+              },
+              "topic": {
+                "nav": {
+                  "title": "Guide",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "Overview",
+                      "url": "/",
+                      "type": "page",
+                      "id": "NavigationYaml-Overview"
+                    },
+                    {
+                      "title": "Get started",
+                      "url": "/get-started/",
+                      "type": "page",
+                      "id": "NavigationYaml-Get started"
+                    },
+                    {
+                      "title": "Authentication",
+                      "url": "/authentication/",
+                      "type": "page",
+                      "id": "NavigationYaml-Authentication"
+                    }
+                  ]
+                }
+              },
+              "search": {
+                "publicStoreURL": "/toolkit-js/static/c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0.store.json",
+                "publicIndexURL": "/toolkit-js/static/c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/static/c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0.store.json",
+      "response": {
+        "json": [
+          {
+            "id": "g1",
+            "title": "Toolkit JS",
+            "description": "A small request toolkit.",
+            "keywords": [],
+            "url": "/",
+            "pageType": "Topic"
+          },
+          {
+            "id": "g2",
+            "title": "Get started",
+            "description": "Install and call.",
+            "keywords": [],
+            "url": "/get-started/",
+            "pageType": "Topic"
+          },
+          {
+            "id": "g3",
+            "title": "Authentication",
+            "description": "Sessions and keys.",
+            "keywords": [],
+            "url": "/authentication/",
+            "pageType": "Topic"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/page-data/api-reference/toolkit-request/RequestManager/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/api-reference/toolkit-request/RequestManager/",
+          "result": {
+            "data": {
+              "allTypedocPage": {
+                "nodes": [
+                  {
+                    "title": "RequestManager",
+                    "url": "/api-reference/toolkit-request/RequestManager"
+                  },
+                  {
+                    "title": "IRequestOptions",
+                    "url": "/api-reference/toolkit-request/IRequestOptions"
+                  },
+                  {
+                    "title": "request",
+                    "url": "/api-reference/toolkit-request/request"
+                  },
+                  {
+                    "title": "DEFAULT_TIMEOUT",
+                    "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT"
+                  },
+                  {
+                    "title": "geocode",
+                    "url": "/api-reference/toolkit-geocoding/geocode"
+                  }
+                ]
+              },
+              "typedocPage": {
+                "title": "RequestManager",
+                "url": "/api-reference/toolkit-request/RequestManager",
+                "kind": 128,
+                "raw": {
+                  "id": 12,
+                  "name": "RequestManager",
+                  "variant": "declaration",
+                  "kind": 128,
+                  "flags": {},
+                  "comment": {
+                    "summary": [
+                      {
+                        "kind": "text",
+                        "text": "Sends requests and keeps a session."
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 13,
+                      "name": "send",
+                      "kind": 2048,
+                      "signatures": [
+                        {
+                          "name": "send",
+                          "kind": 4096,
+                          "comment": {
+                            "summary": [
+                              {
+                                "kind": "text",
+                                "text": "Sends one request."
+                              }
+                            ]
+                          },
+                          "type": {
+                            "type": "intrinsic",
+                            "name": "void"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "module": "@example/toolkit-request"
+                }
+              },
+              "apiRefNav": {
+                "nav": {
+                  "title": "Documentation",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "@example/toolkit-request",
+                      "url": "/api-reference/toolkit-request/",
+                      "children": [
+                        {
+                          "title": "RequestManager",
+                          "url": "/api-reference/toolkit-request/RequestManager/",
+                          "type": "page",
+                          "id": "NavigationYaml-RequestManager"
+                        },
+                        {
+                          "title": "IRequestOptions",
+                          "url": "/api-reference/toolkit-request/IRequestOptions/",
+                          "type": "page",
+                          "id": "NavigationYaml-IRequestOptions"
+                        },
+                        {
+                          "title": "request",
+                          "url": "/api-reference/toolkit-request/request/",
+                          "type": "page",
+                          "id": "NavigationYaml-request"
+                        },
+                        {
+                          "title": "DEFAULT_TIMEOUT",
+                          "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT/",
+                          "type": "page",
+                          "id": "NavigationYaml-DEFAULT_TIMEOUT"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-@example/toolkit-request"
+                    },
+                    {
+                      "title": "@example/toolkit-geocoding",
+                      "url": "/api-reference/toolkit-geocoding/",
+                      "children": [
+                        {
+                          "title": "geocode",
+                          "url": "/api-reference/toolkit-geocoding/geocode/",
+                          "type": "page",
+                          "id": "NavigationYaml-geocode"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-@example/toolkit-geocoding"
+                    }
+                  ]
+                }
+              },
+              "searchIndex": {
+                "publicStoreURL": "/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.store.json",
+                "publicIndexURL": "/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/page-data/api-reference/toolkit-request/IRequestOptions/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/api-reference/toolkit-request/IRequestOptions/",
+          "result": {
+            "data": {
+              "allTypedocPage": {
+                "nodes": [
+                  {
+                    "title": "RequestManager",
+                    "url": "/api-reference/toolkit-request/RequestManager"
+                  },
+                  {
+                    "title": "IRequestOptions",
+                    "url": "/api-reference/toolkit-request/IRequestOptions"
+                  },
+                  {
+                    "title": "request",
+                    "url": "/api-reference/toolkit-request/request"
+                  },
+                  {
+                    "title": "DEFAULT_TIMEOUT",
+                    "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT"
+                  },
+                  {
+                    "title": "geocode",
+                    "url": "/api-reference/toolkit-geocoding/geocode"
+                  }
+                ]
+              },
+              "typedocPage": {
+                "title": "IRequestOptions",
+                "url": "/api-reference/toolkit-request/IRequestOptions",
+                "kind": 128,
+                "raw": {
+                  "id": 12,
+                  "name": "IRequestOptions",
+                  "variant": "declaration",
+                  "kind": 128,
+                  "flags": {},
+                  "comment": {
+                    "summary": [
+                      {
+                        "kind": "text",
+                        "text": "Sends requests and keeps a session."
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 13,
+                      "name": "send",
+                      "kind": 2048,
+                      "signatures": [
+                        {
+                          "name": "send",
+                          "kind": 4096,
+                          "comment": {
+                            "summary": [
+                              {
+                                "kind": "text",
+                                "text": "Sends one request."
+                              }
+                            ]
+                          },
+                          "type": {
+                            "type": "intrinsic",
+                            "name": "void"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "module": "@example/toolkit-request"
+                }
+              },
+              "apiRefNav": {
+                "nav": {
+                  "title": "Documentation",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "@example/toolkit-request",
+                      "url": "/api-reference/toolkit-request/",
+                      "children": [
+                        {
+                          "title": "RequestManager",
+                          "url": "/api-reference/toolkit-request/RequestManager/",
+                          "type": "page",
+                          "id": "NavigationYaml-RequestManager"
+                        },
+                        {
+                          "title": "IRequestOptions",
+                          "url": "/api-reference/toolkit-request/IRequestOptions/",
+                          "type": "page",
+                          "id": "NavigationYaml-IRequestOptions"
+                        },
+                        {
+                          "title": "request",
+                          "url": "/api-reference/toolkit-request/request/",
+                          "type": "page",
+                          "id": "NavigationYaml-request"
+                        },
+                        {
+                          "title": "DEFAULT_TIMEOUT",
+                          "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT/",
+                          "type": "page",
+                          "id": "NavigationYaml-DEFAULT_TIMEOUT"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-@example/toolkit-request"
+                    },
+                    {
+                      "title": "@example/toolkit-geocoding",
+                      "url": "/api-reference/toolkit-geocoding/",
+                      "children": [
+                        {
+                          "title": "geocode",
+                          "url": "/api-reference/toolkit-geocoding/geocode/",
+                          "type": "page",
+                          "id": "NavigationYaml-geocode"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-@example/toolkit-geocoding"
+                    }
+                  ]
+                }
+              },
+              "searchIndex": {
+                "publicStoreURL": "/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.store.json",
+                "publicIndexURL": "/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/page-data/api-reference/toolkit-request/request/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/api-reference/toolkit-request/request/",
+          "result": {
+            "data": {
+              "allTypedocPage": {
+                "nodes": [
+                  {
+                    "title": "RequestManager",
+                    "url": "/api-reference/toolkit-request/RequestManager"
+                  },
+                  {
+                    "title": "IRequestOptions",
+                    "url": "/api-reference/toolkit-request/IRequestOptions"
+                  },
+                  {
+                    "title": "request",
+                    "url": "/api-reference/toolkit-request/request"
+                  },
+                  {
+                    "title": "DEFAULT_TIMEOUT",
+                    "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT"
+                  },
+                  {
+                    "title": "geocode",
+                    "url": "/api-reference/toolkit-geocoding/geocode"
+                  }
+                ]
+              },
+              "typedocPage": {
+                "title": "request",
+                "url": "/api-reference/toolkit-request/request",
+                "kind": 128,
+                "raw": {
+                  "id": 12,
+                  "name": "request",
+                  "variant": "declaration",
+                  "kind": 128,
+                  "flags": {},
+                  "comment": {
+                    "summary": [
+                      {
+                        "kind": "text",
+                        "text": "Sends requests and keeps a session."
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 13,
+                      "name": "send",
+                      "kind": 2048,
+                      "signatures": [
+                        {
+                          "name": "send",
+                          "kind": 4096,
+                          "comment": {
+                            "summary": [
+                              {
+                                "kind": "text",
+                                "text": "Sends one request."
+                              }
+                            ]
+                          },
+                          "type": {
+                            "type": "intrinsic",
+                            "name": "void"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "module": "@example/toolkit-request"
+                }
+              },
+              "apiRefNav": {
+                "nav": {
+                  "title": "Documentation",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "@example/toolkit-request",
+                      "url": "/api-reference/toolkit-request/",
+                      "children": [
+                        {
+                          "title": "RequestManager",
+                          "url": "/api-reference/toolkit-request/RequestManager/",
+                          "type": "page",
+                          "id": "NavigationYaml-RequestManager"
+                        },
+                        {
+                          "title": "IRequestOptions",
+                          "url": "/api-reference/toolkit-request/IRequestOptions/",
+                          "type": "page",
+                          "id": "NavigationYaml-IRequestOptions"
+                        },
+                        {
+                          "title": "request",
+                          "url": "/api-reference/toolkit-request/request/",
+                          "type": "page",
+                          "id": "NavigationYaml-request"
+                        },
+                        {
+                          "title": "DEFAULT_TIMEOUT",
+                          "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT/",
+                          "type": "page",
+                          "id": "NavigationYaml-DEFAULT_TIMEOUT"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-@example/toolkit-request"
+                    },
+                    {
+                      "title": "@example/toolkit-geocoding",
+                      "url": "/api-reference/toolkit-geocoding/",
+                      "children": [
+                        {
+                          "title": "geocode",
+                          "url": "/api-reference/toolkit-geocoding/geocode/",
+                          "type": "page",
+                          "id": "NavigationYaml-geocode"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-@example/toolkit-geocoding"
+                    }
+                  ]
+                }
+              },
+              "searchIndex": {
+                "publicStoreURL": "/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.store.json",
+                "publicIndexURL": "/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/page-data/api-reference/toolkit-request/DEFAULT_TIMEOUT/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/api-reference/toolkit-request/DEFAULT_TIMEOUT/",
+          "result": {
+            "data": {
+              "allTypedocPage": {
+                "nodes": [
+                  {
+                    "title": "RequestManager",
+                    "url": "/api-reference/toolkit-request/RequestManager"
+                  },
+                  {
+                    "title": "IRequestOptions",
+                    "url": "/api-reference/toolkit-request/IRequestOptions"
+                  },
+                  {
+                    "title": "request",
+                    "url": "/api-reference/toolkit-request/request"
+                  },
+                  {
+                    "title": "DEFAULT_TIMEOUT",
+                    "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT"
+                  },
+                  {
+                    "title": "geocode",
+                    "url": "/api-reference/toolkit-geocoding/geocode"
+                  }
+                ]
+              },
+              "typedocPage": {
+                "title": "DEFAULT_TIMEOUT",
+                "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT",
+                "kind": 128,
+                "raw": {
+                  "id": 12,
+                  "name": "DEFAULT_TIMEOUT",
+                  "variant": "declaration",
+                  "kind": 128,
+                  "flags": {},
+                  "comment": {
+                    "summary": [
+                      {
+                        "kind": "text",
+                        "text": "Sends requests and keeps a session."
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 13,
+                      "name": "send",
+                      "kind": 2048,
+                      "signatures": [
+                        {
+                          "name": "send",
+                          "kind": 4096,
+                          "comment": {
+                            "summary": [
+                              {
+                                "kind": "text",
+                                "text": "Sends one request."
+                              }
+                            ]
+                          },
+                          "type": {
+                            "type": "intrinsic",
+                            "name": "void"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "module": "@example/toolkit-request"
+                }
+              },
+              "apiRefNav": {
+                "nav": {
+                  "title": "Documentation",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "@example/toolkit-request",
+                      "url": "/api-reference/toolkit-request/",
+                      "children": [
+                        {
+                          "title": "RequestManager",
+                          "url": "/api-reference/toolkit-request/RequestManager/",
+                          "type": "page",
+                          "id": "NavigationYaml-RequestManager"
+                        },
+                        {
+                          "title": "IRequestOptions",
+                          "url": "/api-reference/toolkit-request/IRequestOptions/",
+                          "type": "page",
+                          "id": "NavigationYaml-IRequestOptions"
+                        },
+                        {
+                          "title": "request",
+                          "url": "/api-reference/toolkit-request/request/",
+                          "type": "page",
+                          "id": "NavigationYaml-request"
+                        },
+                        {
+                          "title": "DEFAULT_TIMEOUT",
+                          "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT/",
+                          "type": "page",
+                          "id": "NavigationYaml-DEFAULT_TIMEOUT"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-@example/toolkit-request"
+                    },
+                    {
+                      "title": "@example/toolkit-geocoding",
+                      "url": "/api-reference/toolkit-geocoding/",
+                      "children": [
+                        {
+                          "title": "geocode",
+                          "url": "/api-reference/toolkit-geocoding/geocode/",
+                          "type": "page",
+                          "id": "NavigationYaml-geocode"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-@example/toolkit-geocoding"
+                    }
+                  ]
+                }
+              },
+              "searchIndex": {
+                "publicStoreURL": "/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.store.json",
+                "publicIndexURL": "/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/page-data/api-reference/toolkit-geocoding/geocode/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/api-reference/toolkit-geocoding/geocode/",
+          "result": {
+            "data": {
+              "allTypedocPage": {
+                "nodes": [
+                  {
+                    "title": "RequestManager",
+                    "url": "/api-reference/toolkit-request/RequestManager"
+                  },
+                  {
+                    "title": "IRequestOptions",
+                    "url": "/api-reference/toolkit-request/IRequestOptions"
+                  },
+                  {
+                    "title": "request",
+                    "url": "/api-reference/toolkit-request/request"
+                  },
+                  {
+                    "title": "DEFAULT_TIMEOUT",
+                    "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT"
+                  },
+                  {
+                    "title": "geocode",
+                    "url": "/api-reference/toolkit-geocoding/geocode"
+                  }
+                ]
+              },
+              "typedocPage": {
+                "title": "geocode",
+                "url": "/api-reference/toolkit-geocoding/geocode",
+                "kind": 128,
+                "raw": {
+                  "id": 12,
+                  "name": "geocode",
+                  "variant": "declaration",
+                  "kind": 128,
+                  "flags": {},
+                  "comment": {
+                    "summary": [
+                      {
+                        "kind": "text",
+                        "text": "Sends requests and keeps a session."
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 13,
+                      "name": "send",
+                      "kind": 2048,
+                      "signatures": [
+                        {
+                          "name": "send",
+                          "kind": 4096,
+                          "comment": {
+                            "summary": [
+                              {
+                                "kind": "text",
+                                "text": "Sends one request."
+                              }
+                            ]
+                          },
+                          "type": {
+                            "type": "intrinsic",
+                            "name": "void"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "module": "@example/toolkit-request"
+                }
+              },
+              "apiRefNav": {
+                "nav": {
+                  "title": "Documentation",
+                  "type": "root",
+                  "children": [
+                    {
+                      "title": "@example/toolkit-request",
+                      "url": "/api-reference/toolkit-request/",
+                      "children": [
+                        {
+                          "title": "RequestManager",
+                          "url": "/api-reference/toolkit-request/RequestManager/",
+                          "type": "page",
+                          "id": "NavigationYaml-RequestManager"
+                        },
+                        {
+                          "title": "IRequestOptions",
+                          "url": "/api-reference/toolkit-request/IRequestOptions/",
+                          "type": "page",
+                          "id": "NavigationYaml-IRequestOptions"
+                        },
+                        {
+                          "title": "request",
+                          "url": "/api-reference/toolkit-request/request/",
+                          "type": "page",
+                          "id": "NavigationYaml-request"
+                        },
+                        {
+                          "title": "DEFAULT_TIMEOUT",
+                          "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT/",
+                          "type": "page",
+                          "id": "NavigationYaml-DEFAULT_TIMEOUT"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-@example/toolkit-request"
+                    },
+                    {
+                      "title": "@example/toolkit-geocoding",
+                      "url": "/api-reference/toolkit-geocoding/",
+                      "children": [
+                        {
+                          "title": "geocode",
+                          "url": "/api-reference/toolkit-geocoding/geocode/",
+                          "type": "page",
+                          "id": "NavigationYaml-geocode"
+                        }
+                      ],
+                      "type": "folder",
+                      "id": "NavigationYaml-@example/toolkit-geocoding"
+                    }
+                  ]
+                }
+              },
+              "searchIndex": {
+                "publicStoreURL": "/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.store.json",
+                "publicIndexURL": "/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.index.json"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/static/d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1.store.json",
+      "response": {
+        "json": [
+          {
+            "id": "t0",
+            "title": "RequestManager",
+            "description": null,
+            "keywords": [],
+            "url": "/api-reference/toolkit-request/RequestManager/",
+            "pageType": "Topic"
+          },
+          {
+            "id": "t1",
+            "title": "IRequestOptions",
+            "description": null,
+            "keywords": [],
+            "url": "/api-reference/toolkit-request/IRequestOptions/",
+            "pageType": "Topic"
+          },
+          {
+            "id": "t2",
+            "title": "request",
+            "description": null,
+            "keywords": [],
+            "url": "/api-reference/toolkit-request/request/",
+            "pageType": "Topic"
+          },
+          {
+            "id": "t3",
+            "title": "DEFAULT_TIMEOUT",
+            "description": null,
+            "keywords": [],
+            "url": "/api-reference/toolkit-request/DEFAULT_TIMEOUT/",
+            "pageType": "Topic"
+          },
+          {
+            "id": "t4",
+            "title": "geocode",
+            "description": null,
+            "keywords": [],
+            "url": "/api-reference/toolkit-geocoding/geocode/",
+            "pageType": "Topic"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/page-data/get-started/page-data.json",
+      "response": {
+        "json": {
+          "componentChunkName": "component---src-components-synthetic-layout-tsx",
+          "path": "/get-started/",
+          "result": {
+            "data": {
+              "mdxPage": {
+                "title": "Get started",
+                "url": "/get-started/"
+              }
+            },
+            "pageContext": {}
+          },
+          "staticQueryHashes": [
+            "1000000001",
+            "1000000002",
+            "1000000003"
+          ],
+          "slicesMap": {}
+        }
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/get-started/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Get started</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Get started</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>Install the toolkit and send a request.</p></div></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/toolkit-js/",
+      "response": {
+        "body": "<!doctype html><html><head><meta name=\"generator\" content=\"Gatsby 5.14.1\"/><title>Toolkit JS</title></head><body><main id=\"main\" class=\"main has-toc\"><header class=\"page-header\"><h1 class=\"page-title\">Toolkit JS</h1></header><div id=\"skip-to-content\" class=\"page-content\"><p>A small request toolkit.</p></div></main></body></html>"
+      }
+    }
+  ]
+}

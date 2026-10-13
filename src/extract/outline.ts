@@ -21,6 +21,8 @@ export interface OutlineRule {
   id?(element: Element, $: CheerioAPI): string | undefined;
   /** Heading text; default: the element's text. */
   title?(element: Element, $: CheerioAPI): string;
+  /** A second id the section answers to (an opaque anchor that in-page links use). */
+  alias?(element: Element, $: CheerioAPI): string | undefined;
 }
 
 const HEADINGS: OutlineRule = { selector: 'h1, h2, h3, h4, h5, h6' };
@@ -44,7 +46,8 @@ export function stampOutline(page: PageView, rule: OutlineRule = HEADINGS): Outl
     used.set(base, count + 1);
     const id = count === 0 ? base : `${base}-${count}`;
     $(el).attr(ID_ATTR, id).attr(LEVEL_ATTR, String(level));
-    nodes.push({ id, title, level, el });
+    const alias = rule.alias?.(el, $);
+    nodes.push({ id, title, level, el, ...(alias === undefined ? {} : { alias }) });
   });
   return nodes;
 }

@@ -4,6 +4,8 @@
  * logic lives here; the gateway (`http-client.ts`) decides what to do with the outcome.
  */
 
+import type { ReadableStreamDefaultReader } from 'node:stream/web';
+
 /** What the gateway asks the transport to send. */
 export interface TransportRequest {
   url: string;
@@ -53,15 +55,24 @@ function classify(error: unknown, callerSignal: AbortSignal | undefined): Transp
   return new TransportError('network', `network error: ${message}`);
 }
 
+/**
+ * Abandons a body without waiting: cancellation only settles once the stream has let go,
+ * which a stalled peer (or a second reader of the same stream) can delay indefinitely.
+ */
+function discard(body: { cancel(): Promise<void> } | null): void {
+  body?.cancel().catch(() => undefined);
+}
+
 async function readCapped(response: Response, maxBytes: number): Promise<Buffer> {
   const declared = Number(response.headers.get('content-length'));
   if (Number.isFinite(declared) && declared > maxBytes) {
-    await response.body?.cancel();
+    discard(response.body);
     throw new TransportError('oversized', `body of ${declared} bytes exceeds ${maxBytes}`);
   }
   if (response.body === null) return Buffer.alloc(0);
 
-  const reader = response.body.getReader();
+  // The cast names the chunk type: the built-in stream typings leave it open.
+  const reader = response.body.getReader() as ReadableStreamDefaultReader<Uint8Array>;
   const chunks: Uint8Array[] = [];
   let received = 0;
   for (;;) {
@@ -70,7 +81,7 @@ async function readCapped(response: Response, maxBytes: number): Promise<Buffer>
     received += value.byteLength;
     if (received > maxBytes) {
       // Stop the download: the rest of an oversized body is of no use to anyone.
-      await reader.cancel();
+      discard(reader);
       throw new TransportError('oversized', `body exceeds ${maxBytes} bytes`);
     }
     chunks.push(value);
@@ -101,7 +112,7 @@ export async function send(
     });
     if (response.status < 200 || response.status > 299) {
       // Release the connection; only the status and headers of these answers matter.
-      await response.body?.cancel();
+      discard(response.body);
       return { status: response.status, headers: response.headers, body: Buffer.alloc(0) };
     }
     const body = await readCapped(response, request.maxBytes);
