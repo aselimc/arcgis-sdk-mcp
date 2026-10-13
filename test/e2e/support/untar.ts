@@ -57,7 +57,8 @@ export function extractTarGz(archive: Buffer, target: string): string[] {
   const written: string[] = [];
   for (const file of readTarGz(archive)) {
     const path = resolve(root, file.path);
-    if (!path.startsWith(root + sep)) throw new Error(`Archive entry escapes the target: ${file.path}`);
+    if (!path.startsWith(root + sep))
+      throw new Error(`Archive entry escapes the target: ${file.path}`);
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, file.data);
     written.push(file.path);

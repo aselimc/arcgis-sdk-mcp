@@ -17,19 +17,19 @@ lists them.
 
 ## Layers
 
-| Layer | Where | What it proves |
-|---|---|---|
-| Unit | `test/<package>/` | Pure logic: budget, cursors, URL handling, version comparison, registry resolution, ranking |
+| Layer             | Where                                                    | What it proves                                                                                                                                                            |
+| ----------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit              | `test/<package>/`                                        | Pure logic: budget, cursors, URL handling, version comparison, registry resolution, ranking                                                                               |
 | Golden, synthetic | `test/extract`, `test/render`, `test/fixtures/synthetic` | One hand-written fixture per HTML family and renderer with an exact expected Markdown file. Acceptance: the right family, no leftover HTML, every fence closed and tagged |
-| Open-source real | `test/fixtures/oss` | Renderers against Apache-2.0 files from Esri's public repositories, kept with their source URL, commit and licence |
-| Adapter contract | `test/adapters` | Every adapter against cassettes through the shared contract suite, plus its own failure cases |
-| Chaos | `test/services/chaos.test.ts`, `test/net` | Timeouts, 5xx, 403, 429, truncated bodies, redirect loops: no tool call throws, the rung is reported, a good index is never replaced by a worse one |
-| Policy | `test/policy`, `test/net` | Which hosts each preset and capability can reach; link-only and unlisted hosts are unreachable in every configuration |
-| Registry | `test/registry` | Schema, invariants, alias resolution, routing, URL ownership, generated files up to date |
-| Tool surface | `test/mcp` | `tools/list` snapshot, description and instruction length limits, every error code renders with `Next:` |
-| Protocol | `test/protocol` | Both protocol eras end to end in memory; `structuredContent` conforms to `outputSchema` |
-| End to end | `test/e2e` | The packed tarball: only JSON-RPC on stdout, a tool call that works offline, `--version` without starting the server |
-| Live recorded | `test/live` | Invariants (not goldens) on real pages recorded to a git-ignored directory |
+| Open-source real  | `test/fixtures/oss`                                      | Renderers against Apache-2.0 files from Esri's public repositories, kept with their source URL, commit and licence                                                        |
+| Adapter contract  | `test/adapters`                                          | Every adapter against cassettes through the shared contract suite, plus its own failure cases                                                                             |
+| Chaos             | `test/services/chaos.test.ts`, `test/net`                | Timeouts, 5xx, 403, 429, truncated bodies, redirect loops: no tool call throws, the rung is reported, a good index is never replaced by a worse one                       |
+| Policy            | `test/policy`, `test/net`                                | Which hosts each preset and capability can reach; link-only and unlisted hosts are unreachable in every configuration                                                     |
+| Registry          | `test/registry`                                          | Schema, invariants, alias resolution, routing, URL ownership, generated files up to date                                                                                  |
+| Tool surface      | `test/mcp`                                               | `tools/list` snapshot, description and instruction length limits, every error code renders with `Next:`                                                                   |
+| Protocol          | `test/protocol`                                          | Both protocol eras end to end in memory; `structuredContent` conforms to `outputSchema`                                                                                   |
+| End to end        | `test/e2e`                                               | The packed tarball: only JSON-RPC on stdout, a tool call that works offline, `--version` without starting the server                                                      |
+| Live recorded     | `test/live`                                              | Invariants (not goldens) on real pages recorded to a git-ignored directory                                                                                                |
 
 ## Fixture policy
 

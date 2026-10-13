@@ -26,14 +26,14 @@ server lets the agent check the current documentation instead of guessing:
 
 ## Tools
 
-| Tool | What it does |
-|---|---|
+| Tool                        | What it does                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
 | `arcgis_docs_list_products` | Lists products, describes one, or returns the table of contents of one documentation source |
-| `arcgis_docs_get_versions` | Current, installable and project versions, compatibility pairings, release-notes refs |
-| `arcgis_docs_search` | Ranked hits over guides, API members, REST operations, samples and product help |
-| `arcgis_docs_read` | One page, API reference page, sample, GitHub file or brief as clean Markdown |
-| `arcgis_docs_lookup_symbol` | Declaration and documentation of one class, method, component, REST operation or tool |
-| `arcgis_docs_find_samples` | Runnable samples from Esri's sample pages and Apache-2.0 sample repositories |
+| `arcgis_docs_get_versions`  | Current, installable and project versions, compatibility pairings, release-notes refs       |
+| `arcgis_docs_search`        | Ranked hits over guides, API members, REST operations, samples and product help             |
+| `arcgis_docs_read`          | One page, API reference page, sample, GitHub file or brief as clean Markdown                |
+| `arcgis_docs_lookup_symbol` | Declaration and documentation of one class, method, component, REST operation or tool       |
+| `arcgis_docs_find_samples`  | Runnable samples from Esri's sample pages and Apache-2.0 sample repositories                |
 
 All six are read-only. The full argument and result schemas are in [docs/tools.md](docs/tools.md).
 The server also offers four prompts (`arcgis_app_kickoff`, `arcgis_upgrade_review`,
@@ -116,16 +116,16 @@ Other commands: `doctor` (configuration, cache, proxy and upstream checks), `cac
 
 Everything is set through environment variables; none is required.
 
-| Variable | Default | Meaning |
-|---|---|---|
-| `ARCGIS_DOCS_SOURCES` | `standard` | A preset (`strict` or `standard`) and/or `+capability` / `-capability`, comma separated |
-| `ARCGIS_DOCS_OFFLINE` | off | `1` answers from the cache only |
-| `ARCGIS_DOCS_CACHE_DIR` | per-user cache directory | Where responses and indexes are cached |
-| `ARCGIS_DOCS_CACHE_MAX_MB` | `500` | Size cap of the cache |
-| `ARCGIS_DOCS_PROJECT_DIR` | working directory | Project in which SDK versions are detected |
-| `ARCGIS_DOCS_MAX_TOKENS` | `6000` | Default size of a tool result |
-| `ARCGIS_DOCS_LOG_LEVEL` | `warn` | `debug`, `info`, `warn`, `error` or `silent`; logs go to stderr |
-| `GITHUB_TOKEN` | none | Raises the GitHub API quota from 60 to 5,000 requests per hour |
+| Variable                   | Default                  | Meaning                                                                                 |
+| -------------------------- | ------------------------ | --------------------------------------------------------------------------------------- |
+| `ARCGIS_DOCS_SOURCES`      | `standard`               | A preset (`strict` or `standard`) and/or `+capability` / `-capability`, comma separated |
+| `ARCGIS_DOCS_OFFLINE`      | off                      | `1` answers from the cache only                                                         |
+| `ARCGIS_DOCS_CACHE_DIR`    | per-user cache directory | Where responses and indexes are cached                                                  |
+| `ARCGIS_DOCS_CACHE_MAX_MB` | `500`                    | Size cap of the cache                                                                   |
+| `ARCGIS_DOCS_PROJECT_DIR`  | working directory        | Project in which SDK versions are detected                                              |
+| `ARCGIS_DOCS_MAX_TOKENS`   | `6000`                   | Default size of a tool result                                                           |
+| `ARCGIS_DOCS_LOG_LEVEL`    | `warn`                   | `debug`, `info`, `warn`, `error` or `silent`; logs go to stderr                         |
+| `GITHUB_TOKEN`             | none                     | Raises the GitHub API quota from 60 to 5,000 requests per hour                          |
 
 Details, including proxies, are in [docs/configuration.md](docs/configuration.md).
 
@@ -135,17 +135,17 @@ The server reads only public documentation, and only as a consequence of a tool 
 is fetched at start-up, nothing is crawled, and nothing Esri-authored is part of this
 repository or the npm package.
 
-| Capability | `strict` | `standard` | Covers |
-|---|---|---|---|
-| `github` | on | on | Esri's public repositories through the GitHub API and raw file host |
-| `registries` | on | on | Version metadata from npm, PyPI, NuGet and pub.dev |
-| `local-packages` | on | on | Esri packages already installed in your project's `node_modules` |
-| `workspace` | on | on | Names and versions in your project's package manifests |
-| `website` | off | on | Pages on Esri's documentation hosts, published OpenAPI documents |
-| `site-index` | off | on | Sitemaps, navigation files and the sites' own search and symbol index files |
-| `package-cdn` | off | on | Single files of Esri npm packages at a pinned version from jsDelivr |
-| `site-search` | off | off | Esri's site search service (opt-in) |
-| `lifecycle-api` | off | off | Esri's product life-cycle service (opt-in) |
+| Capability       | `strict` | `standard` | Covers                                                                      |
+| ---------------- | -------- | ---------- | --------------------------------------------------------------------------- |
+| `github`         | on       | on         | Esri's public repositories through the GitHub API and raw file host         |
+| `registries`     | on       | on         | Version metadata from npm, PyPI, NuGet and pub.dev                          |
+| `local-packages` | on       | on         | Esri packages already installed in your project's `node_modules`            |
+| `workspace`      | on       | on         | Names and versions in your project's package manifests                      |
+| `website`        | off      | on         | Pages on Esri's documentation hosts, published OpenAPI documents            |
+| `site-index`     | off      | on         | Sitemaps, navigation files and the sites' own search and symbol index files |
+| `package-cdn`    | off      | on         | Single files of Esri npm packages at a pinned version from jsDelivr         |
+| `site-search`    | off      | off        | Esri's site search service (opt-in)                                         |
+| `lifecycle-api`  | off      | off        | Esri's product life-cycle service (opt-in)                                  |
 
 What the server does to be a considerate client: one identifying User-Agent with this
 repository's URL, `robots.txt` honoured (compiled rules plus a daily live check that can only

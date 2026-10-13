@@ -56,6 +56,25 @@ export function documentBoost(boost: number | undefined): number {
   return BOOST_FLOOR + (1 - BOOST_FLOOR) * Math.min(boost, BOOST_CEILING);
 }
 
+/**
+ * The share of a query's words a record matches, as a score multiplier. When not every word
+ * has to match (modes `or` and `fuzzy`), field boosts alone would rank a record that has one
+ * of three words in its symbol name above a record that has all three in its title and
+ * description. Squaring the share makes a record that covers the query win.
+ *
+ * @param matched the query words MiniSearch reports as matched for the record.
+ */
+export function coverage(terms: readonly QueryTerm[], matched: ReadonlySet<string>): number {
+  if (terms.length === 0) return 1;
+  const covered = terms.filter(
+    (term) =>
+      matched.has(term.whole) ||
+      (term.parts.length > 1 && term.parts.every((part) => matched.has(part))) ||
+      term.synonyms.some((phrase) => phrase.every((word) => matched.has(word))),
+  ).length;
+  return (covered / terms.length) ** 2;
+}
+
 /** Terms shorter than this are matched exactly or by prefix only. */
 const FUZZY_MIN_LENGTH = 5;
 
@@ -142,9 +161,11 @@ export function buildCatalogIndex(records: readonly CatalogRecord[]): CatalogInd
         if (record === undefined) continue;
         const matched = new Set(Object.values(result.match).flat());
         const best = FIELDS.find((field) => matched.has(field)) ?? 'description';
-        matches.push({ record, score: result.score, match: MATCH_LABEL[best] });
+        // In mode `and` every word matched, so the factor is 1 and the order is MiniSearch's.
+        const score = result.score * coverage(terms, new Set(result.queryTerms));
+        matches.push({ record, score, match: MATCH_LABEL[best] });
       }
-      return matches;
+      return mode === 'and' ? matches : matches.sort((a, b) => b.score - a.score);
     },
   };
 }

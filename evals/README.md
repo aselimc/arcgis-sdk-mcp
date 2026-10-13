@@ -16,15 +16,15 @@ export ANTHROPIC_API_KEY=...            # or sign in with `ant auth login`
 npx tsx evals/run.ts --out evals/results.jsonl
 ```
 
-| Option | Default | Meaning |
-|---|---|---|
-| `--only id,id` | all | Run the named tasks |
-| `--model` | `claude-opus-5-5` | Model under evaluation |
-| `--effort` | `high` | `low`, `medium`, `high`, `xhigh` or `max` |
-| `--max-turns` | `12` | Model requests allowed per task |
-| `--sources` | the server default | Value for `ARCGIS_DOCS_SOURCES`, for example `standard,+site-search` |
-| `--out` | none | Write one JSON line per task, including the final answer |
-| `--list` | | Print the tasks and exit; needs no credentials |
+| Option         | Default            | Meaning                                                              |
+| -------------- | ------------------ | -------------------------------------------------------------------- |
+| `--only id,id` | all                | Run the named tasks                                                  |
+| `--model`      | `claude-opus-5-5`  | Model under evaluation                                               |
+| `--effort`     | `high`             | `low`, `medium`, `high`, `xhigh` or `max`                            |
+| `--max-turns`  | `12`               | Model requests allowed per task                                      |
+| `--sources`    | the server default | Value for `ARCGIS_DOCS_SOURCES`, for example `standard,+site-search` |
+| `--out`        | none               | Write one JSON line per task, including the final answer             |
+| `--list`       |                    | Print the tasks and exit; needs no credentials                       |
 
 The runner starts `dist/cli/main.js` over stdio, passes its instructions and tool list to
 the model unchanged, and runs each tool call through the server. It exits with status 1 when
@@ -40,8 +40,18 @@ and is slower.
 
 `tasks.jsonl` holds one task per line:
 
-```json
-{"id":"rest-query-pagination","prompt":"How do I page through ...","facts":["resultOffset","resultRecordCount"],"tools":["arcgis_docs_lookup_symbol"]}
+```jsonl
+{
+  "id": "js-current-version-pairing",
+  "prompt": "What is the current released version of ...",
+  "facts": [
+    "\\b\\d+\\.\\d+(?:\\.\\d+)?\\b",
+    "Enterprise"
+  ],
+  "tools": [
+    "arcgis_docs_get_versions"
+  ]
+}
 ```
 
 - `facts`: case-insensitive regular expressions the final answer must match, all of them.

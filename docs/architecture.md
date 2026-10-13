@@ -27,22 +27,22 @@ flowchart TD
 
 Every box depends on `src/core`; the arrows show who calls whom at run time.
 
-| Directory | Responsibility |
-|---|---|
-| `src/core` | Domain types, the interfaces between packages (`ports.ts`), factory signatures, errors, token budget, cursors, URL helpers. Pure: no I/O |
-| `src/registry` | The product registry as typed data: ids, aliases, sources, version lines, hosts. Resolution of free-text product names and of URLs to their owning source |
-| `src/policy` | Which hosts and paths may be requested under the current capabilities; robots rules |
-| `src/net` | The HTTP gateway (the only code that calls `fetch`) and the GitHub client |
-| `src/cache` | Disk cache for responses and derived data, memory LRU for loaded indexes |
-| `src/extract` | HTML to Markdown: family detection, slicing, clean-up passes, Turndown |
-| `src/render` | Structured renderers: OpenAPI, TypeDoc, Custom Elements Manifest, DocC, Sphinx, C# XML documentation, TypeScript declarations, Arcade, Markdown, notebooks, sample bundles |
-| `src/adapters` | One adapter per kind of source. `enumerate` lists a source into catalogue records, `read` returns one document, `symbol` and `sample` return one entity, `probe` is a canary |
-| `src/services` | The six use cases behind the tools, plus the index service that builds and persists per-source search indexes |
-| `src/versions` | Version oracles and the version report |
-| `src/workspace` | Detection of Esri SDK versions in the user's project (manifests only) |
-| `src/mcp` | Tool, resource and prompt registration; envelopes and error rendering |
-| `src/cli` | The binary: argument parsing and the commands |
-| `src/app` | The composition root |
+| Directory       | Responsibility                                                                                                                                                               |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/core`      | Domain types, the interfaces between packages (`ports.ts`), factory signatures, errors, token budget, cursors, URL helpers. Pure: no I/O                                     |
+| `src/registry`  | The product registry as typed data: ids, aliases, sources, version lines, hosts. Resolution of free-text product names and of URLs to their owning source                    |
+| `src/policy`    | Which hosts and paths may be requested under the current capabilities; robots rules                                                                                          |
+| `src/net`       | The HTTP gateway (the only code that calls `fetch`) and the GitHub client                                                                                                    |
+| `src/cache`     | Disk cache for responses and derived data, memory LRU for loaded indexes                                                                                                     |
+| `src/extract`   | HTML to Markdown: family detection, slicing, clean-up passes, Turndown                                                                                                       |
+| `src/render`    | Structured renderers: OpenAPI, TypeDoc, Custom Elements Manifest, DocC, Sphinx, C# XML documentation, TypeScript declarations, Arcade, Markdown, notebooks, sample bundles   |
+| `src/adapters`  | One adapter per kind of source. `enumerate` lists a source into catalogue records, `read` returns one document, `symbol` and `sample` return one entity, `probe` is a canary |
+| `src/services`  | The six use cases behind the tools, plus the index service that builds and persists per-source search indexes                                                                |
+| `src/versions`  | Version oracles and the version report                                                                                                                                       |
+| `src/workspace` | Detection of Esri SDK versions in the user's project (manifests only)                                                                                                        |
+| `src/mcp`       | Tool, resource and prompt registration; envelopes and error rendering                                                                                                        |
+| `src/cli`       | The binary: argument parsing and the commands                                                                                                                                |
+| `src/app`       | The composition root                                                                                                                                                         |
 
 ## Import rules
 
@@ -113,12 +113,12 @@ stored; adapters discover them at run time.
 
 Each capability has rungs, and a result says which rung answered when it is not the first.
 
-| Capability | Rung 1 | Rung 2 | Rung 3 | Last resort |
-|---|---|---|---|---|
-| Enumerate a source | native index file | sitemap or navigation of one page | previous snapshot | registry start-here links |
-| Search | catalogue, symbol and body indexes | plus site search when enabled | stale snapshot | product card with entry links |
-| Content | structured renderer | HTML family profile | generic extractor | stale rendering, else a link |
-| Version | package registry | page banner or sitemap | static registry value with its date | "unknown" plus the release-notes ref |
+| Capability         | Rung 1                             | Rung 2                            | Rung 3                              | Last resort                          |
+| ------------------ | ---------------------------------- | --------------------------------- | ----------------------------------- | ------------------------------------ |
+| Enumerate a source | native index file                  | sitemap or navigation of one page | previous snapshot                   | registry start-here links            |
+| Search             | catalogue, symbol and body indexes | plus site search when enabled     | stale snapshot                      | product card with entry links        |
+| Content            | structured renderer                | HTML family profile               | generic extractor                   | stale rendering, else a link         |
+| Version            | package registry                   | page banner or sitemap            | static registry value with its date | "unknown" plus the release-notes ref |
 
 A rebuilt index replaces the previous one only when it is not much smaller (the swap rule),
 so a broken upstream index cannot replace a good local one.

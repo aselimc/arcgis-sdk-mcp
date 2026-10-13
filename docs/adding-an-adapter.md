@@ -9,16 +9,16 @@ configured for the source; most new products need registry data, not code
 
 `SourceAdapter` in `src/core/ports.ts`:
 
-| Member | Purpose |
-|---|---|
-| `type` | The adapter's name, one of `ADAPTER_TYPES` |
-| `maxEnumerateRequests` | Hard cap on the upstream requests of one `enumerate()` |
-| `enumerate(ctx, src)` | Lists the source as catalogue records (pages, samples, symbols). Reads index files, never page bodies in bulk |
-| `owns(url, src)` | Optional: claims URLs beyond the registry's prefix match |
-| `read(ctx, src, target)` | Fetches one document and returns a `DocPage`. Honours `target.select` by slicing before cleaning on heavy pages |
-| `symbol(ctx, src, record, detail)` | Optional: renders one type or member |
-| `sample(ctx, src, record)` | Optional: returns a sample bundle (README, metadata, files) |
-| `probe(ctx, src)` | A canary of at most two requests |
+| Member                             | Purpose                                                                                                         |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `type`                             | The adapter's name, one of `ADAPTER_TYPES`                                                                      |
+| `maxEnumerateRequests`             | Hard cap on the upstream requests of one `enumerate()`                                                          |
+| `enumerate(ctx, src)`              | Lists the source as catalogue records (pages, samples, symbols). Reads index files, never page bodies in bulk   |
+| `owns(url, src)`                   | Optional: claims URLs beyond the registry's prefix match                                                        |
+| `read(ctx, src, target)`           | Fetches one document and returns a `DocPage`. Honours `target.select` by slicing before cleaning on heavy pages |
+| `symbol(ctx, src, record, detail)` | Optional: renders one type or member                                                                            |
+| `sample(ctx, src, record)`         | Optional: returns a sample bundle (README, metadata, files)                                                     |
+| `probe(ctx, src)`                  | A canary of at most two requests                                                                                |
 
 Rules:
 

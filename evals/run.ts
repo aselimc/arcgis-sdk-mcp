@@ -17,7 +17,14 @@ import { parseArgs } from 'node:util';
 import Anthropic from '@anthropic-ai/sdk';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
-import { parseTasks, scoreTask, summarize, type Score, type Task, type Transcript } from './score.js';
+import {
+  parseTasks,
+  scoreTask,
+  summarize,
+  type Score,
+  type Task,
+  type Transcript,
+} from './score.js';
 
 const ROOT = resolve(fileURLToPath(import.meta.url), '..', '..');
 const SERVER = resolve(ROOT, 'dist', 'cli', 'main.js');
@@ -254,7 +261,9 @@ async function main(): Promise<number> {
       });
       const score = scoreTask(task, transcript);
       scores.push(score);
-      lines.push(JSON.stringify({ ...score, model: values.model, effort, answer: transcript.answer }));
+      lines.push(
+        JSON.stringify({ ...score, model: values.model, effort, answer: transcript.answer }),
+      );
       console.log(formatRow(score));
       if (transcript.stopped === 'error: authentication failed') break;
     }

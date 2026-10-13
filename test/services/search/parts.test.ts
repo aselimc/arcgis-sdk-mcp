@@ -4,6 +4,7 @@ import {
   MAX_EXCERPT_CHARS,
   clip,
   excerptOf,
+  plainText,
   stripHighlight,
 } from '../../../src/services/search/excerpt.js';
 import {
@@ -69,6 +70,25 @@ describe('synonyms', () => {
   });
 });
 
+describe('plainText', () => {
+  it('keeps link labels and drops emphasis, fence and block markers', () => {
+    expect(plainText('See [the guide](https://example.org/a_(b)) and ![chart](c.png).')).toBe(
+      'See the guide and chart.',
+    );
+    expect(plainText('**Note:** use *one* of these _words_.')).toBe(
+      'Note: use one of these words.',
+    );
+    expect(plainText('## Heading\n> quoted\n- item\n2. step')).toBe('Heading\nquoted\nitem\nstep');
+    expect(plainText('```python\nprint(1)\n```').trim()).toBe('print(1)');
+  });
+
+  it('leaves identifiers, inline code and arithmetic alone', () => {
+    const text = 'Pass in_features and buffer_distance_or_field; `a_b` is 2 * 3 * 4.';
+    expect(plainText(text)).toBe(text);
+    expect(plainText('__init__ and **kwargs')).toBe('__init__ and **kwargs');
+  });
+});
+
 describe('excerpts', () => {
   it('strips highlight markup and entities', () => {
     expect(
@@ -87,6 +107,16 @@ describe('excerpts', () => {
 
   it('turns nothing into nothing', () => {
     expect(excerptOf(undefined)).toBeUndefined();
+    // Regression: a hit from the text of a page already read showed fence and emphasis
+    // markers, and a description spent its 240 characters on one link's URL.
+    expect(
+      excerptOf('_Method_ ```ts refresh (gauge?: Gauge): Promise<TideSet> ``` Reloads a gauge.'),
+    ).toBe('Method refresh (gauge?: Gauge): Promise<TideSet> Reloads a gauge.');
+    expect(
+      excerptOf(
+        'Whether to update the [location](https://developers.arcgis.com/widgets/references/tide-popup/#location) when the [index](https://developers.arcgis.com/widgets/references/tide-popup/#index "Index") changes.',
+      ),
+    ).toBe('Whether to update the location when the index changes.');
     expect(excerptOf('   ')).toBeUndefined();
     expect(excerptOf(' a ')).toBe('a');
   });

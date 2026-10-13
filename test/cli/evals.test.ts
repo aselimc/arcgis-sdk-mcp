@@ -12,7 +12,14 @@ import {
 } from '../../evals/score.js';
 import { TOOL_ORDER, TOOLS } from '../../src/core/names.js';
 
-const TASKS_FILE = resolve(fileURLToPath(import.meta.url), '..', '..', '..', 'evals', 'tasks.jsonl');
+const TASKS_FILE = resolve(
+  fileURLToPath(import.meta.url),
+  '..',
+  '..',
+  '..',
+  'evals',
+  'tasks.jsonl',
+);
 
 const task: Task = {
   id: 'page-through-results',

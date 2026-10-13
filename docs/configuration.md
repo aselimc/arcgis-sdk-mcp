@@ -5,16 +5,16 @@ The server is configured through environment variables, set in the MCP host's se
 
 ## Variables
 
-| Variable | Default | Meaning |
-|---|---|---|
-| `ARCGIS_DOCS_SOURCES` | `standard` | Source policy; see below |
-| `ARCGIS_DOCS_OFFLINE` | off | `1` answers from the cache only. A document that is not cached fails with `OFFLINE_MISS` |
-| `ARCGIS_DOCS_CACHE_DIR` | per-user cache directory | Where responses and indexes are stored. `arcgis-sdk-mcp cache info` prints the path in use |
-| `ARCGIS_DOCS_CACHE_MAX_MB` | `500` | Size cap. The least recently read entries are removed first |
-| `ARCGIS_DOCS_PROJECT_DIR` | working directory | The project in which SDK versions are detected |
-| `ARCGIS_DOCS_MAX_TOKENS` | `6000` | Default size of a `read` result when the call does not pass `max_tokens` |
-| `ARCGIS_DOCS_LOG_LEVEL` | `warn` | `debug`, `info`, `warn`, `error` or `silent`. Logs are JSON lines on stderr; stdout carries only the MCP protocol |
-| `GITHUB_TOKEN` | none | A GitHub token. No scopes are needed for public repositories. Raises the API quota from 60 to 5,000 requests per hour |
+| Variable                   | Default                  | Meaning                                                                                                               |
+| -------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `ARCGIS_DOCS_SOURCES`      | `standard`               | Source policy; see below                                                                                              |
+| `ARCGIS_DOCS_OFFLINE`      | off                      | `1` answers from the cache only. A document that is not cached fails with `OFFLINE_MISS`                              |
+| `ARCGIS_DOCS_CACHE_DIR`    | per-user cache directory | Where responses and indexes are stored. `arcgis-sdk-mcp cache info` prints the path in use                            |
+| `ARCGIS_DOCS_CACHE_MAX_MB` | `500`                    | Size cap. The least recently read entries are removed first                                                           |
+| `ARCGIS_DOCS_PROJECT_DIR`  | working directory        | The project in which SDK versions are detected                                                                        |
+| `ARCGIS_DOCS_MAX_TOKENS`   | `6000`                   | Default size of a `read` result when the call does not pass `max_tokens`                                              |
+| `ARCGIS_DOCS_LOG_LEVEL`    | `warn`                   | `debug`, `info`, `warn`, `error` or `silent`. Logs are JSON lines on stderr; stdout carries only the MCP protocol     |
+| `GITHUB_TOKEN`             | none                     | A GitHub token. No scopes are needed for public repositories. Raises the API quota from 60 to 5,000 requests per hour |
 
 An invalid value stops the server at start-up with a message that names the variable and what
 it accepts.
@@ -31,17 +31,17 @@ ARCGIS_DOCS_SOURCES=-package-cdn           standard without jsDelivr
 ARCGIS_DOCS_SOURCES=standard,+site-search  standard plus Esri's site search
 ```
 
-| Capability | `strict` | `standard` | What it allows |
-|---|---|---|---|
-| `github` | on | on | `api.github.com` and `raw.githubusercontent.com`, for repositories of Esri, R-ArcGIS and koopjs |
-| `registries` | on | on | Version metadata from npm, PyPI, NuGet and pub.dev |
-| `local-packages` | on | on | Reading Esri packages in the project's `node_modules` (stdio mode only) |
-| `workspace` | on | on | Reading names and versions from the project's package manifests (stdio mode only) |
-| `website` | off | on | Pages on Esri's documentation hosts and published OpenAPI documents |
-| `site-index` | off | on | Sitemaps, navigation files, and the search and symbol index files the sites publish |
-| `package-cdn` | off | on | Single files of listed Esri npm packages at a pinned version from jsDelivr |
-| `site-search` | off | off | Esri's site search service; adds full-text hits to `arcgis_docs_search` |
-| `lifecycle-api` | off | off | Esri's product life-cycle service; adds life-cycle dates to `arcgis_docs_get_versions` |
+| Capability       | `strict` | `standard` | What it allows                                                                                  |
+| ---------------- | -------- | ---------- | ----------------------------------------------------------------------------------------------- |
+| `github`         | on       | on         | `api.github.com` and `raw.githubusercontent.com`, for repositories of Esri, R-ArcGIS and koopjs |
+| `registries`     | on       | on         | Version metadata from npm, PyPI, NuGet and pub.dev                                              |
+| `local-packages` | on       | on         | Reading Esri packages in the project's `node_modules` (stdio mode only)                         |
+| `workspace`      | on       | on         | Reading names and versions from the project's package manifests (stdio mode only)               |
+| `website`        | off      | on         | Pages on Esri's documentation hosts and published OpenAPI documents                             |
+| `site-index`     | off      | on         | Sitemaps, navigation files, and the search and symbol index files the sites publish             |
+| `package-cdn`    | off      | on         | Single files of listed Esri npm packages at a pinned version from jsDelivr                      |
+| `site-search`    | off      | off        | Esri's site search service; adds full-text hits to `arcgis_docs_search`                         |
+| `lifecycle-api`  | off      | off        | Esri's product life-cycle service; adds life-cycle dates to `arcgis_docs_get_versions`          |
 
 When a tool needs a capability that is off it either degrades (for example, without
 `site-index` a source is listed from its sitemap with titles derived from the URLs) or

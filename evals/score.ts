@@ -107,8 +107,7 @@ export function scoreTask(task: Task, transcript: Transcript): Score {
     task.tools === undefined || task.tools.some((tool) => transcript.toolCalls.includes(tool));
   return {
     id: task.id,
-    passed:
-      transcript.stopped === 'end_turn' && missing.length === 0 && cited && usedExpectedTool,
+    passed: transcript.stopped === 'end_turn' && missing.length === 0 && cited && usedExpectedTool,
     factsMatched: task.facts.length - missing.length,
     factsTotal: task.facts.length,
     missing,

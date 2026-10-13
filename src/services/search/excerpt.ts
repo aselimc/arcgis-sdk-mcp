@@ -26,6 +26,27 @@ export function stripHighlight(html: string): string {
 }
 
 /**
+ * Markdown as running text: links keep their label, emphasis and fence markers go, and
+ * list, quote and heading markers at the start of a line are dropped. Inline code keeps its
+ * backticks, because that is how an identifier reads best in one line. An excerpt is at most
+ * 240 characters, and a single link with its URL can use all of them.
+ */
+export function plainText(markdown: string): string {
+  return (
+    markdown
+      // Images and links: `[label](url "title")` -> `label`.
+      .replace(/!?\[([^\]]*)\]\((?:[^()\s]|\([^()\s]*\))*(?:\s+"[^"]*")?\)/g, '$1')
+      // Fence delimiters with their language, also when the text was flattened to one line.
+      .replace(/(?:`{3,}|~{3,})[\w+-]*/g, ' ')
+      // Bold is written with asterisks here; a double underscore is a Python name (__init__).
+      .replace(/\*\*(?=\S)(.+?)(?<=\S)\*\*/g, '$1')
+      // Single markers only when they wrap words: `snake_case` and `a * b` stay as they are.
+      .replace(/(?<![\p{L}\p{N}*_])([*_])(?=\S)([^*_\n]+?)(?<=\S)\1(?![\p{L}\p{N}*_])/gu, '$2')
+      .replace(/^ {0,3}(?:#{1,6}|>+|[-*+]|\d+\.)[ \t]+/gm, '')
+  );
+}
+
+/**
  * Collapses whitespace and cuts at the last word boundary within `max` characters, marking
  * the cut with an ellipsis that counts towards the limit.
  */
@@ -41,6 +62,6 @@ export function clip(text: string, max: number = MAX_EXCERPT_CHARS): string {
 /** The excerpt of a hit within the cap, or `undefined` when it has none. */
 export function excerptOf(excerpt: string | undefined): string | undefined {
   if (excerpt === undefined) return undefined;
-  const clipped = clip(excerpt);
+  const clipped = clip(plainText(excerpt));
   return clipped === '' ? undefined : clipped;
 }

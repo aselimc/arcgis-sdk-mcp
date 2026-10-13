@@ -38,16 +38,16 @@ contributors proposing a new source. It is not legal advice.
 
 ## Capabilities and their defaults
 
-| Capability | Default | Reasoning |
-|---|---|---|
-| `github` | on in every preset | Public repositories under open-source licences, read through GitHub's API. The licence of each repository is read at run time and decides the source line |
-| `registries` | on in every preset | Version metadata that package registries publish for exactly this purpose |
-| `local-packages`, `workspace` | on in every preset (stdio) | Files already on the user's machine |
-| `website` | on in `standard` | Fetching a public documentation page a user asked for is what a browser does. It is still automated access; see the caveat below |
-| `site-index` | on in `standard` | Sitemaps are published for automated readers. Navigation, search and symbol index files are published for the site's own scripts; the server reads titles, URLs and symbol names from them, not page text |
-| `package-cdn` | on in `standard` | Single files of Esri's npm packages at a pinned version. These packages are public on npm without a licence-acceptance step, but their content is licensed under the Esri Master License Agreement, and the source line says so |
-| `site-search` | off | An undocumented backend of Esri's site search. Opt-in |
-| `lifecycle-api` | off | An undocumented backend of Esri's life-cycle pages. Opt-in |
+| Capability                    | Default                    | Reasoning                                                                                                                                                                                                                       |
+| ----------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github`                      | on in every preset         | Public repositories under open-source licences, read through GitHub's API. The licence of each repository is read at run time and decides the source line                                                                       |
+| `registries`                  | on in every preset         | Version metadata that package registries publish for exactly this purpose                                                                                                                                                       |
+| `local-packages`, `workspace` | on in every preset (stdio) | Files already on the user's machine                                                                                                                                                                                             |
+| `website`                     | on in `standard`           | Fetching a public documentation page a user asked for is what a browser does. It is still automated access; see the caveat below                                                                                                |
+| `site-index`                  | on in `standard`           | Sitemaps are published for automated readers. Navigation, search and symbol index files are published for the site's own scripts; the server reads titles, URLs and symbol names from them, not page text                       |
+| `package-cdn`                 | on in `standard`           | Single files of Esri's npm packages at a pinned version. These packages are public on npm without a licence-acceptance step, but their content is licensed under the Esri Master License Agreement, and the source line says so |
+| `site-search`                 | off                        | An undocumented backend of Esri's site search. Opt-in                                                                                                                                                                           |
+| `lifecycle-api`               | off                        | An undocumented backend of Esri's life-cycle pages. Opt-in                                                                                                                                                                      |
 
 ## The caveat
 
