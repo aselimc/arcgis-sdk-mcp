@@ -103,6 +103,11 @@ Add the product to the alias-resolution and router tables in `test/registry/` wh
 introduces names that could collide with existing ones ("maps", "sdk", a shared package
 scope), and to the URL ownership table when its URLs share a prefix with another product.
 
+## 5. Documentation
+
+Add the product to the coverage tables in `README.md` and [products.md](products.md), and
+name it under "Unreleased" in `CHANGELOG.md`.
+
 ## Product help sites
 
 The end-user help entries (`category: 'product-help'`) are generated. Edit

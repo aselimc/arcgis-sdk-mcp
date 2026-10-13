@@ -67,13 +67,27 @@ After changing a brief or the help registry source, run `npm run gen`; CI fails 
 generated files are out of date. After changing a tool schema, run
 `npx tsx scripts/gen-tools-doc.ts` to refresh `docs/tools.md`.
 
+The coverage tables in `README.md` and [docs/products.md](docs/products.md) are a snapshot of
+the registry. When you add, rename or retire a product, change its row in both.
+
+Maintainers: [docs/releasing.md](docs/releasing.md) describes how a version is released.
+
 ## Pull requests
 
-Keep them focused. State what you changed and how you checked it. If a change alters what is
-fetched from Esri's hosts (a new host, a new kind of file, a higher request rate), say so in
-the description: such changes are reviewed against [docs/source-policy.md](docs/source-policy.md).
+Keep them focused. State what you changed and how you checked it; the pull request template
+lists the checks. If a change alters what is fetched from Esri's hosts (a new host, a new
+kind of file, a higher request rate), say so in the description: such changes are reviewed
+against [docs/source-policy.md](docs/source-policy.md). Add a line under "Unreleased" in
+[CHANGELOG.md](CHANGELOG.md) when users can notice the change.
 
 ## Reporting upstream drift
 
 Esri's documentation sites change. If a result is degraded or wrong, open an issue with the
-output of `npx arcgis-sdk-mcp doctor --product <id>` and the tool call that failed.
+"Wrong or degraded result" form: it asks for the tool call that failed, the URL of the page
+and the output of `npx arcgis-sdk-mcp doctor --product <id>`. Please do not paste more of a
+documentation page than the few lines that show the problem.
+
+## Conduct and security
+
+Participation is covered by the [code of conduct](CODE_OF_CONDUCT.md). Report a security
+problem privately, as described in [SECURITY.md](SECURITY.md), not in an issue.

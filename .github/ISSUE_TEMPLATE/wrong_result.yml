@@ -1,0 +1,67 @@
+name: Wrong or degraded result
+description: A tool returned incomplete, garbled, outdated or "degraded" content for a documentation page or symbol
+labels: [upstream-drift]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Esri's documentation sites change, and a changed layout or index file shows up here
+        first. Please do not paste documentation text beyond the few lines that show the
+        problem: the page belongs to Esri, and the URL is enough for us to reproduce it.
+  - type: dropdown
+    id: tool
+    attributes:
+      label: Tool
+      options:
+        - arcgis_docs_list_products
+        - arcgis_docs_get_versions
+        - arcgis_docs_search
+        - arcgis_docs_read
+        - arcgis_docs_lookup_symbol
+        - arcgis_docs_find_samples
+    validations:
+      required: true
+  - type: textarea
+    id: call
+    attributes:
+      label: Call
+      description: The arguments, as JSON
+      placeholder: '{"symbol":"FeatureLayer.queryFeatures","product":"js-maps-sdk"}'
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What is wrong
+      description: >-
+        For example: a section is missing, a table is broken, the version is wrong, a symbol
+        that exists is not found, the status line says "degraded".
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Page on Esri's site
+      description: The URL of the page that shows the correct content
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: Status line and Source line of the result
+      description: The first line and the last line of the tool result
+      render: text
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Doctor
+      description: Output of `arcgis-sdk-mcp doctor --product <id>`
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `arcgis-sdk-mcp --version`
+    validations:
+      required: true

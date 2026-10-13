@@ -1,15 +1,21 @@
 name: Canary
 
-# Weekly check against the real upstream hosts. A failure means a documentation site changed;
-# it opens or updates one issue and never blocks a merge.
+# Scheduled check against the real upstream hosts. A failure means a documentation site
+# changed; it opens or updates one issue and never blocks a merge.
+#
+# Weekly: doctor for the developer products, a fresh recording of the live fixtures and the
+# live suite. Monthly (and on request): every source probe of the registry as well.
 
 on:
   schedule:
+    # Mondays 05:17 UTC.
     - cron: '17 5 * * 1'
+    # First day of the month 06:23 UTC: the weekly steps plus the registry probes.
+    - cron: '23 6 1 * *'
   workflow_dispatch:
     inputs:
       registry:
-        description: Also run every source probe of the registry (about 200 requests)
+        description: Also run every source probe of the registry (about 230 requests)
         type: boolean
         default: false
 
@@ -25,7 +31,7 @@ jobs:
   canary:
     name: Doctor and live suite
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     defaults:
       run:
         # An explicit shell enables pipefail, so `command | tee file` fails when the command does.
@@ -58,9 +64,9 @@ jobs:
         continue-on-error: true
         run: npm run test:live 2>&1 | tee live.txt
 
-      - name: Registry probes
+      - name: Registry probes (every source of every product)
         id: registry
-        if: ${{ inputs.registry == true }}
+        if: ${{ inputs.registry == true || github.event.schedule == '23 6 1 * *' }}
         continue-on-error: true
         run: npm run registry:check -- --live 2>&1 | tee registry.txt
 
@@ -93,7 +99,8 @@ jobs:
               echo "</details>"
             done
           } > body.md
-          existing=$(gh issue list --label upstream-drift --state open --json number --jq '.[0].number')
+          # `// empty` prints nothing when no issue is open, so the test below is reliable.
+          existing=$(gh issue list --label upstream-drift --state open --json number --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body-file body.md
           else

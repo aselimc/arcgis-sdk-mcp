@@ -70,9 +70,41 @@ tool handler  ->  service
 ```
 
 A tool call owns a request budget (12 upstream requests, 25 seconds). Index builds have their
-own budget and continue in the background when a call's deadline passes; the response then
-says which source was not searched yet. Nothing is fetched before the MCP handshake, and
-nothing is fetched except as a consequence of a tool call or a CLI command.
+own budget (30 requests, 20 seconds) and continue in the background when a call's deadline
+passes; the response then says which source was not searched yet. Nothing is fetched before
+the MCP handshake, and nothing is fetched except as a consequence of a tool call or a CLI
+command.
+
+One `arcgis_docs_read` call, as an example of how the layers meet:
+
+```mermaid
+sequenceDiagram
+  participant H as MCP host
+  participant T as Tool handler (src/mcp)
+  participant D as Document service
+  participant R as Registry
+  participant A as Adapter
+  participant G as HTTP gateway
+  participant X as Renderer or HTML pipeline
+  H->>T: tools/call arcgis_docs_read (ref, section)
+  T->>D: read(request)
+  D->>G: policy.check(url)
+  D->>R: ownerOf(url)
+  R-->>D: product, source, version line
+  D->>A: read(ctx, source, target)
+  A->>G: http.get(url)
+  Note over G: allow-list, robots, cache, rate limit, breaker
+  G-->>A: body and cache state
+  A->>X: render(body, target)
+  X-->>A: DocPage (sections with token estimates)
+  A-->>D: DocPage
+  Note over D: add sections to the body index, resolve the section, apply view and budget
+  D-->>T: text, next call, attribution
+  T-->>H: status line, body, Next line, Source line
+```
+
+A URL on an allow-listed host that no source owns is read by the generic extractor. A
+`brief:<slug>` ref is answered from the briefs bundled with the package, without a request.
 
 ## The HTTP gateway
 
@@ -136,9 +168,41 @@ per-product body index. There is no full-text crawl; see the limitations in the 
 Every text result has the same envelope: a status line (resolved product, version, kind,
 cache state), the body, at most one `Next:` line with a complete follow-up call, and a
 `Source:` line whose wording depends on the licence tier of the content. Text is cut only at
-section, paragraph, fence or table boundaries. `read` and `lookup_symbol` return text only;
-the other four tools also return `structuredContent` that conforms to their `outputSchema`.
+section, paragraph, fence, list or table boundaries, and a cut always leaves a `Next:` line
+with the call that continues. `read` and `lookup_symbol` return text only; the other four
+tools also return `structuredContent` that conforms to their `outputSchema`.
+
+Two consequences of cutting at block boundaries are worth knowing. A result can end with
+budget left over when the next block (a long member list, a large table) does not fit. And
+the summary of a type reserves part of its budget for a names-only member index, so that a
+long class description cannot push the member list out of the answer; this applies where the
+source reports members (JavaScript, Python, web components, ArcGIS Pro SDK).
+
+## Where the implementation differs from the first design
+
+- A table of contents (`arcgis_docs_list_products` with `section`) is paged by the call's
+  `limit` (default 80), not by a fixed 100 entries.
+- `ARCGIS_DOCS_MAX_TOKENS` cannot change the default in the tool schema, because the schema
+  is the same in every configuration. A `read` call that carries the schema default (6000) is
+  treated as not having chosen a size.
+- The HTML pipeline has one more shared pass than first planned: it opens `<details>`
+  blocks, so that their content joins the page and a bare "Read more" toggle label does not
+  end up as a stray line.
+- A robots denial is reported with the code `LINK_ONLY`: the error catalogue has no separate
+  code for it, and the recovery (open the URL yourself) is the same.
 
 ## Decisions
 
-The reasons behind the main choices are recorded as ADRs in [docs/adr](adr).
+The reasons behind the main choices are recorded as ADRs in [docs/adr](adr):
+
+| ADR                                                     | Decision                                                 |
+| ------------------------------------------------------- | -------------------------------------------------------- |
+| [0001](adr/0001-mcp-sdk-v2.md)                          | Build on the MCP TypeScript SDK v2                       |
+| [0002](adr/0002-site-index-and-package-cdn-defaults.md) | Site index files and package CDN reads are on by default |
+| [0003](adr/0003-no-shipped-esri-content.md)             | Ship no Esri-authored content                            |
+| [0004](adr/0004-six-tools-url-refs.md)                  | Six tools, and a reference is a URL                      |
+| [0005](adr/0005-structured-over-scraping.md)            | Prefer structured sources to HTML scraping               |
+| [0006](adr/0006-fixture-policy.md)                      | Fixtures are synthetic, open source, or uncommitted      |
+| [0007](adr/0007-tsc-build.md)                           | Build with tsc                                           |
+
+[products.md](products.md) lists what the registry covers.

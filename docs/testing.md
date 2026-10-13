@@ -3,7 +3,7 @@
 ```sh
 npm test               # unit project: everything under test/ except e2e and live. No network
 npm run test:coverage  # the same with coverage thresholds
-npm run test:e2e       # builds, packs the tarball and drives the packed binary over stdio
+npm run test:e2e       # builds, packs the tarball and drives the packed binary over stdio and HTTP
 npm run test:live      # invariants on live-recorded pages; manual and scheduled only
 ```
 
@@ -28,7 +28,7 @@ lists them.
 | Registry          | `test/registry`                                          | Schema, invariants, alias resolution, routing, URL ownership, generated files up to date                                                                                  |
 | Tool surface      | `test/mcp`                                               | `tools/list` snapshot, description and instruction length limits, every error code renders with `Next:`                                                                   |
 | Protocol          | `test/protocol`                                          | Both protocol eras end to end in memory; `structuredContent` conforms to `outputSchema`                                                                                   |
-| End to end        | `test/e2e`                                               | The packed tarball: only JSON-RPC on stdout, a tool call that works offline, `--version` without starting the server                                                      |
+| End to end        | `test/e2e`                                               | The packed tarball: only JSON-RPC on stdout, a tool call that works offline, `--version` without starting the server, `--http` rejecting a foreign `Host`                 |
 | Package seams     | `test/integration`                                       | The real registry, adapters, extractor, renderers and services with only `fetch` scripted: what one package hands another is what the other expects                       |
 | Live recorded     | `test/live`                                              | Invariants (not goldens) on real pages and structured files (OpenAPI, TypeDoc, Custom Elements Manifest, DocC) recorded to a git-ignored directory                        |
 

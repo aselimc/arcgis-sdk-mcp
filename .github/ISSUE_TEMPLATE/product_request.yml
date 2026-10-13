@@ -1,0 +1,43 @@
+name: Product or source request
+description: An ArcGIS product, a documentation set or a sample repository the server does not cover
+labels: [registry]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check `arcgis-sdk-mcp call list_products '{"query":"<name>","category":"all","include_legacy":true}'`
+        first: the product may exist under another id. docs/adding-a-product.md explains what
+        an entry needs if you would like to add it yourself.
+  - type: input
+    id: product
+    attributes:
+      label: Product
+      description: Its official name
+    validations:
+      required: true
+  - type: textarea
+    id: urls
+    attributes:
+      label: Where its documentation is published
+      description: Home page, API reference, samples, release notes, public repository
+    validations:
+      required: true
+  - type: textarea
+    id: need
+    attributes:
+      label: What you could not do
+      description: The question an agent could not answer, or the call that found nothing
+    validations:
+      required: true
+  - type: checkboxes
+    id: public
+    attributes:
+      label: Public documentation
+      options:
+        - label: The documentation is public (no sign-in, no licence gate)
+          required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Packages and registries, version scheme, licence of the repository, robots.txt of the host
