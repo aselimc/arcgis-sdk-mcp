@@ -2,26 +2,17 @@
  * Registry data: web products (design section 4.1). Ids, URLs, patterns and adapter configs
  * only; summaries, keywords and pitfalls are written by this project.
  */
-import { DEVELOPERS_ORIGIN as D } from '../../core/names.js';
 import type {
   AdapterConfigMap,
   AnySourceDef,
   PackageRef,
   Product,
   SourceDef,
-  VersionLine,
   WorkspaceSignal,
 } from '../../core/types.js';
+import { D, LATEST, LIFECYCLE, banner, githubRepoProbe } from './builders.js';
 
 const VERIFIED_ON = '2026-10-13';
-
-const LATEST: VersionLine = {
-  id: 'latest',
-  label: 'Current',
-  current: true,
-  access: 'live',
-  vars: {},
-};
 
 type GatsbyOptions = Omit<AdapterConfigMap['gatsby'], 'base'>;
 type Extras<A extends keyof AdapterConfigMap> = Partial<
@@ -71,11 +62,7 @@ function markdownRepo(
     config: { repo, preset: 'markdown-docs', ...options },
     capability: 'github',
     license: 'apache-2.0',
-    probe: {
-      url: `https://api.github.com/repos/${repo}`,
-      expect: 'json',
-      mustContain: 'full_name',
-    },
+    probe: githubRepoProbe(repo),
     ...extras,
   };
 }
@@ -104,22 +91,6 @@ const npmDistTags = (pkg: string, tags?: string): Product['oracles'][number] => 
   options: { package: pkg, ...(tags === undefined ? {} : { tags }) },
   provides: ['installable', 'prerelease'],
 });
-
-const banner = (path: string): Product['oracles'][number] => ({
-  type: 'page-regex',
-  options: { url: `${D}${path}` },
-  provides: ['documented', 'released'],
-});
-
-/**
- * Release, maturity and retirement dates from Esri's product life cycle service, which lists
- * the product under its registry name. Read only with the opt-in capability `lifecycle-api`.
- */
-const LIFECYCLE: Product['oracles'][number] = {
-  type: 'plc',
-  options: { category: 'Developer' },
-  provides: ['lifecycle'],
-};
 
 const JS = '/javascript/latest/';
 

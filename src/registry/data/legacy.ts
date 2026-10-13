@@ -6,11 +6,10 @@
  * Two of them still have developer pages online, which stay readable; the other two have no
  * sources at all (their hosts are link-only or the pages are gone).
  */
-import { DEVELOPERS_ORIGIN } from '../../core/names.js';
 import type { Product, VersionLine } from '../../core/types.js';
+import { D } from './builders.js';
 import { helpDeveloperLinks } from './help.generated.js';
 
-const D = DEVELOPERS_ORIGIN;
 const VERIFIED_ON = '2026-10-13';
 
 const LIVE: VersionLine = {

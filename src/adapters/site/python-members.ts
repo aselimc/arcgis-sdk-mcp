@@ -24,7 +24,7 @@ import { stepFence, type OpenFence } from '../../core/fences.js';
 import type { SectionSelector } from '../../core/ports.js';
 import { sectionSubtree } from '../../core/sections.js';
 import type { DocPage, DocSection, MemberEntry } from '../../core/types.js';
-import { oneLine } from '../kit/index.js';
+import { oneLine, withRef } from '../kit/index.js';
 
 const PROPERTIES_ID = 'properties';
 const METHODS_ID = 'methods';
@@ -290,12 +290,6 @@ export function withPythonMembers(page: DocPage, select?: SectionSelector): DocP
   const sections = member === undefined ? [] : sectionSubtree(found.page.sections, member.id);
   if (member === undefined || sections.length === 0) return found.page;
 
-  const ref = `${page.url}#${found.anchors.get(member.id) ?? member.id}`;
-  return {
-    ...found.page,
-    sections,
-    ref,
-    // The `Source:` line was written for the ref as requested.
-    attribution: page.attribution.replace(page.ref, ref),
-  };
+  const anchor = found.anchors.get(member.id) ?? member.id;
+  return withRef({ ...found.page, sections }, `${page.url}#${anchor}`);
 }

@@ -13,6 +13,7 @@ import {
   licenseOf,
   renderOptionsOf,
   tolerate,
+  withRef,
 } from '../../kit/index.js';
 import {
   bodyModeOf,
@@ -165,8 +166,14 @@ export async function readGatsby(
 /**
  * Renders one symbol record. A member is selected by its anchor on the type's page (the id
  * its section carries), any other anchored record by the section of that name.
+ *
+ * A member that the catalogue does not list arrives with its bare name as the anchor
+ * (`...#query`, asked for on the page of its type). On a page that documents several types
+ * that name is ambiguous, and it is not an anchor of the page: where the page has a member
+ * under the record's qualified name (a Sphinx page anchors `module.Class.member`), that one
+ * is read and cited.
  */
-export function symbolGatsby(
+export async function symbolGatsby(
   ctx: Ctx,
   src: BoundSource<'gatsby'>,
   record: CatalogRecord,
@@ -179,10 +186,19 @@ export function symbolGatsby(
       : anchor === undefined
         ? undefined
         : { section: anchor };
-  return readGatsby(ctx, src, {
+  const page = await readGatsby(ctx, src, {
     url: new URL(record.ref),
     detail,
     record,
     ...(select === undefined ? {} : { select }),
   });
+
+  const full = record.parent === undefined ? undefined : record.qualified;
+  if (full === undefined || full === select?.member) return page;
+  if (!(page.members ?? []).some((member) => member.id === full)) return page;
+  const exact = new URL(record.ref);
+  exact.hash = full;
+  // The bare name found the right member: only the anchor that is cited was not one.
+  if (page.sections[0]?.id === full) return withRef(page, exact.href);
+  return readGatsby(ctx, src, { url: exact, detail, record, select: { member: full } });
 }

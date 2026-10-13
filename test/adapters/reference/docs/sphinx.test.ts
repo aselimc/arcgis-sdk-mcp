@@ -341,6 +341,22 @@ describe('sphinx: read, symbol and probe', () => {
       expect(page.ref).toBe(`${MODULE}#widgets.features.Table.query`);
     });
 
+    it('says that the page it returns is that member', async () => {
+      const ctx = ctxWith();
+      const id = 'widgets.features.Table.query';
+      // The renderer gives a method a section under its anchor and no member list.
+      rendererOf(ctx).when('sphinx', (rendered) =>
+        makeDocPage({
+          markdown: `# Table.query {#${id}}\n\nQueries a table.`,
+          url: rendered.meta.url,
+        }),
+      );
+      const page = await sphinxAdapter.symbol!(ctx, bound(), asked('Table', 'query'), 'full');
+
+      expect(page.sections[0]?.id).toBe(id);
+      expect(page.members).toEqual([{ id, name: 'query', kind: 'member' }]);
+    });
+
     it('reads the type when it does not declare the member, so that its own members answer', async () => {
       const ctx = ctxWith();
       const page = await sphinxAdapter.symbol!(ctx, bound(), asked('Collection', 'query'), 'full');

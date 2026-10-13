@@ -10,6 +10,7 @@ import type {
   Product,
   RepoRef,
 } from '../../core/types.js';
+import { githubRepoProbe } from './builders.js';
 
 interface RepoSource {
   /** Source id, unique within the product. */
@@ -284,11 +285,7 @@ function repoSource(source: RepoSource, floor: boolean): AnySourceDef {
     capability: 'github',
     license: source.license ?? 'apache-2.0',
     ...(floor ? { floor: true } : {}),
-    probe: {
-      url: `https://api.github.com/repos/${source.repo}`,
-      expect: 'json',
-      mustContain: 'full_name',
-    },
+    probe: githubRepoProbe(source.repo),
   };
 }
 

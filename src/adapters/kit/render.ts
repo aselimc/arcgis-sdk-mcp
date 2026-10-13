@@ -74,6 +74,16 @@ export function symbolTarget(record: CatalogRecord, detail: ReadTarget['detail']
   };
 }
 
+/**
+ * A rendered page under another ref: the anchor the published page really has for what was
+ * read, where the request named it differently. The `Source:` line cites the ref, so it is
+ * rewritten with it.
+ */
+export function withRef(page: DocPage, ref: string): DocPage {
+  if (ref === page.ref) return page;
+  return { ...page, ref, attribution: page.attribution.replace(page.ref, ref) };
+}
+
 /** Options of {@link readHtmlPage}. */
 export interface HtmlPageOptions {
   /** Kind of the page when no catalogue record led to it. Default `api`. */

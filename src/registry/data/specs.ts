@@ -7,6 +7,7 @@
  * merged or trimmed sections.
  */
 import type { AdapterConfigMap, LicenseTier, Product } from '../../core/types.js';
+import { LATEST, githubRepoProbe } from './builders.js';
 
 type RepoFilter = Pick<
   AdapterConfigMap['github-repo'],
@@ -198,7 +199,7 @@ function specProduct(row: SpecRow): Product {
     repos: [
       { repo: row.repo, role: 'spec', license: row.license, defaultBranch: row.defaultBranch },
     ],
-    lines: [{ id: 'latest', label: 'Current', current: true, access: 'live', vars: {} }],
+    lines: [LATEST],
     sources: [
       {
         id: 'spec',
@@ -209,11 +210,7 @@ function specProduct(row: SpecRow): Product {
         capability: 'github',
         license: row.license,
         floor: true,
-        probe: {
-          url: `https://api.github.com/repos/${row.repo}`,
-          expect: 'json',
-          mustContain: 'full_name',
-        },
+        probe: githubRepoProbe(row.repo),
       },
     ],
     oracles: [],

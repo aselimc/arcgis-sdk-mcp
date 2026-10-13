@@ -1,28 +1,10 @@
 /**
  * Registry data: desktop and Enterprise extensibility (design section 4.4).
  */
-import { DEVELOPERS_ORIGIN as D } from '../../core/names.js';
-import type {
-  AdapterConfigMap,
-  Product,
-  RepoRef,
-  SourceDef,
-  VersionLine,
-} from '../../core/types.js';
+import type { AdapterConfigMap, Product, SourceDef } from '../../core/types.js';
+import { D, LATEST, apacheRepo, githubRepoProbe } from './builders.js';
 
 const VERIFIED_ON = '2026-10-13';
-
-const LATEST: VersionLine = {
-  id: 'latest',
-  label: 'Current',
-  current: true,
-  access: 'live',
-  vars: {},
-};
-
-function repo(name: string, role: RepoRef['role'], defaultBranch: string): RepoRef {
-  return { repo: name, role, license: 'apache-2.0', defaultBranch };
-}
 
 /** A GitHub repository source; the licence is a hint that the adapter confirms at run time. */
 function githubSource(
@@ -39,11 +21,7 @@ function githubSource(
     config,
     capability: 'github',
     license: 'apache-2.0',
-    probe: {
-      url: `https://api.github.com/repos/${config.repo}`,
-      expect: 'json',
-      mustContain: 'full_name',
-    },
+    probe: githubRepoProbe(config.repo),
     ...extras,
   };
 }
@@ -158,9 +136,9 @@ const arcgisProSdk: Product = {
   // The NuGet ids of the SDK are not on the public flat container.
   packages: [],
   repos: [
-    repo(PRO_SDK_REPO, 'docs', 'master'),
-    repo('Esri/arcgis-pro-sdk-community-samples', 'samples', 'master'),
-    repo('Esri/arcgis-pro-sdk-snippets', 'samples', 'main'),
+    apacheRepo(PRO_SDK_REPO, 'docs', 'master'),
+    apacheRepo('Esri/arcgis-pro-sdk-community-samples', 'samples', 'master'),
+    apacheRepo('Esri/arcgis-pro-sdk-snippets', 'samples', 'main'),
   ],
   workspaceSignals: [
     {
@@ -186,11 +164,7 @@ const arcgisProSdk: Product = {
       config: { repo: PRO_SDK_REPO, dir: 'References/ArcGIS Pro API', docUrlHost: 'doc.esri.com' },
       capability: 'github',
       license: 'apache-2.0',
-      probe: {
-        url: `https://api.github.com/repos/${PRO_SDK_REPO}`,
-        expect: 'json',
-        mustContain: 'full_name',
-      },
+      probe: githubRepoProbe(PRO_SDK_REPO),
     },
     githubSource(
       'samples',
@@ -255,7 +229,7 @@ const enterpriseSdk: Product = {
   languages: ['java', 'csharp', 'javascript'],
   homepage: `${D}/enterprise-sdk/`,
   packages: [],
-  repos: [repo('Esri/arcgis-enterprise-sdk-resources', 'samples', 'master')],
+  repos: [apacheRepo('Esri/arcgis-enterprise-sdk-resources', 'samples', 'master')],
   lines: [LATEST],
   sources: [
     {
@@ -353,9 +327,9 @@ const cityengine: Product = {
   homepage: 'https://doc.arcgis.com/en/cityengine/latest/get-started/',
   packages: [{ registry: 'pypi', name: 'pyprt', license: 'apache-2.0', primary: true }],
   repos: [
-    repo('Esri/cityengine-sdk', 'source', 'main'),
-    repo('Esri/pyprt', 'source', 'main'),
-    repo('Esri/pyprt-examples', 'samples', 'main'),
+    apacheRepo('Esri/cityengine-sdk', 'source', 'main'),
+    apacheRepo('Esri/pyprt', 'source', 'main'),
+    apacheRepo('Esri/pyprt-examples', 'samples', 'main'),
   ],
   workspaceSignals: [
     {
@@ -459,7 +433,7 @@ const earthAutomationApi: Product = {
   languages: ['rest'],
   homepage: 'https://doc.arcgis.com/en/arcgis-earth/automation-api/get-started.htm',
   packages: [],
-  repos: [repo('Esri/arcgisearth-automation-api', 'samples', 'main')],
+  repos: [apacheRepo('Esri/arcgisearth-automation-api', 'samples', 'main')],
   lines: [LATEST],
   sources: [
     legacyHelp({
@@ -501,7 +475,7 @@ const autocadApi: Product = {
   languages: ['autolisp', 'csharp'],
   homepage: 'https://doc.arcgis.com/en/arcgis-for-autocad/latest/commands-api/',
   packages: [],
-  repos: [repo('Esri/ArcGIS-for-AutoCAD-API-Samples', 'samples', 'main')],
+  repos: [apacheRepo('Esri/ArcGIS-for-AutoCAD-API-Samples', 'samples', 'main')],
   lines: [LATEST],
   sources: [
     legacyHelp({

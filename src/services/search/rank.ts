@@ -19,6 +19,13 @@ export const EXACT_TITLE_WEIGHT = 2.0;
 /** Weight of a curated brief inside the AI product. */
 export const BRIEF_WEIGHT = 1.5;
 
+/**
+ * Weight of a hit that only the body index found. That index holds the pages this cache
+ * happens to have read, so it is evidence for those pages and none against the others: in
+ * rank fusion its first hit weighed as much as the best title match and went ahead of it.
+ */
+export const BODY_ONLY_WEIGHT = 0.9;
+
 /** Product in which briefs are the primary content. */
 const BRIEF_PRODUCT = 'ai-agents';
 
@@ -54,6 +61,7 @@ export function multiplier(hit: SearchHit, context: RankContext): number {
   if (context.workspace.has(hit.product)) weight *= WORKSPACE_WEIGHT;
   if (normalise(hit.title) === normalise(context.query)) weight *= EXACT_TITLE_WEIGHT;
   if (hit.kind === 'brief' && hit.product === BRIEF_PRODUCT) weight *= BRIEF_WEIGHT;
+  if (hit.match === 'body') weight *= BODY_ONLY_WEIGHT;
   return weight;
 }
 

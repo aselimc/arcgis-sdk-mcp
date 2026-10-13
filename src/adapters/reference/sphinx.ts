@@ -118,11 +118,14 @@ async function searchIndex(ctx: Ctx, src: BoundSource, url: string): Promise<Sph
 
 /**
  * What a read of a page names on it: the object whose anchor is the fragment of the URL.
- * `owner` narrows the member list of a page that is rendered whole (see {@link memberOf}).
+ * See {@link memberOf} for the two additions.
  */
 interface Wanted {
   target: ReadTarget;
+  /** The page is rendered whole; only the members of this type are its members. */
   owner?: string;
+  /** The page is one member, read by the name its type knows it by. */
+  member?: { id: string; name: string; kind: string };
 }
 
 /** True when the page has an element with this id: Sphinx anchors an object by its full name. */
@@ -137,13 +140,15 @@ function hasAnchor(html: string, id: string): boolean {
  * documents a whole module: `query` is a method of several classes on it. The member is
  * therefore addressed by its full name, which is its anchor:
  *
- * - the page has `<type>.<member>`: that object is read and cited;
+ * - the page has `<type>.<member>`: that object is read and cited, and listed as the one
+ *   member of the page under its bare name, which is what the caller asked for;
  * - it has only the type (the member is inherited, or does not exist): the type is read, and
  *   its member list says what the type declares;
  * - it has neither: the page is read whole, with only the members that belong to the type,
  *   so that a same-named member of another class cannot be taken for the one asked for.
  */
 function memberOf(html: string, target: ReadTarget, type: string, member: string): Wanted {
+  const name = member.slice(type.length + 1);
   const { select: _bareName, ...rest } = target;
   const at = (anchor: string): URL => {
     const url = new URL(target.url.href);
@@ -151,7 +156,11 @@ function memberOf(html: string, target: ReadTarget, type: string, member: string
     return url;
   };
   if (hasAnchor(html, member)) {
-    return { target: { ...rest, url: at(member), select: { member } } };
+    const kind = target.record?.symbolKind ?? 'member';
+    return {
+      target: { ...rest, url: at(member), select: { member } },
+      member: { id: member, name, kind },
+    };
   }
   if (hasAnchor(html, type)) return { target: { ...rest, url: at(type) } };
   return { target: { ...rest, url: at('') }, owner: type };
@@ -179,9 +188,17 @@ async function read(
     renderMeta(src, wanted.target, `${landed}${wanted.target.url.hash}`, res),
     renderOptionsOf(wanted.target),
   );
-  const { owner } = wanted;
+  const { owner, member } = wanted;
+  const members = page.members ?? [];
+  if (member !== undefined && page.sections[0]?.id === member.id) {
+    // The section of the member is the page; saying so keeps a reader from looking the
+    // bare name up again in a member list that a method does not have.
+    return members.some((entry) => entry.id === member.id)
+      ? page
+      : { ...page, members: [member, ...members] };
+  }
   if (owner === undefined || page.members === undefined) return page;
-  return { ...page, members: page.members.filter((entry) => entry.id.startsWith(`${owner}.`)) };
+  return { ...page, members: members.filter((entry) => entry.id.startsWith(`${owner}.`)) };
 }
 
 /**

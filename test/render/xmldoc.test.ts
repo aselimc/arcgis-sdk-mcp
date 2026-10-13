@@ -157,6 +157,10 @@ describe('renderXmldoc: synthetic file', () => {
     expect(property.sections[0]?.markdown).toContain(
       'Time of the next high tide.\n\n**Value:** A UTC time.',
     );
+    // Regression: a member read was headed "_Type_", as if the property were a type.
+    expect(property.header).toBe(
+      '_Property_ of `TideClock` · namespace `Example.Tides` · assembly `Example.Tides`',
+    );
     const indexer = renderXmldoc(
       { xml, memberId: 'P:Example.Tides.TideClock.Item(System.Int32)' },
       meta,

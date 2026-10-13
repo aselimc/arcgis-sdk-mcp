@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { absolutizeLinks } from '../../src/render/links.js';
-import { renderMarkdown, splitFrontMatter } from '../../src/render/markdown.js';
+import {
+  capMarkdown,
+  MAX_MARKDOWN_CHARS,
+  renderMarkdown,
+  splitFrontMatter,
+} from '../../src/render/markdown.js';
 import { stripUnseen } from '../../src/render/unseen.js';
 import { readFixture } from '../support/fixtures.js';
 import { expectGolden, makeMeta, pageText, sectionIds, structured } from './helpers.js';
@@ -8,6 +13,28 @@ import { expectGolden, makeMeta, pageText, sectionIds, structured } from './help
 const BLOB = 'https://github.com/example/tides/blob/v1.2.0/samples/clock/README.md';
 const meta = makeMeta({ url: BLOB, kind: 'sample', license: 'apache-2.0' });
 const markdown = readFixture(...structured('markdown', 'readme.md'));
+
+// Regression: a GitHub file is fetched with the cap of an index file (32 MB), and rendering
+// is synchronous at about a second per megabyte of dense text.
+describe('capMarkdown', () => {
+  it('leaves a document of ordinary size alone', () => {
+    expect(capMarkdown('# T\n\nText.')).toEqual({ text: '# T\n\nText.', notices: [] });
+  });
+
+  it('cuts a huge document at a line, closes the fence it cut and says so', () => {
+    const line = 'word '.repeat(19).trim();
+    const huge = `# T\n\n\`\`\`text\n${`${line}\n`.repeat(Math.ceil(MAX_MARKDOWN_CHARS / 95) + 500)}`;
+    const capped = capMarkdown(huge);
+    expect(capped.text.length).toBeLessThanOrEqual(MAX_MARKDOWN_CHARS + 4);
+    expect(capped.text.endsWith(`${line}\n\`\`\``)).toBe(true);
+    expect(capped.notices).toHaveLength(1);
+    expect(capped.notices[0]).toContain('only the first 2 million are shown');
+
+    const page = renderMarkdown({ markdown: huge }, meta);
+    expect(page.notices).toEqual(capped.notices);
+    expect(page.sections).toHaveLength(1);
+  });
+});
 
 describe('renderMarkdown', () => {
   const page = renderMarkdown({ markdown }, meta);

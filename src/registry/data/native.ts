@@ -5,7 +5,6 @@
  * documentation lines (`latest` = 300.x, `v200` = 200.x LTS, selected by `{prefix}` in the
  * base), an API reference in the toolchain's own format, and a samples repository.
  */
-import { DEVELOPERS_ORIGIN as D } from '../../core/names.js';
 import type {
   AdapterConfigMap,
   AnySourceDef,
@@ -18,6 +17,7 @@ import type {
   VersionLine,
   WorkspaceSignal,
 } from '../../core/types.js';
+import { D, LIFECYCLE, banner, githubRepoProbe } from './builders.js';
 
 const VERIFIED_ON = '2026-10-13';
 
@@ -138,11 +138,7 @@ function samples(spec: SamplesSpec): SourceDef<'github-repo'> {
     capability: 'github',
     license: 'apache-2.0',
     ...(spec.count === undefined ? {} : { pagesApprox: spec.count }),
-    probe: {
-      url: `https://api.github.com/repos/${spec.repo}`,
-      expect: 'json',
-      mustContain: 'full_name',
-    },
+    probe: githubRepoProbe(spec.repo),
   };
 }
 
@@ -154,27 +150,11 @@ function repo(
   return { repo: name, role, license, defaultBranch: 'main' };
 }
 
-const banner = (path: string): OracleSpec => ({
-  type: 'page-regex',
-  options: { url: `${D}${path}` },
-  provides: ['documented', 'released'],
-});
-
 const oracle = (
   type: 'github-release' | 'nuget-flat' | 'pub-dev',
   key: 'repo' | 'id' | 'package',
   value: string,
 ): OracleSpec => ({ type, options: { [key]: value }, provides: ['installable'] });
-
-/**
- * Release, maturity and retirement dates from Esri's product life cycle service, which lists
- * the product under its registry name. Read only with the opt-in capability `lifecycle-api`.
- */
-const LIFECYCLE: OracleSpec = {
-  type: 'plc',
-  options: { category: 'Developer' },
-  provides: ['lifecycle'],
-};
 
 interface NativeSpec {
   id: string;

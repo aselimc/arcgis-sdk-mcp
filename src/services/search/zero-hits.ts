@@ -10,6 +10,9 @@ import type { IndexInternals } from '../index/types.js';
 /** Products the router is asked for when looking for a neighbour of the searched scope. */
 const NEIGHBOUR_CANDIDATES = 5;
 
+/** Below this the router matched a stray word, which is no reason to name a product. */
+const MIN_NEIGHBOUR_CONFIDENCE = 0.3;
+
 /**
  * The product to try next: among the router's guesses for the query, one that the registry
  * relates to a searched product. An unrelated guess is not named. The router weighs single
@@ -18,6 +21,7 @@ const NEIGHBOUR_CANDIDATES = 5;
 function neighbourOf(ctx: Ctx, req: SearchRequest, products: readonly string[]): string | undefined {
   const guesses = ctx.registry
     .route(req.query, NEIGHBOUR_CANDIDATES)
+    .filter((candidate) => candidate.confidence >= MIN_NEIGHBOUR_CONFIDENCE)
     .map((candidate) => candidate.product)
     .filter((id) => !products.includes(id));
   if (products.length === 0) return guesses[0];

@@ -8,6 +8,7 @@ import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js
 import type { DocPage, DocSection } from '../core/types.js';
 import { sectionsFromMarkdown } from '../core/sections.js';
 import { absolutizeLinks } from './links.js';
+import { closeFences } from './md.js';
 import { finishPage } from './page.js';
 import { htmlLinksToMarkdown, stripUnseen } from './unseen.js';
 
@@ -28,6 +29,30 @@ export function titleOf(sections: readonly DocSection[]): string | undefined {
     sections.find((section) => section.level === 1) ??
     sections.find((section) => section.level > 0);
   return heading === undefined || heading.title === '' ? undefined : heading.title;
+}
+
+/**
+ * Most characters of a Markdown document that are rendered. The transport lets a text file
+ * be tens of megabytes (package indexes are), and rendering is synchronous: every line is
+ * scanned for links and every link resolved, about a second per megabyte of dense text.
+ * No README, wiki page or changelog worth reading in one piece comes near this size.
+ */
+export const MAX_MARKDOWN_CHARS = 2_000_000;
+
+/**
+ * Cuts a Markdown text at the last line that fits {@link MAX_MARKDOWN_CHARS}, closes a code
+ * fence the cut leaves open, and says so in a notice.
+ */
+export function capMarkdown(markdown: string): { text: string; notices: string[] } {
+  if (markdown.length <= MAX_MARKDOWN_CHARS) return { text: markdown, notices: [] };
+  const end = markdown.lastIndexOf('\n', MAX_MARKDOWN_CHARS);
+  const megabytes = (markdown.length / 1_000_000).toFixed(1);
+  return {
+    text: closeFences(markdown.slice(0, end === -1 ? MAX_MARKDOWN_CHARS : end)),
+    notices: [
+      `The document has ${megabytes} million characters; only the first ${MAX_MARKDOWN_CHARS / 1_000_000} million are shown.`,
+    ],
+  };
 }
 
 /**
@@ -60,11 +85,11 @@ export function renderMarkdown(
   meta: RenderMeta,
   opts?: RenderOptions,
 ): DocPage {
-  const text = input.markdown.replace(/\r\n?/g, '\n');
+  const capped = capMarkdown(input.markdown.replace(/\r\n?/g, '\n'));
   const verbatim = isVerbatim(meta, opts);
-  const front = splitFrontMatter(text);
-  const body = verbatim ? text : readableMarkdown(front.body, meta.url);
+  const front = splitFrontMatter(capped.text);
+  const body = verbatim ? capped.text : readableMarkdown(front.body, meta.url);
   const sections = sectionsFromMarkdown(body);
   const title = front.title ?? titleOf(sections) ?? humanizeSlug(meta.url);
-  return finishPage('markdown', meta, { title, sections }, opts);
+  return finishPage('markdown', meta, { title, sections, notices: capped.notices }, opts);
 }

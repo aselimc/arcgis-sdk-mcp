@@ -6,10 +6,9 @@
  * agentic AI. The JavaScript AI components stay with `js-maps-sdk`; this product points at
  * them through `related` and `startHere`.
  */
-import { DEVELOPERS_ORIGIN } from '../../core/names.js';
 import type { Product } from '../../core/types.js';
+import { D } from './builders.js';
 
-const D = DEVELOPERS_ORIGIN;
 const MCP_DOCS = `${D}/ai/mcp-arcgis-location-services/`;
 const AGENTIC_AI_HELP = 'https://location.arcgis.com/help/agentic-ai/';
 

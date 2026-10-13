@@ -8,7 +8,13 @@ import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js
 import { sectionsFromMarkdown } from '../core/sections.js';
 import type { DocPage, SourceFile } from '../core/types.js';
 import { asRecord, str, strings } from './json.js';
-import { isVerbatim, readableMarkdown, splitFrontMatter, titleOf } from './markdown.js';
+import {
+  capMarkdown,
+  isVerbatim,
+  readableMarkdown,
+  splitFrontMatter,
+  titleOf,
+} from './markdown.js';
 import { blocks, inlineCode } from './md.js';
 import { buildSections, finishPage } from './page.js';
 
@@ -76,7 +82,8 @@ export function renderSource(
   opts?: RenderOptions,
 ): DocPage {
   const metadata = asRecord(input.metadata);
-  const readme = splitFrontMatter((input.readme ?? '').replace(/\r\n?/g, '\n'));
+  const capped = capMarkdown((input.readme ?? '').replace(/\r\n?/g, '\n'));
+  const readme = splitFrontMatter(capped.text);
   const body = isVerbatim(meta, opts) ? readme.body : readableMarkdown(readme.body, meta.url);
   const description = str(metadata.description);
   const metadataTitle = str(metadata.title);
@@ -128,6 +135,7 @@ export function renderSource(
       sections,
       files,
       ...(relevantApis.length === 0 ? {} : { relevantApis }),
+      notices: capped.notices,
     },
     opts,
   );

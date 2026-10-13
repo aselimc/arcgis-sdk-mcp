@@ -7,28 +7,11 @@
  * wording. Page counts are from the research of 2026-10-13 and feed `pagesApprox` and the
  * probe floor (50 % of the count).
  */
-import { DEVELOPERS_ORIGIN } from '../../core/names.js';
-import type {
-  AnySourceDef,
-  DocKind,
-  Product,
-  RepoRef,
-  SourceDef,
-  VersionLine,
-} from '../../core/types.js';
+import type { AnySourceDef, DocKind, Product, SourceDef } from '../../core/types.js';
+import { D, LATEST, apacheRepo, githubRepoProbe } from './builders.js';
 
-const D = DEVELOPERS_ORIGIN;
 const VERIFIED_ON = '2026-10-13';
 const DEVELOPERS_INDEX = 'developers_arcgis_v1';
-
-/** None of these products has versioned documentation: one line, always current. */
-const LATEST: VersionLine = {
-  id: 'latest',
-  label: 'Current',
-  current: true,
-  access: 'live',
-  vars: {},
-};
 
 /** Fields shared by every product in this file. */
 const COMMON = {
@@ -51,15 +34,6 @@ function sitemapProbe(base: string, pages: number): SourceDef['probe'] {
   return { url: `${root}sitemap-0.xml`, expect: 'xml', minRecords: Math.floor(pages / 2) };
 }
 
-/** A repository probe: the metadata call the adapter makes first anyway. */
-function repoProbe(repo: string): SourceDef['probe'] {
-  return {
-    url: `https://api.github.com/repos/${repo}`,
-    expect: 'json',
-    mustContain: 'full_name',
-  };
-}
-
 /** An Apache-2.0 repository read as Markdown documents. */
 function markdownRepo(id: string, title: string, repo: string, kinds: DocKind[]): AnySourceDef {
   return {
@@ -70,12 +44,8 @@ function markdownRepo(id: string, title: string, repo: string, kinds: DocKind[])
     config: { repo, preset: 'markdown-docs' },
     capability: 'github',
     license: 'apache-2.0',
-    probe: repoProbe(repo),
+    probe: githubRepoProbe(repo),
   };
-}
-
-function apacheRepo(repo: string, role: RepoRef['role'], defaultBranch: string): RepoRef {
-  return { repo, role, license: 'apache-2.0', defaultBranch };
 }
 
 /**
@@ -675,7 +645,7 @@ const velocityGrpc: Product = {
       capability: 'github',
       license: 'apache-2.0',
       floor: true,
-      probe: repoProbe('Esri/realtime-grpc-feed'),
+      probe: githubRepoProbe('Esri/realtime-grpc-feed'),
     },
   ],
   startHere: [

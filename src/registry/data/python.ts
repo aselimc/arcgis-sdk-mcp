@@ -1,25 +1,11 @@
 /**
  * Registry data: Python, data science and R (design section 4.3).
  */
-import { DEVELOPERS_ORIGIN as D } from '../../core/names.js';
-import type {
-  AdapterConfigMap,
-  OracleSpec,
-  Product,
-  SourceDef,
-  VersionLine,
-} from '../../core/types.js';
+import type { AdapterConfigMap, Product, SourceDef, VersionLine } from '../../core/types.js';
+import { D, LATEST, LIFECYCLE, banner, githubRepoProbe } from './builders.js';
 import { helpDeveloperSources } from './help.generated.js';
 
 const VERIFIED_ON = '2026-10-13';
-
-const LATEST: VersionLine = {
-  id: 'latest',
-  label: 'Current',
-  current: true,
-  access: 'live',
-  vars: {},
-};
 
 /** A Gatsby guide site on developers.arcgis.com; `pages` is its sitemap size. */
 function gatsbyGuide(
@@ -71,29 +57,9 @@ function notebooks(repo: string, title: string, include?: string[]): SourceDef<'
     config: { repo, preset: 'notebooks', ...(include === undefined ? {} : { include }) },
     capability: 'github',
     license: 'apache-2.0',
-    probe: {
-      url: `https://api.github.com/repos/${repo}`,
-      expect: 'json',
-      mustContain: 'full_name',
-    },
+    probe: githubRepoProbe(repo),
   };
 }
-
-const banner = (path: string): OracleSpec => ({
-  type: 'page-regex',
-  options: { url: `${D}${path}` },
-  provides: ['documented', 'released'],
-});
-
-/**
- * Release, maturity and retirement dates from Esri's product life cycle service, which lists
- * the product under its registry name. Read only with the opt-in capability `lifecycle-api`.
- */
-const LIFECYCLE: OracleSpec = {
-  type: 'plc',
-  options: { category: 'Developer' },
-  provides: ['lifecycle'],
-};
 
 const PY = '/python/latest/';
 

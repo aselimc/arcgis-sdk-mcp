@@ -7,7 +7,13 @@ import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js
 import { sectionsFromMarkdown } from '../core/sections.js';
 import type { DocPage } from '../core/types.js';
 import { asRecord, isRecord, list, records, str, type Json } from './json.js';
-import { isVerbatim, readableMarkdown, titleOf } from './markdown.js';
+import {
+  capMarkdown,
+  isVerbatim,
+  MAX_MARKDOWN_CHARS,
+  readableMarkdown,
+  titleOf,
+} from './markdown.js';
 import { blocks, fence } from './md.js';
 import { finishPage, invalidInput } from './page.js';
 
@@ -83,14 +89,21 @@ export function renderNotebook(
     str(asRecord(metadata.kernelspec).language) ??
     'python';
   const verbatim = isVerbatim(meta, opts);
-  const parts = records(notebook.cells).map((cell) => {
+  const parts: string[] = [];
+  let length = 0;
+  for (const cell of records(notebook.cells)) {
+    // Cells past the size that is rendered are not converted at all.
+    if (length > MAX_MARKDOWN_CHARS) break;
+    let part = '';
     if (cell.cell_type === 'markdown') {
-      const text = sourceOf(cell.source);
-      return verbatim ? text : readableMarkdown(text, meta.url);
-    }
-    return cell.cell_type === 'code' ? codeCell(cell, language) : '';
-  });
-  const sections = sectionsFromMarkdown(blocks(...parts));
+      const text = capMarkdown(sourceOf(cell.source)).text;
+      part = verbatim ? text : readableMarkdown(text, meta.url);
+    } else if (cell.cell_type === 'code') part = codeCell(cell, language);
+    parts.push(part);
+    length += part.length;
+  }
+  const capped = capMarkdown(blocks(...parts));
+  const sections = sectionsFromMarkdown(capped.text);
   const title = titleOf(sections) ?? humanizeSlug(meta.url);
-  return finishPage('notebook', meta, { title, sections }, opts);
+  return finishPage('notebook', meta, { title, sections, notices: capped.notices }, opts);
 }

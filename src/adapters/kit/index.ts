@@ -11,6 +11,7 @@ export {
   renderMeta,
   renderOptionsOf,
   symbolTarget,
+  withRef,
   type HtmlPageOptions,
 } from './render.js';
 export {
