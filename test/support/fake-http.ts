@@ -21,6 +21,7 @@ import {
 } from './cassette.js';
 import { FakeClock } from './fake-clock.js';
 
+// Re-exported so that a test needs one import for the fake and the data it is fed.
 export { UnrecordedRequestError };
 export type { Cassette, Fault, Interaction, RecordedResponse, SeenRequest } from './cassette.js';
 

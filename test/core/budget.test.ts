@@ -201,11 +201,23 @@ describe('fitSections', () => {
     expect(second.text.startsWith('## Details\n\nword')).toBe(true);
   });
 
-  it('keeps a heading-only page when the heading is all that fits', () => {
-    const doc = sectionsFromMarkdown(`## Details\n\n${'word '.repeat(60)}`);
+  it('never returns a bare heading: headings come with their first content block', () => {
+    const paragraph = 'word '.repeat(60).trim();
+    const doc = sectionsFromMarkdown(`# Top\n\n## Details\n\n${paragraph}\n\nSecond paragraph.`);
     const first = fitSections(doc, 3);
-    expect(first.text).toBe('## Details');
+    expect(first.text).toBe(`# Top\n\n## Details\n\n${paragraph}`);
+    expect(first.used).toBeGreaterThan(3);
     expect(first.cutInside).toBe('details');
+    expect(fitSections(doc, 3, first.nextOffset).text).toBe('Second paragraph.');
+  });
+
+  it('returns trailing headings as the last page when nothing follows them', () => {
+    const doc = sectionsFromMarkdown('Intro.\n\n## Empty section\n\n### Also empty');
+    const first = fitSections(doc, 2);
+    expect(first.text).toBe('Intro.');
+    const last = fitSections(doc, 2, first.nextOffset);
+    expect(last.text).toBe('## Empty section\n\n### Also empty');
+    expect(last.nextOffset).toBeUndefined();
   });
 
   describe('properties', () => {
@@ -232,7 +244,7 @@ describe('fitSections', () => {
       });
     });
 
-    it('stays within the budget unless a single block is larger than it', () => {
+    it('stays within the budget unless the page is one content block with its headings', () => {
       forSeeds(150, (rng) => {
         const sections = sectionsFromMarkdown(randomDocument(rng).markdown);
         const maxTokens = rng.int(1, 300);
@@ -240,7 +252,10 @@ describe('fitSections', () => {
         while (offset !== undefined) {
           const page = fitSections(sections, maxTokens, offset);
           expect(page.used).toBe(estimateTokens(page.text));
-          if (page.used > maxTokens) expect(splitBlocks(page.text)).toHaveLength(1);
+          const content = splitBlocks(page.text).filter((block) => !/^#{1,6} \S.*$/.test(block));
+          if (page.used > maxTokens) expect(content, page.text).toHaveLength(1);
+          // A page is never just headings unless the document ends with them.
+          if (page.nextOffset !== undefined) expect(content.length, page.text).toBeGreaterThan(0);
           offset = page.nextOffset;
         }
       });

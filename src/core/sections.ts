@@ -14,6 +14,9 @@ const ATX_HEADING = /^ {0,3}(#{1,6})[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$/;
 /** `## Title {#custom-id}`: an explicit anchor wins over the slug of the text. */
 const EXPLICIT_ID = /\s*\{#([A-Za-z0-9_.:-]+)\}\s*$/;
 const BYTE_ORDER_MARK = /^\uFEFF/;
+/** A private-use character that cannot occur in documentation text; brackets parked escapes. */
+const PARK = '\uE000';
+const PARKED = /\uE000(\d+)\uE000/g;
 
 /** Heading text without inline Markdown: link targets, images, code ticks, emphasis, raw tags. */
 function plainTitle(raw: string): string {
@@ -22,7 +25,7 @@ function plainTitle(raw: string): string {
   const literals: string[] = [];
   const parked = raw.replace(/\\([\\`*_{}[\]()#+.!|~<>-])/g, (_whole, char: string) => {
     literals.push(char);
-    return `\u0000${literals.length - 1}\u0000`;
+    return `${PARK}${literals.length - 1}${PARK}`;
   });
   return parked
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
@@ -30,7 +33,7 @@ function plainTitle(raw: string): string {
     .replace(/<[^>]+>/g, '')
     .replace(/`+/g, '')
     .replace(/(\*\*|__|\*|~~)(?=\S)(.+?)(?<=\S)\1/g, '$2')
-    .replace(/\u0000(\d+)\u0000/g, (_whole, index: string) => literals[Number(index)] ?? '')
+    .replace(PARKED, (_whole, index: string) => literals[Number(index)] ?? '')
     .replace(/\s+/g, ' ')
     .trim();
 }

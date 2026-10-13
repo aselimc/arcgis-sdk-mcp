@@ -88,9 +88,13 @@ export interface SeenRequest {
   headers?: Record<string, string>;
 }
 
+/** Selects requests: an exact URL (fragment ignored) or a pattern tested against the URL. */
 export type Matcher = string | RegExp;
+
+/** A fixed response, or a function computing one from the request. */
 export type Responder = RecordedResponse | ((req: HttpRequest) => RecordedResponse);
 
+/** The queued responses for one method and matcher, and how many have been served. */
 export interface Route {
   method: 'GET' | 'POST';
   matcher: Matcher;
@@ -98,6 +102,7 @@ export interface Route {
   served: number;
 }
 
+/** A fault waiting to be applied to matching requests `remaining` more times. */
 export interface InjectedFault {
   matcher: Matcher;
   fault: Fault;
@@ -105,9 +110,11 @@ export interface InjectedFault {
   stale: boolean;
 }
 
+/** What a catch-all host returns for a path that does not exist: a 200 HTML page. */
 export const HTML_CATCH_ALL =
   '<!doctype html><html><head><title>Not found</title></head><body><main>Page not found</main></body></html>';
 
+/** Content type reported when a recording does not state one. */
 export const DEFAULT_CONTENT_TYPE: Record<HttpRequest['expect'], string> = {
   html: 'text/html; charset=utf-8',
   json: 'application/json',
@@ -127,10 +134,15 @@ export function normalise(url: string): string {
   }
 }
 
+/** True when a normalised URL is selected by the matcher. */
 export function matches(matcher: Matcher, url: string): boolean {
-  return typeof matcher === 'string' ? normalise(matcher) === url : matcher.test(url);
+  if (typeof matcher === 'string') return normalise(matcher) === url;
+  // A pattern with the `g` or `y` flag keeps state between calls; start every test afresh.
+  matcher.lastIndex = 0;
+  return matcher.test(url);
 }
 
+/** Host of a URL, or an empty string when the text is not a URL. */
 export function hostOf(url: string): string {
   try {
     return new URL(url).host;

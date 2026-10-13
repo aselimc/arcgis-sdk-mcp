@@ -16,6 +16,8 @@ export default defineConfig({
           name: 'unit',
           include: ['test/**/*.test.ts'],
           exclude: ['test/live/**', 'test/fixtures/**', 'node_modules/**', 'dist/**'],
+          // Replaces the global fetch with a guard that rejects every non-loopback request.
+          setupFiles: ['test/support/no-network.ts'],
         },
       },
       {

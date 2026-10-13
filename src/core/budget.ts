@@ -88,9 +88,10 @@ const HEADING_ONLY = /^ {0,3}#{1,6}[ \t]+\S.*$/;
  * Guarantees:
  * - a code fence or table is never split, because cuts fall only between blocks;
  * - successive pages joined with a blank line equal `joinSections(sections)` exactly;
- * - every page holds at least one block, so paging always terminates. A single block larger
- *   than the budget is returned whole, which is the only case where `used > maxTokens`;
- * - a page does not end on a bare heading when its content would start the next page.
+ * - every page holds at least one content block (with any headings directly above it), so
+ *   paging always terminates and no page is a bare heading. A content block larger than the
+ *   budget is returned whole; that minimal page is the only case where `used > maxTokens`;
+ * - a page does not end on a heading when the content it introduces would start the next page.
  *
  * An offset that is not on a block boundary (a stale or altered cursor) moves forward to
  * the next boundary; an offset at or past the end gives an empty page.
@@ -114,22 +115,23 @@ export function fitSections(
 
   let chars = 0;
   let fenced = 0;
+  let hasContent = false;
   let end = from;
   for (; end < blocks.length; end++) {
     const block = blocks[end];
     if (block === undefined) break;
     const size = measure(block.text);
     const nextChars = chars + size.chars + (end > from ? BLOCK_SEPARATOR.length : 0);
-    if (end > from && tokensFor(nextChars, fenced + size.fenced) > maxTokens) break;
+    // The budget only applies once the page has content: headings alone are not a page.
+    if (hasContent && tokensFor(nextChars, fenced + size.fenced) > maxTokens) break;
     chars = nextChars;
     fenced += size.fenced;
+    hasContent ||= !HEADING_ONLY.test(block.text);
   }
 
   // Keep a heading with the content it introduces rather than stranding it at a page end.
-  const last = blocks[end - 1];
-  if (end < blocks.length && end - from > 1 && last !== undefined && HEADING_ONLY.test(last.text)) {
-    end -= 1;
-  }
+  // The loop above only stops after content, so this never empties the page.
+  while (end < blocks.length && HEADING_ONLY.test(blocks[end - 1]?.text ?? '')) end -= 1;
 
   const text = blocks
     .slice(from, end)

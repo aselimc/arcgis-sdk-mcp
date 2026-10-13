@@ -33,21 +33,30 @@ function notAUrl(input: string): McpDocError {
   });
 }
 
+/** `scheme://`, or one of the schemes that are written without slashes. */
+const SCHEME = /^(?:([a-z][a-z0-9+.-]*):\/\/|(javascript|data|mailto|file|blob|about|vbscript):)/i;
+
+/**
+ * A URL written without its scheme. The host must be lower-case and end in a top-level
+ * domain that documentation hosts use, so that qualified API names such as
+ * `FeatureLayer.queryFeatures`, `arcpy.da.SearchCursor` or `System.IO` are not taken for hosts.
+ */
+const SCHEMELESS = /^[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|org|io|net|dev)(?::\d+)?(?:[/?#]|$)/;
+
 /** Parses an http(s) URL, accepting a missing scheme (`developers.arcgis.com/...`). */
 function parseUrl(input: string): URL {
   const text = input.trim();
-  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(text)?.[1]?.toLowerCase();
-  // `host:port/path` parses as scheme `host`; a dot in the "scheme" means it is a host name.
-  const hasScheme = scheme !== undefined && !scheme.includes('.') && scheme !== 'localhost';
-  if (hasScheme && scheme !== 'http' && scheme !== 'https') {
+  const match = SCHEME.exec(text);
+  const scheme = (match?.[1] ?? match?.[2])?.toLowerCase();
+  if (scheme !== undefined && scheme !== 'http' && scheme !== 'https') {
     throw new McpDocError('HOST_NOT_ALLOWED', `Only https URLs can be read, not ${scheme}:`, {
       why: 'Documentation is fetched over https from Esri documentation hosts only',
       url: text,
     });
   }
-  if (!hasScheme && !/^[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:[:/?#]|$)/i.test(text)) throw notAUrl(input);
+  if (scheme === undefined && !SCHEMELESS.test(text)) throw notAUrl(input);
   try {
-    return new URL(hasScheme ? text : `https://${text}`);
+    return new URL(scheme === undefined ? `https://${text}` : text);
   } catch {
     throw notAUrl(input);
   }
