@@ -51,6 +51,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      # Builds, packs the tarball and drives the packed binary over stdio and HTTP.
+      - run: npm run test:e2e
 
   build:
     name: Build and pack check

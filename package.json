@@ -57,6 +57,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run --project unit",
     "test:coverage": "vitest run --project unit --coverage",
+    "test:e2e": "npm run build && vitest run --project e2e",
     "test:live": "vitest run --project live",
     "gen": "tsx scripts/import-help-registry.ts && tsx scripts/gen-briefs.ts",
     "registry:check": "tsx scripts/registry-check.ts",
