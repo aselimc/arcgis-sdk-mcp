@@ -63,17 +63,26 @@ export function expandReleaseNotesPattern(
   return resolveUrl(filled, line);
 }
 
-/** Pages whose URL matches a regex `pattern`; its first capture group is the version slug. Newest first. */
+/**
+ * Pages whose URL matches a regex `pattern`, newest first. The version slug is the first
+ * capture group that took part in the match. A pattern with several groups lists its URL
+ * shapes in order of preference: when two URLs name one version, the one matched by the
+ * earlier group is kept (a real page ahead of the redirect stub that points to it), and
+ * among URLs of the same group the first in sitemap order.
+ */
 export function pagesByPattern(urls: readonly string[], pattern: RegExp): VersionedPage[] {
-  const byVersion = new Map<string, string>();
+  const byVersion = new Map<string, { url: string; group: number }>();
   for (const url of urls) {
-    const slug = pattern.exec(url)?.[1];
+    const match = pattern.exec(url);
+    const group = match?.findIndex((part, index) => index > 0 && part !== undefined) ?? -1;
+    const slug = group > 0 ? match?.[group] : undefined;
     if (slug === undefined) continue;
     const version = versionFromSlugText(slug);
-    if (!byVersion.has(version)) byVersion.set(version, url);
+    const known = byVersion.get(version);
+    if (known === undefined || group < known.group) byVersion.set(version, { url, group });
   }
   return [...byVersion]
-    .map(([version, url]) => ({ version, url }))
+    .map(([version, { url }]) => ({ version, url }))
     .sort((a, b) => compareVersions(b.version, a.version));
 }
 
