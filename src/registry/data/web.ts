@@ -165,7 +165,8 @@ const jsSources: AnySourceDef[] = [
     probe: {
       url: `${D}${JS}sample-code/`,
       expect: 'html',
-      family: 'astro-sample',
+      // The canary is the index of samples, an ordinary page; a sample page is `astro-sample`.
+      family: 'astro',
       mustContain: 'data-sample-id',
     },
   },

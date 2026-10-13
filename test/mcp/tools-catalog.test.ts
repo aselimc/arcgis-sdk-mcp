@@ -177,5 +177,20 @@ describe('catalogue tools', () => {
       expect(outcome.text).toContain('Next: arcgis_docs_list_products({})');
       expect(outcome.text).not.toContain('Source:');
     });
+
+    // Regression: the real version service explains the empty report, and the tool said it
+    // a second time.
+    it('does not repeat what the version service already explained', async () => {
+      const report = suite.harness.services.versions.report.bind(suite.harness.services.versions);
+      suite.harness.services.versions.report = async (req, options) => ({
+        ...(await report(req, options)),
+        notes: [
+          'No Esri SDK was detected in the current project. Pass "product" to report on one.',
+        ],
+      });
+      const outcome = await call(TOOLS.getVersions);
+      expect(outcome.text.match(/No Esri SDK was detected/g)).toHaveLength(1);
+      suite.harness.services.versions.report = report;
+    });
   });
 });

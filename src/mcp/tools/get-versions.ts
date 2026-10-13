@@ -100,7 +100,8 @@ const handle: ToolHandler<typeof Input> = async (args, call, { services }) => {
   );
   const products = report.products.map(versionsProduct);
   const notes = [...report.notes];
-  if (products.length === 0 && args.product === undefined) {
+  // The version service explains an empty report itself; this covers one that does not.
+  if (products.length === 0 && args.product === undefined && notes.length === 0) {
     notes.push('No Esri SDK was detected in the current project. Pass `product` to report on one.');
   }
   const result: Result = { asOf: report.asOf, products, notes };
