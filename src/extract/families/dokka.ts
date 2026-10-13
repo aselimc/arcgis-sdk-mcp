@@ -16,12 +16,18 @@ const rowName = (row: Element, $: CheerioAPI): string =>
   identifier($(row).find(ROW_LINK).first().text());
 
 /**
- * The fully qualified name, from the root's `pageIds` attribute
- * (`<module>::<package>/<Type>///PointingToDeclaration//...`).
+ * The fully qualified name, from the root's `pageIds` attribute. Its value is a Dokka
+ * address: `<module>::<package>/<Type>/<member>/<signature>/PointingToDeclaration//<hash>`,
+ * with `<member>` and `<signature>` empty on a type page and `<Type>` empty on a top-level
+ * function. Only the first three fields are part of the name.
  */
 function qualifiedName(page: PageView): AnyNode[] {
-  const location = (page.root.attr('pageids') ?? '').split('::')[1]?.split('///')[0] ?? '';
-  const name = location.replace(/\/+$/, '').replace(/\//g, '.');
+  const address = (page.root.attr('pageids') ?? '').split('::')[1] ?? '';
+  const name = address
+    .split('/')
+    .slice(0, 3)
+    .filter((part) => part !== '')
+    .join('.');
   return name === '' ? [] : fragment(page.$, `<p>${tagged('code', name)}</p>`);
 }
 

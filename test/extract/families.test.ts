@@ -61,6 +61,31 @@ describe('dokka rules', () => {
     expect(body(page)).toBe('## Functions\n\n```kotlin\nfun read(): Double\n```');
   });
 
+  // Regression: a member page was headed `pkg.Type.member.#.PointingToDeclaration..123`,
+  // because only type pages end their name at the first `///`.
+  it.each([
+    ['m::com.example.tide/TideGauge///PointingToDeclaration//-15', 'com.example.tide.TideGauge'],
+    [
+      'm::com.example.tide/TideGauge/level/#/PointingToDeclaration//99',
+      'com.example.tide.TideGauge.level',
+    ],
+    [
+      'm::com.example.tide/TideGauge/read/#kotlin.Int#kotlin.String/PointingToDeclaration//7',
+      'com.example.tide.TideGauge.read',
+    ],
+    [
+      'm::com.example.tide//nearestGauge/#kotlin.Double/PointingToDeclaration//7',
+      'com.example.tide.nearestGauge',
+    ],
+    ['m::com.example.tide////PointingToDeclaration//7', 'com.example.tide'],
+  ])('reads the qualified name out of pageIds %s', (pageIds, expected) => {
+    const page = convertAs(
+      'dokka',
+      `<div id="content" class="main-content" pageIds="${pageIds}"><div class="cover"><h1 class="cover">level</h1></div><p>The water level.</p></div>`,
+    );
+    expect(page.header).toBe(`\`${expected}\``);
+  });
+
   it('gives overloaded names in different sections distinct, stable ids', () => {
     const row = (name: string): string =>
       `<div class="table-row"><div class="main-subrow"><a href="${name}.html"><span>${name}</span></a></div><div class="symbol monospace">val ${name}: Int</div></div>`;

@@ -118,7 +118,7 @@ export function createSymbolService(
         }
         const typePage = await reader.read(
           target,
-          { record: type, step: 'exact', rank: [0, 0, 0, 0], twins: [] },
+          { record: type, step: 'qualified', rank: [0, 0, 0, 0], twins: [] },
           'full',
           call,
         );
@@ -149,9 +149,7 @@ export function createSymbolService(
           ({ winner, page: read } = fromType);
         } else {
           const declared =
-            knownType !== undefined && listed.length > 0
-              ? await readInherited(knownType, memberName)
-              : undefined;
+            knownType === undefined ? undefined : await readInherited(knownType, memberName);
           if (declared === undefined || knownType === undefined) {
             const names =
               fromType !== undefined && knownType !== undefined && fromType.names.length > 0
