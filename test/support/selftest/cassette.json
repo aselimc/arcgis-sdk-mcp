@@ -1,0 +1,22 @@
+{
+  "name": "support self-test",
+  "interactions": [
+    {
+      "url": "https://developers.arcgis.com/widgets/sitemap-0.xml",
+      "response": { "contentType": "application/xml", "bodyFile": "sitemap-0.xml" }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/index.json",
+      "response": { "json": { "pages": 2 }, "etag": "W/\"v1\"" }
+    },
+    {
+      "method": "POST",
+      "url": "https://developers.arcgis.com/widgets/search",
+      "response": { "json": { "hits": [] } }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/gone/",
+      "response": { "status": 404 }
+    }
+  ]
+}

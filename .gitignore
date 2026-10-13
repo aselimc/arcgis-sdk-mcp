@@ -1,0 +1,22 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.tgz
+
+# Live-recorded upstream responses are never committed (docs/adr/0006-fixture-policy.md)
+test/fixtures/recorded/
+
+# Local environment and editor state
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Local MCP host configuration (the example file is committed)
+.mcp.json

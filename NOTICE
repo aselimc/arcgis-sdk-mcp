@@ -1,0 +1,55 @@
+arcgis-sdk-mcp
+Copyright 2026 aselimc and the arcgis-sdk-mcp contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+------------------------------------------------------------------------------
+Not affiliated with Esri
+------------------------------------------------------------------------------
+
+This is an independent, unofficial open-source project. It is not affiliated
+with, endorsed by, or sponsored by Environmental Systems Research Institute,
+Inc. (Esri).
+
+Esri, ArcGIS, ArcGIS Online, ArcGIS Enterprise, ArcGIS Pro, ArcPy, ArcMap,
+ArcObjects, Calcite, CityEngine, Survey123, StoryMaps and other Esri product
+and service names are trademarks, service marks or registered marks of Esri
+in the United States, the European Community or certain other jurisdictions.
+They are used in this project only to identify the products whose public
+documentation the software retrieves. Other companies and products mentioned
+may be trademarks of their respective owners.
+
+------------------------------------------------------------------------------
+Documentation content
+------------------------------------------------------------------------------
+
+This package ships no Esri-authored documentation. At run time, and only in
+response to a request made by its user, the software retrieves pages and
+files from Esri's public documentation hosts and public GitHub repositories
+and returns them with a source line. That content remains the property of
+Esri or its respective authors and is subject to their terms, including
+Esri's terms of use (https://www.esri.com/en-us/legal/overview) and the
+licence of each repository or package it comes from.
+
+The product registry, the curated briefs under briefs/ and the test fixtures
+under test/fixtures/synthetic are original works of this project. Files under
+test/fixtures/oss are copies of Apache-2.0 licensed files from Esri's public
+GitHub repositories; each directory there carries a provenance file naming
+the source URL, commit and licence.
+
+------------------------------------------------------------------------------
+Third-party software
+------------------------------------------------------------------------------
+
+This product depends on the following third-party packages, installed from
+the npm registry and not redistributed in this repository. Each is the
+property of its authors and is used under its own licence:
+
+  @modelcontextprotocol/server, @modelcontextprotocol/node   Apache-2.0
+  zod                                                         MIT
+  cheerio                                                     MIT
+  turndown                                                    MIT
+  @joplin/turndown-plugin-gfm                                 MIT
+  minisearch                                                  MIT
+  env-paths                                                   MIT
+  lru-cache                                                   BlueOak-1.0.0

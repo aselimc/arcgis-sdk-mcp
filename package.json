@@ -1,0 +1,94 @@
+{
+  "name": "arcgis-sdk-mcp",
+  "version": "0.1.0",
+  "description": "Unofficial MCP server that gives coding agents on-demand access to Esri ArcGIS developer documentation: guides, API references, REST specs, samples, release notes and versions. Not affiliated with Esri.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "arcgis",
+    "esri",
+    "gis",
+    "documentation",
+    "arcgis-maps-sdk",
+    "arcpy",
+    "ai-agents",
+    "coding-agents"
+  ],
+  "license": "Apache-2.0",
+  "author": "aselimc (https://github.com/aselimc)",
+  "homepage": "https://github.com/aselimc/arcgis-sdk-mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aselimc/arcgis-sdk-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aselimc/arcgis-sdk-mcp/issues"
+  },
+  "mcpName": "io.github.aselimc/arcgis-sdk-mcp",
+  "type": "module",
+  "bin": {
+    "arcgis-sdk-mcp": "dist/cli/main.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run --project unit",
+    "test:coverage": "vitest run --project unit --coverage",
+    "test:live": "vitest run --project live",
+    "gen": "tsx scripts/import-help-registry.ts && tsx scripts/gen-briefs.ts",
+    "registry:check": "tsx scripts/registry-check.ts",
+    "dev": "tsx src/cli/main.ts",
+    "prepack": "npm run build && tsx scripts/check-package-contents.ts"
+  },
+  "dependencies": {
+    "@joplin/turndown-plugin-gfm": "^1.0.68",
+    "@modelcontextprotocol/node": "^2.1.1",
+    "@modelcontextprotocol/server": "^2.3.1",
+    "cheerio": "^1.2.0",
+    "env-paths": "^4.0.0",
+    "lru-cache": "^11.5.3",
+    "minisearch": "^7.2.0",
+    "turndown": "^7.2.4",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@modelcontextprotocol/client": "^2.3.1",
+    "@types/node": "^22",
+    "@types/turndown": "^5.0.6",
+    "@vitest/coverage-v8": "^4.1.11",
+    "eslint": "^9.39.5",
+    "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.71.2",
+    "vite": "^7.3.7",
+    "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "vite": "$vite"
+  }
+}

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+package-lock.json
+
+# Fixtures and goldens are compared byte for byte.
+test/fixtures/
+
+# Generated files: `npm run gen` must leave no diff.
+src/registry/data/*.generated.ts
+scripts/data/
+docs/tools.md
+
+# Verbatim legal text.
+LICENSE
+NOTICE
