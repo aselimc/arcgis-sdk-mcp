@@ -45,7 +45,7 @@ a version behind. This server lets the agent check instead of guess.
 - **One kind of handle.** A document reference is its URL. The agent can pass back any Esri
   documentation URL it meets in code, in an error message or in a search result.
 - **Clear about gaps.** "Not found" is reported as "not verified", a degraded answer says
-  why, and every result names its source and retrieval date.
+  why, and fetched content always comes with its source URL and retrieval date.
 
 ## Quick start
 
