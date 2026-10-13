@@ -25,13 +25,10 @@ import { simpleName } from '../index/symbol-map.js';
 import type { IndexInternals } from '../index/types.js';
 import { resolveScope, type Scope } from '../scope.js';
 import { symbolText } from './detail.js';
-import {
-  displayName,
-  MAX_NEAREST,
-  resolveSymbol,
-  type Candidate,
-  type SymbolScope,
-} from './resolve.js';
+import { displayName, resolveSymbol, type Candidate, type SymbolScope } from './resolve.js';
+
+/** Names suggested when nothing matches. */
+const MAX_NEAREST = 5;
 
 /** Most products a lookup without a `product` argument covers. */
 const MAX_ROUTED_PRODUCTS = 3;
@@ -116,8 +113,8 @@ export function createSymbolService(
         : await adapter.symbol(ctx, bound, record, req.detail);
     return {
       ...page,
-      product: page.product ?? target.product.id,
-      source: page.source ?? source.id,
+      product: target.product.id,
+      source: source.id,
       line: page.line ?? target.line.id,
     };
   };
@@ -220,7 +217,10 @@ export function createSymbolService(
       const members = targets.flatMap((target) =>
         index.symbols(target.product.id, target.line.id).members(displayName(knownType)),
       );
-      const names = nearest(simple, members.map(simpleName), MAX_NEAREST);
+      const all = [...new Set(members.map(simpleName))];
+      const near = nearest(simple, all, MAX_NEAREST);
+      // Nothing similar: the first members still show what the type offers.
+      const names = near.length > 0 ? near : all.slice(0, MAX_NEAREST);
       return names.map((name) => `${displayName(knownType)}.${name}`);
     }
     const hits = index.query({

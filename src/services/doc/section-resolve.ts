@@ -129,6 +129,9 @@ export function resolveSection(
   if (name === '') return undefined;
   const lower = name.toLowerCase();
 
+  // On a sample, "source" means all of its code, not only the main file's section.
+  if (lower === 'source' && (page.files?.length ?? 0) > 0) return pseudo(page, sections, 'source');
+
   if (sections.some((section) => section.id === name)) return subtree(sections, name, 'id');
 
   const slug = slugify(name);

@@ -138,8 +138,9 @@ export function createPageReader(
         );
         const filled: DocPage = {
           ...page,
-          product: page.product ?? product.id,
-          source: page.source ?? source.id,
+          // The route knows which source answered; a page built by a shared renderer may not.
+          product: product.id,
+          source: source.id,
           line: page.line ?? line.id,
         };
         if (primary) return filled;

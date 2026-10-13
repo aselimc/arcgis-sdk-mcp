@@ -93,11 +93,21 @@ export function renderOutline(
 
   let rows = build(OUTLINE_DEPTH);
   const text = (): string => joinParts([heading, rows.join('\n'), summary]);
-  if (estimateTokens(text()) > budget) rows = build(1);
   if (estimateTokens(text()) > budget) {
-    const total = rows.length;
-    while (rows.length > 1 && estimateTokens(text()) > budget) rows.pop();
-    rows.push(`- ... ${total - rows.length} more sections; ask for one by its heading text`);
+    // One level is only worth showing when the document has several top-level sections.
+    const shallow = build(1);
+    if (shallow.length > 2) rows = shallow;
+  }
+  if (estimateTokens(text()) > budget) {
+    const all = rows;
+    let kept = all.length;
+    do {
+      kept -= 1;
+      rows = [
+        ...all.slice(0, kept),
+        `- ... ${all.length - kept} more sections; ask for one by its heading text`,
+      ];
+    } while (kept > 1 && estimateTokens(text()) > budget);
   }
   return text();
 }

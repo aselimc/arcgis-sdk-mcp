@@ -54,9 +54,9 @@ describe('synonyms', () => {
 
 describe('excerpts', () => {
   it('strips highlight markup and entities', () => {
-    expect(stripHighlight('Call <b>applyEdits</b> on a &lt;layer&gt; &amp;  wait&nbsp;for it')).toBe(
-      'Call applyEdits on a <layer> & wait for it',
-    );
+    expect(
+      stripHighlight('Call <b>applyEdits</b> on a &lt;layer&gt; &amp;  wait&nbsp;for it'),
+    ).toBe('Call applyEdits on a <layer> & wait for it');
   });
 
   it('clips at a word boundary within the cap', () => {
@@ -89,7 +89,8 @@ describe('multipliers', () => {
     workspace: new Set(),
     ...overrides,
   });
-  const hit = (overrides = {}) => makeHit({ product: 'js-maps-sdk', title: 'Something', ...overrides });
+  const hit = (overrides = {}) =>
+    makeHit({ product: 'js-maps-sdk', title: 'Something', ...overrides });
 
   it('leaves an ordinary current-line hit alone', () => {
     expect(multiplier(hit(), context())).toBe(1);
@@ -106,7 +107,9 @@ describe('multipliers', () => {
   it('applies tier, status, workspace, exact-title and brief weights', () => {
     expect(multiplier(hit({ product: 'cityengine' }), context())).toBe(LINK_TIER_WEIGHT);
     expect(multiplier(hit({ product: 'arcobjects' }), context())).toBe(LEGACY_WEIGHT);
-    expect(multiplier(hit(), context({ workspace: new Set(['js-maps-sdk']) }))).toBe(WORKSPACE_WEIGHT);
+    expect(multiplier(hit(), context({ workspace: new Set(['js-maps-sdk']) }))).toBe(
+      WORKSPACE_WEIGHT,
+    );
     expect(multiplier(hit({ title: 'Cluster Points!' }), context())).toBe(EXACT_TITLE_WEIGHT);
     expect(multiplier(hit({ product: 'ai-agents', kind: 'brief' }), context())).toBe(BRIEF_WEIGHT);
     expect(multiplier(hit({ kind: 'brief' }), context())).toBe(1);
@@ -142,7 +145,10 @@ describe('multipliers', () => {
 });
 
 describe('notes', () => {
-  const state = (source: string, value: 'ready' | 'stale' | 'building' | 'partial' | 'unavailable') => ({
+  const state = (
+    source: string,
+    value: 'ready' | 'stale' | 'building' | 'partial' | 'unavailable',
+  ) => ({
     product: 'p',
     source,
     line: 'latest',
@@ -152,7 +158,14 @@ describe('notes', () => {
 
   it('describes every state that is not ready', () => {
     const notes = indexNotes(
-      [state('a', 'ready'), state('b', 'building'), state('c', 'stale'), state('d', 'partial'), state('e', 'unavailable'), state('f', 'unavailable')],
+      [
+        state('a', 'ready'),
+        state('b', 'building'),
+        state('c', 'stale'),
+        state('d', 'partial'),
+        state('e', 'unavailable'),
+        state('f', 'unavailable'),
+      ],
       (_product, source) => (source === 'c' || source === 'e' ? 'timeout' : undefined),
     );
     expect(notes).toEqual([

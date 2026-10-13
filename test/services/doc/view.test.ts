@@ -38,9 +38,21 @@ const GUIDE = [
 ].join('\n');
 
 const members: MemberEntry[] = [
-  { id: 'resize', name: 'resize', kind: 'method', signature: 'resize(width: number): void', summary: 'Changes the width.' },
+  {
+    id: 'resize',
+    name: 'resize',
+    kind: 'method',
+    signature: 'resize(width: number): void',
+    summary: 'Changes the width.',
+  },
   { id: 'theme', name: 'theme', kind: 'property', summary: 'The active theme.', readonly: true },
-  { id: 'legacyMode', name: 'legacyMode', kind: 'property', deprecated: true, inheritedFrom: 'BaseWidget' },
+  {
+    id: 'legacyMode',
+    name: 'legacyMode',
+    kind: 'property',
+    deprecated: true,
+    inheritedFrom: 'BaseWidget',
+  },
 ];
 
 const API = [
@@ -72,11 +84,24 @@ const apiPage = (): DocPage => makeDocPage({ markdown: API, kind: 'api', members
 const samplePage = (): DocPage =>
   makeDocPage({
     kind: 'sample',
-    markdown: '# Resize a widget\n\nShows how to resize.\n\n## How it works\n\nCall resize on a button press.',
+    markdown:
+      '# Resize a widget\n\nShows how to resize.\n\n## How it works\n\nCall resize on a button press.',
     relevantApis: ['Widget', 'Widget.resize'],
     files: [
-      { name: 'main.ts', language: 'ts', text: 'widget.resize(300);\nconst s = `a``b`;\n', ref: 'https://github.com/Esri/x/blob/main/main.ts', bytes: 40 },
-      { name: 'style.css', language: 'css', text: '.w { width: 1px }', ref: 'https://github.com/Esri/x/blob/main/style.css', bytes: 17 },
+      {
+        name: 'main.ts',
+        language: 'ts',
+        text: 'widget.resize(300);\nconst s = `a``b`;\n',
+        ref: 'https://github.com/Esri/x/blob/main/main.ts',
+        bytes: 40,
+      },
+      {
+        name: 'style.css',
+        language: 'css',
+        text: '.w { width: 1px }',
+        ref: 'https://github.com/Esri/x/blob/main/style.css',
+        bytes: 17,
+      },
     ],
   });
 
@@ -89,7 +114,13 @@ describe('displaySections', () => {
 
   it('shows a sample as description, relevant APIs and the main file by default', () => {
     const ids = displaySections(samplePage(), 'default').map((section) => section.id);
-    expect(ids).toEqual(['resize-a-widget', 'how-it-works', 'relevant-apis', 'source', 'other-source-files']);
+    expect(ids).toEqual([
+      'resize-a-widget',
+      'how-it-works',
+      'relevant-apis',
+      'source',
+      'other-source-files',
+    ]);
     const text = joinSections(displaySections(samplePage(), 'default'));
     expect(text).toContain('- Widget.resize');
     expect(text).toContain('```ts\nwidget.resize(300);');
@@ -99,10 +130,19 @@ describe('displaySections', () => {
 
   it('shows every file in the full list, fenced safely', () => {
     const all = displaySections(samplePage(), 'all');
-    expect(all.map((section) => section.id)).toEqual(['resize-a-widget', 'how-it-works', 'relevant-apis', 'source', 'source-2']);
+    expect(all.map((section) => section.id)).toEqual([
+      'resize-a-widget',
+      'how-it-works',
+      'relevant-apis',
+      'source',
+      'source-2',
+    ]);
     // The main file contains a double backtick run: the fence must be longer.
     expect(all.find((section) => section.id === 'source')?.markdown).toContain('```ts\n');
-    expect(fileSections([{ name: 'a', language: 'md', text: 'x ```` y', ref: 'r', bytes: 1 }])[0]?.markdown).toContain('`````md');
+    expect(
+      fileSections([{ name: 'a', language: 'md', text: 'x ```` y', ref: 'r', bytes: 1 }])[0]
+        ?.markdown,
+    ).toContain('`````md');
   });
 
   it('does not repeat relevant APIs the page already lists, or list other files when there are none', () => {
@@ -112,7 +152,11 @@ describe('displaySections', () => {
       relevantApis: ['Widget'],
       files: [{ name: 'main.ts', language: 'ts', text: 'x', ref: 'r', bytes: 1 }],
     });
-    expect(displaySections(page, 'default').map((section) => section.id)).toEqual(['s', 'relevant-api', 'source']);
+    expect(displaySections(page, 'default').map((section) => section.id)).toEqual([
+      's',
+      'relevant-api',
+      'source',
+    ]);
   });
 
   it('builds a member index and a stand-in section for an undocumented member', () => {
@@ -133,7 +177,13 @@ describe('displaySections', () => {
 
   it('builds a link-only placeholder with provenance', () => {
     const page = linkOnlyPage(
-      { url: 'https://developers.arcgis.com/widgets/gone/', kind: 'guide', license: 'esri-website-terms', retrievedAt: '2026-10-13T12:00:00.000Z', product: 'widgets-sdk' },
+      {
+        url: 'https://developers.arcgis.com/widgets/gone/',
+        kind: 'guide',
+        license: 'esri-website-terms',
+        retrievedAt: '2026-10-13T12:00:00.000Z',
+        product: 'widgets-sdk',
+      },
       'Gone page',
       'developers.arcgis.com is not responding (timeout)',
     );
@@ -144,7 +194,9 @@ describe('displaySections', () => {
       cache: 'miss',
     });
     expect(page.attribution).toContain('https://developers.arcgis.com/widgets/gone/');
-    expect(joinSections(page.sections)).toContain('Open it directly: <https://developers.arcgis.com/widgets/gone/>');
+    expect(joinSections(page.sections)).toContain(
+      'Open it directly: <https://developers.arcgis.com/widgets/gone/>',
+    );
   });
 });
 
@@ -152,7 +204,9 @@ describe('resolveSection', () => {
   const guide = makeDocPage({ markdown: GUIDE });
   const find = (wanted: string, page = guide) => {
     const resolved = resolveSection(page, displaySections(page, 'all'), wanted);
-    return resolved === undefined ? undefined : [resolved.by, resolved.id, resolved.sections.map((s) => s.id)];
+    return resolved === undefined
+      ? undefined
+      : [resolved.by, resolved.id, resolved.sections.map((s) => s.id)];
   };
 
   it('resolves in the documented order', () => {
@@ -172,7 +226,9 @@ describe('resolveSection', () => {
 
   it('prefers a real section over a pseudo-section of the same name', () => {
     expect(find('parameters')).toEqual(['id', 'parameters', ['parameters']]);
-    const page = makeDocPage({ markdown: '# T\n\nx\n\n## Input arguments\n\ny\n\n## Usage notes\n\nz' });
+    const page = makeDocPage({
+      markdown: '# T\n\nx\n\n## Input arguments\n\ny\n\n## Usage notes\n\nz',
+    });
     expect(find('parameters', page)).toEqual(['pseudo', 'input-arguments', ['input-arguments']]);
     expect(find('syntax', page)).toEqual(['pseudo', 'usage-notes', ['usage-notes']]);
     expect(find('source', page)).toEqual(['pseudo', 'usage-notes', ['usage-notes']]);
@@ -183,7 +239,7 @@ describe('resolveSection', () => {
     const page = apiPage();
     expect(find('resize', page)).toEqual(['id', 'resize', ['resize']]);
     expect(find('resize()', page)).toEqual(['id', 'resize', ['resize']]);
-    expect(find('RESIZE', page)).toEqual(['heading', 'resize', ['resize']]);
+    expect(find('RESIZE', page)).toEqual(['slug', 'resize', ['resize']]);
     expect(find('legacyMode', page)).toEqual(['member', 'legacyMode', ['legacyMode']]);
     expect(find('legacymode', page)).toEqual(['member', 'legacyMode', ['legacyMode']]);
     expect(find('members', page)).toEqual(['pseudo', 'members', ['members']]);
@@ -198,13 +254,19 @@ describe('resolveSection', () => {
     });
     expect(find('goTo', page)).toEqual(['heading', 'method-goTo', ['method-goTo']]);
     expect(find('goto()', page)).toEqual(['heading', 'method-goTo', ['method-goTo']]);
-    const renamed = { ...page, sections: page.sections.map((s) => ({ ...s, title: s.id === 'method-goTo' ? 'Method' : s.title })) };
+    const renamed = {
+      ...page,
+      sections: page.sections.map((s) => ({
+        ...s,
+        title: s.id === 'method-goTo' ? 'Method' : s.title,
+      })),
+    };
     expect(find('goTo', renamed)).toEqual(['member', 'method-goTo', ['method-goTo']]);
   });
 
   it('resolves the pseudo-sections of a sample', () => {
     const page = samplePage();
-    expect(find('source', page)).toEqual(['id', 'source', ['source']]);
+    expect(find('source', page)).toEqual(['pseudo', 'source', ['source', 'source-2']]);
     expect(find('readme', page)).toEqual(['pseudo', 'readme', ['resize-a-widget', 'how-it-works']]);
     expect(find('source-2', page)).toEqual(['id', 'source-2', ['source-2']]);
     expect(resolveSection({ ...page, sections: [] }, [], 'readme')).toBeUndefined();
@@ -253,7 +315,13 @@ describe('renderOutline', () => {
       name: `member${i}`,
       kind: i % 2 === 0 ? 'method' : 'property',
     }));
-    const markdown = ['# Big', '', 'Lead.', '', ...many.flatMap((m) => [`## ${m.name} {#${m.id}}`, '', 'Doc.', ''])].join('\n');
+    const markdown = [
+      '# Big',
+      '',
+      'Lead.',
+      '',
+      ...many.flatMap((m) => [`## ${m.name} {#${m.id}}`, '', 'Doc.', '']),
+    ].join('\n');
     const page = makeDocPage({ markdown, kind: 'api', members: many });
     const outline = renderOutline(page, page.sections, 600);
     expect(outline).not.toContain('`m7`');
@@ -262,13 +330,14 @@ describe('renderOutline', () => {
 
   it('stays within 600 tokens by dropping a level, then rows', () => {
     const wide = ['# Top', '', 'Lead.', ''];
-    for (let i = 0; i < 120; i++) wide.push(`## Section number ${i} with a fairly long heading`, '', 'Body.', '');
+    for (let i = 0; i < 120; i++)
+      wide.push(`## Section number ${i} with a fairly long heading`, '', 'Body.', '');
     const page = makeDocPage({ markdown: wide.join('\n') });
     const outline = renderOutline(page, page.sections, 5000);
     expect(estimateTokens(outline)).toBeLessThanOrEqual(MAX_OUTLINE_TOKENS);
     expect(outline).toMatch(/- \.\.\. \d+ more sections; ask for one by its heading text$/);
 
-    const deep = ['# Top', '', 'Lead.', ''];
+    const deep = ['Lead.', ''];
     for (let i = 0; i < 12; i++) {
       deep.push(`## Part ${i}`, '', 'Body.', '');
       for (let j = 0; j < 8; j++) deep.push(`### Detail ${i}-${j} of this part`, '', 'Body.', '');
@@ -284,17 +353,43 @@ describe('renderView', () => {
   const guide = makeDocPage({ markdown: GUIDE, header: 'Product: Widgets SDK' });
 
   it('auto: returns a document that fits, header first', () => {
-    const view = renderView({ page: guide, shown: guide.sections, view: 'auto', maxTokens: 2000, offset: 0 });
-    expect(view).toEqual({ text: `Product: Widgets SDK\n\n${joinSections(guide.sections)}`, truncated: false });
+    const view = renderView({
+      page: guide,
+      shown: guide.sections,
+      view: 'auto',
+      maxTokens: 2000,
+      offset: 0,
+    });
+    expect(view).toEqual({
+      text: `Product: Widgets SDK\n\n${joinSections(guide.sections)}`,
+      truncated: false,
+    });
   });
 
   it('auto: returns the opening, the outline and a suggestion when it does not fit', () => {
-    const body = (name: string, words: number) => `## ${name}\n\n${`${name.toLowerCase()} `.repeat(words)}`;
+    const body = (name: string, words: number) =>
+      `## ${name}\n\n${`${name.toLowerCase()} `.repeat(words)}`;
     const page = makeDocPage({
-      markdown: ['# Long guide', '', 'intro '.repeat(400), '', body('Small', 50), '', body('Largest', 900), '', body('Medium', 300)].join('\n'),
+      markdown: [
+        '# Long guide',
+        '',
+        'intro '.repeat(400),
+        '',
+        body('Small', 50),
+        '',
+        body('Largest', 900),
+        '',
+        body('Medium', 300),
+      ].join('\n'),
       header: 'HEADER',
     });
-    const view = renderView({ page, shown: page.sections, view: 'auto', maxTokens: 800, offset: 0 });
+    const view = renderView({
+      page,
+      shown: page.sections,
+      view: 'auto',
+      maxTokens: 800,
+      offset: 0,
+    });
     expect(view.truncated).toBe(true);
     expect(view.suggest).toBe('largest');
     expect(view.nextOffset).toBeUndefined();
@@ -305,15 +400,29 @@ describe('renderView', () => {
   });
 
   it('auto: pages a document that has nothing to outline', () => {
-    const page = makeDocPage({ markdown: `# One section\n\n${Array.from({ length: 60 }, (_, i) => `Paragraph ${i} ${'x'.repeat(200)}`).join('\n\n')}` });
-    const view = renderView({ page, shown: page.sections, view: 'auto', maxTokens: 500, offset: 0 });
+    const page = makeDocPage({
+      markdown: `# One section\n\n${Array.from({ length: 60 }, (_, i) => `Paragraph ${i} ${'x'.repeat(200)}`).join('\n\n')}`,
+    });
+    const view = renderView({
+      page,
+      shown: page.sections,
+      view: 'auto',
+      maxTokens: 500,
+      offset: 0,
+    });
     expect(view.truncated).toBe(true);
     expect(view.nextOffset).toBeGreaterThan(0);
     expect(view.suggest).toBeUndefined();
   });
 
   it('outline: returns the title and the outline only', () => {
-    const view = renderView({ page: guide, shown: guide.sections, view: 'outline', maxTokens: 6000, offset: 0 });
+    const view = renderView({
+      page: guide,
+      shown: guide.sections,
+      view: 'outline',
+      maxTokens: 6000,
+      offset: 0,
+    });
     expect(view.truncated).toBe(false);
     expect(view.text.startsWith('# Get started\n\nOutline')).toBe(false);
     expect(view.text.startsWith('# Styling widgets\n\nOutline')).toBe(true);
@@ -326,15 +435,23 @@ describe('renderView', () => {
       const parts: string[] = ['# Random doc', '', rng.words(20)];
       for (let s = 0; s < rng.int(2, 8); s++) {
         parts.push('', `## ${rng.words(3)}`, '', rng.words(rng.int(5, 200)));
-        if (rng.chance(0.4)) parts.push('', '```js', rng.words(rng.int(5, 80)), '', rng.words(4), '```');
-        if (rng.chance(0.3)) parts.push('', '| a | b |', '| --- | --- |', `| ${rng.words(2)} | ${rng.words(2)} |`);
+        if (rng.chance(0.4))
+          parts.push('', '```js', rng.words(rng.int(5, 80)), '', rng.words(4), '```');
+        if (rng.chance(0.3))
+          parts.push('', '| a | b |', '| --- | --- |', `| ${rng.words(2)} | ${rng.words(2)} |`);
       }
       const page = makeDocPage({ markdown: parts.join('\n'), header: 'HEADER' });
       const budget = rng.int(120, 400);
       const pages: string[] = [];
       let offset = 0;
       for (let guard = 0; guard < 200; guard++) {
-        const view = renderView({ page, shown: page.sections, view: 'full', maxTokens: budget, offset });
+        const view = renderView({
+          page,
+          shown: page.sections,
+          view: 'full',
+          maxTokens: budget,
+          offset,
+        });
         pages.push(view.text);
         if (view.nextOffset === undefined) {
           expect(view.truncated).toBe(false);

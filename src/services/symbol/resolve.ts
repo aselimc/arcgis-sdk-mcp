@@ -40,14 +40,12 @@ export interface Candidate {
 export type Resolution =
   | { kind: 'found'; winner: Candidate; alternates: Candidate[] }
   | { kind: 'ambiguous'; candidates: Candidate[] }
-  | { kind: 'none'; nearest: string[]; knownType?: CatalogRecord };
+  | { kind: 'none'; knownType?: CatalogRecord };
 
 /** Most candidates listed by an ambiguous result. */
 export const MAX_AMBIGUOUS = 8;
 /** Most alternates listed next to a winner. */
 export const MAX_ALTERNATES = 3;
-/** Names suggested when nothing matches. */
-export const MAX_NEAREST = 5;
 
 /** The name a candidate is shown and looked up by. */
 export function displayName(record: CatalogRecord): string {
@@ -136,12 +134,12 @@ function mergeTwins(candidates: Candidate[]): Candidate[] {
  *
  * - `found`: one candidate ranks strictly before every other.
  * - `ambiguous`: several rank equally; at most {@link MAX_AMBIGUOUS} are returned.
- * - `none`: nothing matched, with the nearest names and, when `Type.member` named a known
- *   type without such a member, that type.
+ * - `none`: nothing matched; when `Type.member` named a known type without such a member,
+ *   that type is returned.
  */
 export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Resolution {
   const { parts, simple } = normalizeSymbol(input);
-  if (simple === '') return { kind: 'none', nearest: [] };
+  if (simple === '') return { kind: 'none' };
   const joined = parts.join('.');
   const qualified = parts.length > 1;
 
@@ -167,6 +165,16 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
     }
   }
 
+  if (all.length === 0 && qualified && knownType === undefined) {
+    // No part of the prefix is a known type, so it is a module or namespace path
+    // (`layers/FeatureLayer`): the last part is the name.
+    for (const scope of scopes) {
+      for (const record of scope.symbols.exact(simple)) {
+        add(scope, record, directStep(record, simple, false));
+      }
+    }
+  }
+
   let step = STEPS.find((candidate) => all.some((entry) => entry.step === candidate));
   if (step === undefined) {
     const needle = simple.toLowerCase();
@@ -179,16 +187,27 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
     }
     step = all.length > 0 ? 'fuzzy' : undefined;
   }
-  if (step === undefined) {
-    return { kind: 'none', nearest: [], ...(knownType === undefined ? {} : { knownType }) };
-  }
-
   const candidates = mergeTwins(all.filter((entry) => entry.step === step));
   const [winner, runnerUp, ...rest] = candidates;
-  if (winner === undefined) return { kind: 'none', nearest: [] };
+  if (winner === undefined) {
+    return { kind: 'none', ...(knownType === undefined ? {} : { knownType }) };
+  }
   if (runnerUp === undefined || compare(winner, runnerUp) < 0) {
-    const alternates = runnerUp === undefined ? [] : [runnerUp, ...rest].slice(0, MAX_ALTERNATES);
-    return { kind: 'found', winner, alternates };
+    // Less exact readings of the same name are worth showing next to the answer.
+    // The symbol maps stop at their most exact reading, so same-named symbols elsewhere
+    // (`smartMapping.Point` next to `Point`) are collected here.
+    for (const scope of scopes) {
+      for (const record of scope.symbols.fuzzy(simple, MAX_AMBIGUOUS)) {
+        const sameName = simpleName(record).toLowerCase() === simple.toLowerCase();
+        const known = all.some((entry) => entry.record === record);
+        if (sameName && !known && step !== 'fuzzy') add(scope, record, 'case-insensitive');
+      }
+    }
+    const looser = mergeTwins(all.filter((entry) => entry.step !== step)).filter(
+      (entry) => displayName(entry.record) !== displayName(winner.record),
+    );
+    const alternates = [...(runnerUp === undefined ? [] : [runnerUp, ...rest]), ...looser];
+    return { kind: 'found', winner, alternates: alternates.slice(0, MAX_ALTERNATES) };
   }
   return { kind: 'ambiguous', candidates: candidates.slice(0, MAX_AMBIGUOUS) };
 }

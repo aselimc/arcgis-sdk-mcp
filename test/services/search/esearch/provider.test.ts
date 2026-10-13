@@ -58,7 +58,9 @@ describe('planRequest: developers index', () => {
     expect(plan(restApi).body.partialfields).toBe(
       'Content-Location:developers%2Earcgis%2Ecom/rest/services-reference/enterprise|Content-Location:developers%2Earcgis%2Ecom/rest/users-groups-and-items',
     );
-    expect(plan(kotlinSdk).body.partialfields).toBe('Content-Location:developers%2Earcgis%2Ecom/kotlin');
+    expect(plan(kotlinSdk).body.partialfields).toBe(
+      'Content-Location:developers%2Earcgis%2Ecom/kotlin',
+    );
   });
 
   it('uses the tree of the requested line and keeps old trees then', () => {
@@ -106,15 +108,24 @@ describe('planRequest: products with an esearch entry', () => {
     makeProduct({ id: 'help-product', ...(esearch === undefined ? {} : { esearch }) });
 
   it('filters a doc.esri.com product by its exact product id in the named index', () => {
-    const { body } = plan(help({ index: 'esri_docs_main_v1', site: 'esri_docs_main', products: ['arcgis-pro'] }));
-    expect(body).toMatchObject({ index: 'esri_docs_main_v1', requiredfields: 'product:arcgis-pro' });
+    const { body } = plan(
+      help({ index: 'esri_docs_main_v1', site: 'esri_docs_main', products: ['arcgis-pro'] }),
+    );
+    expect(body).toMatchObject({
+      index: 'esri_docs_main_v1',
+      requiredfields: 'product:arcgis-pro',
+    });
     expect(body).not.toHaveProperty('site');
     expect(body).not.toHaveProperty('partialfields');
   });
 
   it('adds the English filter on multilingual collections and ORs several ids', () => {
     const { body, keep } = plan(
-      help({ site: 'arcgis_doc_col', products: ['workforce iphone', 'workforce ipad'], keepUrl: '/latest/' }),
+      help({
+        site: 'arcgis_doc_col',
+        products: ['workforce iphone', 'workforce ipad'],
+        keepUrl: '/latest/',
+      }),
     );
     expect(body).toMatchObject({
       site: 'arcgis_doc_col',
@@ -140,7 +151,9 @@ describe('planRequest: products with an esearch entry', () => {
   it('refuses to send when the filter cannot be proven well-formed', () => {
     expect(skip(help({ index: 'esri_docs_main_v1', products: ['bad|id'] }))).toContain('reserves');
     expect(skip(help({ index: 'esri_docs_main_v1' }))).toContain('no filter that scopes');
-    expect(skip(help({ index: 'esri_docs_main_v1', urlPrefix: 'not a url' }))).toContain('host name');
+    expect(skip(help({ index: 'esri_docs_main_v1', urlPrefix: 'not a url' }))).toContain(
+      'host name',
+    );
   });
 
   it('ignores an invalid post-filter pattern and an entry without a scope', () => {
@@ -154,7 +167,9 @@ describe('planRequest: products with an esearch entry', () => {
 describe('bodyJson', () => {
   it('sorts keys so equal requests are one cache entry', () => {
     const body: EsearchBody = { q: 'a', num: 1, start: 0, index: 'i', _source: { includes: [] } };
-    expect(bodyJson(body)).toBe('{"_source":{"includes":[]},"index":"i","num":1,"q":"a","start":0}');
+    expect(bodyJson(body)).toBe(
+      '{"_source":{"includes":[]},"index":"i","num":1,"q":"a","start":0}',
+    );
   });
 });
 
@@ -178,10 +193,16 @@ describe('site-search provider', () => {
     doc: { url: `https://developers.arcgis.com${path}`, title: `Title of ${path}`, ...extra },
   });
 
-  function setup(enabled = true): { ctx: TestCtx; slept: number[]; provider: ReturnType<typeof createEsearchProvider> } {
+  function setup(enabled = true): {
+    ctx: TestCtx;
+    slept: number[];
+    provider: ReturnType<typeof createEsearchProvider>;
+  } {
     const ctx = makeCtx({
       registry: fakeRegistry({ products: [jsSdk, kotlinSdk, aiAgents] }),
-      policy: fakePolicy({ enabled: enabled ? ['website', 'site-index', 'site-search'] : ['website'] }),
+      policy: fakePolicy({
+        enabled: enabled ? ['website', 'site-index', 'site-search'] : ['website'],
+      }),
     });
     const slept: number[] = [];
     const provider = createEsearchProvider(ctx, {
@@ -192,7 +213,12 @@ describe('site-search provider', () => {
     });
     return { ctx, slept, provider };
   }
-  const query = (products: Product[], limit = 10) => ({ text: 'offline map', products, line: 'latest', limit });
+  const query = (products: Product[], limit = 10) => ({
+    text: 'offline map',
+    products,
+    line: 'latest',
+    limit,
+  });
 
   it('does nothing while the capability is off', async () => {
     const { ctx, provider } = setup(false);
@@ -203,7 +229,11 @@ describe('site-search provider', () => {
 
   it('posts JSON with the projection, the remote-search TTL and the call budget', async () => {
     const { ctx, provider } = setup();
-    ctx.http.on(ESEARCH_URL, { json: { search: { hits: [hit('/javascript/latest/offline/', 5)] } } }, 'POST');
+    ctx.http.on(
+      ESEARCH_URL,
+      { json: { search: { hits: [hit('/javascript/latest/offline/', 5)] } } },
+      'POST',
+    );
     const call = makeCall(ctx);
     const hits = await provider.search(query([jsSdk]), call);
     expect(hits).toEqual([
@@ -246,7 +276,10 @@ describe('site-search provider', () => {
               hit('/kotlin/api-reference/pkg/-cls/', 5, { title: '  ', description: ' A class. ' }),
               { score: 4, doc: { url: 42 } },
               { score: 3 },
-              { doc: { url: 'https://developers.arcgis.com/kotlin/samples/x/' }, highlight: { content: ['<b>Offline</b> sample'] } },
+              {
+                doc: { url: 'https://developers.arcgis.com/kotlin/samples/x/' },
+                highlight: { content: ['<b>Offline</b> sample'] },
+              },
             ],
           },
         },
@@ -254,7 +287,13 @@ describe('site-search provider', () => {
       'POST',
     );
     const hits = await provider.search(query([kotlinSdk]), makeCall(ctx));
-    expect(hits.map((entry) => [entry.ref.replace('https://developers.arcgis.com', ''), entry.kind, entry.source])).toEqual([
+    expect(
+      hits.map((entry) => [
+        entry.ref.replace('https://developers.arcgis.com', ''),
+        entry.kind,
+        entry.source,
+      ]),
+    ).toEqual([
       ['/kotlin/offline-maps/', 'guide', 'guide'],
       ['/kotlin/api-reference/pkg/-cls/', 'api', 'api'],
       ['/kotlin/samples/x/', 'sample', 'guide'],
@@ -282,22 +321,37 @@ describe('site-search provider', () => {
       .fail(ESEARCH_URL, 503, { times: 1 });
     const hits = await provider.search(query([jsSdk], 20), makeCall(ctx));
     expect(hits).toHaveLength(1);
-    expect(ctx.http.requests.map((request) => (JSON.parse(request.body ?? '{}') as EsearchBody).num)).toEqual([20, 10]);
+    expect(
+      ctx.http.requests.map((request) => (JSON.parse(request.body ?? '{}') as EsearchBody).num),
+    ).toEqual([20, 10]);
     expect(slept).toContain(RETRY_DELAY_MS);
   });
 
   it('never halves below five and gives up after the second failure', async () => {
     const { ctx, provider } = setup();
-    ctx.http.on(ESEARCH_URL, { json: { search: { hits: [] } } }, 'POST').fail(ESEARCH_URL, 'timeout');
+    ctx.http
+      .on(ESEARCH_URL, { json: { search: { hits: [] } } }, 'POST')
+      .fail(ESEARCH_URL, 'timeout');
     expect(await provider.search(query([jsSdk], 6), makeCall(ctx))).toEqual([]);
-    expect(ctx.http.requests.map((request) => (JSON.parse(request.body ?? '{}') as EsearchBody).num)).toEqual([6, 5]);
+    expect(
+      ctx.http.requests.map((request) => (JSON.parse(request.body ?? '{}') as EsearchBody).num),
+    ).toEqual([6, 5]);
     expect(ctx.logger.messages('warn')).toEqual(['site search failed; local indexes answer alone']);
   });
 
   it.each([
     ['a refusal', new McpDocError('UPSTREAM_BLOCKED', 'refused', { retryable: false })],
-    ['a syntax-error signature', new McpDocError('UPSTREAM_UNAVAILABLE', 'HTTP 500', { why: 'request.sort.split is not a function', retryable: true })],
-    ['an oversized body', new McpDocError('UPSTREAM_UNAVAILABLE', 'too large', { retryable: false })],
+    [
+      'a syntax-error signature',
+      new McpDocError('UPSTREAM_UNAVAILABLE', 'HTTP 500', {
+        why: 'request.sort.split is not a function',
+        retryable: true,
+      }),
+    ],
+    [
+      'an oversized body',
+      new McpDocError('UPSTREAM_UNAVAILABLE', 'too large', { retryable: false }),
+    ],
     ['offline mode', new McpDocError('OFFLINE_MISS', 'offline')],
   ])('does not retry %s', async (_name, error) => {
     const { ctx, provider } = setup();
@@ -322,7 +376,10 @@ describe('site-search provider', () => {
   });
 
   it.each([
-    ['an error object with HTTP 200', { error: { message: 'Endpoint execution error', detail: 'boom' }, search: { hits: [] } }],
+    [
+      'an error object with HTTP 200',
+      { error: { message: 'Endpoint execution error', detail: 'boom' }, search: { hits: [] } },
+    ],
     ['an error without detail', { error: { message: 'Endpoint execution error' } }],
     ['a body without hits', { search: { count: 3 } }],
     ['an empty object', {}],
@@ -336,8 +393,11 @@ describe('site-search provider', () => {
 
   it('stops asking for five minutes after three consecutive failures', async () => {
     const { ctx, provider } = setup();
-    ctx.http.on(ESEARCH_URL, { json: { search: { hits: [hit('/javascript/latest/a/', 1)] } } }, 'POST').fail(ESEARCH_URL, 403);
-    for (let attempt = 0; attempt < 3; attempt++) await provider.search(query([jsSdk]), makeCall(ctx));
+    ctx.http
+      .on(ESEARCH_URL, { json: { search: { hits: [hit('/javascript/latest/a/', 1)] } } }, 'POST')
+      .fail(ESEARCH_URL, 403);
+    for (let attempt = 0; attempt < 3; attempt++)
+      await provider.search(query([jsSdk]), makeCall(ctx));
     expect(ctx.http.count()).toBe(3);
 
     await provider.search(query([jsSdk]), makeCall(ctx));
@@ -350,8 +410,15 @@ describe('site-search provider', () => {
 
   it('skips products it has no request for and uses the current line for an unknown one', async () => {
     const { ctx, provider } = setup();
-    ctx.http.on(ESEARCH_URL, { json: { search: { hits: [hit('/kotlin/offline-maps/', 1)] } } }, 'POST');
-    const hits = await provider.search({ ...query([aiAgents, kotlinSdk]), line: 'no-such-line' }, makeCall(ctx));
+    ctx.http.on(
+      ESEARCH_URL,
+      { json: { search: { hits: [hit('/kotlin/offline-maps/', 1)] } } },
+      'POST',
+    );
+    const hits = await provider.search(
+      { ...query([aiAgents, kotlinSdk]), line: 'no-such-line' },
+      makeCall(ctx),
+    );
     expect(hits).toHaveLength(1);
     expect(ctx.http.count()).toBe(1);
     expect(ctx.logger.messages('debug')).toEqual(['site search skipped']);

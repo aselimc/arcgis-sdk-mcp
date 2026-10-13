@@ -107,7 +107,7 @@ export function memberIndexSection(members: readonly MemberEntry[]): DocSection 
 /** The section for a member that is listed on a page but has no section of its own. */
 export function memberSection(member: MemberEntry): DocSection {
   const parts = [
-    member.signature === undefined ? '' : fenced(member.signature, ''),
+    member.signature === undefined ? '' : fenced(member.signature, 'text'),
     member.summary ?? '',
     member.inheritedFrom === undefined
       ? ''

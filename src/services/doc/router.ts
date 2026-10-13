@@ -73,9 +73,9 @@ function briefRoute(ctx: Ctx, slug: string, fragment: string | undefined): Route
       why: 'Briefs are a fixed set of curated notes shipped with this server',
       candidates: nearest(
         slug,
-        briefs.map((candidate) => `brief:${candidate.slug}`),
+        briefs.map((candidate) => candidate.slug),
         5,
-      ),
+      ).map((candidate) => `brief:${candidate}`),
       next: formatCall(TOOLS.search, { query: humanizeSlug(slug) || slug }),
     });
   }
