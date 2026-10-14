@@ -27,20 +27,23 @@ const inheritanceChains: Pass = ($) => {
 };
 
 /**
- * Member tables of the converted ArcObjects references open every row with an icon for the
- * kind of member (`bitmaps/Method.gif`). As an image it is a URL per row that says nothing;
- * its alternative text ("Method", "Property") is the content.
+ * The same references set every type name in italics, and a compound type is an italic run
+ * holding the italic names of its parts (`<em>{ count?: <em>number</em>[] }</em>`). Written
+ * as emphasis it comes out as `_{ count?: _number_\[\]; ... }_`; it is a type expression,
+ * and is written as code like the signatures and return types of the same page.
  */
-const kindIcons: Pass = ($) => {
-  $('td > img[src*="/bitmaps/"]').each((_, icon) => {
-    $(icon).replaceWith(escapeHtml(squash($(icon).attr('alt') ?? '')));
-  });
+const typeExpressions: Pass = ($) => {
+  $('em:has(em), i:has(i)')
+    .filter((_, el) => $(el).parents('em, i, code, pre').length === 0)
+    .each((_, el) => {
+      $(el).replaceWith(tagged('code', squash($(el).text())));
+    });
 };
 
 const prepare: Pass = ($, env) => {
   dropLandingChrome($, env);
   inheritanceChains($, env);
-  kindIcons($, env);
+  typeExpressions($, env);
 };
 
 /**

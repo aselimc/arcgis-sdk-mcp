@@ -124,6 +124,74 @@ describe('moduleFromNamespace', () => {
     expect(moduleFromNamespace(NAMESPACE, 'Panel')).toBeUndefined();
   });
 
+  // Regression: `MapView` at version 4.24 printed `import { MapView } from "@arcgis/core";`
+  // (a root entry 4.24 does not have) and a body of only "Interfaces - MapView": releases of
+  // that age declare a class as an interface plus a constructor interface, with no `class`.
+  it('writes a class of the older layout, declared through a constructor interface', () => {
+    const OLDER = [
+      'declare namespace __widgets {',
+      '  interface GaugeView extends View, Themed {',
+      '    /**',
+      '     * The value shown.',
+      '     */',
+      '    value: number;',
+      '    redraw(): void;',
+      '  }',
+      '',
+      '  interface GaugeViewConstructor {',
+      '    /**',
+      '     * A view that shows one value as a gauge.',
+      '     */',
+      '    new(properties?: GaugeViewProperties): GaugeView;',
+      '',
+      '    fromJSON(json: any): GaugeView;',
+      '  }',
+      '',
+      '  export const GaugeView: GaugeViewConstructor;',
+      '',
+      '  interface GaugeViewProperties extends ViewProperties {',
+      '    value?: number;',
+      '  }',
+      '',
+      '  interface gaugeUtils {',
+      '    clamp(value: number): number;',
+      '  }',
+      '',
+      '  interface gaugeUtilsConstructor {',
+      '    clamp(value: number): number;',
+      '  }',
+      '}',
+    ].join('\n');
+    expect(moduleFromNamespace(OLDER, 'GaugeView')).toBe(
+      [
+        'export interface GaugeViewProperties extends ViewProperties {',
+        '  value?: number;',
+        '}',
+        '',
+        'declare const GaugeViewSuperclass: typeof View & typeof Themed;',
+        '',
+        'export default class GaugeView extends GaugeViewSuperclass {',
+        '  /**',
+        '   * A view that shows one value as a gauge.',
+        '   */',
+        '  constructor(properties?: GaugeViewProperties);',
+        '',
+        '  static fromJSON(json: any): GaugeView;',
+        '  /**',
+        '   * The value shown.',
+        '   */',
+        '  value: number;',
+        '  redraw(): void;',
+        '}',
+        '',
+      ].join('\n'),
+    );
+    // A constructor interface without a construct signature does not make a class.
+    expect(moduleFromNamespace(OLDER, 'gaugeUtils')).toBe(
+      'export interface gaugeUtils {\n  clamp(value: number): number;\n}\n',
+    );
+  });
+
   it('writes a module of functions, which is declared as an interface only', () => {
     expect(moduleFromNamespace(NAMESPACE, 'panelUtils')).toBe(
       'export interface panelUtils {\n  measure(panel: PanelLayer): number;\n}\n',

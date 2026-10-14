@@ -160,31 +160,65 @@ export function stripUnseen(markdown: string): string {
 /** `<a href="url" ...>text</a>` with plain text inside; quantifiers bounded against long tags. */
 const HTML_LINK =
   /<a\s[^<>]{0,400}?\bhref\s*=\s*(["'])([^"'<>\s]{1,2000})\1[^<>]{0,400}>([^<>]{1,400})<\/a>/gi;
+/** `<img ...>`; its attributes are read separately, in any order. */
+const HTML_IMAGE = /<img\s([^<>]{0,2000})>/gi;
+/** NBSP entities (and spaces) at the start of a line: layout indentation of the source. */
+const LEADING_NBSP = /^(?:[ \t]*&nbsp;)+[ \t]*/i;
+/** What makes a line worth rewriting. */
+const INLINE_HTML = /<a\s|<img\s|&nbsp;/i;
+
+/** The `src` and `alt` attributes of a tag: double-quoted, single-quoted or bare value. */
+const SRC_ATTRIBUTE = /(?:^|\s)src\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i;
+const ALT_ATTRIBUTE = /(?:^|\s)alt\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i;
+
+/** The value of one attribute in the attribute text of a tag. */
+function attributeOf(attributes: string, pattern: RegExp): string | undefined {
+  const match = pattern.exec(attributes);
+  return match === null ? undefined : (match[1] ?? match[2] ?? match[3] ?? '');
+}
+
+/** A plain HTML image as a Markdown image; `undefined` when it has no usable source. */
+function imageToMarkdown(attributes: string): string | undefined {
+  const src = attributeOf(attributes, SRC_ATTRIBUTE)?.trim() ?? '';
+  if (src === '' || /[\s()<>]/.test(src)) return undefined;
+  const alt = (attributeOf(attributes, ALT_ATTRIBUTE) ?? '').replace(/[[\]\n]/g, ' ').trim();
+  return `![${alt}](${src})`;
+}
 
 /**
- * Writes the plain HTML links of a Markdown document (`<a href="..." target="_blank">View it
- * live</a>`, common in sample READMEs) as Markdown links. Code fences and code spans are not
- * touched; a link with markup inside it stays as it is.
+ * One piece of prose (outside code) with its simple inline HTML written as Markdown. Images
+ * go first, so that a link around an image becomes a linked Markdown image.
  */
-export function htmlLinksToMarkdown(markdown: string): string {
-  if (!/<a\s/i.test(markdown)) return markdown;
+function proseToMarkdown(piece: string): string {
+  return piece
+    .replace(HTML_IMAGE, (whole, attributes: string) => imageToMarkdown(attributes) ?? whole)
+    .replace(HTML_LINK, (whole, _quote: string, href: string, label: string) =>
+      label.trim() === '' ? whole : `[${label.trim()}](${href})`,
+    );
+}
+
+/**
+ * Writes the simple inline HTML of a Markdown document as Markdown: plain links
+ * (`<a href="..." target="_blank">View it live</a>`, common in sample READMEs) and images
+ * (`<img src="logo.png" alt="..." height="20">`), and drops the `&nbsp;` runs a README uses
+ * to indent a line. The HTML is noise to an agent, and an image written as Markdown has its
+ * relative source made absolute like any other. Code fences and code spans are not touched;
+ * a link with markup inside it stays as it is.
+ */
+export function inlineHtmlToMarkdown(markdown: string): string {
+  if (!INLINE_HTML.test(markdown)) return markdown;
   let open: OpenFence;
   return markdown
     .split('\n')
     .map((line) => {
       const step = stepFence(line, open);
       open = step.open;
-      if (step.fenced || !/<a\s/i.test(line)) return line;
+      if (step.fenced || !INLINE_HTML.test(line)) return line;
       // Odd-numbered pieces are inside backticks.
       return line
+        .replace(LEADING_NBSP, '')
         .split(/(`+[^`]*`+)/)
-        .map((piece, index) =>
-          index % 2 === 1
-            ? piece
-            : piece.replace(HTML_LINK, (whole, _quote: string, href: string, label: string) =>
-                label.trim() === '' ? whole : `[${label.trim()}](${href})`,
-              ),
-        )
+        .map((piece, index) => (index % 2 === 1 ? piece : proseToMarkdown(piece)))
         .join('');
     })
     .join('\n');

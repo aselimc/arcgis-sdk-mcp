@@ -3,7 +3,7 @@ import { absolutizeLinks } from '../../src/render/links.js';
 import { renderMarkdown } from '../../src/render/markdown.js';
 import { renderNotebook } from '../../src/render/notebook.js';
 import { renderSource } from '../../src/render/source.js';
-import { htmlLinksToMarkdown, stripUnseen } from '../../src/render/unseen.js';
+import { inlineHtmlToMarkdown, stripUnseen } from '../../src/render/unseen.js';
 import { makeMeta, pageText } from './helpers.js';
 
 const README = 'https://github.com/example/samples/blob/main/Framework/Ribbon/ReadMe.md';
@@ -100,22 +100,42 @@ describe('stripUnseen', () => {
   );
 });
 
-describe('htmlLinksToMarkdown', () => {
+describe('inlineHtmlToMarkdown', () => {
   it('writes a plain HTML link as a Markdown link', () => {
     expect(
-      htmlLinksToMarkdown('<a href="https://example.com/sdk/" target="_blank">View it live</a>.'),
+      inlineHtmlToMarkdown('<a href="https://example.com/sdk/" target="_blank">View it live</a>.'),
     ).toBe('[View it live](https://example.com/sdk/).');
+  });
+
+  // Regression: the Pro SDK sample READMEs end with an indented logo as raw HTML,
+  // `&nbsp;&nbsp;&nbsp;<img src="..." alt="ArcGIS Pro SDK ..." height = "20" align="top">`.
+  it('writes plain HTML images as Markdown images and drops indentation entities', () => {
+    expect(
+      inlineHtmlToMarkdown(
+        '&nbsp;&nbsp;&nbsp;<img src="https://example.com/logo.png"  alt="Harbor SDK" height = "20" align="top"  >\n' +
+          '&nbsp;&nbsp;\n' +
+          '<a href=\'https://example.com/\'><img alt="Shot [1]" src=shot.png></a> and a&nbsp;b',
+      ),
+    ).toBe(
+      '![Harbor SDK](https://example.com/logo.png)\n\n' +
+        '[![Shot  1](shot.png)](https://example.com/) and a&nbsp;b',
+    );
+  });
+
+  it('leaves an image without a usable source as HTML', () => {
+    const source = '<img alt="none"> <img src="has space.png">';
+    expect(inlineHtmlToMarkdown(source)).toBe(source);
   });
 
   it('leaves code, links with markup inside and links without text alone', () => {
     const source = [
       'Use `<a href="x">y</a>` here.',
-      '<a href="x"><img src="i.png"></a> <a href="y"> </a> <a name="top">anchor</a>',
+      '<a href="x"><b>bold</b></a> <a href="y"> </a> <a name="top">anchor</a>',
       '```html',
       '<a href="x">y</a>',
       '```',
     ].join('\n');
-    expect(htmlLinksToMarkdown(source)).toBe(source);
+    expect(inlineHtmlToMarkdown(source)).toBe(source);
   });
 });
 

@@ -188,6 +188,21 @@ describe('generated API pages of the Gatsby theme', () => {
     expect(md).toContain('**Inheritance:** `WebForm` → `ApiCommon`');
   });
 
+  // Regression: a compound type printed as `_{ count?: _number_\[\]; questionName: _string_ }_`.
+  it('writes a compound type of the generated references as code', () => {
+    const md = body(
+      convert(
+        themed(
+          '<table><thead><tr><th>Parameter</th><th>Type</th></tr></thead><tbody><tr><td><code>options</code></td>' +
+            '<td><em>{<!-- --> <span>count<!-- -->?<!-- -->:<!-- --> </span><em>number</em>[]<span>; </span><span>questionName: </span><em>string</em> }</em></td></tr></tbody></table>' +
+            '<p>An <em>italic</em> word.</p>',
+        ),
+      ),
+    );
+    expect(md).toContain('| `options` | `{ count?: number[]; questionName: string }` |');
+    expect(md).toContain('An _italic_ word.');
+  });
+
   it('writes the kind icon of a member row as its alternative text', () => {
     const md = body(
       convert(

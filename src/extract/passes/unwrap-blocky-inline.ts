@@ -73,10 +73,17 @@ function inlineBlockLinks($: CheerioAPI): void {
     });
 }
 
+/** Emphasis inside emphasis of the same kind, outermost first. */
+const NESTED_EMPHASIS = ['em em, em i, i em, i i', 'strong strong, strong b, b strong, b b'];
+
 /**
  * Inline elements wrapped around block content cannot be written in Markdown. Emphasis
  * around blocks (`<em><p>...</p></em>`) leaves stray `_` lines, so the emphasis is dropped
  * and the blocks stay; a link around blocks keeps the link and loses the blocks.
+ *
+ * Emphasis of one kind inside the same kind adds nothing a reader sees, and Markdown cannot
+ * nest it: `<em>a <em>b</em> c</em>` would print `_a _b_ c_`, which closes early. The inner
+ * element goes.
  */
 export const unwrapBlockyInline: Pass = ($) => {
   unwrap(
@@ -85,6 +92,7 @@ export const unwrapBlockyInline: Pass = ($) => {
       (_, el) => $(el).find('p, div, ul, ol, pre, table, blockquote').length > 0,
     ),
   );
+  for (const nested of NESTED_EMPHASIS) unwrap($, $(nested));
   inlineParagraphLinks($);
   inlineBlockLinks($);
 };

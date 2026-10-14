@@ -431,3 +431,110 @@ describe('lookup: scope and versions', () => {
     expect(h.adapter('astro').count()).toBe(0);
   });
 });
+
+// Regression: `Round` without a product was routed to the default products and answered
+// with the fuzzy `roundUp` of the JavaScript SDK (or reported as ambiguous between its
+// namesakes) although Arcade, related to that SDK, has the function `Round` exactly.
+describe('lookup: a loose match in a guessed scope', () => {
+  const typings = (id: string, path: string) =>
+    makeSource(
+      'npm-dts',
+      { package: `@x/${path}`, docUrl: `/${path}/{path}/` },
+      { id, kinds: ['api'], capability: 'package-cdn' },
+    );
+  const gadgets = makeProduct({
+    id: 'gadgets-sdk',
+    name: 'Gadgets SDK',
+    aliases: [],
+    keywords: ['rotate'],
+    related: ['spinner-lang'],
+    homepage: 'https://developers.arcgis.com/gadgets/',
+    sources: [typings('typings', 'gadgets')],
+  });
+  const spinner = makeProduct({
+    id: 'spinner-lang',
+    name: 'Spinner language',
+    aliases: [],
+    keywords: [],
+    homepage: 'https://developers.arcgis.com/spinner/',
+    sources: [typings('functions', 'spinner')],
+  });
+  const loose = 'https://developers.arcgis.com/gadgets/rotate/';
+  const exact = 'https://developers.arcgis.com/spinner/Rotate/';
+  const setup = (): Harness => {
+    const h = makeHarness({
+      products: [gadgets, spinner],
+      records: [
+        makeRecord({
+          ref: loose,
+          product: 'gadgets-sdk',
+          source: 'typings',
+          kind: 'api',
+          title: 'rotate',
+          symbol: 'rotate',
+          qualified: '@x/gadgets/rotate',
+        }),
+        makeRecord({
+          ref: exact,
+          product: 'spinner-lang',
+          source: 'functions',
+          kind: 'api',
+          title: 'Rotate',
+          symbol: 'Rotate',
+          qualified: 'Rotate',
+        }),
+      ],
+    });
+    h.adapter('npm-dts').addPage(makeDocPage({ url: loose, markdown: '# rotate\n\nA helper.' }));
+    h.adapter('npm-dts').addPage(
+      makeDocPage({ url: exact, product: 'spinner-lang', source: 'functions', markdown: '# Rotate\n\nTurns a value.' }),
+    );
+    return h;
+  };
+
+  it('asks the related products for the exact name before settling', async () => {
+    const response = await lookup(setup(), { symbol: 'Rotate' });
+    expect(response.record.ref).toBe(exact);
+    expect(response.page.notices.join(' ')).toContain('this answer is from spinner-lang');
+  });
+
+  it('keeps the loose answer of the product that was asked for', async () => {
+    const response = await lookup(setup(), { symbol: 'Rotate', product: 'gadgets-sdk' });
+    expect(response.record.ref).toBe(loose);
+    expect(response.page.notices).toContain('"Rotate" was matched to @x/gadgets/rotate.');
+  });
+});
+
+// Regression: `search` looked up in `rest-api/portal` ended with a Next call in `rest-api`,
+// where the bare name of an operation is another service's `search`.
+describe('lookup: follow-up calls keep the scope of the answer', () => {
+  it('names the source of an operation in the Next call', async () => {
+    const h = makeHarness();
+    h.adapter('javadoc').addPage(
+      makeDocPage({
+        url: 'https://developers.arcgis.com/rest/users-groups-and-items/search/',
+        product: 'rest-api',
+        source: 'portal',
+        markdown: [
+          '# /search: Search',
+          '',
+          '```http',
+          'GET https://[root]/search',
+          '```',
+          '',
+          'Finds items, groups and users of a portal.',
+          '',
+          '## Request parameters',
+          '',
+          'Many parameters that a signature leaves out.',
+        ].join('\n'),
+      }),
+    );
+    const response = await lookup(h, {
+      symbol: 'search',
+      product: 'rest-api/portal',
+      detail: 'signature',
+    });
+    expect(response.next).toContain('"product":"rest-api/portal"');
+  });
+});

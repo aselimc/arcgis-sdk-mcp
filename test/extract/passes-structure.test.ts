@@ -8,7 +8,7 @@ import { fixTabs } from '../../src/extract/passes/fix-tabs.js';
 import { iconLabelsToText } from '../../src/extract/passes/icon-labels.js';
 import { COMMON_REMOVE, removeCommon } from '../../src/extract/passes/remove-common.js';
 import { unwrapBlockyInline } from '../../src/extract/passes/unwrap-blocky-inline.js';
-import { applyPass, passEnv } from './support.js';
+import { applyPass, metaFor, pageMarkdown, passEnv, sharedExtractor } from './support.js';
 
 const island = (component: string, inner: string): string =>
   `<astro-island component-url="/x/_astro/${component}.Ab12.js">${inner}</astro-island>`;
@@ -92,6 +92,28 @@ describe('iconLabelsToText', () => {
     expect(applyPass(html, iconLabelsToText)).toBe(
       '<table><tbody><tr><th>Required</th><td>yes</td><td>no</td><td>Beta &amp; preview</td></tr></tbody></table>',
     );
+  });
+
+  // Regression: the Enterprise SDK reference reaches the pipeline as a page-data body that is
+  // converted generically, and only the Gatsby profile wrote the icon as its alt text: every
+  // member row began with `![Method](.../bitmaps/Method.gif)`.
+  it('writes the member-kind icon of an ArcObjects member table as its alternative text', () => {
+    const html =
+      '<table><tr><td><img src="../bitmaps/Method.gif" alt="Method"></td><td>GetSchema</td></tr>' +
+      '<tr><td><img src="bitmaps/Property.gif" alt="Property"></td><td>Name</td></tr></table>';
+    expect(applyPass(html, iconLabelsToText)).toBe(
+      '<table><tbody><tr><td>Method</td><td>GetSchema</td></tr><tr><td>Property</td><td>Name</td></tr></tbody></table>',
+    );
+    const page = sharedExtractor().extract(
+      {
+        html: `<!doctype html><html><head><title>IRESTRequestHandler</title></head><body><main><h1>IRESTRequestHandler</h1><table><thead><tr><th></th><th>Name</th></tr></thead><tbody><tr><td><img src="../bitmaps/Method.gif" alt="Method"></td><td>GetSchema</td></tr></tbody></table></main></body></html>`,
+        familyHint: 'generic',
+      },
+      metaFor('https://docs.example.com/sdk/api-reference/net/IRESTRequestHandler/', 'api'),
+    );
+    const markdown = pageMarkdown(page);
+    expect(markdown).toContain('| Method | GetSchema |');
+    expect(markdown).not.toContain('.gif');
   });
 
   it('leaves icons outside table cells to the bulk removal', () => {
@@ -238,6 +260,14 @@ describe('unwrapBlockyInline', () => {
       '<em><p>Block.</p></em><strong><ul><li>x</li></ul></strong><p><em>inline</em> <b>bold</b></p>';
     expect(applyPass(html, unwrapBlockyInline)).toBe(
       '<p>Block.</p><ul><li>x</li></ul><p><em>inline</em> <b>bold</b></p>',
+    );
+  });
+  // Regression: Markdown cannot nest emphasis; `<em>a <em>b</em> c</em>` printed `_a _b_ c_`.
+  it('drops emphasis nested in emphasis of the same kind', () => {
+    const html =
+      '<p><em>a <em>b</em> <i>c</i> d</em> <b>e <strong>f</strong></b> <em>g <b>h</b></em></p>';
+    expect(applyPass(html, unwrapBlockyInline)).toBe(
+      '<p><em>a b c d</em> <b>e f</b> <em>g <b>h</b></em></p>',
     );
   });
   // Regression: a tutorial step read "Learn more in", "[", "Item access privileges", "](url)", "."

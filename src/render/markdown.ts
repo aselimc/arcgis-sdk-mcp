@@ -10,7 +10,7 @@ import { sectionsFromMarkdown } from '../core/sections.js';
 import { absolutizeLinks } from './links.js';
 import { closeFences } from './md.js';
 import { finishPage } from './page.js';
-import { htmlLinksToMarkdown, stripUnseen } from './unseen.js';
+import { inlineHtmlToMarkdown, stripUnseen } from './unseen.js';
 
 const FRONT_MATTER = /^---[ \t]*\n([\s\S]*?)\n---[ \t]*(?:\n|$)/;
 
@@ -61,7 +61,7 @@ export function capMarkdown(markdown: string): { text: string; notices: string[]
  * its relative links made absolute against `baseUrl`.
  */
 export function readableMarkdown(markdown: string, baseUrl: string): string {
-  return absolutizeLinks(htmlLinksToMarkdown(stripUnseen(markdown)), baseUrl);
+  return absolutizeLinks(inlineHtmlToMarkdown(stripUnseen(markdown)), baseUrl);
 }
 
 /**

@@ -72,6 +72,27 @@ describe('documents built to be expensive', () => {
     expect(result.sections).toHaveLength(1);
   });
 
+  // Regression: the GFM plugin re-walked the whole table for every column of the heading row
+  // and every row it indexed, so 2 000 rows took half a minute and 4 000 rows over two.
+  it('converts a long table with a header row in linear time, every row in order', () => {
+    const rows = Array.from(
+      { length: 2000 },
+      (_, index) => `<tr><td>r${index}</td><td>b</td><td>c</td></tr>`,
+    ).join('');
+    const html = page(
+      `<table><thead><tr><th>A</th><th>B</th><th>C</th></tr></thead><tbody>${rows}</tbody></table>`,
+    );
+    let markdown = '';
+    const ms = timed(() => {
+      markdown = pageMarkdown(extractHtml(html));
+    });
+    expect(ms).toBeLessThan(BOUND_MS);
+    const lines = markdown.split('\n').filter((line) => line.startsWith('| r'));
+    expect(lines).toHaveLength(2000);
+    expect(lines[1999]).toBe('| r1999 | b   | c   |');
+    expect(markdown).toContain('| A   | B   | C   |\n| --- | --- | --- |\n| r0  | b   | c   |');
+  });
+
   it('keeps the text of a very wide element complete and in order', () => {
     const body = Array.from({ length: 1500 }, (_, index) => `<p>p${index}</p>`).join('');
     const lines = pageMarkdown(extractHtml(page(body)))

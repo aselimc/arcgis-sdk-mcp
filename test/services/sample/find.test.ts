@@ -73,6 +73,30 @@ describe('find samples', () => {
     expect(response.total).toBe(response.hits.length);
   });
 
+  // Regression: the C# SOI samples of the Enterprise SDK were listed as java, the language
+  // of the repository as a whole.
+  it('labels a sample with the language of its source files', async () => {
+    const h = harness();
+    const url = `${JS_SAMPLES}/layers-scenelayer/`;
+    h.adapter('docc').addPage(
+      samplePage('layers-scenelayer', {
+        files: [
+          { name: 'App.xaml', language: 'xml', text: '<App/>', ref: `${url}App.xaml`, bytes: 6 },
+          { name: 'App.xaml.cs', language: 'csharp', text: 'class App {}', ref: `${url}App.cs`, bytes: 12 },
+        ],
+      }),
+    );
+    const response = await find(h, { query: 'scene layer', product: 'js-maps-sdk', limit: 10 });
+    const labelled = (slug: string) =>
+      response.hits.find((hit) => hit.record.ref.endsWith(`/${slug}/`))?.record.language;
+    expect(labelled('layers-scenelayer')).toBe('csharp');
+    // Markup and web files say nothing about the language: the record keeps its label.
+    const page = await find(h, { query: 'cluster points', product: 'js-maps-sdk' });
+    expect(page.hits[0]?.record.language).toBe(
+      h.index.record(`${JS_SAMPLES}/featurereduction-cluster/`)?.language,
+    );
+  });
+
   it('only searches sample sources and returns only samples', async () => {
     const h = harness();
     const response = await find(h, { query: 'feature', product: 'js-maps-sdk', limit: 10 });

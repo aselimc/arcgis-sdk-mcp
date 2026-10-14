@@ -6,7 +6,7 @@ Shows the next high tide. See the [setup guide](https://github.com/example/tides
 
 ![Screenshot of the clock](https://raw.githubusercontent.com/example/tides/v1.2.0/samples/clock/images/clock.png)
 
-<img src="https://raw.githubusercontent.com/example/tides/v1.2.0/samples/clock/images/dial.svg" alt="Dial"> and [the FAQ](https://github.com/example/tides/blob/v1.2.0/samples/clock/docs/faq.md).
+![Dial](https://raw.githubusercontent.com/example/tides/v1.2.0/samples/clock/images/dial.svg) and [the FAQ](https://github.com/example/tides/blob/v1.2.0/samples/clock/docs/faq.md).
 
 ## Run it
 

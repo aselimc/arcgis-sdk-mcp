@@ -75,8 +75,9 @@ describe('renderMarkdown', () => {
     expect(text).toContain(
       '![Screenshot of the clock](https://raw.githubusercontent.com/example/tides/v1.2.0/samples/clock/images/clock.png)',
     );
+    // An inline HTML image is written as a Markdown image, with its source made absolute.
     expect(text).toContain(
-      '<img src="https://raw.githubusercontent.com/example/tides/v1.2.0/samples/clock/images/dial.svg"',
+      '![Dial](https://raw.githubusercontent.com/example/tides/v1.2.0/samples/clock/images/dial.svg)',
     );
   });
 
@@ -186,8 +187,8 @@ describe('renderMarkdown', () => {
       renderer: 'markdown',
       fences: 1,
       fencesWithLanguage: 1,
-      // The author's own inline image; the HTML link next to it became a Markdown link.
-      leftoverHtmlTags: 1,
+      // The inline HTML image and link next to each other both became Markdown.
+      leftoverHtmlTags: 0,
     });
   });
 });

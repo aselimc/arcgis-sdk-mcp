@@ -13,7 +13,9 @@
  * A class is spread over three sibling declarations of the namespace: an interface that
  * names its bases, the class with its members, and the options of its constructor. They are
  * cut out and written as the module the 5.x typings would have had, which is the shape the
- * declaration renderer reads.
+ * declaration renderer reads. Older 4.x releases have no `class` at all: an interface holds
+ * the members and a `<Name>Constructor` interface the construct signature; that is read as
+ * the same class.
  */
 
 /** What a per-module stub points at. */
@@ -112,6 +114,51 @@ function heritageList(heritage: string): string[] {
 
 const declaration = (head: string, body: string): string => `${head} {\n${body}\n}`;
 
+/** `new(properties?: MapViewProperties): MapView;`, a construct signature. */
+const CONSTRUCT_SIGNATURE = /^(\s*)new\s*(\(.*\))\s*:\s*[^;]+;\s*$/;
+/** The first line of a member declared at the top level of a block body (two spaces in). */
+const MEMBER_START = /^ {2}(?=[\w$])/;
+
+/**
+ * A class of the older 4.x layout, which has no `class` at all: the members are on an
+ * interface, and what makes it a class is a second interface with a construct signature
+ * and a constant of that type,
+ *
+ * ```ts
+ * interface MapView extends View { ... }
+ * interface MapViewConstructor { new(properties?: MapViewProperties): MapView; fromJSON(json: any): MapView; }
+ * export const MapView: MapViewConstructor;
+ * ```
+ *
+ * Read as the class it stands for: the construct signature becomes the constructor and the
+ * other members of the constructor interface are static. Without this, a class of those
+ * releases came out as an interface of an unnamed module, imported from the package root
+ * that those releases do not have.
+ *
+ * @returns `undefined` when `name` has no constructor interface with a construct signature.
+ */
+function constructedClass(
+  text: string,
+  name: string,
+  merged: Block | undefined,
+): Block | undefined {
+  if (merged === undefined) return undefined;
+  const ctor = block(text, 'interface', `${name}Constructor`);
+  if (ctor === undefined) return undefined;
+  let constructs = false;
+  const statics = ctor.body.split('\n').map((line) => {
+    const signature = CONSTRUCT_SIGNATURE.exec(line);
+    if (signature !== null) {
+      constructs = true;
+      return `${signature[1] ?? ''}constructor${signature[2] ?? '()'};`;
+    }
+    return MEMBER_START.test(line) ? line.replace(MEMBER_START, '  static ') : line;
+  });
+  if (!constructs) return undefined;
+  // The heritage is the interface's; the caller reads it from there.
+  return { heritage: '', body: `${statics.join('\n')}\n${merged.body}` };
+}
+
 /**
  * Writes the module of one class from the namespace file.
  *
@@ -121,8 +168,8 @@ const declaration = (head: string, body: string): string => `${head} {\n${body}\
  */
 export function moduleFromNamespace(interfaces: string, name: string): string | undefined {
   const text = interfaces.replace(/\r\n?/g, '\n');
-  const cls = block(text, 'class', name);
   const merged = block(text, 'interface', name);
+  const cls = block(text, 'class', name) ?? constructedClass(text, name, merged);
   if (cls === undefined) {
     // A module that is an object of functions is declared as an interface only.
     if (merged === undefined) return undefined;

@@ -67,19 +67,43 @@ function firstSentence(page: DocPage | undefined): string | undefined {
   return sentence === '' ? undefined : sentence.slice(0, 240);
 }
 
-/** File languages that say how a sample is laid out, not what it is written in. */
-const MARKUP = new Set(['html', 'xml', 'xaml', 'json', 'yaml', 'css', 'markdown', 'md', 'text']);
+/**
+ * Languages a sample file can be written in that name the sample's language unambiguously,
+ * by the spellings files are labelled with. Markup and web files (`index.html`, `main.js`
+ * next to a TypeScript project) say how a sample is laid out, not what it is written in.
+ */
+const SAMPLE_LANGUAGES: ReadonlyMap<string, string> = new Map([
+  ['csharp', 'csharp'],
+  ['cs', 'csharp'],
+  ['c#', 'csharp'],
+  ['vb', 'vb'],
+  ['java', 'java'],
+  ['kotlin', 'kotlin'],
+  ['kt', 'kotlin'],
+  ['swift', 'swift'],
+  ['dart', 'dart'],
+  ['cpp', 'cpp'],
+  ['c++', 'cpp'],
+  ['qml', 'qml'],
+  ['python', 'python'],
+  ['py', 'python'],
+]);
 
 /**
  * The record of a hit, labelled with the language its source files are written in. A
  * repository that holds samples in several languages is indexed with one language for all
- * of them: the C# samples of the Enterprise SDK under `dot net/` were listed as java. A page
- * whose only file is markup (`index.html` of a JavaScript sample) keeps the record's label.
+ * of them: the C# samples of the Enterprise SDK under `dot net/` were listed as java.
  */
 function withFileLanguage(record: CatalogRecord, page: DocPage | undefined): CatalogRecord {
-  const code = page?.files?.find((file) => !MARKUP.has(file.language.toLowerCase()));
-  if (code === undefined || code.language === record.language) return record;
-  return { ...record, language: code.language };
+  const written = page?.files
+    ?.map((file) => SAMPLE_LANGUAGES.get(file.language.toLowerCase()))
+    .find((language) => language !== undefined);
+  if (written === undefined) return record;
+  const labelled = SAMPLE_LANGUAGES.get(record.language?.toLowerCase() ?? '');
+  // A Qt sample is C++ and QML: either label holds, whichever file comes first.
+  const qt = (language: string | undefined): boolean => language === 'cpp' || language === 'qml';
+  if (labelled === written || (qt(labelled) && qt(written))) return record;
+  return { ...record, language: written };
 }
 
 function originOf(record: CatalogRecord): SampleHit['origin'] {
