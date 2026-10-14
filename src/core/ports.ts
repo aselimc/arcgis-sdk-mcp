@@ -38,6 +38,9 @@ export interface HttpRequest {
    * - `xml`: starts with `<` and is not an HTML document;
    * - `text`, `yaml`: anything that is not an HTML document (Markdown, `.d.ts`, `.js` index
    *   files, `xrefmap.yml`, `objects.inv`).
+   *
+   * Cache entries and single-flight are kept per expected shape (`yaml` counts as `text`),
+   * so a verdict for one expectation never answers for another.
    */
   expect: 'html' | 'json' | 'xml' | 'text' | 'yaml';
   /**
@@ -94,14 +97,17 @@ export interface HttpClient {
    * | Outcome | Code |
    * |---|---|
    * | host not on the allow-list, link-only host, capability off | `HOST_NOT_ALLOWED`, `LINK_ONLY`, `SOURCE_DISABLED` |
+   * | path excluded by the host's live robots rules | `LINK_ONLY` |
    * | offline mode and nothing cached | `OFFLINE_MISS` |
-   * | 404, 410, soft 404, body of another shape than `expect` | `DOC_NOT_FOUND` |
-   * | 403, 429 | `UPSTREAM_BLOCKED` (`retryable: false`) |
-   * | 5xx, network error or timeout after the retries; open breaker; request budget or deadline spent | the stale copy (`cache: 'stale'`) when one exists, else `UPSTREAM_UNAVAILABLE` (`retryable: true`) |
+   * | 404, 410, the host's soft-404 page, the catch-all HTML shell, or a body of another shape than `expect` while no earlier copy is held | `DOC_NOT_FOUND`, remembered for 1 hour |
+   * | other 4xx (400, 405, 406, 414, 422, ...) | `DOC_NOT_FOUND`, not remembered |
+   * | 403, 429, and any request while a pause the host asked for runs (`Retry-After`, `x-ratelimit-remaining: 0` until the reset) | `UPSTREAM_BLOCKED` (`retryable: false`); during a pause no request is sent |
+   * | 408, 421, 425, 5xx, network error or timeout after the retries; open breaker; an unexpected body or broken redirect while a copy is held | the stale copy (`cache: 'stale'`) when one exists, else `UPSTREAM_UNAVAILABLE` (`retryable: true`) |
+   * | request budget or deadline spent, host pacing beyond the deadline, cancelled call | the stale copy when one exists, else `UPSTREAM_UNAVAILABLE` (`retryable: true`) with `details.declined` (`budget`, `pacing`, `cancelled`) |
    * | body larger than `maxBytes` | `UPSTREAM_UNAVAILABLE` (`retryable: false`) |
    *
-   * A caller that must tell a spent budget from a failing host checks `budgetExhausted`
-   * (`async.ts`) on the budget it passed.
+   * A caller that must tell "this server did not ask" from a failing host checks
+   * `details.declined`; `budgetExhausted` (`async.ts`) alone misses a pacing refusal.
    */
   get(req: HttpRequest): Promise<HttpResponse>;
   /**
@@ -115,6 +121,21 @@ export interface HttpClient {
     breaker: 'closed' | 'open' | 'half-open';
     lastError?: string;
   }>;
+  /**
+   * What `host` last said about its request quota; `undefined` when it never said anything.
+   * The GitHub client reads it to tell a spent quota from any other refusal.
+   */
+  rateLimit(host: string): RateLimitSnapshot | undefined;
+}
+
+/** The latest quota facts of one host. Times are `Clock.now()` values. */
+export interface RateLimitSnapshot {
+  /** `x-ratelimit-remaining`. */
+  remaining?: number;
+  /** `x-ratelimit-reset`, converted to milliseconds. */
+  resetAt?: number;
+  /** End of the pause a `Retry-After` header asked for on a 403 / 429. */
+  retryAfterUntil?: number;
 }
 
 /**
@@ -140,6 +161,11 @@ export interface GithubCallOptions {
    * Default `volatile` (a branch can move).
    */
   ttl?: T.TtlClass;
+  /**
+   * `raw` and `wikiRaw` only: the largest body accepted. Default `limits.pageMaxBytes`, as
+   * for a document; a caller that reads an index file (XML documentation) passes more.
+   */
+  maxBytes?: number;
 }
 
 /**

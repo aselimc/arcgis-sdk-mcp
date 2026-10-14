@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GithubClient, HttpClient } from '../../src/core/ports.js';
 import { createGithubClient } from '../../src/net/github.js';
-import type { QuotaSource } from '../../src/net/rate-limit-info.js';
 import { FAKE_NOW, FakeClock, MINUTE } from '../support/fake-clock.js';
 import { FakeHttp } from '../support/fake-http.js';
 import { FakeLogger } from '../support/fake-logger.js';
@@ -199,7 +198,7 @@ describe('github: quota facts and the HTTP client', () => {
   it('reads them through a client that wraps the gateway and forwards the method', async () => {
     const rig = makeRig({ hosts: HOSTS });
     const real = rig.http;
-    const wrapped: HttpClient & QuotaSource = {
+    const wrapped: HttpClient = {
       get: (req) => real.get(req),
       getJson: (req) => real.getJson(req),
       hostStates: () => real.hostStates(),
@@ -224,6 +223,7 @@ describe('github: quota facts and the HTTP client', () => {
       get: (req) => real.get(req),
       getJson: (req) => real.getJson(req),
       hostStates: () => real.hostStates(),
+      rateLimit: () => undefined,
     };
     rig.origin.on(/api\.github/, status(403, NOT_QUOTA));
     const github = over(wrapped, rig);

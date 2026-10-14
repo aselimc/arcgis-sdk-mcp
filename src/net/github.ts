@@ -14,7 +14,6 @@ import type { GithubCallOptions, GithubClient, HttpRequest, HttpResponse } from 
 import type { LicenseTier } from '../core/types.js';
 import { declinedBy, notFound } from './errors.js';
 import { classifyLicenseText, classifySpdx } from './github-license.js';
-import { rateLimitOf } from './rate-limit-info.js';
 
 const API_HOST = 'api.github.com';
 const API = `https://${API_HOST}`;
@@ -73,7 +72,7 @@ export function createGithubClient(deps: GithubDeps): GithubClient {
 
   /** The API quota as far as it is known and still current. */
   function knownQuota(): { remaining?: number; resetAt?: number; pausedUntil?: number } {
-    const seen = rateLimitOf(http, API_HOST);
+    const seen = http.rateLimit(API_HOST);
     const now = clock.now();
     if (seen === undefined) return {};
     const current = seen.resetAt === undefined || now < seen.resetAt;
@@ -146,6 +145,9 @@ export function createGithubClient(deps: GithubDeps): GithubClient {
       // The raw host serves every file as text/plain; only real pages are checked as markup.
       expect: /\.html?$/i.test(new URL(url).pathname) ? 'html' : 'text',
       ttl,
+      // A file is a document, not an index: the 32 MB index cap would let one read download
+      // far more than any page can show.
+      maxBytes: opts?.maxBytes ?? config.limits.pageMaxBytes,
       ...(opts?.budget === undefined ? {} : { budget: opts.budget }),
       ...(opts?.signal === undefined ? {} : { signal: opts.signal }),
     });

@@ -1,38 +1,8 @@
 /**
  * Quota facts of upstream hosts: what the rate-limit headers of their responses said, the
- * pause that follows from them, and how the GitHub client reads them from the gateway.
+ * pause that follows from them. The gateway reports them through `HttpClient.rateLimit`.
  */
-import type { Clock, HttpClient } from '../core/ports.js';
-
-/** The latest quota facts of one host. Times are `Clock.now()` values. */
-export interface RateLimitSnapshot {
-  /** `x-ratelimit-remaining`. */
-  remaining?: number;
-  /** `x-ratelimit-reset`, converted to milliseconds. */
-  resetAt?: number;
-  /** End of the pause a `Retry-After` header asked for on a 403 / 429. */
-  retryAfterUntil?: number;
-}
-
-/**
- * The part of the gateway that reports quota facts: a method next to `hostStates()` on the
- * object behind the `HttpClient` port. A client that wraps the gateway forwards it like any
- * other method; one that has no such method (a test fake) simply knows no quota.
- */
-export interface QuotaSource {
-  /** What `host` last said about its quota; `undefined` when it never said anything. */
-  rateLimit(host: string): RateLimitSnapshot | undefined;
-}
-
-/** True when `http` can report quota facts. */
-export function isQuotaSource(http: HttpClient): http is HttpClient & QuotaSource {
-  return typeof (http as Partial<QuotaSource>).rateLimit === 'function';
-}
-
-/** The snapshot `http` holds for `host`; `undefined` when it has none or reports none. */
-export function rateLimitOf(http: HttpClient, host: string): RateLimitSnapshot | undefined {
-  return isQuotaSource(http) ? http.rateLimit(host) : undefined;
-}
+import type { Clock, RateLimitSnapshot } from '../core/ports.js';
 
 /** The quota facts of every host the gateway has heard from. */
 export class HostQuotas {

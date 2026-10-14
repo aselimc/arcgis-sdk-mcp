@@ -23,7 +23,7 @@ import { Flights } from './flights.js';
 import { cacheKey, conditionalHeaders, defaultTtl, isFresh, isNegative } from './freshness.js';
 import type { GatewayDeps } from './gateway-deps.js';
 import { HttpCacheView, toResponse } from './http-cache.js';
-import { HostQuotas, type QuotaSource } from './rate-limit-info.js';
+import { HostQuotas } from './rate-limit-info.js';
 import { createRateLimiter } from './rate-limiter.js';
 import { LiveRobots, createRobotsFetcher } from './robots-live.js';
 import { searchOutcome } from './search-result.js';
@@ -54,14 +54,8 @@ interface Accepted {
   key: string;
 }
 
-/**
- * Builds the gateway. `createHttpClient` in `index.ts` is the public factory.
- *
- * Besides the `HttpClient` port the object reports the quota facts of each host
- * ({@link QuotaSource}), which the GitHub client needs to tell a spent quota from any other
- * refusal.
- */
-export function createGateway(deps: GatewayDeps): HttpClient & QuotaSource {
+/** Builds the gateway. `createHttpClient` in `index.ts` is the public factory. */
+export function createGateway(deps: GatewayDeps): HttpClient {
   const { config, logger, clock, policy } = deps;
   const fetchImpl = deps.fetchImpl ?? fetch;
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((done) => setTimeout(done, ms)));

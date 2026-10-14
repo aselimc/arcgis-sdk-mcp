@@ -126,6 +126,7 @@ export function createEsearchProvider(
       ...(call.signal === undefined ? {} : { signal: call.signal }),
     });
     // HTTP 200 with an error object was seen in the past: success needs hits and no error.
+    // The gateway never stores such an answer, so the next call asks again.
     const hits = data.search?.hits;
     if (data.error !== undefined || !Array.isArray(hits)) {
       throw new Error(data.error?.detail ?? data.error?.message ?? 'response without search.hits');

@@ -114,4 +114,18 @@ describe('parseSitemap', () => {
     expect(entries.at(-1)?.loc).toBe('https://h.example/page-19999/');
     expect(performance.now() - started).toBeLessThan(2000);
   });
+
+  it('stays linear on openers that are never closed', () => {
+    for (const unit of ['<url><loc>https://h.example/a</loc>', '<url ', '<url a="b">']) {
+      const started = performance.now();
+      const { entries } = parseSitemap(urlset(unit.repeat(Math.ceil(131_072 / unit.length))));
+      expect(entries).toEqual([]);
+      expect(performance.now() - started).toBeLessThan(500);
+    }
+  });
+
+  it('keeps the entries before an unclosed opener', () => {
+    const body = '<url><loc>https://h.example/a</loc></url><url><loc>https://h.example/b</loc>';
+    expect(parseSitemap(urlset(body)).entries).toEqual([{ loc: 'https://h.example/a' }]);
+  });
 });

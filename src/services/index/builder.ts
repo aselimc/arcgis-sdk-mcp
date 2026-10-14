@@ -20,6 +20,26 @@ import type { Unit, UnitOrigin } from './types.js';
  */
 const BACKGROUND_DEADLINE_FACTOR = 6;
 
+/**
+ * Requests a build of a paced source must be able to send within its deadline. A host that
+ * asks for one request a minute (hub.arcgis.com, `Crawl-delay: 60`) would otherwise allow two
+ * of the five documents of its API catalogue per build, and the build could never complete.
+ */
+const PACED_REQUESTS = 8;
+
+/** The deadline of one build of `source`: long enough for the pacing of its slowest host. */
+function buildDeadline(ctx: Ctx, product: Product, source: SourceDef, line: VersionLine): number {
+  const base = ctx.config.limits.indexBuildDeadlineMs * BACKGROUND_DEADLINE_FACTOR;
+  let host: string;
+  try {
+    host = new URL(bindSource(product, source, line).url()).host;
+  } catch {
+    return base;
+  }
+  const interval = ctx.registry.hosts().find((policy) => policy.host === host)?.minIntervalMs ?? 0;
+  return Math.max(base, interval * PACED_REQUESTS);
+}
+
 /** Result of one enumeration. */
 export type BuildOutcome =
   { ok: true; records: CatalogRecord[] } | { ok: false; reason: string; disabled?: boolean };
@@ -63,7 +83,6 @@ export async function enumerateSource(
   source: SourceDef,
   line: VersionLine,
 ): Promise<BuildOutcome> {
-  const { limits } = ctx.config;
   let budget;
   try {
     const adapter = adapters.get(source.adapter);
@@ -73,7 +92,7 @@ export async function enumerateSource(
     // of such a source fail by design: 16 help books at three requests each against 30.
     budget = newBudget(
       adapter.maxEnumerateRequests,
-      limits.indexBuildDeadlineMs * BACKGROUND_DEADLINE_FACTOR,
+      buildDeadline(ctx, product, source, line),
       ctx.clock,
     );
     const records = await adapter.enumerate(
@@ -91,7 +110,10 @@ export async function enumerateSource(
         error,
       });
     }
-    const spent = budget !== undefined && budgetExhausted(budget, ctx.clock);
+    // A request the gateway declined (spent budget, pacing beyond the deadline, a cancelled
+    // build) says nothing about the source: the build ran out of room, it did not fail.
+    const declined = isMcpDocError(error) && error.details?.declined !== undefined;
+    const spent = declined || (budget !== undefined && budgetExhausted(budget, ctx.clock));
     return {
       ok: false,
       reason: spent

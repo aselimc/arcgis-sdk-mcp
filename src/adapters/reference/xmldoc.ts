@@ -322,7 +322,10 @@ async function read(ctx: Ctx, src: BoundSource<'xmldoc'>, target: ReadTarget): P
     });
   }
   const { repo, docUrlHost } = src.source.config;
-  const res = await ctx.github.raw(repo, file.ref, file.path, callOptions(src, file.ref));
+  const res = await ctx.github.raw(repo, file.ref, file.path, {
+    ...callOptions(src, file.ref),
+    maxBytes: ctx.config.limits.indexMaxBytes,
+  });
   const ref = new URL(blobUrl(repo, file.ref, file.path));
   ref.hash = memberId;
   const page = ctx.render.render(
@@ -365,7 +368,10 @@ export const xmldocAdapter: SourceAdapter<'xmldoc'> = {
     let firstFailure: McpDocError | undefined;
     for (const path of paths.slice(0, MAX_FILES)) {
       try {
-        const res = await ctx.github.raw(repo, ref, path, callOptions(src, ref));
+        const res = await ctx.github.raw(repo, ref, path, {
+          ...callOptions(src, ref),
+          maxBytes: ctx.config.limits.indexMaxBytes,
+        });
         records.push(...xmldocRecords(src, blobUrl(repo, ref, path), res.text));
       } catch (error) {
         firstFailure ??= toMcpDocError(error);

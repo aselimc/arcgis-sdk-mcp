@@ -45,6 +45,29 @@ function elementText(xml: string, name: string): string | undefined {
 }
 
 /**
+ * Every `<tag>...</tag>` element of `xml`, in order, in time linear in the input: the opener
+ * and the closer are each found by one forward search, and the scan stops at the first
+ * opener without a closer (a lazy regular expression over the whole text retried that search
+ * from every later opener).
+ */
+function elementsOf(xml: string, tag: string): string[] {
+  // Attributes are bounded, so an opener without `>` cannot make the search run to the end.
+  const opener = new RegExp(`<${tag}(?:\\s[^>]{0,2000})?>`, 'gi');
+  const closer = new RegExp(`</${tag}\\s*>`, 'gi');
+  const blocks: string[] = [];
+  for (;;) {
+    const open = opener.exec(xml);
+    if (open === null) break;
+    closer.lastIndex = opener.lastIndex;
+    const close = closer.exec(xml);
+    if (close === null) break;
+    blocks.push(xml.slice(open.index, closer.lastIndex));
+    opener.lastIndex = closer.lastIndex;
+  }
+  return blocks;
+}
+
+/**
  * Reads a sitemap index or urlset.
  *
  * Entries keep document order and are de-duplicated on `loc` (first occurrence wins).
@@ -54,8 +77,7 @@ function elementText(xml: string, name: string): string | undefined {
  */
 export function parseSitemap(xml: string): Sitemap {
   const kind = /<sitemapindex[\s>]/i.test(xml) ? 'index' : 'urlset';
-  const tag = kind === 'index' ? 'sitemap' : 'url';
-  const blocks = xml.match(new RegExp(`<${tag}(?:\\s[^>]*)?>[\\s\\S]*?</${tag}\\s*>`, 'gi')) ?? [];
+  const blocks = elementsOf(xml, kind === 'index' ? 'sitemap' : 'url');
 
   const entries: SitemapEntry[] = [];
   const seen = new Set<string>();

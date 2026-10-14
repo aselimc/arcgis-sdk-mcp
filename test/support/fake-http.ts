@@ -1,6 +1,12 @@
 import { consumeBudget } from '../../src/core/async.js';
 import { McpDocError } from '../../src/core/errors.js';
-import type { Clock, HttpClient, HttpRequest, HttpResponse } from '../../src/core/ports.js';
+import type {
+  Clock,
+  HttpClient,
+  HttpRequest,
+  HttpResponse,
+  RateLimitSnapshot,
+} from '../../src/core/ports.js';
 import type { CacheState } from '../../src/core/types.js';
 import {
   DEFAULT_CONTENT_TYPE,
@@ -42,6 +48,7 @@ export class FakeHttp implements HttpClient {
 
   private readonly routes: Route[] = [];
   private readonly faults: InjectedFault[] = [];
+  private readonly quotas = new Map<string, RateLimitSnapshot>();
   private readonly breakers = new Map<
     string,
     { breaker: 'closed' | 'open' | 'half-open'; lastError?: string }
@@ -144,11 +151,13 @@ export class FakeHttp implements HttpClient {
       req.budget !== undefined &&
       !consumeBudget(req.budget, this.clock)
     ) {
-      throw new McpDocError(
-        'UPSTREAM_UNAVAILABLE',
-        `Request budget exhausted before ${host} could be contacted`,
-        { why: 'request budget', url, host, retryable: true },
-      );
+      throw new McpDocError('UPSTREAM_UNAVAILABLE', `No answer from ${host} within the request budget`, {
+        why: 'The request budget of this call (a number of requests and a deadline) is spent',
+        url,
+        host,
+        retryable: true,
+        declined: 'budget',
+      });
     }
 
     if (fault !== undefined) return this.applyFault(fault, req, url, host, recorded);
@@ -186,6 +195,17 @@ export class FakeHttp implements HttpClient {
     lastError?: string;
   }> {
     return [...this.breakers].map(([host, state]) => ({ host, ...state }));
+  }
+
+  /** Sets what `rateLimit(host)` reports, as a quota-reporting gateway would. */
+  quota(host: string, snapshot: RateLimitSnapshot | undefined): this {
+    if (snapshot === undefined) this.quotas.delete(host);
+    else this.quotas.set(host, snapshot);
+    return this;
+  }
+
+  rateLimit(host: string): RateLimitSnapshot | undefined {
+    return this.quotas.get(host);
   }
 
   private responseOf(route: Route, req: HttpRequest, advance: boolean): RecordedResponse {
