@@ -286,6 +286,41 @@ function mergeTwins(candidates: Candidate[]): Candidate[] {
   return [...merged.values()].flat().sort(compare);
 }
 
+/** The descriptive part of an operation title: `Group Content Search` of `/search: Group Content Search`. */
+function operationLabel(record: CatalogRecord): string {
+  return record.title.replace(/^[^:]*:\s*/, '');
+}
+
+const squash = (text: string): string => text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+
+/**
+ * True when a REST operation's page is titled with nothing but its name: `search: Search`,
+ * `/generateToken: Generate Token`. Of operations named alike in one service (the root
+ * `search` of a portal and the `search` of a group's content), that is the one meant.
+ */
+export function isPlainlyTitled(record: CatalogRecord, name: string): boolean {
+  return squash(operationLabel(record)) === squash(name);
+}
+
+/**
+ * Puts the plainest of same-named REST operations of one service first: the one whose title
+ * adds the least to the name. The other stays listed next to it; only the order among such
+ * namesakes changes.
+ */
+function preferPlainOperation(candidates: Candidate[]): Candidate[] {
+  const [first] = candidates;
+  if (first?.record.symbolKind !== 'operation') return candidates;
+  const namesakes = candidates.filter(
+    (candidate) =>
+      compare(candidate, first) === 0 && identityOf(candidate.record) === identityOf(first.record),
+  );
+  if (namesakes.length < 2) return candidates;
+  const plainest = namesakes.reduce((best, candidate) =>
+    operationLabel(candidate.record).length < operationLabel(best.record).length ? candidate : best,
+  );
+  return [plainest, ...candidates.filter((candidate) => candidate !== plainest)];
+}
+
 /**
  * Resolves `input` against the symbols of the given product lines.
  *
@@ -371,7 +406,7 @@ export function resolveSymbol(input: string, scopes: readonly SymbolScope[]): Re
     }
     step = all.length > 0 ? 'fuzzy' : undefined;
   }
-  const candidates = mergeTwins(all.filter((entry) => entry.step === step));
+  const candidates = preferPlainOperation(mergeTwins(all.filter((entry) => entry.step === step)));
   const [winner, ...others] = candidates;
   if (winner === undefined) {
     return { kind: 'none', ...(knownType === undefined ? {} : { knownType }) };

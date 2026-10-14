@@ -52,7 +52,11 @@ export function createIndexService(ctx: Ctx, adapters: AdapterRegistry): IndexIn
       const settled = new Map<string, IndexState>();
       const tasks = sources.map((source) => async (): Promise<void> => {
         try {
-          settled.set(source.id, await manager.ensureUnit(product, source, line));
+          // Held for the call: a later product of the same call must not evict it.
+          settled.set(
+            source.id,
+            await manager.ensureUnit(product, source, line, call.budget.deadline),
+          );
         } catch (error) {
           ctx.logger.error('index build crashed', {
             product: product.id,

@@ -26,6 +26,9 @@ import {
 /** A failed build is not repeated before this much time has passed. */
 export const RETRY_AFTER_MS = 60 * 1000;
 
+/** Longest a call may keep its units from being evicted, whatever its own deadline. */
+const MAX_HOLD_MS = 5 * 60_000;
+
 /** Share of `memoryMaxMb` that loaded catalogue indexes may use. */
 const INDEX_MEMORY_SHARE = 0.5;
 
@@ -62,7 +65,12 @@ export interface UnitManager {
    * loads the snapshot or builds, one build at a time per unit. Never rejects for an
    * upstream failure.
    */
-  ensureUnit(product: Product, source: SourceDef, line: VersionLine): Promise<IndexState>;
+  ensureUnit(
+    product: Product,
+    source: SourceDef,
+    line: VersionLine,
+    holdUntil?: number,
+  ): Promise<IndexState>;
 }
 
 /** Creates the unit manager. Health transitions are reported to `health`. */
@@ -75,13 +83,32 @@ export function createUnitManager(
   const flights = singleFlight<string, IndexState>();
   const memoryLimit = ctx.config.memoryMaxMb * 1024 * 1024 * INDEX_MEMORY_SHARE;
 
+  /**
+   * Units a call in flight relies on, by key, until that call's deadline. A lookup that
+   * spans several products loads them one after the other, and the last one evicted the
+   * first: `LLMAgent` was then not found in the JavaScript SDK that the same call had just
+   * loaded. The memory bound is exceeded for the length of a call rather than that.
+   */
+  const holds = new Map<string, number>();
+
+  const held = (key: string, now: number): boolean => {
+    const until = holds.get(key);
+    if (until === undefined) return false;
+    if (until > now) return true;
+    holds.delete(key);
+    return false;
+  };
+
   /** Puts a unit in memory and drops least recently used fresh ones beyond the memory bound. */
   const install = (unit: Unit): void => {
     units.set(unit.key, unit);
+    const now = ctx.clock.now();
     let total = [...units.values()].reduce((sum, loaded) => sum + loaded.bytes, 0);
     const evictable = [...units.values()]
       // Only fresh units have a snapshot to come back from.
-      .filter((loaded) => loaded.key !== unit.key && loaded.origin === 'fresh')
+      .filter(
+        (loaded) => loaded.key !== unit.key && loaded.origin === 'fresh' && !held(loaded.key, now),
+      )
       .sort((a, b) => a.lastUsed - b.lastUsed);
     for (const candidate of evictable) {
       if (total <= memoryLimit) break;
@@ -222,8 +249,12 @@ export function createUnitManager(
   return {
     units,
 
-    async ensureUnit(product, source, line) {
+    async ensureUnit(product, source, line, holdUntil) {
       const key = unitKey(product.id, source.id, line.id);
+      if (holdUntil !== undefined) {
+        const until = Math.min(holdUntil, ctx.clock.now() + MAX_HOLD_MS);
+        holds.set(key, Math.max(holds.get(key) ?? 0, until));
+      }
       const { capability } = source;
       if (capability !== undefined && !ctx.policy.enabled(capability)) {
         health.disabled(product.id, source.id, `capability "${capability}" is switched off`);

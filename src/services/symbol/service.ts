@@ -40,6 +40,7 @@ import {
   MAX_ALTERNATES,
   candidateOf,
   displayName,
+  isPlainlyTitled,
   resolveSymbol,
   type Candidate,
   type Resolution,
@@ -436,7 +437,22 @@ export function createSymbolService(
         const titled = titledRecords(index, req.symbol, targets)
           .filter(({ record }) => record.symbol === undefined && !known.has(pageKey(record.ref)))
           .map(({ record }) => candidateOf(namedByTitle(record), 'case-insensitive'));
-        alternates = [...alternates, ...titled].slice(0, MAX_ALTERNATES);
+        // The root `search` of a portal is indexed by its title alone (`search: Search`), the
+        // search of a group's content by its symbol: the page titled with the bare name is the
+        // operation meant, and the symbol's own page is listed next to it.
+        const name = simpleName(winner.record);
+        const plain = titled.find(({ record }) => isPlainlyTitled(record, name));
+        if (
+          plain !== undefined &&
+          winner.record.symbolKind === 'operation' &&
+          !isPlainlyTitled(winner.record, name)
+        ) {
+          alternates = [winner, ...alternates];
+          winner = { ...plain, step: 'simple' };
+        }
+        alternates = [...alternates, ...titled.filter((candidate) => candidate !== plain || winner !== plain)];
+        alternates = alternates.filter((candidate) => candidate.record !== winner.record);
+        alternates = alternates.slice(0, MAX_ALTERNATES);
       }
 
       const { target, resolution: resolved, notices: targetNotices } = placeOf(winner.record.product);

@@ -465,6 +465,31 @@ describe('resolveSymbol: the resolution table', () => {
       expect(portal.kind === 'found' ? portal.winner.record.source : '').toBe('portal');
       expect(resolveSymbol('Nope.issueToken', [services]).kind).toBe('ambiguous');
     });
+
+    // Regression: `search` of the portal answered with the search of one group's content
+    // and listed the root search ("Search") only as an alternate.
+    it('answers with the plainest of same-named operations of one service', () => {
+      const search = (slug: string, title: string) =>
+        makeRecord({
+          ref: `https://d/portal/${slug}/`,
+          product: 'rest-api',
+          source: 'portal',
+          symbol: 'search',
+          symbolKind: 'operation',
+          title,
+        });
+      const portal = scope('rest-api', [
+        search('group-content-search', '/search: Group Content Search'),
+        search('search', '/search: Search'),
+      ]);
+      const found = resolveSymbol('search', [portal]);
+      expect(found.kind).toBe('found');
+      if (found.kind !== 'found') return;
+      expect(found.winner.record.ref).toBe('https://d/portal/search/');
+      expect(found.alternates.map((alternate) => alternate.record.ref)).toEqual([
+        'https://d/portal/group-content-search/',
+      ]);
+    });
   });
 
   it('names a record without a qualified name by its symbol', () => {

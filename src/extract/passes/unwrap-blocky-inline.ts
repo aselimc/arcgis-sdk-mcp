@@ -92,7 +92,12 @@ export const unwrapBlockyInline: Pass = ($) => {
       (_, el) => $(el).find('p, div, ul, ol, pre, table, blockquote').length > 0,
     ),
   );
-  for (const nested of NESTED_EMPHASIS) unwrap($, $(nested));
+  for (const nested of NESTED_EMPHASIS) {
+    unwrap(
+      $,
+      $(nested).filter((_, el) => isElement(el)),
+    );
+  }
   inlineParagraphLinks($);
   inlineBlockLinks($);
 };

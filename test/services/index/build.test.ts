@@ -276,7 +276,8 @@ describe('memory bound', () => {
       config: { memoryMaxMb: 1 },
     });
     await h.index.ensure(a, undefined, makeLine(), h.call());
-    h.ctx.clock.advance(1000);
+    // Past the deadline of the call that loaded it: no call relies on it any more.
+    h.ctx.clock.advance(h.ctx.config.limits.callDeadlineMs + 1000);
     await h.index.ensure(b, undefined, makeLine(), h.call());
     expect(h.index.toc('a-sdk', 'guide', 'latest')).toHaveLength(0);
     expect(h.index.toc('b-sdk', 'guide', 'latest')).toHaveLength(1500);
@@ -284,5 +285,31 @@ describe('memory bound', () => {
     const [state] = await h.index.ensure(a, undefined, makeLine(), h.call());
     expect(state).toMatchObject({ state: 'ready', records: 1500 });
     expect(h.adapter('gatsby').count('enumerate')).toBe(1);
+  });
+
+  // Regression: a lookup across four products loaded them one after the other within one
+  // call, and the last evicted the first, which then had no symbols for the same call.
+  it('keeps the indexes a call loaded until that call is over', async () => {
+    const a = product({ id: 'a-sdk', sources: [makeSource('gatsby', { base: '/a/' })] });
+    const b = product({ id: 'b-sdk', sources: [makeSource('astro', { base: '/b/' })] });
+    const many = (id: string): CatalogRecord[] =>
+      Array.from({ length: 1500 }, (_, i) =>
+        makeRecord({
+          product: id,
+          ref: `https://developers.arcgis.com/${id}/p${i}/`,
+          title: `Page ${i}`,
+        }),
+      );
+    const h = makeHarness({
+      products: [a, b],
+      records: [...many('a-sdk'), ...many('b-sdk')],
+      config: { memoryMaxMb: 1 },
+    });
+    const call = h.call();
+    await h.index.ensure(a, undefined, makeLine(), call);
+    h.ctx.clock.advance(1000);
+    await h.index.ensure(b, undefined, makeLine(), call);
+    expect(h.index.toc('a-sdk', 'guide', 'latest')).toHaveLength(1500);
+    expect(h.index.toc('b-sdk', 'guide', 'latest')).toHaveLength(1500);
   });
 });
