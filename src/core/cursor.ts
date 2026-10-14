@@ -1,5 +1,5 @@
 /**
- * Stateless pagination cursors (design decision 28): base64url JSON, validated on decode.
+ * Stateless pagination cursors: base64url JSON, validated on decode.
  * The server keeps nothing between calls; a cursor that no longer matches the call or the
  * data it was issued for is rejected with `CURSOR_EXPIRED`.
  */

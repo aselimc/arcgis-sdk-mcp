@@ -1,7 +1,7 @@
 /**
  * Oracle `plc`: Esri's product life cycle API, the backend of the life-cycle pages on
  * support.esri.com. It is an undocumented endpoint, so it runs only with the opt-in
- * capability `lifecycle-api` (design decision 8).
+ * capability `lifecycle-api`.
  *
  * Options: `category` (required: `Developer`, `Foundational`, `Apps`, ...), `productName`
  * (default the product's name), `platform` (as written in the life-cycle page markup, for

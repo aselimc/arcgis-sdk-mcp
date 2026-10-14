@@ -1,5 +1,5 @@
 /**
- * `arcgis_docs_find_samples` (design section 3.7): runnable samples, optionally with the
+ * `arcgis_docs_find_samples`: runnable samples, optionally with the
  * main source file of the best hit.
  */
 import type { McpServer } from '@modelcontextprotocol/server';

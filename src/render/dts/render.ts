@@ -3,7 +3,7 @@
  * `@arcgis/core` layout); any other file is a module page listing its exports.
  *
  * Only own members are shown: base classes are named and the reader is told to look them up,
- * because resolving inheritance needs one more file per mixin (design decision 7).
+ * because resolving inheritance needs one more file per mixin.
  */
 import type { RenderMeta, RenderOptions, RendererInputs } from '../../core/ports.js';
 import type { DocPage } from '../../core/types.js';

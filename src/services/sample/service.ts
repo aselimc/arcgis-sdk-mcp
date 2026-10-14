@@ -1,5 +1,5 @@
 /**
- * The sample service (design section 3.7): ranks the sample records of a product for a
+ * The sample service: ranks the sample records of a product for a
  * task, optionally narrows them to a platform and to samples that use a given API, and
  * loads each hit's metadata (relevant APIs, files) lazily for at most the top ten.
  */
@@ -368,7 +368,12 @@ export function createSampleService(
       hits = listing.hits;
       if (listing.trimmed > 0) {
         notes.push(
-          `The file lists of ${listing.trimmed} lower-ranked hit(s) were left out to fit max_tokens; reading a hit lists its files.`,
+          `The file lists of ${listing.trimmed} hit(s) were left out to fit max_tokens; reading a hit lists its files.`,
+        );
+      }
+      if (listing.dropped > 0) {
+        notes.push(
+          `${listing.dropped} lower-ranked hit(s) were left out to fit max_tokens; raise max_tokens or lower limit to list them.`,
         );
       }
       if (total === 0 && api === undefined) {

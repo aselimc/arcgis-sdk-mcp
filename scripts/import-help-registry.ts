@@ -1,5 +1,5 @@
 /**
- * Imports the product-help research into the registry (design section 4.6):
+ * Imports the product-help research into the registry:
  * `scripts/data/help-registry.source.json` (research facts) plus
  * `scripts/data/help-registry.rules.json` (id maps and this project's wording) become
  * `src/registry/data/help.generated.ts`.
@@ -50,7 +50,7 @@ export function renderHelpModule(registry: HelpRegistry): string {
 import type { AnySourceDef, Product } from '../../core/types.js';
 
 /**
- * Product help (design section 4.6): ${registry.products.length} products of category \`product-help\`,
+ * Product help: ${registry.products.length} products of category \`product-help\`,
  * tombstones included.
  */
 export const helpProducts: readonly Product[] = ${literal(registry.products)};

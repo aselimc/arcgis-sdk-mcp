@@ -1,5 +1,5 @@
 /**
- * Names that appear on the wire (design section 0). Services build `Next:` calls from these
+ * Names that appear on the wire. Services build `Next:` calls from these
  * and the MCP layer registers tools under them, so they are defined exactly once.
  */
 

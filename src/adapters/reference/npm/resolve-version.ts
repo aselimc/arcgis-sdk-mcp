@@ -38,7 +38,7 @@ export interface ResolvedPackage {
   local?: LocalPackage;
 }
 
-/** The dist-tags endpoint of the npm registry (design section 4.8). */
+/** The dist-tags endpoint of the npm registry. */
 export function distTagsUrl(name: string): string {
   return `https://registry.npmjs.org/-/package/${name}/dist-tags`;
 }

@@ -1,5 +1,5 @@
 /**
- * `arcgis_docs_lookup_symbol` (design section 3.6): the declaration and documentation of
+ * `arcgis_docs_lookup_symbol`: the declaration and documentation of
  * one named API entity. Text only.
  */
 import type { McpServer } from '@modelcontextprotocol/server';
@@ -128,7 +128,7 @@ function alternates(
 
 /**
  * The product of the answer and, whenever it was not named by its id, how it was arrived
- * at (design section 3.1).
+ * at.
  */
 function productEcho(resolved: ProductResolution, asked: string | undefined): string {
   const { product, resolvedFrom } = resolved;

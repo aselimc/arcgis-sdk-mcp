@@ -2,15 +2,10 @@
  * Text helpers for catalogue records: one-line descriptions that are plain text, and the
  * decoding of URL parts that may be malformed.
  */
+import { safeDecode } from '../../core/url.js';
 
 /** Percent-decoding that returns the input unchanged when it holds a malformed escape. */
-export function safeDecode(text: string): string {
-  try {
-    return decodeURIComponent(text);
-  } catch {
-    return text;
-  }
-}
+export { safeDecode };
 
 /** The decoded fragment of a URL without its `#`; `undefined` when there is none. */
 export function fragmentOf(url: URL): string | undefined {

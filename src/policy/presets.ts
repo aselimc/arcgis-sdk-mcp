@@ -1,5 +1,5 @@
 /**
- * Capability presets (design section 6.3) seen from the policy: which capabilities a preset
+ * Capability presets seen from the policy: which capabilities a preset
  * switches on in each server mode, the `ARCGIS_DOCS_SOURCES` parser with the mode applied,
  * and its inverse, which error messages use to name the exact value to set.
  *

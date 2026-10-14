@@ -1,5 +1,5 @@
 /**
- * End to end against the packed tarball (design section 10): `npm pack`, unpack into a
+ * End to end against the packed tarball: `npm pack`, unpack into a
  * temporary directory and drive the packed binary the way an MCP host does.
  *
  * The package's dependencies are not installed from the network: the unpacked package gets a

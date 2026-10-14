@@ -121,7 +121,7 @@ function blockMarkdown($: cheerio.CheerioAPI, parent: cheerio.Cheerio<AnyNode>):
 }
 
 /**
- * A stand-in for the HTML extractor (WP3), which this package may not import. It converts
+ * A stand-in for the HTML extractor, which this package may not import. It converts
  * the small HTML subset the Sphinx fixture uses: paragraphs, inline code, links, emphasis,
  * `pre[data-language]`, admonitions, simple tables, definition lists and headings. `calls`
  * records every fragment it was handed.

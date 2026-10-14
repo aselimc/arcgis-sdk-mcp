@@ -1,5 +1,5 @@
 /**
- * The npm package adapters (work package 6, part B): API references read from what Esri
+ * The npm package adapters: API references read from what Esri
  * publishes inside its npm packages rather than from the documentation website.
  */
 import type { SourceAdapter } from '../../../core/ports.js';

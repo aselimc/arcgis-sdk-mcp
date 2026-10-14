@@ -1,5 +1,5 @@
 /**
- * The index service (design section 6.4): one catalogue index per (product, source, line),
+ * The index service: one catalogue index per (product, source, line),
  * built on first use within its own request budget, and queried synchronously afterwards.
  * A tool call waits for builds only up to a deadline; they finish in the background.
  * The life cycle of a single index is in `units.ts`.

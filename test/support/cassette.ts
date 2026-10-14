@@ -8,7 +8,7 @@ import type { CacheState } from '../../src/core/types.js';
 
 /**
  * A fault to inject for a URL. Numbers are HTTP statuses; the outcome is what the real
- * gateway (design section 6.2) produces for that status after its own retries:
+ * gateway produces for that status after its own retries:
  *
  * | Fault | Outcome |
  * |---|---|

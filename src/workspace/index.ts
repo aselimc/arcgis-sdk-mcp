@@ -1,5 +1,5 @@
 /**
- * Workspace detection (design decision 16): which Esri SDKs does the user's project use, and
+ * Workspace detection: which Esri SDKs does the user's project use, and
  * at which version? Answers come from package manifests only (names and versions), read
  * with a bounded walk of the project directory; there is no network access and nothing is
  * read in HTTP mode or with capability `workspace` switched off.

@@ -1,5 +1,5 @@
 /**
- * Ranking helpers of the sample search (design section 3.7): does a sample mention an API,
+ * Ranking helpers of the sample search: does a sample mention an API,
  * does its metadata or code confirm it, does it fit a platform, and in which order hits go.
  */
 import { estimateTokens } from '../../core/budget.js';
@@ -197,14 +197,17 @@ export function hitTokens(hit: SampleHit): number {
 /**
  * Makes a listing fit `maxTokens` by leaving out the file lists of the lowest-ranked hits
  * first. A file list is one long URL per file and is the only part of a hit that can be had
- * again by reading the hit, so it goes before any hit does. The top hit keeps its files.
+ * again by reading the hit, so it goes before any hit does. The top hit keeps its files
+ * while the other hits can make room. When the hits without files still do not fit, the
+ * lowest-ranked hits go, and the top hit's files last.
  *
- * @returns the hits to list, their size, and how many lost their file list.
+ * @returns the hits to list, their size, how many lost their file list and how many hits
+ *   were left out.
  */
 export function fitListing(
   hits: readonly SampleHit[],
   maxTokens: number,
-): { hits: SampleHit[]; tokens: number; trimmed: number } {
+): { hits: SampleHit[]; tokens: number; trimmed: number; dropped: number } {
   const fitted = [...hits];
   let tokens = fitted.reduce((total, hit) => total + hitTokens(hit), 0);
   let trimmed = 0;
@@ -216,12 +219,25 @@ export function fitListing(
     fitted[index] = withoutFiles;
     trimmed += 1;
   }
-  return { hits: fitted, tokens, trimmed };
+  let dropped = 0;
+  while (fitted.length > 1 && tokens > maxTokens) {
+    const last = fitted.pop();
+    if (last !== undefined) tokens -= hitTokens(last);
+    dropped += 1;
+  }
+  const top = fitted[0];
+  if (top?.files !== undefined && tokens > maxTokens) {
+    const { files: _files, ...withoutFiles } = top;
+    tokens -= hitTokens(top) - hitTokens(withoutFiles);
+    fitted[0] = withoutFiles;
+    trimmed += 1;
+  }
+  return { hits: fitted, tokens, trimmed, dropped };
 }
 
 /** Cuts source text at a line boundary within `maxTokens`. */
 export function fitCode(text: string, maxTokens: number): { text: string; truncated: boolean } {
-  // Code tokenises at about 3.5 characters per token (design section 3.1).
+  // Code tokenises at about 3.5 characters per token.
   if (estimateTokens(`\`\`\`\n${text}\n\`\`\``) <= maxTokens) return { text, truncated: false };
   const limit = Math.max(0, Math.floor(maxTokens * 3.5));
   const cut = text.slice(0, limit);

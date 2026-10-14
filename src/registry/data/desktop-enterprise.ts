@@ -1,5 +1,5 @@
 /**
- * Registry data: desktop and Enterprise extensibility (design section 4.4).
+ * Registry data: desktop and Enterprise extensibility.
  */
 import type { AdapterConfigMap, Product, SourceDef } from '../../core/types.js';
 import { D, LATEST, apacheRepo, githubRepoProbe } from './builders.js';

@@ -9,6 +9,7 @@
  */
 import { McpDocError, toMcpDocError } from '../../core/errors.js';
 import { BREADCRUMB_SEPARATOR } from '../../core/names.js';
+import { isRecord } from '../../core/json.js';
 import type {
   BoundSource,
   Ctx,
@@ -47,9 +48,7 @@ export interface SpecOperation {
   operation: Json;
 }
 
-function isObject(value: unknown): value is Json {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+const isObject: (value: unknown) => value is Json = isRecord;
 
 function str(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() !== '' ? value.trim() : undefined;

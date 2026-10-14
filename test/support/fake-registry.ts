@@ -29,7 +29,7 @@ export interface FakeRegistryOptions {
  *   current line winning ties, as the contract states;
  * - `line`: the current line, or the line whose id or label equals the version.
  *
- * The real resolution, routing and ownership rules are WP2's and have their own tests.
+ * The real resolution, routing and ownership rules are in src/registry and have their own tests.
  */
 export function fakeRegistry(options: FakeRegistryOptions = {}): Registry {
   const products = options.products ?? [makeProduct()];

@@ -1,5 +1,5 @@
 /**
- * The envelope of every text result (design section 3.1): status line, body, at most one
+ * The envelope of every text result: status line, body, at most one
  * `Next:` line, then the `Source:` line. Presenters build an {@link Envelope} and never
  * concatenate these parts themselves, so the order and the attribution cannot vary by tool.
  */
@@ -54,7 +54,7 @@ export function bodyBudget(maxTokens: number): number {
 
 /**
  * Joins the facts of a status line with ` | `, skipping absent ones. A lower rung of a
- * degradation ladder (design section 6.6) is stated last, as `degraded: <reason>`.
+ * degradation ladder is stated last, as `degraded: <reason>`.
  */
 export function statusLine(parts: ReadonlyArray<string | undefined>, degraded?: string): string {
   const shown = parts.filter((part): part is string => part !== undefined && part.length > 0);

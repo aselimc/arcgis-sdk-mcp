@@ -1,5 +1,5 @@
 /**
- * Shapes and Markdown of a version report (design section 3.3): what the documentation
+ * Shapes and Markdown of a version report: what the documentation
  * describes and what a package manager serves are reported side by side, never merged.
  */
 import type { VersionReport } from '../../core/ports.js';

@@ -1,5 +1,5 @@
 /**
- * Registry data: Python, data science and R (design section 4.3).
+ * Registry data: Python, data science and R.
  */
 import type { AdapterConfigMap, Product, SourceDef, VersionLine } from '../../core/types.js';
 import { D, LATEST, LIFECYCLE, banner, githubRepoProbe } from './builders.js';

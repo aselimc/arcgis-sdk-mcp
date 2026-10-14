@@ -1,5 +1,5 @@
 /**
- * Entry point of the GitHub part of the reference adapters (work package 6).
+ * Entry point of the GitHub part of the reference adapters.
  */
 import type { SourceAdapter } from '../../../core/ports.js';
 import { githubRepoAdapter } from './adapter.js';

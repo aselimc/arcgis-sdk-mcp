@@ -1,5 +1,5 @@
 /**
- * Capability presets and the `ARCGIS_DOCS_SOURCES` grammar (design section 6.3).
+ * Capability presets and the `ARCGIS_DOCS_SOURCES` grammar.
  *
  * They live in `core` because `loadConfig` must compute `Config.capabilities` and `core` may
  * not import `src/policy`. `src/policy/presets.ts` builds on these exports.

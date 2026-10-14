@@ -59,7 +59,7 @@ export function bookList(entry: Entry): Book[] {
   return entry.books;
 }
 
-/** Half of a page count: the floor a probe or an index rebuild must reach (design section 4). */
+/** Half of a page count: the floor a probe or an index rebuild must reach. */
 function half(pages: number | null | undefined): { minRecords?: number } {
   return typeof pages === 'number' && pages > 1 ? { minRecords: Math.floor(pages / 2) } : {};
 }

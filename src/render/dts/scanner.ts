@@ -1,5 +1,5 @@
 /**
- * Hand-written scanner for `.d.ts` files (design section 6.5). It finds top-level
+ * Hand-written scanner for `.d.ts` files. It finds top-level
  * declarations and the members at depth 1 of class, interface and enum bodies, keeps each
  * declaration's text verbatim and attaches the JSDoc block that precedes it. There is no
  * type analysis and no TypeScript dependency.

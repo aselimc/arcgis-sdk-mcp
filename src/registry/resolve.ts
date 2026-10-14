@@ -1,5 +1,5 @@
 /**
- * Resolution of the free-form `product` argument (design section 3.1) and of a version to a
+ * Resolution of the free-form `product` argument and of a version to a
  * documentation line.
  *
  * Order: exact id; alias (names, abbreviations, package and repository names); the scope

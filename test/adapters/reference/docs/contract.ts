@@ -15,7 +15,7 @@ import {
 export { rendererOf, replaceResponses } from '../../contract-kit.js';
 
 /**
- * The shared contract of the API-reference adapters (design section 9, work package 6): the
+ * The shared contract of the API-reference adapters (test/support/adapter-contract.ts): the
  * generic adapter contract plus the upstream failure modes of the test plan (section 10) and
  * the rules for symbol records.
  */

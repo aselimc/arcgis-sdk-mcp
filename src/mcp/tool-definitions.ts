@@ -1,5 +1,5 @@
 /**
- * The six tool definitions in registration order (design section 3.1). One list drives the
+ * The six tool definitions in registration order. One list drives the
  * server, the `tools/list` snapshot and the generated tools documentation.
  */
 import type { McpServer } from '@modelcontextprotocol/server';

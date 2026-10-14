@@ -187,16 +187,32 @@ describe('sample rank helpers', () => {
       expect(one.tokens).toBeLessThan(all);
       expect(one.tokens).toBe(one.hits.reduce((total, entry) => total + hitTokens(entry), 0));
 
-      const tight = fitListing(hits, 1);
+      const bare = (entry: (typeof hits)[number]) => {
+        const { files: _files, ...rest } = entry;
+        return rest;
+      };
+      const [a, b, c, d] = hits;
+      if (a === undefined || b === undefined || c === undefined || d === undefined)
+        throw new Error();
+      const filesOfTopOnly = hitTokens(a) + hitTokens(bare(b)) + hitTokens(c) + hitTokens(bare(d));
+      const tight = fitListing(hits, filesOfTopOnly);
       expect(tight.trimmed).toBe(2);
+      expect(tight.dropped).toBe(0);
       expect(tight.hits.map((entry) => entry.files?.length)).toEqual([
         3,
         undefined,
         undefined,
         undefined,
       ]);
-      // Hits themselves are never dropped: the caller asked for this many.
       expect(tight.hits.map((entry) => entry.record.ref)).toEqual(hits.map((e) => e.record.ref));
+
+      // max_tokens is an upper bound: below that, the lowest-ranked hits go, the top hit's
+      // files last, and the top hit itself never.
+      const tiny = fitListing(hits, 1);
+      expect(tiny.dropped).toBe(3);
+      expect(tiny.hits.map((entry) => [entry.record.ref, entry.files])).toEqual([
+        [a.record.ref, undefined],
+      ]);
       expect(hits[3]?.files).toHaveLength(3);
     });
   });

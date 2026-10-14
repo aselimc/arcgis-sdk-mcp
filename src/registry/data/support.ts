@@ -1,5 +1,5 @@
 /**
- * Registry data: the Esri Support knowledge base (design section 4.5).
+ * Registry data: the Esri Support knowledge base.
  *
  * The knowledge base publishes no index beyond its article sitemap, so titles come from the
  * URL slugs. Deprecation notices are articles whose slug starts with `deprecation-`; the
@@ -71,5 +71,5 @@ const supportKb: Product = {
   verifiedOn: '2026-10-13',
 };
 
-/** The support product (design section 4.5), one id. */
+/** The support product, one id. */
 export const supportProducts: readonly Product[] = [supportKb];

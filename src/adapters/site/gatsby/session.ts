@@ -34,7 +34,7 @@ export class GatsbySession {
     return Math.max(0, this.maxRequests - this.used);
   }
 
-  /** True while site-published index files may be requested (design section 6.3). */
+  /** True while site-published index files may be requested. */
   indexFilesAllowed(): boolean {
     return this.ctx.policy.enabled('site-index');
   }

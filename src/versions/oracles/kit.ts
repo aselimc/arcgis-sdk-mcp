@@ -7,6 +7,7 @@
  * which the registry schema enforces: there are no alternative spellings to keep in step.
  */
 import { isMcpDocError, type McpDocError } from '../../core/errors.js';
+import { isRecord } from '../../core/json.js';
 import { DEVELOPERS_ORIGIN } from '../../core/names.js';
 import type { CallOptions, Ctx, RequestBudget, VersionOracle } from '../../core/ports.js';
 import { expandTemplate } from '../../core/source-urls.js';
@@ -50,7 +51,7 @@ export type OracleReader = (
 
 /** A {@link VersionOracle} that also reports why it had no answer. */
 export interface DefinedOracle extends VersionOracle {
-  /** The capability its requests need (design section 4.8); `undefined` for `static`. */
+  /** The capability its requests need; `undefined` for `static`. */
   readonly capability: Capability | undefined;
   read(ctx: Ctx, product: Product, spec: OracleSpec, run?: OracleRun): Promise<VersionFact[]>;
   /** Like `read`, keeping the failure or the missing capability as evidence for the report. */
@@ -210,9 +211,7 @@ export function urlOption(
 
 /** A plain object, or `undefined`: registries occasionally answer with a JSON string or array. */
 export function asRecord(value: unknown): Record<string, unknown> | undefined {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : undefined;
+  return isRecord(value) ? value : undefined;
 }
 
 /** A non-empty string, or `undefined`. */

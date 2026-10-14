@@ -13,7 +13,7 @@ import { fakeVersions } from './support/harness.js';
 import { HttpAdapter, type IndexFile } from './support/http-adapter.js';
 
 /**
- * Chaos suite (design section 10): the services run over an adapter that really uses the
+ * Chaos suite: the services run over an adapter that really uses the
  * HTTP port, and faults are injected into that port. For every fault the suite asserts the
  * rung that answered, that the call did not fail, that a good index was not replaced by a
  * worse one, and that stale content is labelled.

@@ -1,5 +1,5 @@
 /**
- * Public factory of the cache package (design section 5.3).
+ * Public factory of the cache package.
  */
 import type { CreateCache } from '../core/factories.js';
 import { createFileCache } from './file-cache.js';

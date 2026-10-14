@@ -14,7 +14,7 @@ import { hostRow } from './harness.js';
 
 const NOW = Date.UTC(2026, 9, 13);
 
-describe('TTL table (design section 6.2)', () => {
+describe('TTL table', () => {
   it.each<[TtlClass, number]>([
     ['immutable', 365 * DAY],
     ['page', DAY],

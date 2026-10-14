@@ -23,14 +23,13 @@ import {
   renderOptionsOf,
   safeDecode,
 } from '../../kit/index.js';
+import { isRecord as isJsonObject } from '../../../core/json.js';
 
 /** A JSON object of unknown content. */
 export type Json = Record<string, unknown>;
 
 /** True for a JSON object (not an array, not `null`). */
-export function isRecord(value: unknown): value is Json {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+export const isRecord: (value: unknown) => value is Json = isJsonObject;
 
 /** The value when it is a non-empty string. */
 export function str(value: unknown): string | undefined {

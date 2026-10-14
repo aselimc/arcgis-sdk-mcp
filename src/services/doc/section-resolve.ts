@@ -1,5 +1,5 @@
 /**
- * Resolves the `section` argument of `arcgis_docs_read` against a page (design section 3.5),
+ * Resolves the `section` argument of `arcgis_docs_read` against a page,
  * in this order: exact id; slug of heading text; case-insensitive heading text; member id or
  * name on API pages; the pseudo-sections `source`, `readme`, `parameters`, `syntax` and
  * `members`; fuzzy match (edit distance at most 2).

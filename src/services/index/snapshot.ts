@@ -1,5 +1,5 @@
 /**
- * On-disk snapshots of catalogue indexes (design section 6.4): the enumerated records, keyed
+ * On-disk snapshots of catalogue indexes: the enumerated records, keyed
  * by product, source and line, with a fingerprint of what they were built from. The search
  * structures are rebuilt from the records on load, which is faster than parsing a dump.
  */

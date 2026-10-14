@@ -1,5 +1,5 @@
 /**
- * The symbol sidecar of a catalogue index (design section 6.4): exact maps from qualified and
+ * The symbol sidecar of a catalogue index: exact maps from qualified and
  * simple names to records, and from a type to its members. It is rebuilt from the snapshot's
  * records on load, so nothing but the records is persisted.
  */

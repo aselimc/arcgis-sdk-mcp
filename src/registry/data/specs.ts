@@ -223,5 +223,5 @@ function specProduct(row: SpecRow): Product {
   };
 }
 
-/** Specifications and formats (design section 4.5), ten ids. */
+/** Specifications and formats, ten ids. */
 export const specsProducts: readonly Product[] = SPECS.map(specProduct);

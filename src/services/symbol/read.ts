@@ -1,5 +1,5 @@
 /**
- * Reads the page of a resolved symbol and walks the content ladder (design section 6.6)
+ * Reads the page of a resolved symbol and walks the content ladder
  * when a source cannot answer: the same symbol in another source, the declared fallbacks of
  * its source, and finally a link-only page built from the catalogue record. It throws only
  * for a version the caller named that does not exist (`VERSION_UNAVAILABLE`).

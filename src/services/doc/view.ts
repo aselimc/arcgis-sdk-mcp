@@ -1,5 +1,5 @@
 /**
- * View rules of `arcgis_docs_read` (design section 3.5).
+ * View rules of `arcgis_docs_read`.
  *
  * - `auto`: everything when it fits the budget; otherwise the header block, the opening
  *   capped at a quarter of the budget, the outline and a suggestion for the next section.

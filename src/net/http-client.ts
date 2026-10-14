@@ -1,5 +1,5 @@
 /**
- * The HTTP gateway (design section 6.2): the single place where this server talks to the
+ * The HTTP gateway: the single place where this server talks to the
  * network. In order: URL guard and source policy, offline mode, single-flight, cache lookup,
  * then per hop live robots, request budget, a pause the host asked for, circuit breaker,
  * rate limiter and fetch, with redirects and meta-refresh hops re-checked against the

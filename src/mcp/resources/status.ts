@@ -1,7 +1,7 @@
 /**
  * Resource `arcgis-docs://status`: what this server process may reach and how its sources
  * are doing. A human concern, so it is a resource (and the `doctor` command) rather than a
- * tool (design decision 26).
+ * tool.
  */
 import type { McpServer } from '@modelcontextprotocol/server';
 import { RESOURCE_SCHEME, SERVER_NAME } from '../../core/names.js';

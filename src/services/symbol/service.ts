@@ -1,5 +1,5 @@
 /**
- * The symbol service: resolves a name to one catalogue record (design section 3.6), reads
+ * The symbol service: resolves a name to one catalogue record, reads
  * it through its source's adapter and trims it to the requested detail. Once a record is
  * resolved the lookup no longer fails for an upstream problem (see `read.ts`).
  */

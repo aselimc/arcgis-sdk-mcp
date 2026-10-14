@@ -1,5 +1,5 @@
 /**
- * The host table (design section 4.7): every upstream host this server may contact, the
+ * The host table: every upstream host this server may contact, the
  * capability a request to it needs, and its quirks. A host that is not listed is never
  * fetched (`HOST_NOT_ALLOWED`); a host listed with capability `null` is link-only.
  *
@@ -11,7 +11,7 @@ import type { Capability, HostPolicy } from '../core/types.js';
 /** GitHub accounts whose repositories may be read (invariant INV-2). */
 export const GITHUB_OWNERS = ['Esri', 'R-ArcGIS', 'koopjs'] as const;
 
-/** Default limiter values of the gateway (design section 6.2). */
+/** Default limiter values of the gateway. */
 const DEFAULT_RATE = { ratePerSec: 2, maxConcurrent: 2 } as const;
 
 type Quirks = Partial<Omit<HostPolicy, 'host' | 'capability' | 'revalidate'>>;

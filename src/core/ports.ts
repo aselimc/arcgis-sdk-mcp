@@ -1,5 +1,5 @@
 /**
- * Interfaces between packages (design section 5.2). A package implements the ports assigned
+ * Interfaces between packages. A package implements the ports assigned
  * to it and reaches every other package only through these types, the `Ctx` object and the
  * factories in `factories.ts`.
  */
@@ -24,7 +24,7 @@ export interface Clock {
   today(): string;
 }
 
-// ---- HTTP (implemented by WP1) ----------------------------------------------------------------
+// ---- HTTP (implemented in src/net) ----------------------------------------------------------
 
 /** One upstream request. Only https URLs on allow-listed hosts are ever fetched. */
 export interface HttpRequest {
@@ -87,7 +87,7 @@ export interface HttpResponse {
   aliasChain: string[];
 }
 
-/** The single gateway to the network (design section 6.2). */
+/** The single gateway to the network. */
 export interface HttpClient {
   /**
    * Policy check, single-flight, cache, limiter, fetch, redirect and meta-refresh following,
@@ -197,7 +197,7 @@ export interface GithubClient {
   quota(): { authenticated: boolean; remaining?: number; resetAt?: string };
 }
 
-// ---- Cache (implemented by WP1) ---------------------------------------------------------------
+// ---- Cache (implemented in src/cache) -------------------------------------------------------
 
 /** One cached HTTP response with its freshness window (epoch milliseconds). */
 export interface CachedHttpEntry {
@@ -241,7 +241,7 @@ export interface Cache {
   clear(scope?: 'http' | 'derived' | 'all'): Promise<void>;
 }
 
-// ---- Policy (implemented by WP1) --------------------------------------------------------------
+// ---- Policy (implemented in src/policy) -----------------------------------------------------
 
 /** The effective source policy: which hosts and capabilities may be used. */
 export interface SourcePolicy {
@@ -263,7 +263,7 @@ export interface SourcePolicy {
   };
 }
 
-// ---- Registry (implemented by WP2) ------------------------------------------------------------
+// ---- Registry (implemented in src/registry) -------------------------------------------------
 
 /** Outcome of resolving a free-form `product` argument. */
 export interface ProductResolution {
@@ -314,7 +314,7 @@ export interface Registry {
   }>;
 }
 
-// ---- Extraction and rendering (WP3 implements 'html'; WP4 the rest and the dispatcher) --------
+// ---- Extraction and rendering (src/extract implements 'html'; src/render the rest) ----------
 
 /**
  * Which part of a document to convert, so that a heavy page is sliced before it is cleaned.
@@ -419,14 +419,14 @@ export interface Renderer {
   detectMetaRefresh(html: string, baseUrl: string): string | undefined;
 }
 
-/** WP3's public surface; WP4's `Renderer` delegates `'html'` to it. */
+/** The extractor's public surface; the `Renderer` delegates `'html'` to it. */
 export interface HtmlExtractor {
   extract(input: RendererInputs['html'], meta: RenderMeta, opts?: RenderOptions): T.DocPage;
   detectFamily(html: string): T.HtmlFamily;
   detectMetaRefresh(html: string, baseUrl: string): string | undefined;
 }
 
-// ---- Adapters (implemented by WP5 and WP6) ----------------------------------------------------
+// ---- Adapters (implemented in src/adapters) -------------------------------------------------
 
 /** Everything an adapter or service may touch. Built once by the composition root. */
 export interface Ctx {
@@ -520,7 +520,7 @@ export interface AdapterRegistry {
   types(): T.AdapterType[];
 }
 
-// ---- Services (implemented by WP7; versions by WP2) -------------------------------------------
+// ---- Services (implemented in src/services; versions in src/versions) -----------------------
 
 /** Per-call context handed to every service method. */
 export interface CallOptions {
@@ -538,7 +538,7 @@ export interface IndexState {
   builtAt?: string;
 }
 
-/** Catalogue, symbol and body indexes (design section 6.4). */
+/** Catalogue, symbol and body indexes. */
 export interface IndexService {
   /** Load from memory or disk, or build within the budget; never throws for upstream failure. */
   ensure(

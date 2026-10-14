@@ -15,7 +15,7 @@ import {
 export { rendererOf, replaceResponses } from '../contract-kit.js';
 
 /**
- * The shared contract of the site adapters (design section 9, work package 5). Every adapter
+ * The shared contract of the site adapters (test/support/adapter-contract.ts). Every adapter
  * of `src/adapters/site` runs it against its own cassette:
  *
  * ```ts

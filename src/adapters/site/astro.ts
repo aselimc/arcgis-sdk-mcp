@@ -6,7 +6,7 @@
  * the sitemap (every page, slug titles), the sample index page, and the site's search index
  * files. A search file is `{ options, index }` where `index` is a serialised MiniSearch
  * document as a JSON **string**; only its `storedFields` (title, URL, breadcrumb, page type)
- * are read, never the inverted index (design decision 15).
+ * are read, never the inverted index.
  */
 import { classifyUrl, humanizeSlug, matchUrlFilter } from '../../core/adapter-helpers.js';
 import { McpDocError, toMcpDocError } from '../../core/errors.js';

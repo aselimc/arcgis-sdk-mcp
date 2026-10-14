@@ -1,5 +1,5 @@
 /**
- * TTL classes of cached HTTP entries (design section 6.2): how long each class is fresh and
+ * TTL classes of cached HTTP entries: how long each class is fresh and
  * how long a copy may still be served when the upstream fails. Which class a request gets
  * when the caller names none is decided where the host table is known
  * (`src/net/freshness.ts`).

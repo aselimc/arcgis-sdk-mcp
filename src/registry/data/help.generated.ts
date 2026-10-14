@@ -4,7 +4,7 @@
 import type { AnySourceDef, Product } from '../../core/types.js';
 
 /**
- * Product help (design section 4.6): 76 products of category `product-help`,
+ * Product help: 76 products of category `product-help`,
  * tombstones included.
  */
 export const helpProducts: readonly Product[] = [

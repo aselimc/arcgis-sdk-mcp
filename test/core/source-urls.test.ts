@@ -126,7 +126,7 @@ const CASES: {
   'npm-dts': {
     config: { package: '@arcgis/core', docUrl: '/javascript/latest/references/core/{path}/' },
     root: `${D}/javascript/latest/references/core/`,
-    // Its docUrl is the HTML reference, which the site source owns (design decision 7).
+    // Its docUrl is the HTML reference, which the site source owns.
     bases: [],
   },
   'npm-cem': {

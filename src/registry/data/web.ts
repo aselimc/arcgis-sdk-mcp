@@ -1,5 +1,5 @@
 /**
- * Registry data: web products (design section 4.1). Ids, URLs, patterns and adapter configs
+ * Registry data: web products. Ids, URLs, patterns and adapter configs
  * only; summaries, keywords and pitfalls are written by this project.
  */
 import type {

@@ -1,5 +1,5 @@
 /**
- * Retry timing for transient upstream failures (design section 6.2): two retries after
+ * Retry timing for transient upstream failures: two retries after
  * 0.5 s and 1.5 s with jitter, a `Retry-After` header honoured when it fits the deadline.
  */
 

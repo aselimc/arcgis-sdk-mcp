@@ -10,7 +10,7 @@ export type { GatewayDeps } from './gateway-deps.js';
 
 /**
  * Creates the single gateway through which every upstream request of this server passes
- * (design section 6.2). Satisfies `CreateHttpClient`; nothing is fetched until `get` is called.
+ *. Satisfies `CreateHttpClient`; nothing is fetched until `get` is called.
  */
 export function createHttpClient(deps: GatewayDeps): HttpClient {
   return createGateway(deps);

@@ -3,7 +3,7 @@
  * that turn their entries into Python symbols.
  *
  * A table of contents has titles and paths but no Python names, so the names of
- * geoprocessing tools and ArcPy members are derived here (design risk R5):
+ * geoprocessing tools and ArcPy members are derived here:
  *
  * - a tool is `arcpy.<toolbox alias>.<TitleWithoutSpaces>`, from the directory of its page
  *   and its title;

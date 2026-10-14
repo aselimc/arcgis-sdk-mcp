@@ -361,7 +361,7 @@ Samples for "download offline map" | product: swift-maps-sdk | line: latest | pi
 
 1. Download preplanned map area [swift-maps-sdk, swift, github, apache-2.0]
    https://github.com/Esri/arcgis-maps-sdk-swift-samples/blob/v300.1.0/Shared/Samples/Download%20preplanned%20map%20area/README.md
-   Take a map offline using a preplanned map area.
+   [...]
    In: Edit and Manage Data
    APIs: DownloadPreplannedOfflineMapResult, OfflineMapTask, [...], PreplannedMapArea
    File: DownloadPreplannedMapAreaView.swift https://github.com/Esri/arcgis-maps-sdk-swift-samples/blob/v300.1.0/Shared/Samples/Download%20preplanned%20map%20area/DownloadPreplannedMapAreaView.swift
@@ -398,7 +398,8 @@ app that uses Esri's AI components or MCP servers) and `arcgis_project_instructi
 Four resources are available under `arcgis-docs://`: `catalog` (every product as JSON),
 `product/{id}` (one profile), `brief/{slug}` (ten short briefs written by this project, also
 readable as `brief:<slug>` through `arcgis_docs_read`) and `status` (the effective source
-policy, the cache, detected SDKs and the health of each source).
+policy, the cache, detected SDKs and the health of each source; over HTTP it leaves out the
+cache directory and the detected SDKs, which describe the host).
 
 ## A typical agent workflow
 
@@ -603,9 +604,10 @@ import rules; the decisions behind them are recorded as [ADRs](docs/adr).
 - **Per-user cache.** Responses are cached on your machine to avoid repeated requests. The
   cache is not shared and not redistributed. `arcgis-sdk-mcp cache clear` deletes it.
 - **Attribution.** Every result that carries fetched content ends with a source line that
-  names the URL, the retrieval date and the rights holder, worded for the licence of the
-  content (Esri's website terms, Apache-2.0 for Esri's GitHub repositories, the Esri Master
-  License Agreement for files of Esri npm packages).
+  names the rights holder and where the text came from, worded for the licence of the
+  content: Esri's website terms (with the URL and the retrieval date), Apache-2.0 for Esri's
+  GitHub repositories (with the URL), the Esri Master License Agreement for files of Esri npm
+  packages (with the package name and version).
 - **Nothing Esri-authored is shipped.** The repository and the npm package contain code, the
   registry (ids, URLs, patterns) and ten briefs written by this project. A release gate fails
   the build if the tarball holds anything else. Test fixtures are synthetic or Apache-2.0.
@@ -688,8 +690,10 @@ Security reports: [SECURITY.md](SECURITY.md).
 
 ## Status and known limitations
 
-Version 0.1.0 is the first version. All six tools were exercised against the live sites on
-2026-10-13, and `doctor` reached all 58 sources of the developer products. The agent
+Version 0.1.0 is the first version and has not been published yet. All six tools were
+exercised against the live sites on 2026-10-14, and `doctor` reached the floor source of each
+developer product (58 probes, one per product; the developer products have 132 sources in
+all, and `doctor --product <id>` probes every source of one product). The agent
 evaluations have not been run yet, so there is no measured answer quality to report.
 
 - **Search is local.** It matches titles, headings, keywords, descriptions and symbol names,

@@ -1,5 +1,5 @@
 /**
- * Product scope of a tool call (design section 3.1): the `product` argument when given,
+ * Product scope of a tool call: the `product` argument when given,
  * else a product the query spells out, else the SDKs of the user's project, else the
  * router's best guesses. Shared by search, symbol lookup and sample search.
  *

@@ -117,7 +117,7 @@ export function sourceRootUrl(source: SourceDef, line: VersionLine, fallback = '
  * applied by `ownedPrefix` (`adapter-helpers.ts`), which is what ownership lookups call.
  *
  * `npm-dts` owns nothing because its `docUrl` is the HTML reference its records point to:
- * that page is read through the site source (design decision 7), and the typings are
+ * that page is read through the site source, and the typings are
  * reached by record (a lookup with a version) or as a declared fallback.
  */
 export function sourceBaseUrls(source: SourceDef, line: VersionLine): string[] {

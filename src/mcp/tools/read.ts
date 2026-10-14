@@ -1,5 +1,5 @@
 /**
- * `arcgis_docs_read` (design section 3.5): one document as budgeted Markdown. Text only;
+ * `arcgis_docs_read`: one document as budgeted Markdown. Text only;
  * the facts a host may want without parsing the text travel in the result `_meta`.
  */
 import type { McpServer } from '@modelcontextprotocol/server';
@@ -17,7 +17,7 @@ import { registerDocTool, type ToolDefinition, type ToolHandler } from '../tool.
 const DESCRIPTION =
   'Reads one documentation page, API reference page, sample, release-notes page, GitHub file or curated brief and returns clean Markdown with code fences and absolute links. `ref` is a URL from another tool or any URL on Esri\'s documentation hosts; a "#fragment" selects that section. By default (`view: "auto"`) a document that fits `max_tokens` is returned whole; a larger one returns its opening section plus an outline listing every section id with its size, so the next call can ask for one `section`. `view: "outline"` returns only the outline; `view: "full"` pages through the whole document with `cursor`. On API pages `section` may be a member name; on samples `section: "source"` returns only the code. States the product, version and retrieval date. Does not search: use arcgis_docs_search or arcgis_docs_lookup_symbol to find a ref.';
 
-/** Default of `max_tokens` in the published schema (design section 3.5). */
+/** Default of `max_tokens` in the published schema. */
 const DEFAULT_MAX_TOKENS = 6000;
 
 const Input = z.object({
@@ -75,7 +75,7 @@ const handle: ToolHandler<typeof Input> = async (args, call, container) => {
   );
   const { page } = response;
   const version = await pageVersion(page, container);
-  // A truncated response must end with the call that returns the rest (design section 3.1).
+  // A truncated response must end with the call that returns the rest.
   const next =
     response.next ??
     (response.nextCursor === undefined

@@ -1,5 +1,5 @@
 /**
- * Live `robots.txt` (design decision 24): read lazily, at most once per host per 24 hours,
+ * Live `robots.txt`: read lazily, at most once per host per 24 hours,
  * and only ever able to add denials on top of the static rules compiled into the host table.
  *
  * Parsing and matching are those of the static rules (`src/policy/robots-matcher.ts`), so a

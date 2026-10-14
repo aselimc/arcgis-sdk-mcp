@@ -1,5 +1,5 @@
 /**
- * Symbol resolution (design section 3.6). The input is normalised and tried, in order, as an
+ * Symbol resolution. The input is normalised and tried, in order, as an
  * exact qualified name, an exact simple name, the longest known type plus a member, the same
  * without case, then fuzzily (prefix, edit distance at most 2). The first step that finds
  * anything decides; ranking inside it is types before members, the product order, then the

@@ -1,6 +1,6 @@
 /**
  * Politeness limits: a token bucket and a concurrency semaphore per host, plus one global
- * semaphore (design section 6.2). Time comes from the injected clock and waiting from the
+ * semaphore. Time comes from the injected clock and waiting from the
  * injected `sleep`, so the limiter is deterministic under a fake clock.
  *
  * A request passes three gates in this order: the host's concurrency slot, the host's rate

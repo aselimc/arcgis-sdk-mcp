@@ -1,5 +1,5 @@
 /**
- * Registry data: developer-tier tombstones (design section 4.5). They are hidden unless
+ * Registry data: developer-tier tombstones. They are hidden unless
  * `include_legacy` is set and are down-ranked in search; their job is to name the successor
  * when an agent asks for a retired product.
  *
@@ -34,7 +34,7 @@ const TOMBSTONE = {
   verifiedOn: VERIFIED_ON,
 } satisfies Partial<Product>;
 
-/** The retired end-user help of a tombstone, taken from the help import (design section 4.6). */
+/** The retired end-user help of a tombstone, taken from the help import. */
 function helpLink(id: string): Product['startHere'] {
   const link = helpDeveloperLinks[id];
   return link === undefined ? [] : [link];
@@ -198,5 +198,5 @@ const arcObjects: Product = {
   related: ['enterprise-sdk', 'arcpy'],
 };
 
-/** Developer-tier tombstones (design section 4.5), four ids. */
+/** Developer-tier tombstones, four ids. */
 export const legacyProducts: readonly Product[] = [webAppBuilder, appStudio, jsApi3x, arcObjects];

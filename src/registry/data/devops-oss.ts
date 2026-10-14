@@ -1,5 +1,5 @@
 /**
- * Registry data: DevOps tooling and open-source libraries (design section 4.5). Every source
+ * Registry data: DevOps tooling and open-source libraries. Every source
  * is a GitHub repository read as Markdown; the first source of a product is its floor.
  * Licences are the ones found on 2026-10-13 and are checked again at run time.
  */
@@ -322,5 +322,5 @@ function ossProduct(row: OssRow): Product {
   };
 }
 
-/** DevOps and open-source products (design section 4.5), four ids. */
+/** DevOps and open-source products, four ids. */
 export const devopsOssProducts: readonly Product[] = ROWS.map(ossProduct);

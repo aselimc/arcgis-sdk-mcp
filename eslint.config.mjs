@@ -39,7 +39,7 @@ const ALL_DIRS = Object.values(PACKAGES).flat();
 
 const NO_DEFAULT_EXPORT = {
   selector: 'ExportDefaultDeclaration',
-  message: 'Use named exports only (design section 5, rule 5).',
+  message: 'Use named exports only (docs/architecture.md, Import rules).',
 };
 
 /** Escapes a directory name for use inside a regular expression. */
@@ -68,7 +68,7 @@ function foreignPackagePatterns(own, prefix) {
     {
       regex: `^(?:\\.\\.?/)+${esc(prefix)}(?:${[...names].join('|')})(?:/|$)`,
       message:
-        'A package imports only src/core and its own directories. Reach other packages through Ctx or the ports in src/core/ports.ts (design section 5, rule 2).',
+        'A package imports only src/core and its own directories. Reach other packages through Ctx or the ports in src/core/ports.ts (docs/architecture.md, Import rules).',
     },
   ];
 }
@@ -91,7 +91,7 @@ const NO_DIRECT_IO = {
   paths: NODE_IO_MODULES.map((name) => ({
     name,
     message:
-      'Use ctx.http and ctx.cache; this layer does no I/O of its own (design section 5, rule 4).',
+      'Use ctx.http and ctx.cache; this layer does no I/O of its own (docs/architecture.md, Import rules).',
   })),
 };
 
@@ -211,7 +211,7 @@ export default tseslint.config(
               // Anything that is not a sibling file or zod.
               regex: '^(?!\\./|zod(?:/|$))',
               message:
-                'src/core imports only its own files and zod (design section 5, rule 1). node:crypto is allowed in hash.ts only.',
+                'src/core imports only its own files and zod (docs/architecture.md, Import rules). node:crypto is allowed in hash.ts only.',
             },
           ],
         },

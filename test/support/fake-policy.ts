@@ -31,7 +31,7 @@ export function permissiveHost(host: string, capability: Capability = 'website')
 /**
  * A {@link SourcePolicy} for tests. It applies the same three decisions as the real one
  * (allow-list, link-only, capability switch) without robots handling; the real policy has
- * its own tests in WP1. `checked` lists every URL passed to `check`, in order.
+ * its own tests under test/policy. `checked` lists every URL passed to `check`, in order.
  */
 export function fakePolicy(options: FakePolicyOptions = {}): SourcePolicy & { checked: string[] } {
   const enabled = new Set<Capability>(options.enabled ?? PRESETS.standard);

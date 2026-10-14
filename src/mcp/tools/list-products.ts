@@ -1,5 +1,5 @@
 /**
- * `arcgis_docs_list_products` (design section 3.2): the product list, one product's profile,
+ * `arcgis_docs_list_products`: the product list, one product's profile,
  * or one source's table of contents.
  */
 import type { McpServer } from '@modelcontextprotocol/server';

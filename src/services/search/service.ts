@@ -1,5 +1,5 @@
 /**
- * The search pipeline (design section 6.4): resolve the scope, make sure its indexes are
+ * The search pipeline: resolve the scope, make sure its indexes are
  * loaded, collect candidates from the symbol sidecar, the catalogue index, the body index,
  * the curated briefs and (when enabled) site search, fuse them by rank, apply the
  * multipliers, de-duplicate and page. Zero hits is a normal result that explains itself.

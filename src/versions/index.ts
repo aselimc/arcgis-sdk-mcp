@@ -19,7 +19,7 @@ import { ORACLES } from './oracles/index.js';
 import { gatherProduct, toProductReport, type GatheredProduct } from './report.js';
 import { belongsToLine, lineNumbers, truncateVersion } from './version-text.js';
 
-/** How long a gathered report and a version label are reused (design section 4.8). */
+/** How long a gathered report and a version label are reused. */
 export const VERSION_REPORT_TTL_MS = 6 * 60 * 60 * 1000;
 /** How long "no label could be read" is remembered before the oracles are asked again. */
 const MISSING_LABEL_TTL_MS = 60 * 60 * 1000;

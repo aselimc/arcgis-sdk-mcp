@@ -1,5 +1,5 @@
 /**
- * Shared pieces of the four prompts (design section 3.8): each prompt returns one user
+ * Shared pieces of the four prompts: each prompt returns one user
  * message that scripts a workflow over the `arcgis_docs_*` tools.
  */
 import type { GetPromptResult } from '@modelcontextprotocol/server';

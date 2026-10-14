@@ -1,5 +1,5 @@
 /**
- * The `SYMBOL_NOT_FOUND` answer (design section 3.6): nearby names, a search to try, and
+ * The `SYMBOL_NOT_FOUND` answer: nearby names, a search to try, and
  * wording that never turns "not found here" into "does not exist". A lookup that could
  * search nothing at all is not a miss and gets the error of its cause instead.
  */

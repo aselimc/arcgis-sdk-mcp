@@ -1,5 +1,5 @@
 /**
- * Zod pieces shared by several tool schemas (design section 3). Each tool file composes its
+ * Zod pieces shared by several tool schemas. Each tool file composes its
  * own input and output schema from these, so a field means the same thing wherever it appears.
  */
 import * as z from 'zod/v4';

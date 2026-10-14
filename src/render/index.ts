@@ -28,7 +28,7 @@ type Renderers = {
 };
 
 /**
- * Creates the renderer (design section 5.3).
+ * Creates the renderer.
  *
  * - `render('html', ...)`, `detectFamily` and `detectMetaRefresh` delegate to the HTML
  *   extractor; the Sphinx renderer also uses it for docstring bodies.

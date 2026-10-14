@@ -1,5 +1,5 @@
 /**
- * What a search with no hits tells the agent (design section 3.4): where else to look, how
+ * What a search with no hits tells the agent: where else to look, how
  * to widen the search, and that absence is not proof.
  */
 import { formatCall } from '../../core/budget.js';

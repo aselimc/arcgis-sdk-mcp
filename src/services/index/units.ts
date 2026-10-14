@@ -1,7 +1,7 @@
 /**
  * The loaded catalogue indexes and their life cycle: load from the snapshot, build through
  * the adapter, swap in a rebuilt index only when it is not much smaller than the old one
- * (design section 6.4), and step down the enumeration ladder (section 6.6) on failure:
+ *, and step down the enumeration ladder (section 6.6) on failure:
  * previous snapshot, then the registry's entry links.
  */
 import { singleFlight } from '../../core/async.js';

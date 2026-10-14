@@ -1,5 +1,5 @@
 /**
- * The product registry (design section 4): typed data assembled into the `Registry` port.
+ * The product registry: typed data assembled into the `Registry` port.
  * Pure and synchronous: no I/O, no clock, no configuration. Policy decides what may be
  * fetched; the registry only says what exists and where.
  */

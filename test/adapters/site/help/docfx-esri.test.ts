@@ -172,7 +172,7 @@ describe('docfx-esri: tool reference', () => {
     );
   });
 
-  it('corrects a derived name from the page once it has been read (risk R5)', async () => {
+  it('corrects a derived name from the page once it has been read', async () => {
     const ctx = proCtx();
     const before = await docfxEsriAdapter.enumerate!(ctx, boundTools());
     const record = byRef(before, BEVEL)!;

@@ -1,5 +1,5 @@
 /**
- * `arcgis_docs_get_versions` (design section 3.3): version facts and release-notes refs.
+ * `arcgis_docs_get_versions`: version facts and release-notes refs.
  */
 import type { McpServer } from '@modelcontextprotocol/server';
 import * as z from 'zod/v4';

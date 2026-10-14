@@ -3,7 +3,7 @@
  *
  * Declarations exist for every version ever published, so this source answers when the
  * project uses another release than the one the website documents, and when the website
- * cannot be read (design decision 7). One module is one `.d.ts` file; the catalogue is the
+ * cannot be read. One module is one `.d.ts` file; the catalogue is the
  * file list of the package, and a read fetches exactly one file at a pinned version.
  */
 import { defaultSymbolRead } from '../../../core/adapter-helpers.js';

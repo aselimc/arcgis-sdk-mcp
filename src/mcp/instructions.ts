@@ -1,5 +1,5 @@
 /**
- * The server `instructions` (design section 3.8): the only place that tells an agent in which
+ * The server `instructions`: the only place that tells an agent in which
  * order to use the tools. Tool descriptions stay descriptive.
  */
 import { BRIEF_PREFIX, TOOLS } from '../core/names.js';

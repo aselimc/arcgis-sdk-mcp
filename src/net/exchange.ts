@@ -1,5 +1,5 @@
 /**
- * One hop of the gateway pipeline (design section 6.2): request budget, circuit breaker,
+ * One hop of the gateway pipeline: request budget, circuit breaker,
  * rate limiter, the fetch itself and the retries of a transient failure. Redirects, caching
  * and body validation are the caller's business (`http-client.ts`).
  */

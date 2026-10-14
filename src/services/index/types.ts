@@ -34,7 +34,7 @@ export interface Snapshot {
 
 /**
  * Where the records of a loaded unit come from, which is also the rung of the enumeration
- * ladder (design section 6.6): `fresh` is the adapter's enumeration, `stale` a previous
+ * ladder: `fresh` is the adapter's enumeration, `stale` a previous
  * snapshot kept after a failed or rejected rebuild, `seed` the registry's entry links.
  */
 export type UnitOrigin = 'fresh' | 'stale' | 'seed';

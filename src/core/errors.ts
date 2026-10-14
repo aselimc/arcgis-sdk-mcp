@@ -1,5 +1,5 @@
 /**
- * The error catalogue (design section 3.9). Every failure an agent can see is one of these
+ * The error catalogue. Every failure an agent can see is one of these
  * codes; `src/mcp/errors.ts` renders them as `Error [CODE]: <what>. <why>. Next: <recovery>.`
  */
 import type { Capability } from './types.js';

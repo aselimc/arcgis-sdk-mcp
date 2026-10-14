@@ -26,7 +26,7 @@ export interface LocalPackage {
   dir: string;
 }
 
-/** Scoped Esri package names; the only ones looked up locally (design section 6.3). */
+/** Scoped Esri package names; the only ones looked up locally. */
 const ESRI_PACKAGE = /^@(?:arcgis|esri)\/[a-z0-9][a-z0-9._-]*$/;
 
 /** How many parent directories of the project are searched for a hoisting `node_modules`. */

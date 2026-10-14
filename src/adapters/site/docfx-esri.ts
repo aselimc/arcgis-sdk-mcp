@@ -225,7 +225,7 @@ function documentsParameters(page: DocPage): boolean {
 
 /**
  * Remembers what a tool page says its Python call is, so that the next enumeration lists the
- * tool under that name (design risk R5), and tells the reader when the catalogue had it wrong.
+ * tool under that name, and tells the reader when the catalogue had it wrong.
  */
 async function verifyToolName(
   ctx: Ctx,

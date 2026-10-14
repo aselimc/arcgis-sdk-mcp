@@ -1,5 +1,5 @@
 /**
- * Domain data types shared by every package (design section 5.1).
+ * Domain data types shared by every package.
  *
  * This file holds data shapes only: no behaviour, no imports. Anything that crosses a
  * package boundary is declared here or in `ports.ts`.
@@ -48,7 +48,7 @@ export const LICENSE_TIERS = [
 ] as const satisfies readonly LicenseTier[];
 
 /**
- * A class of upstream source that can be switched on or off as a unit (design section 6.3).
+ * A class of upstream source that can be switched on or off as a unit.
  * The first seven are on in preset `standard`; `site-search` and `lifecycle-api` are opt-in.
  *
  * Two places enforce a capability:
@@ -114,7 +114,7 @@ export type ProductTier = 'developer' | 'help' | 'link';
 /** Where a response body came from. `stale` means an expired copy served after an upstream failure. */
 export type CacheState = 'hit' | 'revalidated' | 'miss' | 'stale';
 
-/** Freshness class of a cached HTTP entry; durations live in `src/cache/ttl.ts` (design section 6.2). */
+/** Freshness class of a cached HTTP entry; durations live in `src/cache/ttl.ts`. */
 export type TtlClass =
   | 'immutable'
   | 'page'
@@ -125,13 +125,13 @@ export type TtlClass =
   | 'remote-search'
   | 'negative';
 
-/** In-memory health of one source (design section 6.6). */
+/** In-memory health of one source. */
 export type HealthState = 'ok' | 'degraded' | 'failing' | 'disabled' | 'unknown';
 
 /** How much of a symbol `arcgis_docs_lookup_symbol` returns. */
 export type SymbolDetail = 'signature' | 'summary' | 'full';
 
-/** HTML page family; selects the extraction profile (design section 6.5). */
+/** HTML page family; selects the extraction profile. */
 export type HtmlFamily =
   | 'astro'
   | 'astro-js-ref'
@@ -216,7 +216,7 @@ export interface VersionLine {
   vars: Record<string, string>;
 }
 
-/** One entry of the product registry (design section 4). */
+/** One entry of the product registry. */
 export interface Product {
   /** Kebab-case, stable forever, never reused. */
   id: string;
@@ -458,11 +458,11 @@ export interface SourceDef<T extends AdapterType = AdapterType> {
 /**
  * The discriminated union of every concrete {@link SourceDef}. Registry data is written
  * against this type so a config that does not match its `adapter` fails to compile
- * (design decision 19). Every member is assignable to `SourceDef`.
+ *. Every member is assignable to `SourceDef`.
  */
 export type AnySourceDef = { [A in AdapterType]: SourceDef<A> }[AdapterType];
 
-/** Kind of version oracle (design section 4.8). */
+/** Kind of version oracle. */
 export type OracleType =
   | 'npm-dist-tags'
   | 'pypi'
@@ -484,7 +484,7 @@ export interface OracleSpec {
   provides: Array<'documented' | 'installable' | 'released' | 'prerelease' | 'lifecycle'>;
 }
 
-/** Access rules and quirks of one upstream host (design section 4.7). */
+/** Access rules and quirks of one upstream host. */
 export interface HostPolicy {
   host: string;
   /**

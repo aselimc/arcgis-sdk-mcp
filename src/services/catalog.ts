@@ -1,5 +1,5 @@
 /**
- * The catalogue service behind `arcgis_docs_list_products` (design section 3.2): the product
+ * The catalogue service behind `arcgis_docs_list_products`: the product
  * list (pure registry data), one product's profile with in-memory source health, and a
  * source's table of contents from its catalogue index.
  */

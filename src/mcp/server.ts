@@ -1,5 +1,5 @@
 /**
- * The MCP surface (design section 3): six tools in a fixed order, four resources and four
+ * The MCP surface: six tools in a fixed order, four resources and four
  * prompts on one `McpServer`. The same factory serves stdio and HTTP, and both protocol eras.
  */
 import { McpServer } from '@modelcontextprotocol/server';

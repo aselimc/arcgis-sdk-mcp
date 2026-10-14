@@ -1,5 +1,5 @@
 /**
- * Excerpts of search hits (design section 6.4): a site-search highlight with its markup
+ * Excerpts of search hits: a site-search highlight with its markup
  * removed, else the record's description, else the opening of a section already read.
  * Never longer than 240 characters.
  */

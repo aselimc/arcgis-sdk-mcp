@@ -1,5 +1,5 @@
 /**
- * Registry data: AI, agents and MCP across ArcGIS (design section 4.5, decision 27).
+ * Registry data: AI, agents and MCP across ArcGIS.
  *
  * `ai-agents` owns only what has no other home: this project's `ai/*` briefs, Esri's
  * documentation of its MCP server for location services, and the Location Platform page on
@@ -125,5 +125,5 @@ const aiAgents: Product = {
   verifiedOn: '2026-10-13',
 };
 
-/** The AI product (design section 4.5), one id. */
+/** The AI product, one id. */
 export const aiProducts: readonly Product[] = [aiAgents];

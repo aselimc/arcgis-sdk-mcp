@@ -15,8 +15,10 @@ contributors proposing a new source. It is not legal advice.
 4. **Nothing Esri-authored is shipped.** The repository and the npm package contain the
    registry (ids, URLs, patterns), this project's own briefs, and code. A release gate
    (`scripts/check-package-contents.ts`) fails the build otherwise.
-5. **Attribution on every result.** Each result ends with a source line naming the URL, the
-   retrieval date and the rights holder, in the wording that fits the licence of the content.
+5. **Attribution on every result.** Each result ends with a source line naming the rights
+   holder and where the text came from, in the wording that fits the licence of the content:
+   website pages with the URL and the retrieval date, GitHub content with the URL, package
+   content with the package name and version (`src/core/attribution.ts`).
 6. **Refusals are final.** A `403` or `429` is reported, never retried and never worked
    around. `robots.txt` is honoured.
 7. **One switch per source class.** Each class of source is a named capability that can be

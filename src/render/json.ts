@@ -3,14 +3,13 @@
  * that an upstream site can change without notice, so fields are read through these helpers
  * and a missing or mistyped field degrades to "absent" instead of throwing.
  */
+import { isRecord as isJsonObject } from '../core/json.js';
 
 /** A JSON object of unknown shape. */
 export type Json = Record<string, unknown>;
 
 /** True for a plain JSON object (not `null`, not an array). */
-export function isRecord(value: unknown): value is Json {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+export const isRecord: (value: unknown) => value is Json = isJsonObject;
 
 /** The value as an object, or an empty object when it is anything else. */
 export function asRecord(value: unknown): Json {

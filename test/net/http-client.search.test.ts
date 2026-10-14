@@ -1,5 +1,5 @@
 /**
- * The `remote-search` TTL class (design section 6.2): a hit list is kept for 24 hours, an
+ * The `remote-search` TTL class: a hit list is kept for 24 hours, an
  * empty one for an hour, and an error object answered with HTTP 200 is not kept at all.
  */
 import { describe, expect, it } from 'vitest';

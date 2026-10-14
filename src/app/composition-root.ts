@@ -1,5 +1,5 @@
 /**
- * The composition root: the one module that imports every package (design section 5, rule 3).
+ * The composition root: the one module that imports every package.
  * It names the real factories; `container.ts` holds the wiring, so that the wiring is
  * testable without them.
  *

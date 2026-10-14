@@ -14,6 +14,7 @@ import type {
   RenderOptions,
 } from '../../../core/ports.js';
 import type { CatalogRecord, DocKind, DocPage, LicenseTier } from '../../../core/types.js';
+import { encodePath } from '../../../core/url.js';
 import { recordOf, renderOptionsOf } from '../../kit/index.js';
 
 /** A `github-repo` source bound to a product and version line. */
@@ -40,10 +41,6 @@ export interface RepoScope {
 }
 
 const GITHUB = 'https://github.com';
-
-function encodePath(path: string): string {
-  return path.split('/').map(encodeURIComponent).join('/');
-}
 
 /** The github.com URL of a file: the public ref of everything read from the raw host. */
 export function blobUrl(repo: string, ref: string, path: string): string {

@@ -177,13 +177,22 @@ section, paragraph, fence, list or table boundaries, and a cut always leaves a `
 with the call that continues. `read` and `lookup_symbol` return text only; the other four
 tools also return `structuredContent` that conforms to their `outputSchema`.
 
-Two consequences of cutting at block boundaries are worth knowing. A result can end with
-budget left over when the next block (a long member list, a large table) does not fit. And
+Two consequences of cutting at block boundaries are worth knowing. A block larger than any
+budget (a release-notes list of a thousand items, a long table, a source file) is divided at
+line boundaries into pieces of about 250 tokens before it is paged
+(`src/services/doc/paging.ts`): a piece inside a code fence reopens the fence, a piece inside
+a table repeats its header row, and pieces that land on one page are joined again. A result
+can therefore end up to one piece short of its budget. And
 the summary of a type reserves part of its budget for a names-only member index, so that a
 long class description cannot push the member list out of the answer; this applies where the
 source reports members (JavaScript, Python, web components, ArcGIS Pro SDK).
 
 ## Where the implementation differs from the first design
+
+The code was written against a design specification that is not published with the
+repository. Comments that cite it ("design section 4.7", "risk R13", "INV-2") name the part of
+that document a rule comes from; this file and the ADRs in `docs/adr/` describe the same rules
+for readers of the repository.
 
 - A table of contents (`arcgis_docs_list_products` with `section`) is paged by the call's
   `limit` (default 80), not by a fixed 100 entries.

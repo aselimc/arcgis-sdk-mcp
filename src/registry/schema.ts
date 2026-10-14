@@ -1,5 +1,5 @@
 /**
- * Zod schemas of the registry data (design decision 19): `Product`, `SourceDef` with one
+ * Zod schemas of the registry data: `Product`, `SourceDef` with one
  * config shape per adapter, and `HostPolicy`. TypeScript already checks the data files at
  * compile time; the schemas add what types cannot express (kebab-case ids, compilable
  * patterns, length limits) and catch misspelt keys, since every object is strict.

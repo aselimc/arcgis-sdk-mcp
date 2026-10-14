@@ -1,5 +1,5 @@
 /**
- * Public entry point of the reference adapters (work package 6): the adapters that read
+ * Public entry point of the reference adapters: the adapters that read
  * generated API references, Esri's npm packages and GitHub repositories.
  */
 import type { SourceAdapter } from '../../core/ports.js';

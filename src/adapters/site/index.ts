@@ -1,5 +1,5 @@
 /**
- * Public entry point of the site adapters (work package 5): the adapters that read Esri's
+ * Public entry point of the site adapters: the adapters that read Esri's
  * documentation websites and the content bundled with this server.
  */
 import type { SourceAdapter } from '../../core/ports.js';

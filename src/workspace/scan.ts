@@ -1,5 +1,5 @@
 /**
- * The bounded file walk of workspace detection (design section 7): the project root and two
+ * The bounded file walk of workspace detection: the project root and two
  * directory levels below it, at most 200 manifest files of at most 1 MB each, never inside
  * dependency, VCS or build directories. Nothing here touches the network.
  */

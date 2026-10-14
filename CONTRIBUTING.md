@@ -1,7 +1,10 @@
 # Contributing
 
 Thank you for helping. This document covers the working rules; the design itself is described
-in [docs/architecture.md](docs/architecture.md).
+in [docs/architecture.md](docs/architecture.md). Code comments that cite "design section N",
+"risk Rnn" or "INV-n" refer to the original design specification, which is not published;
+[docs/architecture.md](docs/architecture.md#where-the-implementation-differs-from-the-first-design)
+says how to read them.
 
 ## Set up
 

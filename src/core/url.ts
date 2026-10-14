@@ -1,5 +1,5 @@
 /**
- * URL and ref handling. A ref is an https URL or `brief:<slug>` (design decision 2); every
+ * URL and ref handling. A ref is an https URL or `brief:<slug>`; every
  * place that compares, caches or de-duplicates URLs goes through {@link canonicalize}.
  */
 import { formatCall } from './budget.js';
@@ -17,7 +17,8 @@ const GITHUB_HOST = 'github.com';
 const RAW_HOST = 'raw.githubusercontent.com';
 
 /** Percent-decoding that returns the input unchanged when it holds a malformed escape. */
-function safeDecode(text: string): string {
+/** `decodeURIComponent`, or the text unchanged when it is not valid percent-encoding. */
+export function safeDecode(text: string): string {
   try {
     return decodeURIComponent(text);
   } catch {
@@ -152,7 +153,8 @@ function withRefAndPath(repo: string, rest: string[]): GithubLocation | undefine
   return path.length === 0 ? { repo, ref } : { repo, ref, path: path.join('/') };
 }
 
-function encodePath(path: string): string {
+/** Percent-encodes each segment of a path, keeping its slashes. */
+export function encodePath(path: string): string {
   return path.split('/').map(encodeURIComponent).join('/');
 }
 

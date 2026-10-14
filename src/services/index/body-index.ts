@@ -1,5 +1,5 @@
 /**
- * The fetched-pages body index (design section 6.4): full-text search over the sections of
+ * The fetched-pages body index: full-text search over the sections of
  * pages this user's agent has already read. One small MiniSearch per product, at most 3,000
  * sections, least recently read pages dropped first, persisted under `derived/bodies/`.
  * Nothing is ever fetched to fill it.

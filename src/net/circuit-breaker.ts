@@ -1,5 +1,5 @@
 /**
- * Per-host circuit breaker (design section 6.2): five failures within a minute open a host
+ * Per-host circuit breaker: five failures within a minute open a host
  * for five minutes; after that a single probe decides whether it closes again.
  */
 import type { Clock } from '../core/ports.js';

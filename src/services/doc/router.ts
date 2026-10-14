@@ -1,5 +1,5 @@
 /**
- * Decides how a ref is read (design section 6.1): a curated brief, a page of a registered
+ * Decides how a ref is read: a curated brief, a page of a registered
  * source through its adapter, a GitHub file of an allowed owner, or any other page on an
  * allow-listed host through the generic HTML path. The policy is asked before anything else.
  */

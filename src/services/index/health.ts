@@ -1,5 +1,5 @@
 /**
- * In-memory health of each source (design section 6.6): `ok`, `degraded` when a lower rung
+ * In-memory health of each source: `ok`, `degraded` when a lower rung
  * answered, `failing` after three consecutive hard failures (skipped for fifteen minutes,
  * then probed once), `disabled` by policy. Nothing is persisted: a restart starts from `unknown`.
  */

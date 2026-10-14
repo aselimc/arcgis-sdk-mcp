@@ -115,7 +115,7 @@ const SHAPE_CONFIDENCE = 0.95;
  */
 const WEIGHT = { identity: 4, name: 3, keyword: 2, language: 1.5, text: 0.5 } as const;
 
-/** Legacy tombstones are almost never what a query is about (design section 4.5). */
+/** Legacy tombstones are almost never what a query is about. */
 const STATUS_MULTIPLIER: Record<Product['status'], number> = {
   active: 1,
   beta: 1,

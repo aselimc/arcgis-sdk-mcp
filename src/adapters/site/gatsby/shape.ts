@@ -3,11 +3,10 @@
  * `unknown` and probed field by field, so a renamed or retyped field yields "nothing found"
  * instead of an exception.
  */
+import { isRecord } from '../../../core/json.js';
 
 /** True for a plain JSON object (not `null`, not an array). */
-export function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+export const isObject: (value: unknown) => value is Record<string, unknown> = isRecord;
 
 /** The trimmed string, or `''` when the value is not a string. */
 export function textOf(value: unknown): string {

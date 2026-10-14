@@ -1,5 +1,5 @@
 /**
- * Registry data: native Maps SDKs and game engines (design section 4.2).
+ * Registry data: native Maps SDKs and game engines.
  *
  * The five current native SDKs are built the same way: an Astro guide site with two
  * documentation lines (`latest` = 300.x, `v200` = 200.x LTS, selected by `{prefix}` in the

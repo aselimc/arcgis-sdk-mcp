@@ -1,5 +1,5 @@
 /**
- * `arcgis_docs_search` (design section 3.4): ranked hits with refs, never page bodies.
+ * `arcgis_docs_search`: ranked hits with refs, never page bodies.
  */
 import type { McpServer } from '@modelcontextprotocol/server';
 import * as z from 'zod/v4';

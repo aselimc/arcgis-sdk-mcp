@@ -1,6 +1,6 @@
 /**
  * What a symbol lookup is aimed at: a product, the version line to search, and the version
- * to read where sources address versions themselves (design decision 7).
+ * to read where sources address versions themselves.
  */
 import type { Ctx, SymbolRequest } from '../../core/ports.js';
 import type { Product, SourceDef, VersionLine } from '../../core/types.js';

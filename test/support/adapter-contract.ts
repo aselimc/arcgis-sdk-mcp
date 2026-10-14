@@ -36,7 +36,7 @@ function requests(ctx: TestCtx): number {
 }
 
 /**
- * Registers the contract every source adapter must meet (design section 9, WP5 and WP6):
+ * Registers the contract every source adapter must meet :
  *
  * - `enumerate()` returns absolute, de-duplicated refs with a valid kind, bound to the
  *   product, source and line it was called for, within `maxEnumerateRequests` (HTTP and

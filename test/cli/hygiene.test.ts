@@ -1,5 +1,5 @@
 /**
- * Repository hygiene (design section 10): nothing Esri-authored is committed. Synthetic
+ * Repository hygiene: nothing Esri-authored is committed. Synthetic
  * fixtures, cassettes, briefs and sources must not carry the footer of a fetched page, the
  * open-source fixtures must be listed with their provenance, and live recordings must stay
  * out of version control.

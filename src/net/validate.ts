@@ -1,5 +1,5 @@
 /**
- * Body decoding and the `expect` checks of the gateway (design section 6.2). A 200 answer is
+ * Body decoding and the `expect` checks of the gateway. A 200 answer is
  * not proof of a document: catch-all hosts answer any path with an HTML shell, and some
  * serve their "not found" page with status 200.
  */

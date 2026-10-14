@@ -1,5 +1,5 @@
 /**
- * Per-host rules compiled once from the host table (design section 4.7): allowed paths,
+ * Per-host rules compiled once from the host table: allowed paths,
  * GitHub owners, request methods and static robots denials. Pure functions over a URL.
  */
 import type { HostPolicy } from '../core/types.js';

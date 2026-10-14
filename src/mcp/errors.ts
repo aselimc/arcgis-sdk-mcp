@@ -1,5 +1,5 @@
 /**
- * Renders the error catalogue (design section 3.9) as tool results:
+ * Renders the error catalogue as tool results:
  * `Error [CODE]: <what>. <why>. Next: <exact recovery>.` followed by the candidates, if any.
  *
  * Every code ends with a recovery. Services supply the precise one in `details.next`; when

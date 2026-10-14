@@ -1,5 +1,5 @@
 /**
- * Ranking after fusion (design section 6.4): the multipliers that express what an agent
+ * Ranking after fusion: the multipliers that express what an agent
  * most likely wants (the current version, the project's own SDK, a page whose title is the
  * query) and de-duplication on the canonical URL.
  */

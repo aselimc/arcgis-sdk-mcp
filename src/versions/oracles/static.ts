@@ -2,7 +2,7 @@
  * Oracle `static`: values written in the registry, for products that no longer change
  * (a deprecated SDK's final release, a retired product). It issues no request. The report
  * labels the version "as of" the product's `verifiedOn` date, which is rung three of the
- * version ladder (design section 6.6).
+ * version ladder.
  *
  * Options:
  * - `version`: default the first version number in the product's

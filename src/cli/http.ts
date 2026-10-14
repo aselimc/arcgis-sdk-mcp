@@ -2,7 +2,7 @@
  * HTTP serving (`--http`): stateless MCP at `/mcp` and a health check at `/healthz` on
  * `node:http`. Meant for one machine: it binds loopback and validates `Host` and `Origin`,
  * which is what stops a web page in the user's browser from reaching the server through DNS
- * rebinding (risk R13). There is no authentication, sessions, or subscriptions.
+ * rebinding. There is no authentication, sessions, or subscriptions.
  */
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';

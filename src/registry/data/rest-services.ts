@@ -1,5 +1,5 @@
 /**
- * Registry data: REST APIs, services and platform products (design section 4.5).
+ * Registry data: REST APIs, services and platform products.
  *
  * `rest-api` is one product made of 17 independent Gatsby sub-sites; the other entries are
  * the developer guide, ArcGIS Location Platform help and the smaller service APIs. Only ids,
@@ -681,7 +681,7 @@ const velocityGrpc: Product = {
   licenseTier: 'apache-2.0',
 };
 
-/** REST, services and platform products (design section 4.5), nine ids. */
+/** REST, services and platform products, nine ids. */
 export const restServicesProducts: readonly Product[] = [
   restApi,
   developerGuide,
