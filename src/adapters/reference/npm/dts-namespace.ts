@@ -171,6 +171,34 @@ function constructedClass(
   return { heritage: '', body: `${statics.join('\n')}\n${merged.body}` };
 }
 
+/** A member line of an interface body that declares a method: `watch<T>(getValue: () => T, ...`. */
+const METHOD_MEMBER = /^ {2}([\w$]+)\??\s*(?=[<(])/;
+/** A member line of an interface body that declares a property: `readonly version: string;`. */
+const PROPERTY_MEMBER = /^ {2}(?:readonly\s+)?([\w$]+)\??\s*:/;
+
+/**
+ * A module of functions (`core/reactiveUtils`, `geometry/geometryEngine`) from the interface
+ * that declares it: each method becomes an exported function and each property an exported
+ * constant, which is how the module's ES build exports them. `undefined` when the interface
+ * has no method: it then describes an object, not a module of functions.
+ */
+function functionsModule(body: string): string | undefined {
+  let methods = 0;
+  const lines = body.split('\n').map((line) => {
+    const method = METHOD_MEMBER.exec(line);
+    if (method?.[1] !== undefined) {
+      methods += 1;
+      return `export function ${method[1]}${line.slice(method[0].length)}`;
+    }
+    const property = PROPERTY_MEMBER.exec(line);
+    if (property?.[1] !== undefined) {
+      return `export const ${property[1]}:${line.slice(property[0].length)}`;
+    }
+    return line.startsWith('  ') ? line.slice(2) : line;
+  });
+  return methods === 0 ? undefined : `${lines.join('\n')}\n`;
+}
+
 /**
  * Writes the module of one class from the namespace file.
  *
@@ -185,8 +213,11 @@ export function moduleFromNamespace(interfaces: string, name: string): string | 
   if (cls === undefined) {
     // A module that is an object of functions is declared as an interface only.
     if (merged === undefined) return undefined;
+    const functions = /^[a-z]/.test(name) ? functionsModule(merged.body) : undefined;
+    if (functions !== undefined) return functions;
+    // An object the module exports as its default (`config`): the interface describes it.
     const heritage = merged.heritage === '' ? '' : ` ${merged.heritage}`;
-    return `${declaration(`export interface ${name}${heritage}`, merged.body)}\n`;
+    return `${declaration(`export default interface ${name}${heritage}`, merged.body)}\n`;
   }
   const bases = [...heritageList(cls.heritage), ...heritageList(merged?.heritage ?? '')];
   const parts: string[] = [];

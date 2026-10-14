@@ -311,7 +311,13 @@ export function renderDts(
   const exported = publicExports(file).find(
     (declaration) => declaration.name === owner && declaration.kind !== 'function',
   );
-  const primary = defaultClass(file);
+  // A module whose default export is an object described by an interface (`config`) is
+  // read like a class: its members are the object's.
+  const primary =
+    defaultClass(file) ??
+    file.declarations.find(
+      (declaration) => declaration.kind === 'interface' && declaration.isDefault,
+    );
   const target = exported ?? primary;
 
   if (target === undefined)

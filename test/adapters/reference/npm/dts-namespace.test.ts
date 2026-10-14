@@ -209,13 +209,46 @@ describe('moduleFromNamespace', () => {
     );
     // A constructor interface without a construct signature does not make a class.
     expect(moduleFromNamespace(OLDER, 'gaugeUtils')).toBe(
-      'export interface gaugeUtils {\n  clamp(value: number): number;\n}\n',
+      'export function clamp(value: number): number;\n',
     );
   });
 
+  // Regression: `reactiveUtils` at 4.30 rendered as one interface without its functions,
+  // imported as `{ reactiveUtils }`.
   it('writes a module of functions, which is declared as an interface only', () => {
     expect(moduleFromNamespace(NAMESPACE, 'panelUtils')).toBe(
-      'export interface panelUtils {\n  measure(panel: PanelLayer): number;\n}\n',
+      'export function measure(panel: PanelLayer): number;\n',
+    );
+    const utilities = [
+      'declare namespace __widgets {',
+      '  interface tideUtils {',
+      '    /**',
+      '     * The current level.',
+      '     */',
+      '    readonly level: number;',
+      '    watch<T>(getValue: () => T, callback: (value: T) => void): Handle;',
+      '    when?(ready: () => boolean): Promise<void>;',
+      '  }',
+      '}',
+    ].join('\n');
+    expect(moduleFromNamespace(utilities, 'tideUtils')).toBe(
+      [
+        '/**',
+        ' * The current level.',
+        ' */',
+        'export const level: number;',
+        'export function watch<T>(getValue: () => T, callback: (value: T) => void): Handle;',
+        'export function when(ready: () => boolean): Promise<void>;',
+        '',
+      ].join('\n'),
+    );
+  });
+
+  it('writes an object without methods as the default export it is', () => {
+    const settings =
+      'declare namespace __widgets {\n  interface config {\n    apiKey: string;\n  }\n}\n';
+    expect(moduleFromNamespace(settings, 'config')).toBe(
+      'export default interface config {\n  apiKey: string;\n}\n',
     );
   });
 });

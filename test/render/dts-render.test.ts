@@ -280,6 +280,26 @@ describe('renderDts: module pages of a package of entry-point modules (synthetic
     );
     expect(page.header).toContain('import { measure } from "@example/core/core/measureUtils.js";');
   });
+
+  it('reads a default-exported interface as the object the module exports', () => {
+    const source = [
+      'export default interface settings {',
+      '  /**',
+      '   * The key sent with every request.',
+      '   */',
+      '  apiKey: string;',
+      '}',
+      '',
+    ].join('\n');
+    const page = renderDts(
+      { source, modulePath: 'settings.d.ts', packageName: '@example/core' },
+      meta,
+    );
+    expect(page.header).toBe(
+      '_Interface_ · `@example/core/settings`\n\n```js\nimport settings from "@example/core/settings.js";\n```',
+    );
+    expect(page.members?.map((member) => member.name)).toEqual(['apiKey']);
+  });
 });
 
 describe('renderDts: @esri/arcgis-rest-request typings (Apache-2.0)', () => {
