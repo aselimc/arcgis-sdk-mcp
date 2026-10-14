@@ -12,7 +12,10 @@ import {
   CONFIG_DEFAULTS,
   ConfigSchema,
   DEFAULT_LIMITS,
+  HOSTING_PLATFORMS,
+  MIN_HTTP_TOKEN_LENGTH,
   loadConfig,
+  loadHttpSettings,
 } from '../../src/core/config.js';
 import type { Capability } from '../../src/core/types.js';
 import { makeConfig } from '../support/builders.js';
@@ -261,5 +264,112 @@ describe('ConfigSchema', () => {
       { ...base, capabilities: ['website'] },
     ];
     for (const candidate of bad) expect(ConfigSchema.safeParse(candidate).success).toBe(false);
+  });
+});
+
+describe('loadHttpSettings', () => {
+  const token = 'f'.repeat(MIN_HTTP_TOKEN_LENGTH);
+
+  it('sets nothing on a plain machine with no variables', () => {
+    expect(loadHttpSettings({})).toEqual({
+      token: undefined,
+      port: undefined,
+      allowedHosts: [],
+      platform: undefined,
+    });
+  });
+
+  it('reads the token, the port and the extra host names', () => {
+    const settings = loadHttpSettings({
+      ARCGIS_DOCS_HTTP_TOKEN: ` ${token} `,
+      PORT: '8080',
+      ARCGIS_DOCS_HTTP_ALLOWED_HOSTS: ' Docs.Example.com, ,10.0.0.5,[::1],docs.example.com ',
+    });
+    expect(settings).toEqual({
+      token,
+      port: 8080,
+      allowedHosts: ['docs.example.com', '10.0.0.5', '[::1]'],
+      platform: undefined,
+    });
+  });
+
+  it('accepts every bearer-token character and padding', () => {
+    const mixed = `${'A0-._~+/'.repeat(4)}==`;
+    expect(loadHttpSettings({ ARCGIS_DOCS_HTTP_TOKEN: mixed }).token).toBe(mixed);
+  });
+
+  it('treats empty variables as unset', () => {
+    expect(
+      loadHttpSettings({
+        ARCGIS_DOCS_HTTP_TOKEN: ' ',
+        PORT: '',
+        ARCGIS_DOCS_HTTP_ALLOWED_HOSTS: '',
+      }),
+    ).toEqual({ token: undefined, port: undefined, allowedHosts: [], platform: undefined });
+  });
+
+  it('rejects a short token without echoing it', () => {
+    const short = 'x'.repeat(MIN_HTTP_TOKEN_LENGTH - 1);
+    expect(() => loadHttpSettings({ ARCGIS_DOCS_HTTP_TOKEN: short })).toThrow(ConfigError);
+    try {
+      loadHttpSettings({ ARCGIS_DOCS_HTTP_TOKEN: short });
+    } catch (error) {
+      expect((error as Error).message).toMatch(/at least 32 characters, got 31/);
+      expect((error as Error).message).not.toContain(short);
+    }
+  });
+
+  it.each([
+    'has space inside the value 0123456789abcdef',
+    'quote"0123456789abcdef0123456789abcdef',
+  ])('rejects a token with characters a bearer token cannot have: %j', (value) => {
+    expect(() => loadHttpSettings({ ARCGIS_DOCS_HTTP_TOKEN: value })).toThrow(
+      /ARCGIS_DOCS_HTTP_TOKEN: expected letters/,
+    );
+  });
+
+  it.each(['-1', '65536', 'http', '80.5'])('rejects PORT %j', (value) => {
+    expect(() => loadHttpSettings({ PORT: value })).toThrow(
+      /PORT: expected a whole number from 0 to 65535/,
+    );
+  });
+
+  it.each([
+    'https://docs.example.com',
+    'docs.example.com:443',
+    'docs.example.com/mcp',
+    '-bad.example',
+  ])('rejects the allowed host %j', (value) => {
+    expect(() => loadHttpSettings({ ARCGIS_DOCS_HTTP_ALLOWED_HOSTS: value })).toThrow(
+      /ARCGIS_DOCS_HTTP_ALLOWED_HOSTS: expected host names without scheme, port or path/,
+    );
+  });
+
+  it.each(HOSTING_PLATFORMS)('detects $name from $variable', ({ variable, name }) => {
+    expect(loadHttpSettings({ [variable]: '1' }).platform).toBe(name);
+  });
+
+  it('adds the deployment host names on Vercel, and only there', () => {
+    const vercel = {
+      VERCEL_PROJECT_PRODUCTION_URL: 'arcgis-sdk-mcp.vercel.app',
+      VERCEL_URL: 'arcgis-sdk-mcp-abc123-aselimc.vercel.app',
+      VERCEL_BRANCH_URL: 'arcgis-sdk-mcp-git-main-aselimc.vercel.app',
+    };
+    expect(
+      loadHttpSettings({
+        VERCEL: '1',
+        ARCGIS_DOCS_HTTP_ALLOWED_HOSTS: 'docs.example.com',
+        ...vercel,
+      }).allowedHosts,
+    ).toEqual([
+      'docs.example.com',
+      'arcgis-sdk-mcp.vercel.app',
+      'arcgis-sdk-mcp-abc123-aselimc.vercel.app',
+      'arcgis-sdk-mcp-git-main-aselimc.vercel.app',
+    ]);
+    expect(loadHttpSettings(vercel).allowedHosts).toEqual([]);
+    expect(() => loadHttpSettings({ VERCEL: '1', VERCEL_URL: 'https://x.vercel.app' })).toThrow(
+      /VERCEL_URL/,
+    );
   });
 });

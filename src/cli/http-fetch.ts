@@ -89,10 +89,16 @@ function json(status: number, body: unknown, headers: Record<string, string> = {
   });
 }
 
-/** The answer of the SDK handler with the no-store headers added. */
+/**
+ * The answer of the SDK handler with the no-store headers added; `no-transform`, which the
+ * SDK sets on an event stream so that no proxy buffers or recompresses it, is kept.
+ */
 function withNoStore(response: Response): Response {
   const headers = new Headers(response.headers);
   for (const [name, value] of Object.entries(NO_STORE_HEADERS)) headers.set(name, value);
+  if (response.headers.get('cache-control')?.includes('no-transform') === true) {
+    headers.set('cache-control', 'no-store, no-transform');
+  }
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,

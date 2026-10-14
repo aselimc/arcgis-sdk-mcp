@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="700" viewBox="0 0 960 700" role="img" aria-label="Architecture of arcgis-sdk-mcp: an MCP host calls the MCP surface (6 tools), which calls the services; they use the registry (136 entries), local indexes and 20 source adapters with renderers; every request goes through one HTTP gateway to public documentation sources, only when a tool is called.">
+<title>arcgis-sdk-mcp architecture</title>
+<defs><marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#6e7681"/></marker></defs>
+<g font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<rect x="0.5" y="0.5" width="959" height="699" rx="10" fill="#0d1117" stroke="#30363d"/>
+<text x="28" y="46" font-size="22" font-weight="700" fill="#e6edf3">How a tool call is answered</text>
+<rect x="28" y="70" width="904" height="58" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text x="42" y="93" font-size="14" font-weight="600" fill="#e6edf3">MCP host</text>
+<text x="42" y="113" font-size="12.5" fill="#9198a1">Claude Code, Claude Desktop, Cursor, VS Code, or any MCP client; it starts the server itself</text>
+<path d="M480 128 L480 162" stroke="#6e7681" stroke-width="1.4" fill="none" marker-end="url(#head)"/>
+<text x="490" y="149" font-size="12" fill="#9198a1">MCP over stdio, or stateless HTTP</text>
+<rect x="28" y="166" width="904" height="58" rx="8" fill="#161b22" stroke="#3987e5" stroke-width="1.6"/>
+<text x="42" y="189" font-size="14" font-weight="600" fill="#e6edf3">MCP surface (src/mcp)</text>
+<text x="42" y="209" font-size="12.5" fill="#9198a1">6 read-only tools · 4 prompts · 4 resources · instructions that tell the agent the order of calls</text>
+<path d="M480 224 L480 246" stroke="#6e7681" stroke-width="1.4" fill="none" marker-end="url(#head)"/>
+<rect x="28" y="250" width="904" height="58" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text x="42" y="273" font-size="14" font-weight="600" fill="#e6edf3">Services (src/services, src/versions, src/workspace)</text>
+<text x="42" y="293" font-size="12.5" fill="#9198a1">catalog · search · read · symbol lookup · samples · versions · project detection; token budgets</text>
+<path d="M135 308 L135 342" stroke="#6e7681" stroke-width="1.4" fill="none" marker-end="url(#head)"/>
+<path d="M365 308 L365 342" stroke="#6e7681" stroke-width="1.4" fill="none" marker-end="url(#head)"/>
+<path d="M595 308 L595 342" stroke="#6e7681" stroke-width="1.4" fill="none" marker-end="url(#head)"/>
+<rect x="28" y="346" width="214" height="110" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text x="42" y="369" font-size="14" font-weight="600" fill="#e6edf3">Registry</text>
+<text x="42" y="389" font-size="12.5" fill="#9198a1">136 entries as typed data:</text>
+<text x="42" y="406" font-size="12.5" fill="#9198a1">53 developer products,</text>
+<text x="42" y="423" font-size="12.5" fill="#9198a1">ids, URLs and patterns only</text>
+<rect x="258" y="346" width="214" height="110" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text x="272" y="369" font-size="14" font-weight="600" fill="#e6edf3">Local indexes</text>
+<text x="272" y="389" font-size="12.5" fill="#9198a1">one per product source,</text>
+<text x="272" y="406" font-size="12.5" fill="#9198a1">built on first use from the</text>
+<text x="272" y="423" font-size="12.5" fill="#9198a1">site's own index or sitemap</text>
+<rect x="488" y="346" width="214" height="110" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text x="502" y="369" font-size="14" font-weight="600" fill="#e6edf3">20 source adapters</text>
+<text x="502" y="389" font-size="12.5" fill="#9198a1">Astro, Gatsby, DocFX, DocC,</text>
+<text x="502" y="406" font-size="12.5" fill="#9198a1">Dokka, dartdoc, Sphinx, OpenAPI,</text>
+<text x="502" y="423" font-size="12.5" fill="#9198a1">npm typings, GitHub, ...</text>
+<rect x="718" y="346" width="214" height="110" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text x="732" y="369" font-size="14" font-weight="600" fill="#e6edf3">Renderers</text>
+<text x="732" y="389" font-size="12.5" fill="#9198a1">HTML pipeline (16 page</text>
+<text x="732" y="406" font-size="12.5" fill="#9198a1">families) and structured</text>
+<text x="732" y="423" font-size="12.5" fill="#9198a1">formats, to compact Markdown</text>
+<path d="M702 401 L714 401" stroke="#6e7681" stroke-width="1.4" fill="none" marker-end="url(#head)"/>
+<path d="M595 456 L595 490" stroke="#6e7681" stroke-width="1.4" fill="none" marker-end="url(#head)"/>
+<rect x="28" y="494" width="904" height="58" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text x="42" y="517" font-size="14" font-weight="600" fill="#e6edf3">HTTP gateway (src/net): the only code that calls fetch</text>
+<text x="42" y="537" font-size="12.5" fill="#9198a1">host allow-list · capability policy · robots.txt · per-user disk cache · per-host rate limit · retries · circuit breaker</text>
+<path d="M480 552 L480 586" stroke="#6e7681" stroke-width="1.4" fill="none" marker-end="url(#head)"/>
+<text x="490" y="573" font-size="12" fill="#9198a1">HTTPS, identified User-Agent</text>
+<rect x="28" y="590" width="904" height="58" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="42" y="613" font-size="14" font-weight="600" fill="#e6edf3">Public sources, fetched only when a tool is called</text>
+<text x="42" y="633" font-size="12.5" fill="#9198a1">Esri's documentation sites · GitHub · npm, PyPI, NuGet, pub.dev · jsDelivr · nothing at start-up, no crawling, no telemetry</text>
+<text x="28" y="680" font-size="12" fill="#9198a1">Generated by scripts/render-architecture.ts from the source tree. Details: docs/architecture.md.</text>
+</g>
+</svg>

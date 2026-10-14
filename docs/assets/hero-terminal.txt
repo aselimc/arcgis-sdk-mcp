@@ -1,0 +1,47 @@
+# Real output of the built CLI, recorded 2026-10-14 by scripts/render-hero.ts.
+# Trimmed: Esri's documentation prose is replaced by [...]; long lines are cut.
+
+$ node dist/cli/main.js call get_versions '{"product":"js-maps-sdk"}'
+Versions as of 2026-10-14 | js-maps-sdk
+
+## ArcGIS Maps SDK for JavaScript (js-maps-sdk), active
+Documentation describes: 5.1, released 2026-06 (https://developers.arcgis.com/javascript/latest/)
+Installable:
+- @arcgis/core 5.1.27 on npm [latest] (https://registry.npmjs.org/-/package/@arcgis/core/dist-tags)
+Pre-release:
+- next: 6.0.0-next.7 (@arcgis/core)
+- rc: 5.2.0-next.146 (@arcgis/core)
+Install:
+- npm install @arcgis/core
+[...]
+
+Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/javascript/latest/release-notes/"})
+Source: Esri documentation at the refs above (retrieved 2026-10-14). Copyright (c) Esri and respective author…
+
+$ node dist/cli/main.js call lookup_symbol '{"symbol":"arcpy.da.SearchCursor","detail":"signature"}'
+arcpy.da.SearchCursor (class) | ArcPy and geoprocessing tools (arcpy), resolved from "arcpy.da.SearchCursor" …
+Note: The product arcpy was inferred from the name; pass "product" to look in another.
+
+SearchCursor(in_table, field_names, {where_clause}, {spatial_reference}, {explode_to_points}, {sql_clause},
+    {datum_transformation}, {spatial_filter}, {spatial_relationship}, {search_order})
+
+# SearchCursor
+
+[...]
+
+Next: arcgis_docs_lookup_symbol({"symbol":"arcpy.da.SearchCursor","product":"arcpy","detail":"summary"})
+Source: Esri, https://doc.esri.com/en/arcgis-pro/latest/arcpy/data-access/searchcursor-class.html (retrieved …
+
+$ node dist/cli/main.js call find_samples '{"query":"download offline map","product":"swift-maps-sdk","limit":2}'
+Samples for "download offline map" | product: swift-maps-sdk | line: latest | pinned to 300.1.0 | 2 of 30
+
+1. Download preplanned map area [swift-maps-sdk, swift, github, apache-2.0]
+   https://github.com/Esri/arcgis-maps-sdk-swift-samples/blob/v300.1.0/Shared/Samples/Download%20preplanned%2…
+[...]
+   In: Edit and Manage Data
+   APIs: DownloadPreplannedOfflineMapResult, OfflineMapTask, OfflineMapTask.makeDefaultDownloadPreplannedOffl…
+   File: DownloadPreplannedMapAreaView.swift https://github.com/Esri/arcgis-maps-sdk-swift-samples/blob/v300.…
+[...]
+
+Next: arcgis_docs_read({"ref":"https://github.com/Esri/arcgis-maps-sdk-swift-samples/blob/v300.1.0/Shared/Sam…
+Source: Esri documentation at the refs above (retrieved 2026-10-14). Copyright (c) Esri and respective author…

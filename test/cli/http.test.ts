@@ -7,9 +7,11 @@ import {
   guardsFor,
   HEALTH_PATH,
   MCP_PATH,
+  MissingTokenError,
   requestPath,
   startHttp,
   type HttpHandle,
+  type HttpServeOptions,
 } from '../../src/cli/http.js';
 import { SERVER_NAME, TOOLS } from '../../src/core/names.js';
 import { FakeLogger } from '../support/fake-logger.js';
@@ -93,6 +95,8 @@ function rpc(reply: Reply): { result?: Record<string, unknown>; error?: { messag
     : (reply.body.split('\n').find((line) => line.startsWith('data:')) ?? '').slice(5);
   return JSON.parse(data) as ReturnType<typeof rpc>;
 }
+
+const TOKEN = 'node-http-test-token-0123456789abcdef';
 
 const initialize = {
   jsonrpc: '2.0',
@@ -300,7 +304,13 @@ describe('startHttp', () => {
 });
 
 describe('createHttpApp', () => {
-  const options = { factory: makeEchoServer, logger: new FakeLogger(), version: '1', host: '::' };
+  const options = {
+    factory: makeEchoServer,
+    logger: new FakeLogger(),
+    version: '1',
+    host: '::',
+    token: TOKEN,
+  };
 
   it('answers 500 and survives when handling a request throws', async () => {
     const app = createHttpApp(options);
@@ -355,5 +365,135 @@ describe('guardsFor', () => {
     expect(guardsFor('docs.internal.example')).toHaveLength(2);
     expect(guardsFor('0.0.0.0')).toEqual([]);
     expect(guardsFor('::')).toEqual([]);
+  });
+
+  it('validates a wildcard bind against the configured host names', () => {
+    expect(guardsFor('0.0.0.0', ['docs.example.com'])).toHaveLength(2);
+    expect(guardsFor('127.0.0.1', ['docs.example.com'])).toHaveLength(2);
+  });
+});
+
+describe('startHttp with a bearer token', () => {
+  let handle: HttpHandle | undefined;
+  let created = 0;
+
+  const start = async (overrides: Partial<HttpServeOptions> = {}): Promise<HttpHandle> => {
+    created = 0;
+    handle = await startHttp({
+      factory: () => {
+        created += 1;
+        return makeEchoServer();
+      },
+      logger: new FakeLogger(),
+      version: '1.2.3',
+      host: '127.0.0.1',
+      port: 0,
+      token: TOKEN,
+      ...overrides,
+    });
+    return handle;
+  };
+
+  afterEach(async () => {
+    await handle?.close();
+    handle = undefined;
+  });
+
+  it('serves /mcp with the right token and marks the answer no-store', async () => {
+    const { port } = await start();
+    const reply = await send(port, {
+      path: MCP_PATH,
+      method: 'POST',
+      headers: { authorization: `Bearer ${TOKEN}` },
+      body: initialize,
+    });
+    expect(reply.status).toBe(200);
+    expect(rpc(reply).result).toMatchObject({ serverInfo: { name: 'echo' } });
+    // The SDK's own value for an event stream wins over the default; neither lets a shared
+    // cache answer from a stored copy.
+    expect(reply.headers['cache-control']).toMatch(/^no-(store|cache)/);
+    expect(created).toBe(1);
+  });
+
+  it('answers 401 with a challenge for a missing or wrong token, without creating a server', async () => {
+    const { port } = await start();
+    const missing = await send(port, { path: MCP_PATH, method: 'POST', body: initialize });
+    expect(missing.status).toBe(401);
+    expect(missing.headers['www-authenticate']).toBe(`Bearer realm="${SERVER_NAME}"`);
+    for (const authorization of [`Bearer ${TOKEN.slice(1)}`, `Basic ${TOKEN}`, TOKEN]) {
+      const wrong = await send(port, {
+        path: MCP_PATH,
+        method: 'POST',
+        headers: { authorization },
+        body: initialize,
+      });
+      expect(wrong.status).toBe(401);
+      expect(wrong.headers['www-authenticate']).toMatch(/error="invalid_token"/);
+    }
+    expect(created).toBe(0);
+  });
+
+  it('leaves the health check open and still validates Host before the token', async () => {
+    const { port } = await start();
+    expect((await send(port, { path: HEALTH_PATH })).status).toBe(200);
+    const foreign = await send(port, {
+      path: MCP_PATH,
+      method: 'POST',
+      headers: { host: 'attacker.example', authorization: `Bearer ${TOKEN}` },
+      body: initialize,
+    });
+    expect(foreign.status).toBe(403);
+  });
+
+  it('accepts a configured extra host name', async () => {
+    const { port } = await start({ allowedHosts: ['docs.example.com'] });
+    const reply = await send(port, { path: HEALTH_PATH, headers: { host: 'docs.example.com' } });
+    expect(reply.status).toBe(200);
+    expect((await send(port, { path: HEALTH_PATH })).status).toBe(200);
+  });
+
+  it('serves a 2026-07-28 client that sends the token as a header', async () => {
+    const { url } = await start();
+    const transport = new StreamableHTTPClientTransport(new URL(url), {
+      requestInit: { headers: { authorization: `Bearer ${TOKEN}` } },
+    });
+    const client = new Client({ name: 'http-test', version: '0.0.0' });
+    await client.connect(transport);
+    try {
+      const result = await client.callTool({ name: TOOLS.search, arguments: { query: 'token' } });
+      expect(result.content).toEqual([{ type: 'text', text: 'echo: token' }]);
+    } finally {
+      await client.close();
+    }
+  });
+});
+
+describe('startHttp fails closed', () => {
+  const base = { factory: makeEchoServer, logger: new FakeLogger(), version: '1', port: 0 };
+
+  it.each(['0.0.0.0', '::', '192.168.1.20'])(
+    'refuses to bind %s without a token, before opening a socket',
+    async (host) => {
+      await expect(startHttp({ ...base, host })).rejects.toThrow(MissingTokenError);
+      expect(() => createHttpApp({ ...base, host })).toThrow(
+        /ARCGIS_DOCS_HTTP_TOKEN is not set and --host .* is not a loopback address/,
+      );
+    },
+  );
+
+  it('refuses to serve on a hosting platform without a token, even on loopback', () => {
+    expect(() => createHttpApp({ ...base, host: '127.0.0.1', platform: 'Fly.io' })).toThrow(
+      /it runs on Fly\.io/,
+    );
+  });
+
+  it('keeps serving loopback without a token, as before', async () => {
+    const handle = await startHttp({ ...base, host: '127.0.0.1' });
+    try {
+      const reply = await send(handle.port, { path: MCP_PATH, method: 'POST', body: initialize });
+      expect(reply.status).toBe(200);
+    } finally {
+      await handle.close();
+    }
   });
 });

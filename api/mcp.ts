@@ -13,7 +13,7 @@ import { createServer } from '../src/mcp/server.js';
 
 const handler = createHostedHandler({
   env: process.env,
-  loadApp: async () => ({ createContainer, createServer }),
+  loadApp: () => Promise.resolve({ createContainer, createServer }),
 });
 
 // An index build that fails after its tool call has answered must not end the instance;

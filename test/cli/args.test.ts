@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_HTTP_HOST,
-  DEFAULT_HTTP_PORT,
   HELP_TEXT,
   UsageError,
   isLoopbackHost,
@@ -15,10 +14,9 @@ describe('parseCli: serving', () => {
     expect(parseCli(['serve'])).toEqual({ kind: 'serve-stdio' });
   });
 
-  it('serves HTTP on the loopback defaults', () => {
+  it('serves HTTP on the loopback defaults, leaving the port to PORT or the default', () => {
     expect(parseCli(['--http'])).toEqual({
       kind: 'serve-http',
-      port: DEFAULT_HTTP_PORT,
       host: DEFAULT_HTTP_HOST,
       allowRemote: false,
     });
@@ -44,7 +42,6 @@ describe('parseCli: serving', () => {
   it('binds a non-loopback host with --allow-remote', () => {
     expect(parseCli(['--http', '--host', '0.0.0.0', '--allow-remote'])).toEqual({
       kind: 'serve-http',
-      port: DEFAULT_HTTP_PORT,
       host: '0.0.0.0',
       allowRemote: true,
     });
@@ -87,6 +84,9 @@ describe('parseCli: help and version', () => {
       'ARCGIS_DOCS_MAX_TOKENS',
       'ARCGIS_DOCS_LOG_LEVEL',
       'GITHUB_TOKEN',
+      'ARCGIS_DOCS_HTTP_TOKEN',
+      'ARCGIS_DOCS_HTTP_ALLOWED_HOSTS',
+      'PORT',
     ]) {
       expect(HELP_TEXT).toContain(name);
     }

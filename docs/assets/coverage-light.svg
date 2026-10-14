@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="717" viewBox="0 0 960 717" role="img" aria-label="Product coverage. 53 developer products in 10 categories, plus 76 product-help entries and 7 retired or deprecated products: 136 registry entries. Web: 11 (Maps SDK for JavaScript, Calcite Design System, Arcade, REST JS, Experience Builder, Esri Leaflet, MapLibre GL JS, OpenLayers, CesiumJS, Web map spec, Web scene spec). Specifications and formats: 10 (I3S, CIM, Feature service PBF, Knowledge PBF, LERC, Tile package (TPKX), Spatially optimized Parquet, 3D Tiles with Esri CRS, Projection engine database, File Geodatabase API). REST APIs, services, platform: 9 (REST APIs, ArcGIS developer guide, Location Platform, Hub developer APIs, Site Scan API, Urban API, Workflow Manager developer APIs, Survey123 developer resources, Velocity gRPC feeds). Native: 5 (Maps SDK for Swift, Maps SDK for Kotlin, Maps SDK for .NET, Maps SDK for Qt, Maps SDK for Flutter). Python, data science and R: 5 (ArcGIS API for Python, ArcPy and geoprocessing tools, GeoAnalytics Engine, GeoAnalytics for Microsoft Fabric, R-ArcGIS Bridge). Desktop and Enterprise: 5 (Pro SDK for .NET, Enterprise SDK, CityEngine, Earth Automation API, ArcGIS for AutoCAD API). DevOps and open source: 4 (Enterprise deployment automation, Koop, Developer support samples, Open-source libraries). Game engines: 2 (Maps SDK for Unity, Maps SDK for Unreal Engine). AI, agents and MCP: 1 (AI, agents and MCP across ArcGIS). Support: 1 (Esri Support knowledge base).">
+<title>arcgis-sdk-mcp product coverage</title>
+<g font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<rect x="0.5" y="0.5" width="959" height="716" rx="10" fill="#ffffff" stroke="#d0d7de"/>
+<text x="28" y="46" font-size="22" font-weight="700" fill="#1f2328">Developer products covered, by category</text>
+<text x="28" y="74" font-size="13.5" fill="#59636e">53 developer products in 10 categories, plus 76 product-help entries and 7 retired or deprecated products: 136 registry entries.</text>
+<text x="262" y="102" font-size="11.5" fill="#59636e">PRODUCTS</text>
+<text x="486" y="102" font-size="11.5" fill="#59636e">NAMES (SHORTENED)</text>
+<line x1="28" x2="932" y1="112" y2="112" stroke="#eaeef2"/>
+<text x="28" y="134" font-size="14" font-weight="600" fill="#1f2328">Web</text>
+<rect x="262" y="122" width="170.0" height="14" rx="4" fill="#2a78d6"/>
+<text x="440.0" y="134" font-size="14" font-weight="600" fill="#1f2328">11</text>
+<text x="486" y="133" font-size="12.5" fill="#59636e">Maps SDK for JavaScript · Calcite Design System · Arcade · REST JS</text>
+<text x="486" y="150" font-size="12.5" fill="#59636e">Experience Builder · Esri Leaflet · MapLibre GL JS · OpenLayers</text>
+<text x="486" y="167" font-size="12.5" fill="#59636e">CesiumJS · Web map spec · Web scene spec</text>
+<line x1="28" x2="932" y1="178" y2="178" stroke="#eaeef2"/>
+<text x="28" y="200" font-size="14" font-weight="600" fill="#1f2328">Specifications and formats</text>
+<rect x="262" y="188" width="154.5" height="14" rx="4" fill="#2a78d6"/>
+<text x="424.5" y="200" font-size="14" font-weight="600" fill="#1f2328">10</text>
+<text x="486" y="199" font-size="12.5" fill="#59636e">I3S · CIM · Feature service PBF · Knowledge PBF · LERC</text>
+<text x="486" y="216" font-size="12.5" fill="#59636e">Tile package (TPKX) · Spatially optimized Parquet</text>
+<text x="486" y="233" font-size="12.5" fill="#59636e">3D Tiles with Esri CRS · Projection engine database</text>
+<text x="486" y="250" font-size="12.5" fill="#59636e">File Geodatabase API</text>
+<line x1="28" x2="932" y1="261" y2="261" stroke="#eaeef2"/>
+<text x="28" y="283" font-size="14" font-weight="600" fill="#1f2328">REST APIs, services, platform</text>
+<rect x="262" y="271" width="139.1" height="14" rx="4" fill="#2a78d6"/>
+<text x="409.1" y="283" font-size="14" font-weight="600" fill="#1f2328">9</text>
+<text x="486" y="282" font-size="12.5" fill="#59636e">REST APIs · ArcGIS developer guide · Location Platform</text>
+<text x="486" y="299" font-size="12.5" fill="#59636e">Hub developer APIs · Site Scan API · Urban API</text>
+<text x="486" y="316" font-size="12.5" fill="#59636e">Workflow Manager developer APIs · Survey123 developer resources</text>
+<text x="486" y="333" font-size="12.5" fill="#59636e">Velocity gRPC feeds</text>
+<line x1="28" x2="932" y1="344" y2="344" stroke="#eaeef2"/>
+<text x="28" y="366" font-size="14" font-weight="600" fill="#1f2328">Native</text>
+<rect x="262" y="354" width="77.3" height="14" rx="4" fill="#2a78d6"/>
+<text x="347.3" y="366" font-size="14" font-weight="600" fill="#1f2328">5</text>
+<text x="486" y="365" font-size="12.5" fill="#59636e">Maps SDK for Swift · Maps SDK for Kotlin · Maps SDK for .NET</text>
+<text x="486" y="382" font-size="12.5" fill="#59636e">Maps SDK for Qt · Maps SDK for Flutter</text>
+<line x1="28" x2="932" y1="393" y2="393" stroke="#eaeef2"/>
+<text x="28" y="415" font-size="14" font-weight="600" fill="#1f2328">Python, data science and R</text>
+<rect x="262" y="403" width="77.3" height="14" rx="4" fill="#2a78d6"/>
+<text x="347.3" y="415" font-size="14" font-weight="600" fill="#1f2328">5</text>
+<text x="486" y="414" font-size="12.5" fill="#59636e">ArcGIS API for Python · ArcPy and geoprocessing tools</text>
+<text x="486" y="431" font-size="12.5" fill="#59636e">GeoAnalytics Engine · GeoAnalytics for Microsoft Fabric</text>
+<text x="486" y="448" font-size="12.5" fill="#59636e">R-ArcGIS Bridge</text>
+<line x1="28" x2="932" y1="459" y2="459" stroke="#eaeef2"/>
+<text x="28" y="481" font-size="14" font-weight="600" fill="#1f2328">Desktop and Enterprise</text>
+<rect x="262" y="469" width="77.3" height="14" rx="4" fill="#2a78d6"/>
+<text x="347.3" y="481" font-size="14" font-weight="600" fill="#1f2328">5</text>
+<text x="486" y="480" font-size="12.5" fill="#59636e">Pro SDK for .NET · Enterprise SDK · CityEngine · Earth Automation API</text>
+<text x="486" y="497" font-size="12.5" fill="#59636e">ArcGIS for AutoCAD API</text>
+<line x1="28" x2="932" y1="508" y2="508" stroke="#eaeef2"/>
+<text x="28" y="530" font-size="14" font-weight="600" fill="#1f2328">DevOps and open source</text>
+<rect x="262" y="518" width="61.8" height="14" rx="4" fill="#2a78d6"/>
+<text x="331.8" y="530" font-size="14" font-weight="600" fill="#1f2328">4</text>
+<text x="486" y="529" font-size="12.5" fill="#59636e">Enterprise deployment automation · Koop · Developer support samples</text>
+<text x="486" y="546" font-size="12.5" fill="#59636e">Open-source libraries</text>
+<line x1="28" x2="932" y1="557" y2="557" stroke="#eaeef2"/>
+<text x="28" y="579" font-size="14" font-weight="600" fill="#1f2328">Game engines</text>
+<rect x="262" y="567" width="30.9" height="14" rx="4" fill="#2a78d6"/>
+<text x="300.9" y="579" font-size="14" font-weight="600" fill="#1f2328">2</text>
+<text x="486" y="578" font-size="12.5" fill="#59636e">Maps SDK for Unity · Maps SDK for Unreal Engine</text>
+<line x1="28" x2="932" y1="591" y2="591" stroke="#eaeef2"/>
+<text x="28" y="613" font-size="14" font-weight="600" fill="#1f2328">AI, agents and MCP</text>
+<rect x="262" y="601" width="15.5" height="14" rx="4" fill="#2a78d6"/>
+<text x="285.5" y="613" font-size="14" font-weight="600" fill="#1f2328">1</text>
+<text x="486" y="612" font-size="12.5" fill="#59636e">AI, agents and MCP across ArcGIS</text>
+<line x1="28" x2="932" y1="625" y2="625" stroke="#eaeef2"/>
+<text x="28" y="647" font-size="14" font-weight="600" fill="#1f2328">Support</text>
+<rect x="262" y="635" width="15.5" height="14" rx="4" fill="#2a78d6"/>
+<text x="285.5" y="647" font-size="14" font-weight="600" fill="#1f2328">1</text>
+<text x="486" y="646" font-size="12.5" fill="#59636e">Esri Support knowledge base</text>
+<line x1="28" x2="932" y1="659" y2="659" stroke="#eaeef2"/>
+<text x="28" y="691" font-size="12" fill="#59636e">Generated from the registry by scripts/render-coverage.ts. Unofficial project, not affiliated with Esri; product names are Esri's trademarks.</text>
+</g>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#0b1220"/>
+    <stop offset="1" stop-color="#111a2e"/>
+  </linearGradient>
+</defs>
+<rect width="1280" height="640" fill="url(#bg)"/>
+<g font-family="'Segoe UI', -apple-system, Helvetica, Arial, sans-serif">
+  <text x="80" y="104" font-size="20" font-weight="600" letter-spacing="2" fill="#7aa7ff">MCP SERVER · OPEN SOURCE · APACHE-2.0</text>
+  <text x="78" y="186" font-size="76" font-weight="700" fill="#f0f6fc">arcgis-sdk-mcp</text>
+  <text x="80" y="240" font-size="30" fill="#c9d1d9">ArcGIS developer documentation, on demand,</text>
+  <text x="80" y="280" font-size="30" fill="#c9d1d9">for coding agents.</text>
+  <text x="140" y="372" text-anchor="end" font-size="46" font-weight="700" fill="#f0f6fc">53</text>
+  <text x="158" y="370" font-size="24" fill="#9fb0c8">developer products</text>
+  <text x="140" y="442" text-anchor="end" font-size="46" font-weight="700" fill="#f0f6fc">6</text>
+  <text x="158" y="440" font-size="24" fill="#9fb0c8">read-only MCP tools</text>
+  <text x="140" y="512" text-anchor="end" font-size="46" font-weight="700" fill="#f0f6fc">20</text>
+  <text x="158" y="510" font-size="24" fill="#9fb0c8">source adapters</text>
+  <text x="80" y="596" font-size="20" fill="#9fb0c8">Unofficial. Not affiliated with Esri.</text>
+  <text x="1200" y="596" font-size="20" text-anchor="end" fill="#9fb0c8">github.com/aselimc/arcgis-sdk-mcp</text>
+</g>
+<g>
+  <rect x="640" y="300" width="580" height="220" rx="12" fill="#0d1117" stroke="#30363d"/>
+  <circle cx="662" cy="320" r="6" fill="#ff5f57"/><circle cx="682" cy="320" r="6" fill="#febc2e"/><circle cx="702" cy="320" r="6" fill="#28c840"/>
+  <text x="1202" y="325" text-anchor="end" font-family="'Segoe UI', -apple-system, Helvetica, Arial, sans-serif" font-size="14" fill="#8b949e">real output, trimmed</text>
+  <g font-family="Consolas, ui-monospace, SFMono-Regular, Menlo, 'Liberation Mono', monospace" font-size="16">
+    <text x="662" y="366" fill="#f0f6fc"><tspan fill="#7ee787">$ </tspan>node dist/cli/main.js call get_versions '{&quot;product&quot;:&quot;js…</text>
+    <text x="662" y="392" fill="#c9d1d9" xml:space="preserve">Documentation describes: 5.1, released 2026-06</text>
+    <text x="662" y="418" fill="#c9d1d9" xml:space="preserve">- @arcgis/core 5.1.27 on npm [latest]</text>
+    <text x="662" y="444" fill="#c9d1d9" xml:space="preserve">- next: 6.0.0-next.7 (@arcgis/core)</text>
+    <text x="662" y="470" fill="#c9d1d9" xml:space="preserve">- rc: 5.2.0-next.146 (@arcgis/core)</text>
+    <text x="662" y="496" fill="#a5d6ff" xml:space="preserve">Next: arcgis_docs_read({&quot;ref&quot;:&quot;https://developers.arcgis.…</text>
+  </g>
+</g>
+</svg>

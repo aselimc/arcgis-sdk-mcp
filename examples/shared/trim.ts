@@ -11,7 +11,7 @@
  * the `Next:` and `Source:` lines are kept; any other line becomes `[...]`. Long lines are
  * cut at 160 characters, and at most `maxLines` lines of the body are kept.
  */
-export function trim(text: string, maxLines = 14): string {
+export function trim(text: string, maxLines = 14, codeChars = 110): string {
   const out: string[] = [];
   let inFence = false;
   let fenceLines = 0;
@@ -28,7 +28,9 @@ export function trim(text: string, maxLines = 14): string {
       continue;
     }
     if (inFence) {
-      if (fenceLines++ < 4) out.push(line.length > 110 ? `${line.slice(0, 107)}...` : line);
+      if (fenceLines++ < 4) {
+        out.push(line.length > codeChars ? `${line.slice(0, codeChars - 3)}...` : line);
+      }
       else if (fenceLines === 6) out.push('  [...]');
       continue;
     }

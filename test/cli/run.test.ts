@@ -16,6 +16,9 @@ const ready: IndexState = {
   builtAt: '2026-10-13T08:00:00.000Z',
 };
 
+/** A token long enough for `loadHttpSettings`. */
+const HTTP_TOKEN = 'run-test-token-0123456789abcdef0123';
+
 describe('runCli: help, version and usage errors', () => {
   it('prints help without loading the application', async () => {
     const cli = makeCli();
@@ -87,13 +90,75 @@ describe('runCli: serving', () => {
     expect(cli.closed).toEqual(['http']);
   });
 
-  it('prints the terms warning before binding a non-loopback host', async () => {
-    const cli = makeCli();
+  it('prints the terms warning before binding a non-loopback host with a token', async () => {
+    const cli = makeCli({ env: { ARCGIS_DOCS_HTTP_TOKEN: HTTP_TOKEN } });
     await runCli(['--http', '--host', '0.0.0.0', '--allow-remote'], cli.deps);
     expect(cli.err[0]).toBe(REMOTE_WARNING);
-    expect(REMOTE_WARNING).toMatch(/no authentication/);
+    expect(REMOTE_WARNING).toMatch(/bearer token of ARCGIS_DOCS_HTTP_TOKEN/);
     expect(REMOTE_WARNING).toMatch(/not as a shared or public service/);
     expect(cli.served).toEqual([{ kind: 'http', host: '0.0.0.0', port: 3333 }]);
+  });
+
+  it('refuses a non-loopback host without a token before loading anything (fail closed)', async () => {
+    const cli = makeCli();
+    expect(await runCli(['--http', '--host', '0.0.0.0', '--allow-remote'], cli.deps)).toBe(
+      EXIT.usage,
+    );
+    expect(cli.err.join('')).toMatch(
+      /^Configuration error: ARCGIS_DOCS_HTTP_TOKEN is not set and --host 0\.0\.0\.0 is not a loopback address/,
+    );
+    expect(cli.served).toEqual([]);
+    expect(cli.loads()).toBe(0);
+  });
+
+  it('refuses to serve on a hosting platform without a token, even on loopback', async () => {
+    const cli = makeCli({ env: { VERCEL: '1' } });
+    expect(await runCli(['--http'], cli.deps)).toBe(EXIT.usage);
+    expect(cli.err.join('')).toMatch(/it runs on Vercel/);
+    expect(cli.served).toEqual([]);
+  });
+
+  it('passes the token, the extra host names and the platform to the server', async () => {
+    const options: unknown[] = [];
+    const cli = makeCli({
+      env: {
+        ARCGIS_DOCS_HTTP_TOKEN: HTTP_TOKEN,
+        ARCGIS_DOCS_HTTP_ALLOWED_HOSTS: 'docs.example.com',
+        RENDER: 'true',
+      },
+      deps: {
+        serveHttp: async (served) => {
+          options.push(served);
+          return { url: 'http://127.0.0.1:1/mcp', port: 1, close: async () => undefined };
+        },
+      },
+    });
+    expect(await runCli(['--http'], cli.deps)).toBeUndefined();
+    expect(options).toEqual([
+      expect.objectContaining({
+        token: HTTP_TOKEN,
+        allowedHosts: ['docs.example.com'],
+        platform: 'Render',
+      }),
+    ]);
+  });
+
+  it('listens on PORT when --port is not given, and --port wins over it', async () => {
+    const fromEnv = makeCli({ env: { PORT: '8080' } });
+    await runCli(['--http'], fromEnv.deps);
+    expect(fromEnv.served).toEqual([{ kind: 'http', host: '127.0.0.1', port: 8080 }]);
+
+    const fromFlag = makeCli({ env: { PORT: '8080' } });
+    await runCli(['--http', '--port', '4000'], fromFlag.deps);
+    expect(fromFlag.served).toEqual([{ kind: 'http', host: '127.0.0.1', port: 4000 }]);
+  });
+
+  it('reports an invalid PORT or token as a configuration error', async () => {
+    for (const env of [{ PORT: 'eighty' }, { ARCGIS_DOCS_HTTP_TOKEN: 'short' }]) {
+      const cli = makeCli({ env });
+      expect(await runCli(['--http'], cli.deps)).toBe(EXIT.usage);
+      expect(cli.err.join('')).toMatch(/^Configuration error: (PORT|ARCGIS_DOCS_HTTP_TOKEN):/);
+    }
   });
 
   it('does not warn for --allow-remote on a loopback host', async () => {
