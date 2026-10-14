@@ -1,0 +1,138 @@
+<!doctype html>
+<!--
+  Earthquakes of the last 30 days, clustered, with popups.
+
+  HAND-CHECKED, NOT AGENT OUTPUT. The agent in ../../agent.ts has not been run for this
+  repository (no API key was available). This file was written by hand, using only facts
+  returned by arcgis-sdk-mcp tool calls on 2026-10-14; ../../output/hand-checked/NOTES.md lists
+  each call and what it confirmed. It is this project's own code, not a copy of an Esri sample.
+
+  Open it from a local web server (for example `npx http-server .`), not from file://.
+  No API key is needed: the app uses no basemap from the basemap styles service.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Earthquakes, clustered</title>
+
+    <!-- ArcGIS Maps SDK for JavaScript 5.1 from the CDN (version from arcgis_docs_get_versions). -->
+    <script type="module" src="https://js.arcgis.com/5.1/"></script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #20232a;
+        font-family: system-ui, sans-serif;
+      }
+      #panel {
+        padding: 8px 10px;
+        max-width: 240px;
+        color: #f0efec;
+        background: #2b2f38;
+      }
+      #panel label {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+    </style>
+  </head>
+
+  <body class="calcite-mode-dark">
+    <arcgis-map center="-40,25" scale="80000000">
+      <arcgis-zoom slot="top-left"></arcgis-zoom>
+      <arcgis-legend slot="bottom-left"></arcgis-legend>
+      <div id="panel" slot="top-right">
+        <label><input id="toggle" type="checkbox" checked /> Cluster earthquakes</label>
+        <div id="count">Loading earthquakes...</div>
+      </div>
+    </arcgis-map>
+
+    <script type="module">
+      const [Map, FeatureLayer, GeoJSONLayer] = await $arcgis.import([
+        '@arcgis/core/Map.js',
+        '@arcgis/core/layers/FeatureLayer.js',
+        '@arcgis/core/layers/GeoJSONLayer.js',
+      ]);
+
+      // FeatureLayer.featureReduction takes a cluster configuration (FeatureReductionCluster):
+      // clusterRadius, clusterMinSize/clusterMaxSize, labelingInfo and popupTemplate.
+      // {cluster_count} is the aggregate field holding the number of features in a cluster.
+      const clusters = {
+        type: 'cluster',
+        clusterRadius: '80px',
+        clusterMinSize: '20px',
+        clusterMaxSize: '56px',
+        popupTemplate: {
+          title: '{cluster_count} earthquakes',
+          content: 'Zoom in to see the individual earthquakes in this cluster.',
+          fieldInfos: [{ fieldName: 'cluster_count', format: { places: 0, digitSeparator: true } }],
+        },
+        labelingInfo: [
+          {
+            // Labels sit inside the clusters, so label deconfliction is turned off.
+            deconflictionStrategy: 'none',
+            labelPlacement: 'center-center',
+            labelExpressionInfo: { expression: "Text($feature.cluster_count, '#,###')" },
+            symbol: { type: 'text', color: '#1a1a19', font: { size: '11px', weight: 'bold' } },
+          },
+        ],
+      };
+
+      // A public USGS GeoJSON feed; the layer reads GeoJSON from a URL.
+      const quakes = new GeoJSONLayer({
+        title: 'Earthquakes, last 30 days (USGS)',
+        url: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson',
+        copyright: 'USGS',
+        featureReduction: clusters,
+        popupTemplate: {
+          title: 'M{mag} {type}',
+          content: '{place}, {time}',
+          fieldInfos: [{ fieldName: 'time', format: { dateFormat: 'short-date-short-time' } }],
+        },
+        renderer: {
+          type: 'simple',
+          symbol: {
+            type: 'simple-marker',
+            size: 5,
+            color: '#ffb000',
+            outline: { color: 'rgba(255, 176, 0, 0.35)', width: 4 },
+          },
+        },
+      });
+
+      // Geographic context without the basemap styles service (which needs an access
+      // token): a public layer loaded from its portal item (FeatureLayer.portalItem).
+      const countries = new FeatureLayer({
+        portalItem: { id: '2b93b06dc0dc4e809d3c8db5cb96ba69' },
+        legendEnabled: false,
+        popupEnabled: false,
+        renderer: {
+          type: 'simple',
+          symbol: {
+            type: 'simple-fill',
+            color: [58, 62, 72, 1],
+            outline: { color: [32, 35, 42, 1], width: 0.5 },
+          },
+        },
+      });
+
+      const mapElement = document.querySelector('arcgis-map');
+      mapElement.map = new Map({ layers: [countries, quakes] });
+
+      // Setting featureReduction to null turns clustering off.
+      document.getElementById('toggle').addEventListener('change', (event) => {
+        quakes.featureReduction = event.target.checked ? clusters : null;
+      });
+
+      await quakes.load();
+      const total = await quakes.queryFeatureCount();
+      document.getElementById('count').textContent =
+        `${total.toLocaleString()} earthquakes in the feed`;
+    </script>
+  </body>
+</html>

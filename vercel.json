@@ -1,0 +1,26 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build && node -e \"require('node:fs').mkdirSync('public',{recursive:true})\"",
+  "outputDirectory": "public",
+  "functions": {
+    "api/mcp.ts": {
+      "maxDuration": 60,
+      "includeFiles": "package.json"
+    }
+  },
+  "rewrites": [
+    { "source": "/mcp", "destination": "/api/mcp" },
+    { "source": "/healthz", "destination": "/api/mcp" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Robots-Tag", "value": "noindex" }
+      ]
+    }
+  ]
+}

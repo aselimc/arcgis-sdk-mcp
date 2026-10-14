@@ -5,7 +5,7 @@
 import { parseArgs } from 'node:util';
 import { PACKAGE_NAME, TOOL_ORDER, type ToolName } from '../core/names.js';
 
-/** Default port of `--http`. */
+/** Default port of `--http` when neither `--port` nor `PORT` is given. */
 export const DEFAULT_HTTP_PORT = 3333;
 
 /** Default bind address of `--http`. */
@@ -27,7 +27,8 @@ export type Command =
   | { kind: 'help' }
   | { kind: 'version' }
   | { kind: 'serve-stdio' }
-  | { kind: 'serve-http'; port: number; host: string; allowRemote: boolean }
+  /** `port` is absent when `--port` is not given; `PORT` or the default applies then. */
+  | { kind: 'serve-http'; port?: number; host: string; allowRemote: boolean }
   | { kind: 'doctor'; product?: string; tier: DoctorTier; json: boolean }
   | { kind: 'cache-info' }
   | { kind: 'cache-clear'; scope: CacheScope }
@@ -65,6 +66,7 @@ Usage:
   ${PACKAGE_NAME} --http [--port ${DEFAULT_HTTP_PORT}] [--host ${DEFAULT_HTTP_HOST}]
                                           Serve MCP over HTTP at /mcp (health check at /healthz).
                                           Loopback only; any other --host needs --allow-remote
+                                          and ARCGIS_DOCS_HTTP_TOKEN
   ${PACKAGE_NAME} doctor [--product <id>] [--tier developer|all] [--json]
                                           Check configuration, cache and proxy, and probe the floor
                                           source of each product (--product: every source of one).
@@ -87,6 +89,11 @@ Environment:
   ARCGIS_DOCS_MAX_TOKENS   default max_tokens of arcgis_docs_read (default 6000)
   ARCGIS_DOCS_LOG_LEVEL    debug | info | warn | error | silent (default warn; logs go to stderr)
   GITHUB_TOKEN             raises the GitHub API quota from 60 to 5000 requests per hour
+  ARCGIS_DOCS_HTTP_TOKEN   --http: bearer token every /mcp request must carry (32+ characters);
+                           required beyond loopback and on hosting platforms
+  ARCGIS_DOCS_HTTP_ALLOWED_HOSTS
+                           --http: extra host names accepted in Host and Origin, comma separated
+  PORT                     --http: port when --port is not given (set by hosting platforms)
 `;
 
 /** True for a host name or address that only this machine can reach. */
@@ -97,8 +104,7 @@ export function isLoopbackHost(host: string): boolean {
   );
 }
 
-function parsePort(raw: string | undefined): number {
-  if (raw === undefined) return DEFAULT_HTTP_PORT;
+function parsePort(raw: string): number {
   const port = /^\d+$/.test(raw) ? Number(raw) : Number.NaN;
   if (!Number.isInteger(port) || port > 65_535) {
     throw new UsageError(`--port: expected a number from 0 to 65535, got "${raw}"`);
@@ -225,11 +231,16 @@ export function parseCli(argv: readonly string[]): Command {
       const allowRemote = values['allow-remote'] === true;
       if (!isLoopbackHost(host) && !allowRemote) {
         throw new UsageError(
-          `--host ${host} is not a loopback address. The HTTP server has no authentication; ` +
-            'pass --allow-remote to bind it anyway',
+          `--host ${host} is not a loopback address. Other machines could reach the server; ` +
+            'pass --allow-remote and set ARCGIS_DOCS_HTTP_TOKEN to bind it anyway',
         );
       }
-      return { kind: 'serve-http', port: parsePort(values.port), host, allowRemote };
+      return {
+        kind: 'serve-http',
+        ...(values.port === undefined ? {} : { port: parsePort(values.port) }),
+        host,
+        allowRemote,
+      };
     }
   }
 }

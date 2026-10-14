@@ -1,0 +1,102 @@
+arcgis-sdk-mcp quickstart: one agent task, five tool calls, over MCP stdio
+Server: arcgis-sdk-docs 0.1.0
+Tools:  arcgis_docs_list_products, arcgis_docs_get_versions, arcgis_docs_search, arcgis_docs_read, arcgis_docs_lookup_symbol, arcgis_docs_find_samples
+Task:   add clustered points with popups to a web map
+
+[1/5] Pick the product
+> arcgis_docs_list_products {"query":"web map javascript","limit":3}
+  ArcGIS products | category: developer categories | filter: "web map javascript" | 3 of 19
+  
+  ## web
+  - js-maps-sdk: ArcGIS Maps SDK for JavaScript, 5.x. Web mapping SDK: 2D and 3D maps, layers, queries, editing and analysis as web components and an ES module...
+  - web-map-spec: Web map specification, Current. JSON specification of the ArcGIS web map: every object, property and allowed value, by specification version.
+  - maplibre-arcgis: MapLibre GL JS with ArcGIS, Current. Guides and tutorials for using MapLibre GL JS with ArcGIS basemaps, data services and location services.
+  
+  Next: arcgis_docs_list_products({"query":"web map javascript","limit":3,"cursor":"eyJ2IjoxLCJ0IjoiYXJjZ2lzX2RvY3NfbGlzdF9wcm9kdWN0cyIsImsiOiJmOGM3MzAzNDE4Yzg...
+  (59 ms)
+  -> using "js-maps-sdk" (structuredContent.products[0].id)
+
+[2/5] Check the version
+> arcgis_docs_get_versions {"product":"js-maps-sdk"}
+  Versions as of 2026-10-14 | js-maps-sdk
+  
+  ## ArcGIS Maps SDK for JavaScript (js-maps-sdk), active
+  Documentation describes: 5.1, released 2026-06 (https://developers.arcgis.com/javascript/latest/)
+  Installable:
+  - @arcgis/core 5.1.27 on npm [latest] (https://registry.npmjs.org/-/package/@arcgis/core/dist-tags)
+  Pre-release:
+  - next: 6.0.0-next.7 (@arcgis/core)
+  - rc: 5.2.0-next.146 (@arcgis/core)
+  Install:
+  - npm install @arcgis/core
+  Documentation lines:
+  - latest "5.x": https://developers.arcgis.com/javascript/latest/ (live; symbols: live)
+  - npm-any-version "Any other published npm version (typings only)": https://developers.arcgis.com/javascript/latest/ (link-only; symbols: npm-any-version)
+  [...]
+  
+  Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/javascript/latest/release-notes/"})
+  Source: Esri documentation at the refs above (retrieved 2026-10-14). Copyright (c) Esri and respective authors. Use subject to Esri's terms: https://www.esri...
+  (15 ms)
+  -> docs describe 5.1 (structuredContent.products[0].documented.version)
+
+[3/5] Search the docs
+> arcgis_docs_search {"query":"cluster points popup","product":"js-maps-sdk","limit":4}
+  Search "cluster points popup" | products: js-maps-sdk, resolved from "js-maps-sdk" | line: latest | mode: local index (site search off) | hits 1-4 of 87
+  Note: No page matches every word of the query: these are partial matches, so check a hit before relying on it. Fewer or different words may find the page.
+  Note: More hits: arcgis_docs_search({"query":"cluster points popup","product":"js-maps-sdk","limit":4,"cursor":"eyJ2IjoxLCJ0IjoiYXJjZ2lzX2RvY3Nfc2VhcmNoIiwia...
+  
+  1. Popup charts for clusters [sample] js-maps-sdk/samples 5.1
+     https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-popup-chart/
+  2. Clustering - filter popup features [sample] js-maps-sdk/samples 5.1
+     https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-popup-filter/
+  3. Summarize intersecting points in a popup [sample] js-maps-sdk/samples 5.1
+     https://developers.arcgis.com/javascript/latest/sample-code/popuptemplate-arcade-groupby/
+  4. clusters [api, module] js-maps-sdk/core 5.1
+     https://developers.arcgis.com/javascript/latest/references/core/smartMapping/popup/clusters/
+     In: @arcgis/core/smartMapping/popup/clusters
+  
+  Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-popup-chart/"})
+  Source: Esri documentation at the refs above (retrieved 2026-10-14). Copyright (c) Esri and respective authors. Use subject to Esri's terms: https://www.esri...
+  (723 ms)
+  -> best hit: https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-popup-chart/
+
+[4/5] Look up the API
+> arcgis_docs_lookup_symbol {"symbol":"FeatureLayer.featureReduction","product":"js-maps-sdk","detail":"signature"}
+  @arcgis/core/layers/FeatureLayer.featureReduction (member) | ArcGIS Maps SDK for JavaScript (js-maps-sdk) | version 5.1 | api | cached
+  Note: @arcgis/core/layers/FeatureLayer inherits featureReduction from FeatureReductionLayer.
+  
+  ### featureReduction
+  
+  ```ts
+  FeatureReductionUnion | null | undefined
+  ```
+  
+  [...]
+  
+  Source: Esri, https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/#featureReduction (retrieved 2026-10-13, cached). Copyright...
+  (349 ms)
+
+[5/5] Find a sample
+> arcgis_docs_find_samples {"query":"clustering","product":"js-maps-sdk","limit":3}
+  Samples for "clustering" | product: js-maps-sdk | line: latest | 3 of 12
+  
+  1. Clustering - query clusters [js-maps-sdk, javascript, esri-site, esri-website-terms]
+     https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-query/
+  [...]
+     File: index.html https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-query/
+  2. Intro to clustering [js-maps-sdk, javascript, esri-site, esri-website-terms]
+     https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster/
+  [...]
+     File: index.html https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster/
+  3. Clustering - advanced configuration [js-maps-sdk, javascript, esri-site, esri-website-terms]
+     https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-filter-slider/
+  [...]
+     File: index.html https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-filter-slider/
+  
+  Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-query/","section":"source"})
+  Source: Esri documentation at the refs above (retrieved 2026-10-14). Copyright (c) Esri and respective authors. Use subject to Esri's terms: https://www.esri...
+  (154 ms)
+  -> next an agent would read its code:
+     arcgis_docs_read {"ref":"https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-query/","section":"source"}
+
+Done. Every answer named its product, version and source URL.

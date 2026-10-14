@@ -213,3 +213,109 @@ export function loadConfig(
   }
   return parsed.data;
 }
+
+/**
+ * Settings of the HTTP transport only. They are kept out of {@link Config} on purpose: the
+ * bearer token stays with the HTTP front door and never reaches `ctx.config`, which every
+ * adapter and service can read.
+ */
+export interface HttpSettings {
+  /** `ARCGIS_DOCS_HTTP_TOKEN`: the bearer token every `/mcp` request must carry, when set. */
+  token?: string | undefined;
+  /** `PORT`, the variable hosting platforms set; `--port` wins over it. */
+  port?: number | undefined;
+  /**
+   * Host names accepted in `Host` and `Origin` besides the bind address and loopback:
+   * `ARCGIS_DOCS_HTTP_ALLOWED_HOSTS` plus the deployment's own names on Vercel
+   * (`VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_URL`, `VERCEL_BRANCH_URL`). Lower case, no port.
+   */
+  allowedHosts: string[];
+  /** The hosting platform detected from its environment, or `undefined` on a plain machine. */
+  platform?: string | undefined;
+}
+
+/** Shortest accepted bearer token: 32 characters, such as `openssl rand -hex 16` prints. */
+export const MIN_HTTP_TOKEN_LENGTH = 32;
+
+/** RFC 6750 `b64token`: the characters a bearer token may consist of. */
+const B64TOKEN = /^[A-Za-z0-9\-._~+/]+=*$/;
+
+/**
+ * Environment variables that only a hosting platform sets, and the platform each names.
+ * Detecting one makes the HTTP server refuse to serve without a token, whatever it binds.
+ */
+export const HOSTING_PLATFORMS: ReadonlyArray<{ variable: string; name: string }> = [
+  { variable: 'VERCEL', name: 'Vercel' },
+  { variable: 'K_SERVICE', name: 'Google Cloud Run' },
+  { variable: 'AWS_LAMBDA_FUNCTION_NAME', name: 'AWS Lambda' },
+  { variable: 'FLY_APP_NAME', name: 'Fly.io' },
+  { variable: 'RENDER', name: 'Render' },
+  { variable: 'RAILWAY_ENVIRONMENT', name: 'Railway' },
+  { variable: 'DYNO', name: 'Heroku' },
+  { variable: 'WEBSITE_SITE_NAME', name: 'Azure App Service' },
+];
+
+/** Vercel's own host names of a deployment; none of them includes the scheme. */
+const VERCEL_HOST_VARIABLES = ['VERCEL_PROJECT_PRODUCTION_URL', 'VERCEL_URL', 'VERCEL_BRANCH_URL'];
+
+/** A DNS name, an IPv4 address or a bracketed IPv6 address; no scheme, port or path. */
+const HOST_NAME = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*|\[[0-9a-f:.]+\])$/;
+
+function httpToken(env: NodeJS.ProcessEnv): string | undefined {
+  const token = text(env, 'ARCGIS_DOCS_HTTP_TOKEN');
+  if (token === undefined) return undefined;
+  if (!B64TOKEN.test(token)) {
+    throw new ConfigError(
+      'ARCGIS_DOCS_HTTP_TOKEN: expected letters, digits and - . _ ~ + / (a bearer token), ' +
+        'for example the output of "openssl rand -hex 32"',
+    );
+  }
+  if (token.length < MIN_HTTP_TOKEN_LENGTH) {
+    throw new ConfigError(
+      `ARCGIS_DOCS_HTTP_TOKEN: expected at least ${MIN_HTTP_TOKEN_LENGTH} characters, got ${token.length}. ` +
+        'Generate one with "openssl rand -hex 32"',
+    );
+  }
+  return token;
+}
+
+function hostList(raw: string | undefined, name: string): string[] {
+  if (raw === undefined) return [];
+  return raw
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter((item) => item !== '')
+    .map((item) => {
+      if (!HOST_NAME.test(item)) {
+        throw new ConfigError(
+          `${name}: expected host names without scheme, port or path (for example ` +
+            `"docs.example.com"), got "${item}"`,
+        );
+      }
+      return item;
+    });
+}
+
+/**
+ * Reads the settings of the HTTP transport: `ARCGIS_DOCS_HTTP_TOKEN`,
+ * `ARCGIS_DOCS_HTTP_ALLOWED_HOSTS`, `PORT`, and the variables that identify a hosting
+ * platform (see {@link HOSTING_PLATFORMS}).
+ *
+ * @throws ConfigError naming the variable when a value is invalid: a token shorter than
+ *   {@link MIN_HTTP_TOKEN_LENGTH} or with characters a bearer token cannot have, a port out of
+ *   range, a host given with a scheme or port.
+ */
+export function loadHttpSettings(env: NodeJS.ProcessEnv): HttpSettings {
+  const platform = HOSTING_PLATFORMS.find(({ variable }) => text(env, variable) !== undefined);
+  const allowed = hostList(text(env, 'ARCGIS_DOCS_HTTP_ALLOWED_HOSTS'), 'ARCGIS_DOCS_HTTP_ALLOWED_HOSTS');
+  if (platform?.variable === 'VERCEL') {
+    for (const variable of VERCEL_HOST_VARIABLES) allowed.push(...hostList(text(env, variable), variable));
+  }
+  return {
+    token: httpToken(env),
+    port:
+      text(env, 'PORT') === undefined ? undefined : integer(env, 'PORT', 0, { min: 0, max: 65_535 }),
+    allowedHosts: [...new Set(allowed)],
+    platform: platform?.name,
+  };
+}

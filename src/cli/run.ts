@@ -8,13 +8,21 @@ import type { McpServerFactory } from '@modelcontextprotocol/server';
 import type { Container } from '../app/container.js';
 import type { PackageInfo } from '../app/package-info.js';
 import { ConfigError } from '../core/capabilities.js';
-import { loadConfig, type Config } from '../core/config.js';
+import { loadConfig, loadHttpSettings, type Config } from '../core/config.js';
 import { isMcpDocError } from '../core/errors.js';
 import { PACKAGE_NAME } from '../core/names.js';
 import type { Logger } from '../core/ports.js';
-import { HELP_TEXT, UsageError, isLoopbackHost, parseCli, type Command } from './args.js';
+import {
+  DEFAULT_HTTP_PORT,
+  HELP_TEXT,
+  UsageError,
+  isLoopbackHost,
+  parseCli,
+  type Command,
+} from './args.js';
 import { cacheClear, cacheInfo } from './cache-cmd.js';
 import { formatDoctorReport } from './doctor-format.js';
+import { missingTokenMessage, tokenRequirement } from './http-auth.js';
 import { runDoctor } from './doctor.js';
 import type { HttpHandle, HttpServeOptions } from './http.js';
 import { formatWarm, runWarm } from './warm.js';
@@ -25,9 +33,11 @@ export const EXIT = { ok: 0, failure: 1, usage: 2 } as const;
 /** Printed on stderr when the HTTP server is bound beyond loopback. */
 export const REMOTE_WARNING = [
   'WARNING: --allow-remote exposes this server to other machines.',
-  '  - It has no authentication: anyone who can reach the port can use it.',
+  '  - Every /mcp request must carry the bearer token of ARCGIS_DOCS_HTTP_TOKEN; anyone',
+  '    who has the token can use the server. The server speaks plain HTTP: put TLS in front',
+  '    of it (a reverse proxy or the platform) so the token never crosses a network in clear.',
   '  - It is meant for your own agents, not as a shared or public service',
-  '    (see docs/source-policy.md).',
+  '    (see docs/source-policy.md and docs/hosting.md).',
   '  - Workspace detection and local package reading are off in HTTP mode.',
   '',
 ].join('\n');
@@ -89,6 +99,12 @@ async function execute(
 ): Promise<number | undefined> {
   const mode = command.kind === 'serve-http' ? 'http' : 'stdio';
   const config = loadConfig(deps.env, { mode, cwd: deps.cwd }, deps.pkg);
+  // Read before the application is loaded, so that a server which must not start fails fast.
+  const http = command.kind === 'serve-http' ? loadHttpSettings(deps.env) : undefined;
+  if (command.kind === 'serve-http' && http?.token === undefined) {
+    const required = tokenRequirement(command.host, http?.platform);
+    if (required !== undefined) throw new ConfigError(missingTokenMessage(required));
+  }
   const app = await deps.loadApp();
   // One container per process. In HTTP mode the server factory runs once per request and
   // closes over it, so caches, indexes and rate limits are shared by all requests.
@@ -108,7 +124,10 @@ async function execute(
         logger: container.logger,
         version: config.version,
         host: command.host,
-        port: command.port,
+        port: command.port ?? http?.port ?? DEFAULT_HTTP_PORT,
+        token: http?.token,
+        allowedHosts: http?.allowedHosts,
+        platform: http?.platform,
       });
       deps.onShutdown(() => handle.close());
       deps.err(`${PACKAGE_NAME} ${config.version} listening on ${handle.url}\n`);

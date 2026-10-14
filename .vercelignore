@@ -1,0 +1,21 @@
+# Files Vercel does not upload or build. The function needs package.json, the lockfile,
+# tsconfig*.json, src/ and api/; everything else is for development and CI.
+.git/
+.github/
+.claude/
+.vercel/
+node_modules/
+dist/
+coverage/
+public/
+test/
+evals/
+scripts/
+briefs/
+examples/
+docs/
+*.tgz
+*.log
+.env
+.env.*
+.mcp.json
