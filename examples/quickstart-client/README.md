@@ -6,13 +6,13 @@ model in the loop: it starts the server over stdio with the official MCP client
 
 Task: _add clustered points with popups to a web map._
 
-| Step | Tool                        | Arguments                                                    | What the script takes from the result         |
-| ---- | --------------------------- | ------------------------------------------------------------ | --------------------------------------------- |
-| 1    | `arcgis_docs_list_products` | `{"query":"web map javascript","limit":3}`                   | the product id (`structuredContent`)          |
-| 2    | `arcgis_docs_get_versions`  | `{"product":"<id>"}`                                         | the version the documentation describes       |
-| 3    | `arcgis_docs_search`        | `{"query":"cluster points popup","product":"<id>","limit":4}` | the best hit's URL                            |
-| 4    | `arcgis_docs_lookup_symbol` | `{"symbol":"FeatureLayer.featureReduction",...}`             | the declaration, with its source URL          |
-| 5    | `arcgis_docs_find_samples`  | `{"query":"clustering","product":"<id>","limit":3}`          | a sample whose code `arcgis_docs_read` returns |
+| Step | Tool                        | Arguments                                                     | What the script takes from the result          |
+| ---- | --------------------------- | ------------------------------------------------------------- | ---------------------------------------------- |
+| 1    | `arcgis_docs_list_products` | `{"query":"web map javascript","limit":3}`                    | the product id (`structuredContent`)           |
+| 2    | `arcgis_docs_get_versions`  | `{"product":"<id>"}`                                          | the version the documentation describes        |
+| 3    | `arcgis_docs_search`        | `{"query":"cluster points popup","product":"<id>","limit":4}` | the best hit's URL                             |
+| 4    | `arcgis_docs_lookup_symbol` | `{"symbol":"FeatureLayer.featureReduction",...}`              | the declaration, with its source URL           |
+| 5    | `arcgis_docs_find_samples`  | `{"query":"clustering","product":"<id>","limit":3}`           | a sample whose code `arcgis_docs_read` returns |
 
 ## Run it
 

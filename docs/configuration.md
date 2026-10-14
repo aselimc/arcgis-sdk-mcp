@@ -151,9 +151,19 @@ media types. In HTTP mode the `arcgis-docs://status` resource leaves out the cac
 and the project, which are paths on the host. `Host` and `Origin` are validated for loopback use, which
 keeps a web page in a browser on the same machine from reaching the server.
 
-`--host` with a non-loopback address needs `--allow-remote`, prints a warning about Esri's
-terms, and has no authentication: put it behind your own access control. `workspace` and
-`local-packages` are always off in HTTP mode, so project detection does not apply there.
+With `ARCGIS_DOCS_HTTP_TOKEN` set (at least 32 characters), every `/mcp` request must carry
+`Authorization: Bearer <token>`; a missing or wrong token gets `401` with a
+`WWW-Authenticate` challenge. The health check stays open. `PORT` sets the port when
+`--port` is not given, and `ARCGIS_DOCS_HTTP_ALLOWED_HOSTS` adds host names (comma
+separated, no scheme or port) that `Host` and `Origin` may carry, for a reverse proxy or a
+custom domain.
+
+`--host` with a non-loopback address needs `--allow-remote` and a token: without
+`ARCGIS_DOCS_HTTP_TOKEN` the server refuses to start, as it does on a recognised hosting
+platform even on loopback. It prints a warning about Esri's terms; the server speaks plain
+HTTP, so put TLS in front of it. `workspace` and `local-packages` are always off in HTTP
+mode, so project detection does not apply there. [hosting.md](hosting.md) shows how to run a
+private instance on Vercel or another host.
 
 ## Checking a setup
 

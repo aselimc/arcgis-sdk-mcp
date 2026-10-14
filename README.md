@@ -1,212 +1,113 @@
 # arcgis-sdk-mcp
 
+**An MCP server that lets coding agents look up Esri's ArcGIS developer documentation while
+they work, instead of guessing from memory.**
+
 [![CI](https://github.com/aselimc/arcgis-sdk-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/aselimc/arcgis-sdk-mcp/actions/workflows/ci.yml)
 [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue.svg)](LICENSE)
 [![Node.js 22.12 or later](https://img.shields.io/badge/node-%3E%3D22.12-brightgreen.svg)](package.json)
+[![MCP server](https://img.shields.io/badge/MCP-server-8a63d2.svg)](https://modelcontextprotocol.io)
 
-`arcgis-sdk-mcp` is a [Model Context Protocol](https://modelcontextprotocol.io) server that
-lets a coding agent look things up in Esri's public ArcGIS developer documentation while it
-works: guides, API references, REST specifications, samples, release notes and version facts
-for 53 developer products, from the ArcGIS Maps SDK for JavaScript to ArcPy. It ships no
-documentation. It fetches the page, index file or package file the agent asks for, turns it
-into compact Markdown, and returns it with the product, the version and the source URL.
-
-> **Unofficial. Not affiliated with, endorsed by or sponsored by Esri.** This is an
-> independent, non-commercial, open-source project that uses only publicly available
-> documentation. Pages are fetched from Esri's public sites when your agent asks for them,
-> cached on your machine, and returned with a source line. See
+> **Unofficial. Not affiliated with, endorsed by or sponsored by Esri.** An independent,
+> non-commercial, open-source project that reads Esri's public documentation on demand,
+> caches it on your machine and credits the source on every answer. See
 > [Source policy and legal note](#source-policy-and-legal-note).
 
-An agent that is unsure of a method's signature asks for it instead of guessing:
+<p align="center">
+  <img src="docs/assets/hero-terminal.svg" width="900" alt="Terminal recording: three real tool calls. get_versions reports that the ArcGIS Maps SDK for JavaScript documentation describes 5.1 and npm installs @arcgis/core 5.1.27; lookup_symbol returns the signature of arcpy.da.SearchCursor; find_samples lists Swift samples for downloading an offline map, pinned to release 300.1.0. Each answer ends with a Next call and a Source line.">
+</p>
 
-````text
-$ arcgis-sdk-mcp call lookup_symbol '{"symbol":"FeatureLayer.queryFeatures","detail":"signature"}'
-@arcgis/core/layers/FeatureLayer.queryFeatures (method) | ArcGIS Maps SDK for JavaScript (js-maps-sdk), resolved from "FeatureLayer.queryFeatures" | version 5.1 | api | cached
-Note: The product js-maps-sdk was inferred from the name; pass "product" to look in another.
+<sub>Real output of `node dist/cli/main.js call ...`, trimmed: Esri's prose is replaced by
+`[...]`. The recording is [docs/assets/hero-terminal.txt](docs/assets/hero-terminal.txt);
+[docs/demos.md](docs/demos.md) has more.</sub>
 
-### queryFeatures
+## What it does, in 30 seconds
 
-```ts
-queryFeatures (query?: QueryProperties | null | undefined, options?: RequestOptions): Promise<FeatureSet>
-```
+**The problem.** ArcGIS APIs change with every release. The JavaScript SDK moved from 4.x
+widgets to 5.x web components, and the native SDKs from 200.x to 300.x, so what a model
+remembers is often a version behind, and it writes code against APIs that have moved.
 
-[...]
-Source: Esri, https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/#queryFeatures (retrieved 2026-10-13, cached). [...]
-````
+**What this server does.** It gives the agent six read-only tools: list products, check
+versions, search, read a page, look up a symbol, find samples. The agent asks for what it
+needs; the server fetches that one page, index file or package file from the public source,
+turns it into compact Markdown within a token budget, and answers with the product, the
+version it describes and the source URL. It ships no documentation.
 
-The answer names the product, the version it describes and the page it came from, in a few
-hundred tokens. [The six tools](#the-six-tools) shows one call of each.
+**What it covers.** The registry holds 136 entries: **53 developer products** in 10
+categories, from the ArcGIS Maps SDKs for JavaScript, Swift, Kotlin, .NET, Qt, Flutter, Unity
+and Unreal Engine to ArcPy, the ArcGIS API for Python, the REST APIs and the web map, CIM and
+I3S specifications; 76 end-user product-help entries; and 7 retired or deprecated products
+that point to their successors. Documentation is read through 20 source adapters, one per way
+Esri publishes it.
 
-## Contents
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/coverage-dark.svg">
+  <img src="docs/assets/coverage-light.svg" alt="Developer products covered, by category: Web 11, Specifications and formats 10, REST APIs, services and platform 9, Native 5, Python, data science and R 5, Desktop and Enterprise 5, DevOps and open source 4, Game engines 2, AI, agents and MCP 1, Support 1. Generated from the registry.">
+</picture>
 
-- [Why](#why)
-- [Quick start](#quick-start)
-- [The six tools](#the-six-tools)
-- [A typical agent workflow](#a-typical-agent-workflow)
-- [Product coverage](#product-coverage)
-- [Configuration](#configuration)
-- [Command line](#command-line)
-- [How it works](#how-it-works)
-- [Source policy and legal note](#source-policy-and-legal-note)
-- [Development and testing](#development-and-testing)
-- [Status and known limitations](#status-and-known-limitations)
-- [Roadmap](#roadmap)
-- [Licence](#licence)
-
-## Why
-
-ArcGIS APIs change with every release. The JavaScript SDK moved from 4.x widgets to 5.x web
-components, and the native SDKs moved from 200.x to 300.x, so what a model remembers is often
-a version behind. This server lets the agent check instead of guess.
-
-- **Version aware.** It reports the version the documentation describes, the version a
-  package manager installs and the version found in your project, and says when they differ.
-- **Small answers.** Every result has a token budget. A long page comes back as its opening
-  section and an outline with section sizes; one more call reads the section that is needed.
-- **One kind of handle.** A document reference is its URL. The agent can pass back any Esri
-  documentation URL it meets in code, in an error message or in a search result.
-- **Clear about gaps.** "Not found" is reported as "not verified", a degraded answer says
-  why, and fetched content always comes with a source line naming where it came from.
+Every number above comes from the registry ([docs/products.md](docs/products.md) lists each
+product with its version lines and sources); the chart is regenerated by
+`scripts/render-coverage.ts`.
 
 ## Quick start
 
-Requires Node.js 22.12 or later. Nothing else needs to be installed or configured: there is
-no API key and no account.
+Requires Node.js 22.12 or later. There is no API key and no account.
 
 > **Not on npm yet.** Version 0.1.0 has not been published, so `npx -y arcgis-sdk-mcp` does
-> not work yet (and must not be run until the package exists under this name). Until then,
-> build it [from a clone](#from-a-clone) and point your host at `node <clone>/dist/cli/main.js`
-> instead of `npx -y arcgis-sdk-mcp` in the configurations below.
-
-```sh
-npx -y arcgis-sdk-mcp --version
-npx -y arcgis-sdk-mcp call list_products
-```
-
-An MCP host starts the server itself. Add it to yours:
-
-### Claude Code
-
-```sh
-claude mcp add arcgis-docs -- npx -y arcgis-sdk-mcp
-```
-
-On Windows (outside WSL) wrap the command: `claude mcp add arcgis-docs -- cmd /c npx -y arcgis-sdk-mcp`.
-To share the entry with a team, put it in a `.mcp.json` file at the project root;
-[.mcp.json.example](.mcp.json.example) has both forms (keep the one for your platform).
-
-### Claude Desktop
-
-Settings, Developer, Edit Config opens `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "arcgis-docs": {
-      "command": "npx",
-      "args": ["-y", "arcgis-sdk-mcp"]
-    }
-  }
-}
-```
-
-### Cursor
-
-`.cursor/mcp.json` in the project, or `~/.cursor/mcp.json` for every project:
-
-```json
-{
-  "mcpServers": {
-    "arcgis-docs": {
-      "command": "npx",
-      "args": ["-y", "arcgis-sdk-mcp"]
-    }
-  }
-}
-```
-
-### VS Code
-
-`.vscode/mcp.json` in the workspace (note the `servers` key):
-
-```json
-{
-  "servers": {
-    "arcgis-docs": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "arcgis-sdk-mcp"]
-    }
-  }
-}
-```
-
-### Windows
-
-Some hosts on Windows cannot start the `npx` shim directly and report that the server failed
-to start. Run it through `cmd` in any of the configurations above:
-
-```json
-{
-  "command": "cmd",
-  "args": ["/c", "npx", "-y", "arcgis-sdk-mcp"]
-}
-```
-
-### Project detection
-
-The server looks for Esri SDKs in the directory it is started in, so that a bare symbol name
-or an unscoped search refers to the SDK your project uses. Hosts that start servers somewhere
-else (Claude Desktop, a global Cursor entry) can name the project:
-
-```json
-{
-  "command": "npx",
-  "args": ["-y", "arcgis-sdk-mcp"],
-  "env": { "ARCGIS_DOCS_PROJECT_DIR": "/path/to/your/project" }
-}
-```
-
-### From a clone
+> not work yet (and must not be run until the package exists under this name). Build it from a
+> clone:
 
 ```sh
 git clone https://github.com/aselimc/arcgis-sdk-mcp.git
 cd arcgis-sdk-mcp
 npm ci
 npm run build
-node dist/cli/main.js --version
+node dist/cli/main.js call list_products '{"category":"native"}'
 ```
 
-Point the host at the built file, with an absolute path:
-
-```json
-{
-  "mcpServers": {
-    "arcgis-docs": {
-      "command": "node",
-      "args": ["/absolute/path/to/arcgis-sdk-mcp/dist/cli/main.js"]
-    }
-  }
-}
-```
-
-### HTTP
+Then add it to your MCP host, which starts the server itself. For Claude Code:
 
 ```sh
-npx -y arcgis-sdk-mcp --http --port 3333
+claude mcp add arcgis-docs -- node /absolute/path/to/arcgis-sdk-mcp/dist/cli/main.js
 ```
 
-Serves stateless MCP at `http://127.0.0.1:3333/mcp`, with a health check at `/healthz`. It
-binds to loopback and validates the `Host` and `Origin` headers. Any other `--host` needs
-`--allow-remote`, and the server has no authentication. Project detection and local package
-reads are off in HTTP mode. HTTP mode is meant for your own agents, not as a shared or
-public service (see [below](#source-policy-and-legal-note)).
+[examples/host-configs](examples/host-configs/) has ready-to-copy files for Claude Code,
+Claude Desktop, Cursor and VS Code, and [Add it to your host](#add-it-to-your-host) below
+has the details. Ask your agent something version-sensitive, such as "add clustering with
+popups to this map", and it will call the tools on its own: the server's instructions tell it
+when and in which order.
+
+## Examples
+
+| Example                                                    | What it shows                                                                    |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [quickstart-client](examples/quickstart-client/)           | A TypeScript MCP client walks one agent task in five tool calls; real transcript |
+| [agent-builds-a-map-app](examples/agent-builds-a-map-app/) | Claude, with this server attached, builds an ArcGIS Maps SDK for JavaScript app  |
+| [host-configs](examples/host-configs/)                     | Server entries for Claude Code, Claude Desktop, Cursor and VS Code               |
+
+The agent example needs an Anthropic API key and has not been run for this repository yet;
+its README says so, and the app next to it is labelled as hand-written from tool output.
+
+## Contents
+
+- [The six tools](#the-six-tools)
+- [A typical agent workflow](#a-typical-agent-workflow)
+- [Add it to your host](#add-it-to-your-host)
+- [Configuration](#configuration)
+- [Command line](#command-line)
+- [How it works](#how-it-works)
+- [Hosting](#hosting)
+- [Source policy and legal note](#source-policy-and-legal-note)
+- [Development and testing](#development-and-testing)
+- [Status and known limitations](#status-and-known-limitations)
+- [Roadmap](#roadmap)
+- [Licence](#licence)
 
 ## The six tools
 
-All six are read-only. The server's instructions tell the agent in which order to use them,
-so nothing has to be added to a prompt. Full argument and result schemas are in
-[docs/tools.md](docs/tools.md).
+All six are read-only. Full argument and result schemas are in [docs/tools.md](docs/tools.md),
+and [docs/demos.md](docs/demos.md#the-six-tools-one-real-call-each) shows one real call of
+each.
 
 | Tool                        | What it does                                                                                |
 | --------------------------- | ------------------------------------------------------------------------------------------- |
@@ -223,199 +124,21 @@ content was fetched, a `Source:` line. `arcgis_docs_read` and `arcgis_docs_looku
 return text only; the other four also return `structuredContent` that conforms to an output
 schema.
 
-The examples below are real output of `arcgis-sdk-mcp call`, recorded on 2026-10-13 and
-2026-10-14 and shortened. `[...]` marks where text was removed, including the documentation
-prose: this repository does not reproduce Esri's text.
+- **Version aware.** It reports the version the documentation describes, the version a
+  package manager installs and the version found in your project, and says when they differ.
+- **Small answers.** Every result has a token budget. A long page comes back as its opening
+  section and an outline with section sizes; one more call reads the section that is needed. A
+  23,000-token REST reference page costs 1,500 tokens this way.
+- **One kind of handle.** A document reference is its URL. The agent can pass back any Esri
+  documentation URL it meets in code, in an error message or in a search result.
+- **Clear about gaps.** "Not found" is reported as "not verified", a degraded answer says why,
+  and a failed call says what went wrong and what to do next, in one line.
 
-### `arcgis_docs_list_products`
-
-```sh
-arcgis-sdk-mcp call list_products '{"category":"native"}'
-```
-
-```text
-ArcGIS products | category: native | 5 of 5
-
-## native
-- dotnet-maps-sdk: ArcGIS Maps SDK for .NET, 300.x. Native mapping SDK for .NET apps on WPF, .NET MAUI and WinUI in C#: 2D/3D maps, offline data, routing, geocoding.
-- flutter-maps-sdk: ArcGIS Maps SDK for Flutter, 300.x. Mapping SDK for cross-platform Flutter apps in Dart on Android and iOS: maps, scenes, offline data, routing.
-- kotlin-maps-sdk: ArcGIS Maps SDK for Kotlin, 300.x. Native mapping SDK for Android apps in Kotlin with Jetpack Compose: 2D/3D maps, offline data, routing, geocoding.
-[...]
-
-Next: arcgis_docs_list_products({"product":"dotnet-maps-sdk"})
-```
-
-With `product` it returns the profile (packages, version lines, documentation sources,
-start-here links, pitfalls); with `product` and `section` the table of contents of one
-source. The product summaries are this project's own wording.
-
-### `arcgis_docs_get_versions`
-
-```sh
-arcgis-sdk-mcp call get_versions '{"product":"js-maps-sdk"}'
-```
-
-```text
-Versions as of 2026-10-13 | js-maps-sdk
-
-## ArcGIS Maps SDK for JavaScript (js-maps-sdk), active
-Documentation describes: 5.1, released 2026-06 (https://developers.arcgis.com/javascript/latest/)
-Installable:
-- @arcgis/core 5.1.27 on npm [latest] (https://registry.npmjs.org/-/package/@arcgis/core/dist-tags)
-Pre-release:
-- rc: 5.2.0-next.145
-- next: 6.0.0-next.6
-Install:
-- npm install @arcgis/core
-[...]
-Compatibility:
-- ArcGIS Enterprise: 12.2 (https://developers.arcgis.com/javascript/latest/version-matrix/)
-- Calcite components: 5.1.* (https://developers.arcgis.com/javascript/latest/version-matrix/)
-[...]
-Release notes:
-- 5.1: https://developers.arcgis.com/javascript/latest/release-notes/
-[...]
-
-Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/javascript/latest/release-notes/"})
-Source: Esri documentation at the refs above (retrieved 2026-10-13). [...]
-```
-
-With no arguments it reports every Esri SDK it detects in the project's manifests.
-
-### `arcgis_docs_search`
-
-```sh
-arcgis-sdk-mcp call search '{"query":"FeatureLayer queryFeatures","product":"js-maps-sdk","limit":4}'
-```
-
-```text
-Search "FeatureLayer queryFeatures" | products: js-maps-sdk, resolved from "js-maps-sdk" | line: latest | mode: local index (site search off) | hits 1-4 of 103
-Note: More hits: arcgis_docs_search({"query":"FeatureLayer queryFeatures","product":"js-maps-sdk","limit":4,"cursor":"eyJ2Ijox[...]"})
-
-1. queryFeatures() [api, method] js-maps-sdk/core 5.1
-   https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/#queryFeatures
-   In: @arcgis/core/layers/FeatureLayer
-   [...]
-2. Query features from a FeatureLayerView [sample] js-maps-sdk/samples 5.1
-   https://developers.arcgis.com/javascript/latest/sample-code/featurelayerview-query/
-3. Query FeatureLayer [sample] js-maps-sdk/samples 5.1
-   https://developers.arcgis.com/javascript/latest/sample-code/featurelayer-query/
-[...]
-
-Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/#queryFeatures"})
-Source: Esri documentation at the refs above (retrieved 2026-10-14). [...]
-```
-
-Without `product` the search uses the SDKs detected in the project, or picks at most three
-likely products and names them in the status line.
-
-### `arcgis_docs_read`
-
-```sh
-arcgis-sdk-mcp call read '{"ref":"https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer/","max_tokens":1500}'
-```
-
-```text
-Query (Feature Service/Layer) | ArcGIS REST APIs (rest-api) | version 12.1 | api | cached
-
-- **URL:** `https://<root>/<serviceName>/FeatureServer/<layerId>/query`
-- **Methods:** `GET`, `POST`
-[...]
-
-Outline (pass an id as "section" to read that part):
-
-- `query-feature-servicelayer` Query (Feature Service/Layer) (~23210 tokens)
-  - `description` Description (~418 tokens)
-  - `features-added-throughout-releases` Features added throughout releases (~2088 tokens)
-  - `request-parameters` Request parameters (~14567 tokens)
-  - `example-usage` Example usage (~1658 tokens)
-  - `json-response-syntax` JSON Response syntax (~396 tokens)
-  - `json-response-example` JSON Response example (~4075 tokens)
-
-Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer/","section":"request-parameters"})
-Source: Esri, https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer/ (retrieved 2026-10-13, cached). Copyright (c) Esri. Use subject to Esri's terms: https://www.esri.com/en-us/legal/overview
-```
-
-A 23,000-token page costs 1,500 tokens here, and the agent knows which section to ask for.
-`view: "outline"` returns only the outline, `view: "full"` pages through the document with a
-cursor, and `section: "source"` on a sample returns only its code.
-
-### `arcgis_docs_lookup_symbol`
-
-```sh
-arcgis-sdk-mcp call lookup_symbol '{"symbol":"arcpy.da.SearchCursor","detail":"signature"}'
-```
-
-````text
-arcpy.da.SearchCursor (class) | ArcPy and geoprocessing tools (arcpy), resolved from "arcpy.da.SearchCursor" | version 3.7 | api | cached
-
-```python
-SearchCursor(in_table, field_names, {where_clause}, {spatial_reference}, {explode_to_points}, {sql_clause}, {datum_transformation}, {spatial_filter}, {spatial_relationship}, {search_order})
-```
-
-# SearchCursor
-
-[...]
-
-Other matches:
-- {"symbol":"arcpy.SearchCursor","product":"arcpy"} (function): https://doc.esri.com/en/arcgis-pro/latest/arcpy/functions/searchcursor.html
-
-Next: arcgis_docs_lookup_symbol({"symbol":"arcpy.da.SearchCursor","product":"arcpy","detail":"summary"})
-Source: Esri, https://doc.esri.com/en/arcgis-pro/latest/arcpy/data-access/searchcursor-class.html (retrieved 2026-10-13, cached). [...]
-````
-
-The product was resolved from the qualified name. `detail: "summary"` (the default) adds the
-description, parameters, return value and one example, or the member index of a type;
-`"full"` returns everything within `max_tokens`. An ambiguous name lists the candidates as
-copyable calls, and a name that is not found lists the nearest names with the reminder that
-this does not prove the symbol does not exist.
-
-### `arcgis_docs_find_samples`
-
-```sh
-arcgis-sdk-mcp call find_samples '{"query":"download offline map","product":"swift-maps-sdk","limit":3}'
-```
-
-```text
-Samples for "download offline map" | product: swift-maps-sdk | line: latest | pinned to 300.1.0 | 3 of 74
-
-1. Download preplanned map area [swift-maps-sdk, swift, github, apache-2.0]
-   https://github.com/Esri/arcgis-maps-sdk-swift-samples/blob/v300.1.0/Shared/Samples/Download%20preplanned%20map%20area/README.md
-   [...]
-   In: Edit and Manage Data
-   APIs: DownloadPreplannedOfflineMapResult, OfflineMapTask, [...], PreplannedMapArea
-   File: DownloadPreplannedMapAreaView.swift https://github.com/Esri/arcgis-maps-sdk-swift-samples/blob/v300.1.0/Shared/Samples/Download%20preplanned%20map%20area/DownloadPreplannedMapAreaView.swift
-   [...]
-2. Generate offline map with local basemap [swift-maps-sdk, swift, github, apache-2.0]
-   [...]
-3. Generate offline map [swift-maps-sdk, swift, github, apache-2.0]
-   [...]
-
-Next: arcgis_docs_read({"ref":"https://github.com/Esri/arcgis-maps-sdk-swift-samples/blob/v300.1.0/Shared/Samples/Download%20preplanned%20map%20area/README.md","section":"source"})
-Source: Esri documentation at the refs above (retrieved 2026-10-13). [...]
-```
-
-GitHub samples are pinned to a release tag where the repository's tags are reliable.
-`uses_api` finds samples that use a given class or method, `platform` narrows a
-multi-platform SDK (`maui`, `wpf`, `winui`), and `with_code: true` also returns the main
-source file of the best hit.
-
-### Errors
-
-A failed call says what went wrong and what to do next, in one line:
-
-```text
-Error [LINK_ONLY]: https://archive.developers.arcgis.com/javascript/v4-34/ is not fetched by this server. archive.developers.arcgis.com excludes automated access. Next: Open https://archive.developers.arcgis.com/javascript/v4-34/ in a browser, or see what that version is with arcgis_docs_get_versions({"product":"js-maps-sdk","version":"4.34"}).
-```
-
-### Prompts and resources
-
-Four prompts script common jobs for hosts that show prompts: `arcgis_app_kickoff` (plan a new
-app), `arcgis_upgrade_review` (review an SDK upgrade), `arcgis_agentic_app_design` (design an
-app that uses Esri's AI components or MCP servers) and `arcgis_project_instructions` (write
-`AGENTS.md`-style instructions for a project).
-
-Four resources are available under `arcgis-docs://`: `catalog` (every product as JSON),
+**Prompts and resources.** Four prompts script common jobs for hosts that show prompts:
+`arcgis_app_kickoff` (plan a new app), `arcgis_upgrade_review` (review an SDK upgrade),
+`arcgis_agentic_app_design` (design an app that uses Esri's AI components or MCP servers) and
+`arcgis_project_instructions` (write `AGENTS.md`-style instructions for a project). Four
+resources are available under `arcgis-docs://`: `catalog` (every product as JSON),
 `product/{id}` (one profile), `brief/{slug}` (ten short briefs written by this project, also
 readable as `brief:<slug>` through `arcgis_docs_read`) and `status` (the effective source
 policy, the cache, detected SDKs and the health of each source; over HTTP it leaves out the
@@ -440,84 +163,39 @@ A user asks an agent to add clustering with popups to a web map. The project's
 
 Most results end with a `Next:` line holding the most useful follow-up call, so the agent
 rarely has to work out the next step itself.
+[examples/quickstart-client/transcript.txt](examples/quickstart-client/transcript.txt) is a
+real run of a similar sequence.
 
-## Product coverage
+## Add it to your host
 
-The registry holds 136 entries: the 53 developer products below, 7 tombstones for deprecated
-and retired developer products (ArcGIS Runtime 100.x, ArcObjects, the JavaScript API 3.x and
-others, most of them pointing to a successor), and 76 end-user help products (ArcGIS Online,
-ArcGIS Enterprise, ArcGIS Pro, Survey123 and so on) under the category `product-help`.
-[docs/products.md](docs/products.md) lists all of them, the developer products with their
-version lines and documentation sources.
+An MCP host starts the server itself. Until the npm release, point it at the build of a clone
+with an absolute path, as in [Quick start](#quick-start). After the release the command
+becomes `npx` with the arguments `-y arcgis-sdk-mcp`.
 
-The table is a snapshot of the registry, maintained by hand (`arcgis_docs_list_products` is
-the live source). "Symbols" means `arcgis_docs_lookup_symbol` has a source that indexes symbol
-records (classes, members, tools, operations) to resolve names against; "by page title" that it
-matches a name against the titles of API or specification pages instead. "Samples" that
-`arcgis_docs_find_samples` has a sample source, and "Release notes" that
-`arcgis_docs_get_versions` returns release-notes refs. Every product can be searched and
-read.
+| Host           | Where the entry goes                                                | Copy-ready file                                                    |
+| -------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Claude Code    | `claude mcp add ...`, or `.mcp.json` at the project root for a team | [claude-code.mcp.json](examples/host-configs/claude-code.mcp.json) |
+| Claude Desktop | Settings, Developer, Edit Config (`claude_desktop_config.json`)     | [claude-desktop.json](examples/host-configs/claude-desktop.json)   |
+| Cursor         | `.cursor/mcp.json` in the project, or `~/.cursor/mcp.json`          | [cursor.mcp.json](examples/host-configs/cursor.mcp.json)           |
+| VS Code        | `.vscode/mcp.json` in the workspace (note the `servers` key)        | [vscode.mcp.json](examples/host-configs/vscode.mcp.json)           |
 
-<details>
-<summary>The 53 developer products, with symbol, sample and release-notes coverage</summary>
+[.mcp.json.example](.mcp.json.example) has the `npx` form for after the release, in a POSIX
+and a Windows variant.
 
-| Product id                    | Product                                            | Category                             | Current line | Symbols       | Samples | Release notes |
-| ----------------------------- | -------------------------------------------------- | ------------------------------------ | ------------ | ------------- | ------- | ------------- |
-| `js-maps-sdk`                 | ArcGIS Maps SDK for JavaScript                     | Web                                  | 5.x          | yes           | yes     | yes           |
-| `calcite`                     | Calcite Design System                              | Web                                  | Current      | yes           |         | yes           |
-| `arcade`                      | ArcGIS Arcade                                      | Web                                  | Current      | yes           | yes     | yes           |
-| `rest-js`                     | ArcGIS REST JS                                     | Web                                  | Current      | yes           | yes     | yes           |
-| `experience-builder`          | ArcGIS Experience Builder (developer edition)      | Web                                  | Current      | yes           | yes     | yes           |
-| `esri-leaflet`                | Esri Leaflet                                       | Web                                  | Current      | yes           |         |               |
-| `maplibre-arcgis`             | MapLibre GL JS with ArcGIS                         | Web                                  | Current      | yes           |         | yes           |
-| `openlayers-arcgis`           | OpenLayers with ArcGIS                             | Web                                  | Current      |               |         |               |
-| `cesium-arcgis`               | CesiumJS with ArcGIS                               | Web                                  | Current      |               |         |               |
-| `web-map-spec`                | Web map specification                              | Web                                  | Current      | yes           |         |               |
-| `web-scene-spec`              | Web scene specification                            | Web                                  | Current      | yes           |         |               |
-| `swift-maps-sdk`              | ArcGIS Maps SDK for Swift                          | Native                               | 300.x        | yes           | yes     | yes           |
-| `kotlin-maps-sdk`             | ArcGIS Maps SDK for Kotlin                         | Native                               | 300.x        | yes           | yes     | yes           |
-| `dotnet-maps-sdk`             | ArcGIS Maps SDK for .NET                           | Native                               | 300.x        | yes           | yes     | yes           |
-| `qt-maps-sdk`                 | ArcGIS Maps SDK for Qt                             | Native                               | 300.x        | yes           | yes     | yes           |
-| `flutter-maps-sdk`            | ArcGIS Maps SDK for Flutter                        | Native                               | 300.x        | yes           | yes     | yes           |
-| `unity-maps-sdk`              | ArcGIS Maps SDK for Unity                          | Game engines                         | 2.x          | yes           | yes     | yes           |
-| `unreal-maps-sdk`             | ArcGIS Maps SDK for Unreal Engine                  | Game engines                         | 2.x          | yes           | yes     | yes           |
-| `python-api`                  | ArcGIS API for Python                              | Python, data science and R           | 2.4.x        | yes           | yes     | yes           |
-| `arcpy`                       | ArcPy and geoprocessing tools                      | Python, data science and R           | Pro 3.7      | yes           |         | yes           |
-| `geoanalytics-engine`         | ArcGIS GeoAnalytics Engine                         | Python, data science and R           | Current      | yes           | yes     | yes           |
-| `geoanalytics-fabric`         | ArcGIS GeoAnalytics for Microsoft Fabric           | Python, data science and R           | Current      | yes           | yes     | yes           |
-| `r-arcgis`                    | R-ArcGIS Bridge and arcgis R packages              | Python, data science and R           | Current      | yes           |         | yes           |
-| `arcgis-pro-sdk`              | ArcGIS Pro SDK for .NET                            | Desktop and Enterprise extensibility | Pro 3.x      | yes           | yes     |               |
-| `enterprise-sdk`              | ArcGIS Enterprise SDK                              | Desktop and Enterprise extensibility | Current      | yes           | yes     | yes           |
-| `cityengine`                  | ArcGIS CityEngine                                  | Desktop and Enterprise extensibility | Current      | by page title | yes     | yes           |
-| `earth-automation-api`        | ArcGIS Earth Automation API                        | Desktop and Enterprise extensibility | Current      | by page title |         |               |
-| `autocad-api`                 | ArcGIS for AutoCAD API                             | Desktop and Enterprise extensibility | Current      | by page title |         |               |
-| `rest-api`                    | ArcGIS REST APIs                                   | REST APIs, services and platform     | Current      | yes           |         | yes           |
-| `developer-guide`             | ArcGIS developer guide                             | REST APIs, services and platform     | Current      | yes           |         |               |
-| `location-platform`           | ArcGIS Location Platform help                      | REST APIs, services and platform     | Current      |               |         | yes           |
-| `hub-dev`                     | ArcGIS Hub developer APIs                          | REST APIs, services and platform     | Current      | yes           |         |               |
-| `site-scan-api`               | Site Scan for ArcGIS API                           | REST APIs, services and platform     | Current      | yes           |         |               |
-| `urban-api`                   | ArcGIS Urban API                                   | REST APIs, services and platform     | Current      |               | yes     | yes           |
-| `workflow-manager-dev`        | ArcGIS Workflow Manager developer APIs             | REST APIs, services and platform     | Current      | yes           | yes     | yes           |
-| `survey123-dev`               | ArcGIS Survey123 developer resources               | REST APIs, services and platform     | Current      | by page title | yes     |               |
-| `velocity-grpc`               | ArcGIS Velocity gRPC feeds (beta)                  | REST APIs, services and platform     | Current      | by page title |         |               |
-| `ai-agents`                   | AI, agents and MCP across ArcGIS (beta)            | AI                                   | Current      |               |         | yes           |
-| `i3s-spec`                    | Indexed 3D Scene Layer (I3S) specification         | Specifications and formats           | Current      | by page title |         |               |
-| `cim-spec`                    | Cartographic Information Model (CIM) specification | Specifications and formats           | Current      | yes           |         |               |
-| `arcgis-pbf`                  | ArcGIS feature service protocol buffers (PBF)      | Specifications and formats           | Current      | by page title |         |               |
-| `knowledge-pbf`               | ArcGIS Knowledge protocol buffers                  | Specifications and formats           | Current      | by page title |         |               |
-| `lerc`                        | LERC (Limited Error Raster Compression)            | Specifications and formats           | Current      | by page title |         |               |
-| `tile-package-spec`           | Tile package specification (TPKX)                  | Specifications and formats           | Current      | by page title |         |               |
-| `spatially-optimized-parquet` | Spatially optimized Parquet                        | Specifications and formats           | Current      | by page title |         |               |
-| `3d-tiles-esri-crs`           | 3D Tiles layer with Esri coordinate systems        | Specifications and formats           | Current      | by page title |         |               |
-| `projection-engine-db`        | Projection engine database documentation           | Specifications and formats           | Current      | by page title |         |               |
-| `file-geodatabase-api`        | File Geodatabase API                               | Specifications and formats           | Current      | by page title |         |               |
-| `enterprise-devops`           | ArcGIS Enterprise deployment automation            | DevOps and open source               | Current      |               |         |               |
-| `koop`                        | Koop                                               | DevOps and open source               | Current      |               |         |               |
-| `developer-support`           | Esri developer support samples                     | DevOps and open source               | Current      |               | yes     |               |
-| `oss-libraries`               | Esri open-source libraries                         | DevOps and open source               | Current      |               | yes     |               |
-| `support-kb`                  | Esri Support knowledge base                        | Support                              | Current      |               |         |               |
-
-</details>
+- **Windows.** Some hosts on Windows cannot start the `npx` shim directly. Run it through
+  `cmd`: `"command": "cmd", "args": ["/c", "npx", "-y", "arcgis-sdk-mcp"]`. With Claude Code:
+  `claude mcp add arcgis-docs -- cmd /c npx -y arcgis-sdk-mcp`. The `node` form needs no
+  wrapper.
+- **Project detection.** The server looks for Esri SDKs in the directory it is started in, so
+  that a bare symbol name or an unscoped search refers to the SDK your project uses. Hosts that
+  start servers somewhere else (Claude Desktop, a global Cursor entry) can name the project
+  with `"env": { "ARCGIS_DOCS_PROJECT_DIR": "/path/to/your/project" }`.
+- **HTTP.** `node dist/cli/main.js --http --port 3333` serves stateless MCP at
+  `http://127.0.0.1:3333/mcp`, with a health check at `/healthz`. It binds to loopback and
+  validates the `Host` and `Origin` headers. With `ARCGIS_DOCS_HTTP_TOKEN` set, every `/mcp`
+  request must carry it as a bearer token; any other `--host` needs `--allow-remote` and the
+  token. Project detection and local package reads are off in HTTP mode. See
+  [Hosting](#hosting).
 
 ## Configuration
 
@@ -533,6 +211,7 @@ entry or in the shell. None is required.
 | `ARCGIS_DOCS_PROJECT_DIR`  | working directory        | The project in which Esri SDK versions are detected                                                                       |
 | `ARCGIS_DOCS_MAX_TOKENS`   | `6000`                   | Size of an `arcgis_docs_read` result when the call does not choose `max_tokens` (500 to 20000)                            |
 | `ARCGIS_DOCS_LOG_LEVEL`    | `warn`                   | `debug`, `info`, `warn`, `error` or `silent`. Logs are JSON lines on stderr; stdout carries only the protocol             |
+| `ARCGIS_DOCS_HTTP_TOKEN`   | none                     | HTTP mode only: bearer token every `/mcp` request must carry (32 or more characters); required beyond loopback            |
 | `GITHUB_TOKEN`             | none                     | Raises the GitHub API quota from 60 to 5,000 requests per hour. No scopes are needed; it is sent only to `api.github.com` |
 
 An invalid value stops the server at start-up with a message that names the variable. The
@@ -542,7 +221,8 @@ and HTTP mode, are in [docs/configuration.md](docs/configuration.md).
 ## Command line
 
 The binary is also a small toolbox for people. `call` prints exactly the text an agent would
-receive, which makes it the quickest way to try a query or to report a problem.
+receive, which makes it the quickest way to try a query or to report a problem. From a clone,
+run it as `node dist/cli/main.js`; after the npm release, as `arcgis-sdk-mcp`.
 
 ```text
 arcgis-sdk-mcp                          Serve MCP over stdio (what an MCP host runs)
@@ -556,40 +236,46 @@ arcgis-sdk-mcp --version | --help
 ```
 
 `call` accepts the short tool name (`search`, `lookup_symbol` or `lookup-symbol`). The
-examples in this README quote JSON for a POSIX shell and PowerShell 7.3 or later; in
-`cmd.exe` use `"{\"query\":\"cluster points\"}"`.
+examples in this README quote JSON for a POSIX shell (Git Bash included) and PowerShell 7.3 or
+later; in `cmd.exe` use `"{\"query\":\"cluster points\"}"`.
 
-`doctor` checks the configuration, the cache directory, proxy variables and the GitHub
-quota, then probes the documentation sources through the normal gateway:
-
-```text
-[ok]   config: arcgis-sdk-mcp 0.1.0, Node 22.15.0, stdio mode
-[ok]   policy: preset standard
-       enabled: github, registries, local-packages, workspace, website, site-index, package-cdn
-       disabled: site-search, lifecycle-api
-[ok]   proxy: no proxy variables are set
-[ok]   adapters: 20 source adapters, 136 products
-[warn] github: unauthenticated (60 requests per hour), quota not read yet
-[...]
-Sources probed: 2 ok, 0 failed, 0 skipped
-[ok]   calcite/guide (gatsby, floor, 180 records, 27590 chars, 6 ms)
-[ok]   calcite/components (npm-cem, 4 records, 85 chars, 6 ms)
-
-Result: ok
-```
+`doctor` checks the configuration, the cache directory, proxy variables and the GitHub quota,
+then probes the documentation sources through the normal gateway and prints one line per
+check (`[ok]`, `[warn]`, `[fail]`) and a result. Example output is in
+[docs/demos.md](docs/demos.md#doctor).
 
 ## How it works
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/architecture-dark.svg">
+  <img src="docs/assets/architecture-light.svg" alt="Architecture: the MCP host talks to the MCP surface (6 tools, 4 prompts, 4 resources) over stdio or HTTP; the services use the registry (136 entries), local indexes, 20 source adapters and the renderers; every request goes through one HTTP gateway (allow-list, policy, robots.txt, cache, rate limit, circuit breaker) to public sources, only when a tool is called.">
+</picture>
+
+What happens on one `arcgis_docs_lookup_symbol` call:
+
 ```mermaid
-flowchart LR
-  host["MCP host<br/>Claude Code, Cursor, VS Code"] -- "stdio or HTTP" --> mcp["MCP surface<br/>6 tools, 4 prompts, 4 resources"]
-  mcp --> services["Services<br/>catalog, search, read,<br/>symbols, samples, versions"]
-  services --> registry["Registry<br/>136 products as typed data"]
-  services --> indexes["Local indexes<br/>one per product source"]
-  services --> adapters["20 source adapters"]
-  adapters --> render["Renderers<br/>HTML pipeline and<br/>structured formats"]
-  adapters --> gateway["HTTP gateway<br/>policy, robots, cache,<br/>rate limit, circuit breaker"]
-  gateway --> upstream["Esri documentation hosts,<br/>GitHub, package registries, jsDelivr"]
+sequenceDiagram
+  autonumber
+  participant A as Agent (MCP host)
+  participant S as arcgis-sdk-mcp
+  participant I as Local index (disk)
+  participant G as HTTP gateway and cache
+  participant D as Documentation host
+  A->>S: lookup_symbol {"symbol":"FeatureLayer.queryFeatures"}
+  S->>S: resolve the product from the name (js-maps-sdk)
+  S->>I: exact, prefix or fuzzy match on symbol names
+  Note over I: built on first use from the site's own index file
+  I-->>S: @arcgis/core/layers/FeatureLayer#queryFeatures
+  S->>G: get the reference page
+  alt fresh in the per-user cache
+    G-->>S: cached copy
+  else
+    G->>D: GET (allow-listed host, robots.txt, rate limit)
+    D-->>G: page
+    G-->>S: page, stored in the cache
+  end
+  S->>S: render to Markdown, cut to the token budget
+  S-->>A: status line, signature, Next call, Source line
 ```
 
 - **Registry.** Every product is typed data: ids, aliases, version lines and a list of
@@ -601,13 +287,13 @@ flowchart LR
   declarations, Custom Elements Manifests, GitHub repositories and more. An adapter lists a
   source into catalogue records and reads one document.
 - **Renderers.** Structured sources (OpenAPI, TypeDoc, DocC JSON, Custom Elements Manifests,
-  C# XML documentation, TypeScript declarations, notebooks) are rendered directly.
-  HTML pages go through a pipeline that detects the page family (16 of them), slices out the
-  requested section before cleaning, and converts to Markdown with language-tagged fences and
-  absolute links.
-- **Local search.** The first search of a source builds an index from the site's own
-  sitemap or index file and stores it on disk. A side table answers exact symbol names. No
-  page bodies are crawled; the text of pages the agent has already read is added to the index.
+  C# XML documentation, TypeScript declarations, notebooks) are rendered directly. HTML pages
+  go through a pipeline that detects the page family (16 of them), slices out the requested
+  section before cleaning, and converts to Markdown with language-tagged fences and absolute
+  links.
+- **Local search.** The first search of a source builds an index from the site's own sitemap
+  or index file and stores it on disk. A side table answers exact symbol names. No page bodies
+  are crawled; the text of pages the agent has already read is added to the index.
 - **One gateway.** Every outbound request passes through one module that applies the host
   allow-list, the capability policy, robots rules, the disk cache with conditional
   revalidation, per-host rate limits, retries and a circuit breaker. Redirects are followed
@@ -619,29 +305,38 @@ flowchart LR
 [docs/architecture.md](docs/architecture.md) describes the layers, the request flow and the
 import rules; the decisions behind them are recorded as [ADRs](docs/adr).
 
+## Hosting
+
+The server is meant to run next to your agent, started by the host over stdio. When an agent
+cannot start a local process (a cloud agent, a job on another machine),
+[docs/hosting.md](docs/hosting.md) shows how to run a private instance over HTTP that answers
+only requests carrying your bearer token. Keep its URL and token to yourself: the ground rules
+below apply to it.
+
 ## Source policy and legal note
 
 **What the server does**
 
 - **On demand only.** A request to an upstream host happens only because your agent called a
-  tool or you ran a CLI command. Nothing is fetched at start-up, nothing is crawled, and
-  there is no scheduled refresh and no telemetry.
+  tool or you ran a CLI command. Nothing is fetched at start-up, nothing is crawled, and there
+  is no scheduled refresh and no telemetry.
 - **Per-user cache.** Responses are cached on your machine to avoid repeated requests. The
   cache is not shared and not redistributed. `arcgis-sdk-mcp cache clear` deletes it.
 - **Attribution.** Every result that carries fetched content ends with a source line that
-  names the rights holder and where the text came from, worded for the licence of the
-  content: Esri's website terms (with the URL and the retrieval date), Apache-2.0 for Esri's
-  GitHub repositories (with the URL), the Esri Master License Agreement for files of Esri npm
+  names the rights holder and where the text came from, worded for the licence of the content:
+  Esri's website terms (with the URL and the retrieval date), Apache-2.0 for Esri's GitHub
+  repositories (with the URL), the Esri Master License Agreement for files of Esri npm
   packages (with the package name and version).
 - **Nothing Esri-authored is shipped.** The repository and the npm package contain code, the
   registry (ids, URLs, patterns) and ten briefs written by this project. A release gate fails
-  the build if the tarball holds anything else. Test fixtures are synthetic or Apache-2.0.
+  the build if the tarball holds anything else. Test fixtures are synthetic or Apache-2.0, and
+  the transcripts and images in this repository elide Esri's prose.
 - **A considerate client.** One identifying User-Agent with this repository's URL,
   `robots.txt` honoured (compiled rules plus a daily live check that can only add
-  restrictions), at most two requests per second per host, an allow-list of hosts, and
-  `403` and `429` responses treated as final. Hosts that exclude automated access, such as
-  Esri's archive of older documentation, are link-only: the server returns the URL and never
-  fetches it.
+  restrictions), at most two requests per second per host, an allow-list of hosts, and `403`
+  and `429` responses treated as final. Hosts that exclude automated access, such as Esri's
+  archive of older documentation, are link-only: the server returns the URL and never fetches
+  it.
 
 **What you can switch off**
 
@@ -696,8 +391,8 @@ The server still works without them, with less precision: pages are listed from 
 can still be read, and a component page is read from the guide site with a note saying so.
 What you lose is `arcgis_docs_lookup_symbol` for the APIs those files index: web components,
 Arcade functions, JavaScript SDK 4.x, and SDK references whose symbol index comes from the
-site's own files, such as Kotlin. For those, use `arcgis_docs_search` and
-`arcgis_docs_read` instead.
+site's own files, such as Kotlin. For those, use `arcgis_docs_search` and `arcgis_docs_read`
+instead.
 
 Ground rules that apply whatever you enable:
 
@@ -720,6 +415,7 @@ npm run lint
 npm test                 # unit project; no network
 npm run build
 node dist/cli/main.js doctor --product js-maps-sdk
+npx tsc -p examples/tsconfig.json   # type-check the examples
 ```
 
 - `npm test` never touches the network: a guard replaces `fetch` and rejects every request
@@ -728,11 +424,13 @@ node dist/cli/main.js doctor --product js-maps-sdk
   expected Markdown, and the gateway and services against injected faults.
 - `npm run test:e2e` builds, packs the tarball, unpacks it in a temporary directory and
   drives the packed binary over stdio and HTTP.
-- `npm run test:live` checks invariants on real pages recorded to a git-ignored directory.
-  A weekly canary workflow runs it together with `doctor` and opens an issue when a
+- `npm run test:live` checks invariants on real pages recorded to a git-ignored directory. A
+  weekly canary workflow runs it together with `doctor` and opens an issue when a
   documentation site has changed.
 - `evals/` holds 25 agent tasks and a runner that needs a model API key; see
   [evals/README.md](evals/README.md).
+- The images in `docs/assets/` are generated by `scripts/render-*.ts` from the registry and
+  from real CLI runs; [docs/demos.md](docs/demos.md#regenerating-the-images) has the commands.
 
 [CONTRIBUTING.md](CONTRIBUTING.md) has the working rules, [docs/testing.md](docs/testing.md)
 the test layers and the fixture policy, and [docs/adding-a-product.md](docs/adding-a-product.md)
@@ -744,14 +442,14 @@ Security reports: [SECURITY.md](SECURITY.md).
 Version 0.1.0 is the first version and has not been published yet. All six tools were
 exercised against the live sites on 2026-10-14, and `doctor` reached the floor source of each
 developer product (58 probes, one per product; the developer products have 132 sources in
-all, and `doctor --product <id>` probes every source of one product). The agent
-evaluations have not been run yet, so there is no measured answer quality to report.
+all, and `doctor --product <id>` probes every source of one product). The agent evaluations
+have not been run yet, so there is no measured answer quality to report.
 
 - **Search is local.** It matches titles, headings, keywords, descriptions and symbol names,
-  plus the text of pages already read. A phrase that occurs only in the body of an unread
-  page is not found. Exact API names rank well; natural-language questions rank less well,
-  and a multi-word query that matches too little falls back to matching any word, which
-  inflates the hit count.
+  plus the text of pages already read. A phrase that occurs only in the body of an unread page
+  is not found. Exact API names rank well; natural-language questions rank less well, and a
+  multi-word query that matches too little falls back to matching any word, which inflates the
+  hit count.
 - **Older versions.** The documentation sites describe the current release. For another
   version of the JavaScript SDK the server reads the TypeScript declarations of that npm
   version; Esri's archive of older pages is link-only. Names are looked up in the module list
@@ -763,23 +461,23 @@ evaluations have not been run yet, so there is no measured answer quality to rep
   result can end with budget left over when the next block is large. This is most visible on
   type summaries of the Flutter and Kotlin references.
 - **.NET overloads.** A lookup that names one overload returns that overload only.
-- **REST operation names** are derived from page titles (`Export Map` gives `exportMap`),
-  not from the path segment (`export`).
+- **REST operation names** are derived from page titles (`Export Map` gives `exportMap`), not
+  from the path segment (`export`).
 - **Arcade.** Function documentation comes from the `@arcgis/coding-components` package,
-  which can describe an earlier Arcade version than the one `arcgis_docs_get_versions`
-  reports from the Arcade site.
+  which can describe an earlier Arcade version than the one `arcgis_docs_get_versions` reports
+  from the Arcade site.
 - **Unity.** A class without a page in the published API reference is reported as not found.
 - **GitHub quota.** Unauthenticated access allows 60 API requests per hour, which sample
   lookups on a cold cache use up quickly. Set `GITHUB_TOKEN`.
-- **Sites change.** When a layout or an index file moves, results degrade to a simpler
-  source and say so. `arcgis-sdk-mcp doctor` shows what is affected.
+- **Sites change.** When a layout or an index file moves, results degrade to a simpler source
+  and say so. `arcgis-sdk-mcp doctor` shows what is affected.
 
 ## Roadmap
 
 Before 1.0:
 
-- Run the agent evaluations and tune descriptions, ranking and budgets against them, with
-  and without `+site-search`.
+- Run the agent evaluations and tune descriptions, ranking and budgets against them, with and
+  without `+site-search`.
 - Close the gaps listed above: natural-language ranking, overload listings, REST operation
   names from path segments, Swift protocol-extension members.
 - Run the MCP Inspector strict check in CI.

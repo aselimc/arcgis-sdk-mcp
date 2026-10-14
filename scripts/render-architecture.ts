@@ -72,9 +72,9 @@ function countTs(dir: string, exclude: string[] = []): number {
   ).length;
 }
 
-export async function facts(): Promise<Facts> {
+export function facts(): Facts {
   return {
-    ...countRegistry(await registryProducts()),
+    ...countRegistry(registryProducts()),
     tools: TOOL_ORDER.length,
     // One file per prompt and per resource; message.ts holds shared prompt helpers.
     prompts: countTs('src/mcp/prompts', ['message.ts']),
@@ -125,7 +125,9 @@ export function renderArchitecture(f: Facts, p: Palette): string {
     w: full,
     h: 58,
     title: 'MCP host',
-    lines: ['Claude Code, Claude Desktop, Cursor, VS Code, or any MCP client; it starts the server itself'],
+    lines: [
+      'Claude Code, Claude Desktop, Cursor, VS Code, or any MCP client; it starts the server itself',
+    ],
   };
   const surface: Box = {
     x: M,
@@ -144,7 +146,9 @@ export function renderArchitecture(f: Facts, p: Palette): string {
     w: full,
     h: 58,
     title: 'Services (src/services, src/versions, src/workspace)',
-    lines: ['catalog · search · read · symbol lookup · samples · versions · project detection; token budgets'],
+    lines: [
+      'catalog · search · read · symbol lookup · samples · versions · project detection; token budgets',
+    ],
   };
   const row = 346;
   const rowH = 110;
@@ -154,7 +158,11 @@ export function renderArchitecture(f: Facts, p: Palette): string {
     w: quarter,
     h: rowH,
     title: 'Registry',
-    lines: [`${f.entries} entries as typed data:`, `${f.developer} developer products,`, 'ids, URLs and patterns only'],
+    lines: [
+      `${f.entries} entries as typed data:`,
+      `${f.developer} developer products,`,
+      'ids, URLs and patterns only',
+    ],
   };
   const indexes: Box = {
     x: col(1),
@@ -162,7 +170,11 @@ export function renderArchitecture(f: Facts, p: Palette): string {
     w: quarter,
     h: rowH,
     title: 'Local indexes',
-    lines: ['one per product source,', 'built on first use from the', "site's own index or sitemap"],
+    lines: [
+      'one per product source,',
+      'built on first use from the',
+      "site's own index or sitemap",
+    ],
   };
   const adapters: Box = {
     x: col(2),
@@ -170,7 +182,11 @@ export function renderArchitecture(f: Facts, p: Palette): string {
     w: quarter,
     h: rowH,
     title: `${f.adapters} source adapters`,
-    lines: ['Astro, Gatsby, DocFX, DocC,', 'Dokka, dartdoc, Sphinx, OpenAPI,', 'npm typings, GitHub, ...'],
+    lines: [
+      'Astro, Gatsby, DocFX, DocC,',
+      'Dokka, dartdoc, Sphinx, OpenAPI,',
+      'npm typings, GitHub, ...',
+    ],
   };
   const renderers: Box = {
     x: col(3),
@@ -178,7 +194,11 @@ export function renderArchitecture(f: Facts, p: Palette): string {
     w: quarter,
     h: rowH,
     title: 'Renderers',
-    lines: [`HTML pipeline (${f.families} page`, 'families) and structured', 'formats, to compact Markdown'],
+    lines: [
+      `HTML pipeline (${f.families} page`,
+      'families) and structured',
+      'formats, to compact Markdown',
+    ],
   };
   const gateway: Box = {
     x: M,
@@ -186,7 +206,9 @@ export function renderArchitecture(f: Facts, p: Palette): string {
     w: full,
     h: 58,
     title: 'HTTP gateway (src/net): the only code that calls fetch',
-    lines: ['host allow-list · capability policy · robots.txt · per-user disk cache · per-host rate limit · retries · circuit breaker'],
+    lines: [
+      'host allow-list · capability policy · robots.txt · per-user disk cache · per-host rate limit · retries · circuit breaker',
+    ],
   };
   const upstream: Box = {
     x: M,
@@ -194,7 +216,9 @@ export function renderArchitecture(f: Facts, p: Palette): string {
     w: full,
     h: 58,
     title: 'Public sources, fetched only when a tool is called',
-    lines: ["Esri's documentation sites · GitHub · npm, PyPI, NuGet, pub.dev · jsDelivr · nothing at start-up, no crawling, no telemetry"],
+    lines: [
+      "Esri's documentation sites · GitHub · npm, PyPI, NuGet, pub.dev · jsDelivr · nothing at start-up, no crawling, no telemetry",
+    ],
     dashed: true,
   };
   const height = upstream.y + upstream.h + 52;
@@ -202,7 +226,14 @@ export function renderArchitecture(f: Facts, p: Palette): string {
 
   const body = [
     box(host, p),
-    arrow(WIDTH / 2, host.y + host.h, WIDTH / 2, surface.y - 4, p, 'MCP over stdio, or stateless HTTP'),
+    arrow(
+      WIDTH / 2,
+      host.y + host.h,
+      WIDTH / 2,
+      surface.y - 4,
+      p,
+      'MCP over stdio, or stateless HTTP',
+    ),
     box(surface, p),
     arrow(WIDTH / 2, surface.y + surface.h, WIDTH / 2, services.y - 4, p),
     box(services, p),
@@ -216,7 +247,14 @@ export function renderArchitecture(f: Facts, p: Palette): string {
     arrow(adapters.x + adapters.w, row + rowH / 2, renderers.x - 4, row + rowH / 2, p),
     arrow(mid(adapters), row + rowH, mid(adapters), gateway.y - 4, p),
     box(gateway, p),
-    arrow(WIDTH / 2, gateway.y + gateway.h, WIDTH / 2, upstream.y - 4, p, 'HTTPS, identified User-Agent'),
+    arrow(
+      WIDTH / 2,
+      gateway.y + gateway.h,
+      WIDTH / 2,
+      upstream.y - 4,
+      p,
+      'HTTPS, identified User-Agent',
+    ),
     box(upstream, p),
   ];
 
@@ -233,9 +271,9 @@ ${body.join('\n')}
 `;
 }
 
-async function main(): Promise<void> {
+function main(): void {
   ensureAssets();
-  const f = await facts();
+  const f = facts();
   for (const [name, palette] of [
     ['light', LIGHT],
     ['dark', DARK],
@@ -246,4 +284,4 @@ async function main(): Promise<void> {
   }
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) await main();
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) main();

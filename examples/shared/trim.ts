@@ -30,8 +30,7 @@ export function trim(text: string, maxLines = 14, codeChars = 110): string {
     if (inFence) {
       if (fenceLines++ < 4) {
         out.push(line.length > codeChars ? `${line.slice(0, codeChars - 3)}...` : line);
-      }
-      else if (fenceLines === 6) out.push('  [...]');
+      } else if (fenceLines === 6) out.push('  [...]');
       continue;
     }
     const keep =
@@ -43,7 +42,7 @@ export function trim(text: string, maxLines = 14, codeChars = 110): string {
       /^#{1,4} /.test(trimmed) ||
       /^\d+\. /.test(trimmed) ||
       // Short list items (versions, packages, candidates) or items that carry a URL.
-      (/^- /.test(trimmed) && (trimmed.length <= 100 || trimmed.includes('http'))) ||
+      (trimmed.startsWith('- ') && (trimmed.length <= 100 || trimmed.includes('http'))) ||
       // Product list entries (`- js-maps-sdk: ...`): the summaries are this project's wording.
       /^- [a-z0-9][a-z0-9-]*: /.test(trimmed) ||
       /^(https?:\/\/|File:|In:|APIs:|_Web component_)/.test(trimmed);

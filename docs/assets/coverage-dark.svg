@@ -70,6 +70,6 @@
 <text x="285.5" y="647" font-size="14" font-weight="600" fill="#e6edf3">1</text>
 <text x="486" y="646" font-size="12.5" fill="#9198a1">Esri Support knowledge base</text>
 <line x1="28" x2="932" y1="659" y2="659" stroke="#21262d"/>
-<text x="28" y="691" font-size="12" fill="#9198a1">Generated from the registry by scripts/render-coverage.ts. Unofficial project, not affiliated with Esri; product names are Esri's trademarks.</text>
+<text x="28" y="691" font-size="12" fill="#9198a1">Generated from the registry by scripts/render-coverage.ts. Unofficial project, not affiliated with Esri. Esri, ArcGIS and related names are trademarks of Esri.</text>
 </g>
 </svg>

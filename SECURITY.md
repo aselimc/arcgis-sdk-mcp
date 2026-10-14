@@ -25,9 +25,11 @@ Knowing the design helps when judging a report.
 - **Local reads are narrow.** In stdio mode the server reads package manifests in the project
   directory (names and versions only) and files of Esri packages under `node_modules`. Both
   are off in HTTP mode and can be switched off with `ARCGIS_DOCS_SOURCES`.
-- **HTTP mode is local.** It binds to loopback and validates the `Host` and `Origin` headers.
-  Binding elsewhere needs `--allow-remote`; there is no authentication, so do not expose it to
-  an untrusted network.
+- **HTTP mode is local by default.** It binds to loopback and validates the `Host` and
+  `Origin` headers. With `ARCGIS_DOCS_HTTP_TOKEN` set, every MCP request needs that bearer
+  token (compared in constant time). Binding elsewhere needs `--allow-remote` and the token,
+  and on a hosting platform the server refuses to serve without one
+  ([docs/hosting.md](docs/hosting.md)). It speaks plain HTTP: terminate TLS in front of it.
 - **Fetched text is untrusted.** Scripts, comments and hidden elements are removed before a
   page is converted to Markdown, and the server's instructions tell the agent that tool
   results are reference data, not instructions. A documentation page can still contain text

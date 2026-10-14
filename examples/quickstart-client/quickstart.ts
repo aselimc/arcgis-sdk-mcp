@@ -112,8 +112,7 @@ async function main(): Promise<number> {
       product,
     });
     const documented = firstOf(versions.structured, 'products', 'documented') as
-      | { version?: string }
-      | undefined;
+      { version?: string } | undefined;
     console.log(
       `  -> docs describe ${documented?.version ?? 'an unknown version'} (structuredContent.products[0].documented.version)`,
     );

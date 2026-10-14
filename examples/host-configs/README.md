@@ -16,12 +16,12 @@ node dist/cli/main.js --version
 Then replace `/absolute/path/to/arcgis-sdk-mcp` in the file for your host with the clone's
 absolute path (on Windows, forward slashes work: `C:/Users/you/arcgis-sdk-mcp/...`).
 
-| Host           | File                                               | Copy it to                                                                                  |
-| -------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Claude Code    | [claude-code.mcp.json](claude-code.mcp.json)       | `.mcp.json` at your project root (shared with the team), or use the command below           |
-| Claude Desktop | [claude-desktop.json](claude-desktop.json)         | Settings, Developer, Edit Config (`claude_desktop_config.json`); merge into `mcpServers`    |
-| Cursor         | [cursor.mcp.json](cursor.mcp.json)                 | `.cursor/mcp.json` in the project, or `~/.cursor/mcp.json` for every project               |
-| VS Code        | [vscode.mcp.json](vscode.mcp.json)                 | `.vscode/mcp.json` in the workspace (note the `servers` key, not `mcpServers`)              |
+| Host           | File                                         | Copy it to                                                                               |
+| -------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Claude Code    | [claude-code.mcp.json](claude-code.mcp.json) | `.mcp.json` at your project root (shared with the team), or use the command below        |
+| Claude Desktop | [claude-desktop.json](claude-desktop.json)   | Settings, Developer, Edit Config (`claude_desktop_config.json`); merge into `mcpServers` |
+| Cursor         | [cursor.mcp.json](cursor.mcp.json)           | `.cursor/mcp.json` in the project, or `~/.cursor/mcp.json` for every project             |
+| VS Code        | [vscode.mcp.json](vscode.mcp.json)           | `.vscode/mcp.json` in the workspace (note the `servers` key, not `mcpServers`)           |
 
 Claude Code can also add the entry from the command line:
 

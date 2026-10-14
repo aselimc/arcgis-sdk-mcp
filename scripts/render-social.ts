@@ -86,14 +86,17 @@ export function renderSocial(f: Facts, recording: string): string {
 `;
 }
 
-async function main(): Promise<void> {
+function main(): void {
   ensureAssets();
   const svg = resolve(ASSETS, 'social-preview.svg');
   const png = resolve(ASSETS, 'social-preview.png');
-  writeFileSync(svg, renderSocial(await facts(), readFileSync(resolve(ASSETS, 'hero-terminal.txt'), 'utf8')));
+  writeFileSync(
+    svg,
+    renderSocial(facts(), readFileSync(resolve(ASSETS, 'hero-terminal.txt'), 'utf8')),
+  );
   console.log(`wrote ${svg}`);
   if (screenshot(svg, png, W, H)) console.log(`wrote ${png}`);
   else console.log('No Chromium browser found: the PNG was not written (set BROWSER).');
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) await main();
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) main();

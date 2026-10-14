@@ -59,7 +59,14 @@ export function heroLines(text: string, maxLines: number): string[] {
     if (line.startsWith('```')) continue;
     if (line === '' && (out.length === 0 || out.at(-1) === '')) continue;
     // One elision marker is enough, even across a blank line.
-    if (line.trim() === '[...]' && out.filter((l) => l !== '').at(-1)?.trim() === '[...]') continue;
+    if (
+      line.trim() === '[...]' &&
+      out
+        .filter((l) => l !== '')
+        .at(-1)
+        ?.trim() === '[...]'
+    )
+      continue;
     // A long signature is wrapped at its commas rather than cut.
     if (line.length > MAX_CHARS && /^[A-Za-z_.]+\(/.test(line)) {
       let current = '';

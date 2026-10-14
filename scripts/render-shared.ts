@@ -11,6 +11,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { Product } from '../src/core/types.js';
+import { createRegistry } from '../src/registry/index.js';
 
 export const ROOT = resolve(fileURLToPath(import.meta.url), '..', '..');
 export const ASSETS = resolve(ROOT, 'docs', 'assets');
@@ -33,11 +34,8 @@ export function runCli(tool: string, args: Record<string, unknown>): string {
   });
 }
 
-/** Every registry entry, read from the source registry (no build needed). */
-export async function registryProducts(): Promise<readonly Product[]> {
-  const { createRegistry } = (await import(
-    pathToFileURL(resolve(ROOT, 'src', 'registry', 'index.ts')).href
-  )) as typeof import('../src/registry/index.js');
+/** Every registry entry, read from the source (no build needed). */
+export function registryProducts(): readonly Product[] {
   return createRegistry().all();
 }
 

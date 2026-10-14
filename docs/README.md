@@ -5,6 +5,7 @@
 | [tools.md](tools.md)                         | See the arguments, results and example calls of the six tools                    |
 | [products.md](products.md)                   | Check which products, version lines and documentation sources are covered        |
 | [configuration.md](configuration.md)         | Set environment variables, the source policy, the cache, a proxy or HTTP mode    |
+| [hosting.md](hosting.md)                     | Run a private hosted instance on Vercel (or another host) with a bearer token    |
 | [source-policy.md](source-policy.md)         | Understand what is fetched from where, and why the defaults are what they are    |
 | [architecture.md](architecture.md)           | Understand the layers, the request flow, the gateway and the degradation ladders |
 | [testing.md](testing.md)                     | Run the tests, record live fixtures, or learn the fixture policy                 |

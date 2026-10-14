@@ -8,6 +8,14 @@ a minor version may change tool arguments or results; such changes are listed un
 
 ## [Unreleased]
 
+### Added
+
+- Optional bearer-token authentication for HTTP mode (`ARCGIS_DOCS_HTTP_TOKEN`). The server
+  refuses to start without a token on a non-loopback address or on a hosting platform.
+  `PORT` and `ARCGIS_DOCS_HTTP_ALLOWED_HOSTS` configure the port and extra host names.
+- A Vercel function entry (`api/mcp.ts`, `vercel.json`) for a private hosted instance, and
+  [docs/hosting.md](docs/hosting.md).
+
 ## [0.1.0] - Unreleased
 
 First version. Not tagged or published yet; the date is set when the tag is pushed.

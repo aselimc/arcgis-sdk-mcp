@@ -181,9 +181,9 @@ ${body.join('\n')}
 `;
 }
 
-async function main(): Promise<void> {
+function main(): void {
   ensureAssets();
-  const products = await registryProducts();
+  const products = registryProducts();
   const data = rows(products);
   const counts = countRegistry(products);
   for (const [name, palette] of [
@@ -196,4 +196,4 @@ async function main(): Promise<void> {
   }
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) await main();
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) main();
