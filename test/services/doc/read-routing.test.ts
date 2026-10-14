@@ -84,6 +84,37 @@ describe('read: routing', () => {
     expect(h.ctx.http.requests[0]).toMatchObject({ url, expect: 'html' });
   });
 
+  // Regression: package.json on jsDelivr was fetched as a page and answered DOC_NOT_FOUND.
+  it('reads a package-CDN file as a file, under the licence of its package', async () => {
+    const cdnHosts = [
+      makeHost(),
+      makeHost({ host: 'cdn.jsdelivr.net', capability: 'package-cdn' }),
+    ];
+    const h = makeHarness({
+      products: [
+        makeProduct({
+          id: 'js-maps-sdk',
+          packages: [{ registry: 'npm', name: '@arcgis/core', license: 'esri-ma' }],
+        }),
+      ],
+      records: [],
+      hosts: cdnHosts,
+      enabled: ['website', 'package-cdn'],
+    });
+    const manifest = 'https://cdn.jsdelivr.net/npm/@arcgis/core@5.1.27/package.json';
+    h.ctx.http.on(manifest, { body: '{"name":"@arcgis/core","version":"5.1.27"}' });
+    const json = await read(h, { ref: manifest });
+    expect(json.text).toBe('# Rendered by source');
+    expect(json.page).toMatchObject({ url: manifest, kind: 'api', license: 'esri-ma' });
+    expect(h.ctx.http.requests[0]).toMatchObject({ url: manifest, expect: 'text' });
+
+    const readme = 'https://cdn.jsdelivr.net/npm/other-package@1.0.0/README.md';
+    h.ctx.http.on(readme, { body: '# Other\n\nWords.' });
+    const markdown = await read(h, { ref: readme });
+    expect(markdown.text).toBe('# Other\n\nWords.');
+    expect(markdown.page.license).toBe('unlicensed');
+  });
+
   it('turns a missing generic page into DOC_NOT_FOUND with a search, and an unreachable one into a link', async () => {
     const h = harness();
     const url = `${DEV}/unlisted-product/gone-page/`;

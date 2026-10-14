@@ -12,6 +12,7 @@ import type {
   SectionSelector,
 } from '../../core/ports.js';
 import type { DocPage, LicenseTier } from '../../core/types.js';
+import { safeDecode } from '../../core/url.js';
 import { linkOnlyPage } from './display.js';
 import { searchFromUrl, type Route } from './router.js';
 
@@ -92,6 +93,22 @@ function movedAway(ctx: Ctx, requested: string, landed: string): McpDocError {
   });
 }
 
+/**
+ * The licence the registry records for the npm package a package-CDN URL names
+ * (`/npm/@arcgis/core@5.1.27/package.json`); `unlicensed` (cited neutrally) for a package
+ * the registry does not list.
+ */
+export function packageLicense(ctx: Ctx, url: URL): LicenseTier {
+  const match = /^\/npm\/((?:@[^/@]+\/)?[^/@]+)(?:@[^/]*)?(?:\/|$)/.exec(safeDecode(url.pathname));
+  const name = match?.[1];
+  if (name === undefined) return 'unlicensed';
+  for (const product of ctx.registry.all()) {
+    const pkg = product.packages.find((p) => p.registry === 'npm' && p.name === name);
+    if (pkg !== undefined) return pkg.license;
+  }
+  return 'unlicensed';
+}
+
 /** Reads pages outside the registry. */
 export interface UnownedReader {
   /**
@@ -132,17 +149,56 @@ export function createUnownedReader(ctx: Ctx, titleOf: (url: string) => string):
     }
   };
 
+  /**
+   * One file of a package on a package CDN (`package.json`, a README, a declaration file):
+   * read as the file it is, not as a page, and cited under the licence the registry records
+   * for that package.
+   */
+  const packageFile = (
+    route: Extract<Route, { kind: 'generic' }>,
+    call: CallOptions,
+    options: ReadOptions,
+  ): Promise<DocPage> => {
+    const url = route.url.href.replace(/#.*$/, '');
+    const meta = {
+      url,
+      kind: 'api',
+      license: packageLicense(ctx, route.url),
+    } as const satisfies RenderMeta;
+    return guarded(meta, async () => {
+      const res = await ctx.http.get({
+        url,
+        expect: 'text',
+        maxBytes: ctx.config.limits.pageMaxBytes,
+        budget: call.budget,
+        ...(call.signal === undefined ? {} : { signal: call.signal }),
+      });
+      const withRes: RenderMeta = { ...meta, res };
+      const name = safeDecode(route.url.pathname.split('/').at(-1) ?? '');
+      if (/\.(?:md|markdown)$/i.test(name)) {
+        return ctx.render.render(
+          'markdown',
+          { markdown: res.text },
+          withRes,
+          renderOptions(options),
+        );
+      }
+      const files = [{ name: name === '' ? 'file' : name, text: res.text, ref: url }];
+      return ctx.render.render('source', { files }, withRes, renderOptions(options));
+    });
+  };
+
   return {
     generic(route, call, options, reroute) {
-      // A file on a package CDN is under its package's licence (calcite and Esri Leaflet are
-      // Apache-2.0), not Esri's website terms; it is cited neutrally.
       const cdn = ctx.registry
         .hosts()
         .some((host) => host.host === route.url.host && host.capability === 'package-cdn');
+      if (cdn && !/\.html?$/i.test(route.url.pathname)) return packageFile(route, call, options);
       const meta = {
         url: route.url.href,
         kind: 'guide',
-        license: cdn ? 'unlicensed' : 'esri-website-terms',
+        // A page on a package CDN is under its package's licence, not Esri's website terms.
+        license: cdn ? packageLicense(ctx, route.url) : 'esri-website-terms',
       } as const satisfies RenderMeta;
       return guarded(meta, async () => {
         const requested = route.url.href.replace(/#.*$/, '');

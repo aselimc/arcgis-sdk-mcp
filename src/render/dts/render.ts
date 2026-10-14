@@ -178,6 +178,18 @@ function moduleId(input: RendererInputs['dts']): string {
   return `${input.packageName}/${path}`;
 }
 
+/**
+ * Where named exports are imported from: the module itself for a package whose modules are
+ * entry points (`@arcgis/core/core/reactiveUtils.js`), the package for one whose declaration
+ * files sit in a build directory behind a single entry (`@esri/arcgis-rest-request`).
+ */
+function namedFrom(input: RendererInputs['dts']): string {
+  const path = input.modulePath.replace(/^\.?\//, '');
+  return /^(?:dist|lib|build|esm|cjs|types|typings)\//.test(path)
+    ? input.packageName
+    : `${moduleId(input)}.js`;
+}
+
 function declarationText(declaration: DtsDeclaration): string {
   return declaration.text.replace(/^(?:export\s+)?(?:default\s+)?(?:declare\s+)?/, '');
 }
@@ -187,7 +199,7 @@ function classPage(view: ClassView, input: RendererInputs['dts'], isDefault: boo
   const module = moduleId(input);
   const importLine = isDefault
     ? `import ${view.name} from "${module}.js";`
-    : `import { ${view.name} } from "${input.packageName}";`;
+    : `import { ${view.name} } from "${namedFrom(input)}";`;
   const inheritedOptions = view.inheritedOptions;
   const inheritedEvents = view.events?.extends ?? [];
   const facts = [
@@ -248,15 +260,31 @@ function exportMember(declaration: DtsDeclaration, file: DtsFile): ApiMember | u
 
 function modulePage(file: DtsFile, input: RendererInputs['dts']): ApiType {
   const module = moduleId(input);
-  const exports = publicExports(file);
-  const names = exports.map((declaration) => declaration.name);
+  // A module whose default export is a constant (the `IdentityManager` instance) declares it
+  // without `export`; it is still the module's public surface.
+  const fallback = file.declarations.find(
+    (declaration) =>
+      declaration.isDefault &&
+      !declaration.exported &&
+      declaration.kind !== 'export' &&
+      declaration.name !== '',
+  );
+  const exports = [...publicExports(file), ...(fallback === undefined ? [] : [fallback])];
+  const named = exports.filter((declaration) => !declaration.isDefault).map((d) => d.name);
+  const defaultName = exports.find((declaration) => declaration.isDefault)?.name;
+  const bindings = [defaultName, named.length === 0 ? undefined : `{ ${named.join(', ')} }`].filter(
+    (part) => part !== undefined,
+  );
   return {
     title: module.split('/').at(-1) ?? module,
     header: blocks(
       `_Module_ · ${inlineCode(module)}`,
-      names.length === 0
+      bindings.length === 0
         ? undefined
-        : fence(`import { ${names.join(', ')} } from "${input.packageName}";`, 'js'),
+        : fence(
+            `import ${bindings.join(', ')} from "${defaultName === undefined ? namedFrom(input) : `${module}.js`}";`,
+            'js',
+          ),
     ),
     language: 'ts',
     members: exports.flatMap((declaration) => exportMember(declaration, file) ?? []),

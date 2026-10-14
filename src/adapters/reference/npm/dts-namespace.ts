@@ -27,8 +27,16 @@ export interface NamespaceAlias {
   name: string;
 }
 
+const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const SIDE_EFFECT_IMPORT = /^\s*import\s+["']([^"']+)["']\s*;?\s*$/m;
 const ALIAS = /^\s*import\s+([\w$]+)\s*=\s*([\w$]+)\.([\w$]+)\s*;?\s*$/m;
+/**
+ * A module that exports an instance instead of a class (`identity/IdentityManager`):
+ * `declare const IdentityManager: __esri.IdentityManager;` followed by `export default
+ * IdentityManager;`. The class of the instance is what documents the module.
+ */
+const INSTANCE = /^\s*declare\s+const\s+([\w$]+)\s*:\s*([\w$]+)\.([\w$]+)\s*;?\s*$/m;
 const OWN_DECLARATION =
   /^\s*(?:export\s+)?(?:declare\s+)?(?:abstract\s+)?(?:class|interface|function|namespace)\s/m;
 
@@ -51,7 +59,13 @@ function resolveImport(fromFile: string, specifier: string): string | undefined 
  * @param file the module file, relative to the package root (`layers/FeatureLayer.d.ts`).
  */
 export function namespaceAlias(source: string, file: string): NamespaceAlias | undefined {
-  const alias = ALIAS.exec(source);
+  const instance = INSTANCE.exec(source);
+  const exportsInstance =
+    instance?.[1] !== undefined &&
+    new RegExp(`^\\s*export\\s+default\\s+${escapeRegExp(instance[1])}\\s*;?\\s*$`, 'm').test(
+      source,
+    );
+  const alias = ALIAS.exec(source) ?? (exportsInstance ? instance : null);
   const imported = SIDE_EFFECT_IMPORT.exec(source)?.[1];
   if (alias?.[2] === undefined || alias[3] === undefined || imported === undefined) {
     return undefined;
@@ -61,8 +75,6 @@ export function namespaceAlias(source: string, file: string): NamespaceAlias | u
   const target = imported.startsWith('.') ? resolveImport(file, imported) : undefined;
   return target === undefined ? undefined : { file: target, namespace: alias[2], name: alias[3] };
 }
-
-const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 interface Block {
   /** Text between the declared name and the opening brace: type parameters and heritage. */

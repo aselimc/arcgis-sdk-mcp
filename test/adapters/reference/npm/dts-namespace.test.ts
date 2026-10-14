@@ -73,6 +73,27 @@ describe('namespaceAlias', () => {
     expect(namespaceAlias(STUB, 'a/b/Deep.d.ts')?.file).toBe('a/interfaces.d.ts');
   });
 
+  // Regression: `identity/IdentityManager` at 4.30 rendered as an empty module, because it
+  // exports an instance of the namespace class instead of aliasing the class.
+  it('recognises a module file that exports an instance of a namespace class', () => {
+    const instance = [
+      'import "../interfaces";',
+      '',
+      'declare const PanelLayer: __widgets.PanelLayer;',
+      'export default PanelLayer;',
+      '',
+    ].join('\n');
+    expect(namespaceAlias(instance, 'layers/PanelLayer.d.ts')).toEqual({
+      file: 'interfaces.d.ts',
+      namespace: '__widgets',
+      name: 'PanelLayer',
+    });
+    // A constant that is not the default export is a declaration of the file's own.
+    expect(
+      namespaceAlias(instance.replace('export default PanelLayer;', ''), 'layers/PanelLayer.d.ts'),
+    ).toBeUndefined();
+  });
+
   it.each([
     ['a file with declarations of its own', `${STUB}export declare class Extra {}\n`],
     ['a file without the alias', 'import "../interfaces";\nexport default 1;\n'],
