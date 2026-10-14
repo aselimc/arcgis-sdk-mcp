@@ -8,7 +8,8 @@ import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js
 import type { DocPage } from '../core/types.js';
 import { renderApiPage, type ApiMember, type ApiParam, type ApiType } from './api-page.js';
 import { isElement, isText, type AnyNode, type Element } from './dom.js';
-import { blocks, bullets, decodeEntities, fence, inlineCode, oneLine, table } from './md.js';
+import { decodeEntities } from '../core/entities.js';
+import { blocks, bullets, fence, inlineCode, oneLine, table } from './md.js';
 import { invalidInput } from './page.js';
 import { parseMemberId, type MemberId } from './xmldoc-id.js';
 

@@ -2,6 +2,7 @@
  * Dependency-free reader for sitemap index and urlset documents. Esri's sitemaps are flat
  * `<loc>` lists, so a full XML parser would be a dependency with nothing to do.
  */
+import { decodeEntities } from './entities.js';
 
 /** One `<url>` or `<sitemap>` entry. */
 export interface SitemapEntry {
@@ -15,25 +16,7 @@ export interface Sitemap {
   entries: SitemapEntry[];
 }
 
-const NAMED_ENTITIES: Readonly<Record<string, string>> = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-};
 
-/** Decodes the five XML entities and numeric character references; unknown entities stay as written. */
-function decodeEntities(text: string): string {
-  return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, body: string) => {
-    if (body.startsWith('#')) {
-      const hex = body[1] === 'x' || body[1] === 'X';
-      const code = Number.parseInt(body.slice(hex ? 2 : 1), hex ? 16 : 10);
-      return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : whole;
-    }
-    return NAMED_ENTITIES[body.toLowerCase()] ?? whole;
-  });
-}
 
 /** Text content of the first un-prefixed `<name>` element (so `<image:loc>` is never taken for `<loc>`). */
 function elementText(xml: string, name: string): string | undefined {

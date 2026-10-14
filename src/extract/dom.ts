@@ -48,7 +48,10 @@ export function squash(text: string): string {
   return text.replace(/[\s\u00a0]+/g, ' ').trim();
 }
 
-/** True for element nodes (`script` and `style` included). */
+/**
+ * True for element nodes (`script` and `style` included). `src/render/dom.ts` has the same
+ * test; the two packages may not import each other.
+ */
 export function isElement(node: AnyNode | null | undefined): node is Element {
   // `type` is an enum of the parser package; its values are these plain strings.
   const type: string | undefined = node?.type;

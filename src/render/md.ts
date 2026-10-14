@@ -190,24 +190,4 @@ export function headingText(title: string): string {
   return /[*_<>[\]`#\\]/.test(title) ? inlineCode(title) : oneLine(title);
 }
 
-const ENTITIES: Record<string, string> = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-};
 
-/** Decodes the handful of HTML entities that appear in JSON-embedded Markdown. */
-export function decodeEntities(text: string): string {
-  return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, body: string) => {
-    if (body.startsWith('#')) {
-      const code = /^#x/i.test(body) ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10);
-      return Number.isFinite(code) && code > 0 && code <= 0x10ffff
-        ? String.fromCodePoint(code)
-        : whole;
-    }
-    return ENTITIES[body.toLowerCase()] ?? whole;
-  });
-}

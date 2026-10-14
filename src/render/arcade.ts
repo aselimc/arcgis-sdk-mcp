@@ -6,7 +6,8 @@
 import type { RenderMeta, RenderOptions, RendererInputs } from '../core/ports.js';
 import type { DocPage, MemberEntry, SymbolDetail } from '../core/types.js';
 import { isRecord, list, records, str, strings, type Json } from './json.js';
-import { blocks, bullets, decodeEntities, fence, firstSentence, inlineCode, table } from './md.js';
+import { decodeEntities } from '../core/entities.js';
+import { blocks, bullets, fence, firstSentence, inlineCode, table } from './md.js';
 import { buildSections, finishPage, invalidInput, selectSections, type Block } from './page.js';
 
 interface Entry {

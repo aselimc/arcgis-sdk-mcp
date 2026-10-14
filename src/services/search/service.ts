@@ -279,6 +279,7 @@ export function createSearchService(deps: SearchDeps): SearchService {
             products: new Map(targets.map((target) => [target.product.id, target.product])),
             workspace,
           }),
+          primarySource,
         ),
       );
       const faceted = applyVersionFacet(fused, req.version);

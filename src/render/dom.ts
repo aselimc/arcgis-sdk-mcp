@@ -9,9 +9,14 @@ import type { AnyNode, Element, Text } from 'domhandler';
 /** The DOM node types of a parsed document. */
 export type { AnyNode, Element };
 
-/** True for an element node. Node kinds are compared as text, not as the parser's enum. */
-export function isElement(node: AnyNode | undefined): node is Element {
-  return node !== undefined && (node.type as string) === 'tag';
+/**
+ * True for an element node (`script` and `style` included), the same test as `isElement` in
+ * `src/extract/dom.ts`; the two packages may not import each other. Node kinds are compared as
+ * text, not as the parser's enum.
+ */
+export function isElement(node: AnyNode | null | undefined): node is Element {
+  const type: string | undefined = node?.type;
+  return type === 'tag' || type === 'script' || type === 'style';
 }
 
 /** True for a text node. */

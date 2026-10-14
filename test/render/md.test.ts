@@ -12,7 +12,6 @@ import {
 import {
   blocks,
   bullets,
-  decodeEntities,
   fence,
   fencedExample,
   firstSentence,
@@ -116,11 +115,5 @@ describe('markdown writers', () => {
     expect(headingText('queryFeatures')).toBe('queryFeatures');
     expect(headingText('__init__')).toBe('`__init__`');
     expect(headingText('Array<T>')).toBe('`Array<T>`');
-  });
-
-  it('decodeEntities handles named and numeric entities', () => {
-    expect(decodeEntities('&lt;a&gt; &amp; &quot;b&quot; &#39;c&#x27; &nbsp;&unknown; &#0;')).toBe(
-      '<a> & "b" \'c\'  &unknown; &#0;',
-    );
   });
 });

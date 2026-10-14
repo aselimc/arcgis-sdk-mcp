@@ -9,6 +9,7 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import * as z from 'zod/v4';
 import { newBudget } from '../../core/async.js';
 import { attribution } from '../../core/attribution.js';
+import { decodeEntities } from '../../core/entities.js';
 import { toMcpDocError } from '../../core/errors.js';
 import { DEVELOPERS_ORIGIN, TOOL_ORDER, TOOLS } from '../../core/names.js';
 import type { CallOptions } from '../../core/ports.js';
@@ -44,19 +45,7 @@ const Args = z.object({
     .describe('Which instructions file to write.'),
 });
 
-const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 
-function decodeEntities(value: string): string {
-  return value.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, name: string) => {
-    if (name.startsWith('#')) {
-      const code = /^#x/i.test(name) ? parseInt(name.slice(2), 16) : parseInt(name.slice(1), 10);
-      return Number.isFinite(code) && code > 0 && code <= 0x10ffff
-        ? String.fromCodePoint(code)
-        : whole;
-    }
-    return ENTITIES[name.toLowerCase()] ?? whole;
-  });
-}
 
 /**
  * The text behind the first copy button (`button[data-code]`) of a documentation page, or

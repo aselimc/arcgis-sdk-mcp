@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  decodeEntities,
   findTocScripts,
   parseFileListing,
   parseTreedata,
@@ -157,14 +156,5 @@ describe('findTocScripts', () => {
       '<script src=\'/en/a/b/12.js\'></script><script defer src="/en/a/b/12.js"></script><script src="/js/app.js"></script>';
     expect(findTocScripts(twice)).toEqual(['/en/a/b/12.js']);
     expect(findTocScripts('<p>no scripts</p>')).toEqual([]);
-  });
-});
-
-describe('decodeEntities', () => {
-  it('decodes named and numeric references and leaves unknown ones as written', () => {
-    expect(decodeEntities('A&nbsp;B &#8212; &#x2014; &lt;tag&gt; &quot;q&quot; &apos;')).toBe(
-      'A B — — <tag> "q" \'',
-    );
-    expect(decodeEntities('&unknown; &#0; &#x110000; &AMP;')).toBe('&unknown; &#0; &#x110000; &');
   });
 });

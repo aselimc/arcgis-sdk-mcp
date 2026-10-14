@@ -4,6 +4,7 @@
  * quoted `URL='...'`, a full document with an empty body, and a document with a byte order
  * mark and no body. A real page that happens to carry a refresh meta is not a stub.
  */
+import { decodeEntities } from '../core/entities.js';
 
 /** The refresh tag sits at the top of a stub; real pages are not searched beyond this. */
 const HEAD_BYTES = 4096;
@@ -56,12 +57,6 @@ function hasVisibleText(html: string, enough: number): boolean {
   return false;
 }
 
-function decodeEntities(value: string): string {
-  return value
-    .replace(/&amp;/g, '&')
-    .replace(/&#x27;|&#39;|&apos;/g, "'")
-    .replace(/&quot;/g, '"');
-}
 
 /**
  * The absolute target of a meta-refresh stub, or `undefined` when `html` is a real page, a

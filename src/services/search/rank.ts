@@ -81,15 +81,41 @@ function canonicalRef(ref: string): string {
   }
 }
 
-/** Keeps the first (best) hit for each canonical URL; member anchors stay distinct. */
-export function dedupe(hits: readonly SearchHit[]): SearchHit[] {
-  const seen = new Set<string>();
-  return hits.filter((hit) => {
+/**
+ * True when `source` of `product` is the primary of `other`: `other` is listed among its
+ * fallbacks, as the site reference is for the Custom Elements Manifest of a web component.
+ */
+export type PrimarySource = (product: string, source: string, other: string) => boolean;
+
+/**
+ * Keeps one hit for each canonical URL, in the place of the best one; member anchors stay
+ * distinct. When two sources of one product list the same page, the hit of the primary
+ * source (see {@link PrimarySource}) is the one kept, so a page is always reported under the
+ * same source whichever of its two records ranked higher.
+ */
+export function dedupe(hits: readonly SearchHit[], primary?: PrimarySource): SearchHit[] {
+  const kept = new Map<string, number>();
+  const out: SearchHit[] = [];
+  for (const hit of hits) {
     const key = canonicalRef(hit.ref);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+    const at = kept.get(key);
+    if (at === undefined) {
+      kept.set(key, out.length);
+      out.push(hit);
+      continue;
+    }
+    const first = out[at];
+    if (
+      first !== undefined &&
+      primary !== undefined &&
+      first.product === hit.product &&
+      first.source !== hit.source &&
+      primary(hit.product, hit.source, first.source)
+    ) {
+      out[at] = { ...hit, score: Math.max(first.score, hit.score) };
+    }
+  }
+  return out;
 }
 
 /**

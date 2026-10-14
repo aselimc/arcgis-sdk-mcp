@@ -11,6 +11,7 @@
  * with a regular expression and a brace scan and parsed with `JSON.parse`; nothing is ever
  * evaluated.
  */
+import { decodeEntities } from '../../core/entities.js';
 
 /** One node of a table-of-contents script. */
 export interface TreeNode {
@@ -30,31 +31,7 @@ export interface TreePage {
   ancestors: string[];
 }
 
-const NAMED_ENTITIES: Readonly<Record<string, string>> = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-  mdash: '—',
-  ndash: '–',
-  reg: '®',
-  trade: '™',
-  copy: '©',
-};
 
-/** Decodes numeric character references and the named entities that occur in topic titles. */
-export function decodeEntities(text: string): string {
-  return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, body: string) => {
-    if (body.startsWith('#')) {
-      const hex = body[1] === 'x' || body[1] === 'X';
-      const code = Number.parseInt(body.slice(hex ? 2 : 1), hex ? 16 : 10);
-      return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : whole;
-    }
-    return NAMED_ENTITIES[body.toLowerCase()] ?? whole;
-  });
-}
 
 /**
  * The index just past the `}` that closes the object literal starting at `open`, or -1 when
