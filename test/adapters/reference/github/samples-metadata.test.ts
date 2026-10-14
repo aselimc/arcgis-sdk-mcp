@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { githubRepoAdapter } from '../../../../src/adapters/reference/github/adapter.js';
 import {
+  codeTwin,
   mainFiles,
   sampleDirs,
   sampleOfDir,
@@ -245,6 +246,88 @@ describe('samples-readme', () => {
     expect(page.kind).toBe('sample');
     // No metadata file is guessed for a repository family that has none.
     expect(ctx.github.calls.some((entry) => entry.path?.endsWith('.metadata.json'))).toBe(false);
+  });
+});
+
+// Regression: the Unreal Engine samples repository yielded no sample at all. A game-engine
+// project keeps the README of a sample with its assets and the code under the source root.
+describe('samples-readme: code kept apart from the README', () => {
+  const config: GithubConfig = { repo: 'Esri/engine-samples', preset: 'samples-readme' };
+  const VIEWER = 'viewer_project/Content/Viewer/Samples';
+  const paths = tree(
+    'README.md',
+    'tools/README.md',
+    'templates/readme.md',
+    `${VIEWER}/Geocoding/readme.md`,
+    `${VIEWER}/Geocoding/Geocoding.umap`,
+    `${VIEWER}/FeatureLayer/readme.md`,
+    `${VIEWER}/FeatureLayer/FeatureLayer.umap`,
+    `${VIEWER}/Flythrough/readme.md`,
+    `${VIEWER}/Flythrough/Blueprints/Camera.uasset`,
+    `${VIEWER}/Notes/readme.md`,
+    'viewer_project/Source/viewer_project/Geocoding/Geocoder.cpp',
+    'viewer_project/Source/viewer_project/Geocoding/Geocoder.h',
+    'viewer_project/Source/viewer_project/Feature Layer/FeatureLayerQuery.cpp',
+    'viewer_project/Source/viewer_project/viewer_project.cpp',
+    'xr_project/Content/Samples/Tabletop/readme.md',
+    'xr_project/Content/Samples/Tabletop/Tabletop.umap',
+    'xr_project/Source/xr_project/Geocoding/Geocoder.cpp',
+    'xr_project/Source/xr_project/Tabletop/TabletopPawn.cpp',
+  );
+
+  it('finds the code of a sample in the directory of the same name, nearest first', () => {
+    expect(codeTwin(paths, `${VIEWER}/Geocoding`)).toBe(
+      'viewer_project/Source/viewer_project/Geocoding',
+    );
+    // Spaces and letter case do not make another name.
+    expect(codeTwin(paths, `${VIEWER}/FeatureLayer`)).toBe(
+      'viewer_project/Source/viewer_project/Feature Layer',
+    );
+    expect(codeTwin(paths, 'xr_project/Content/Samples/Tabletop')).toBe(
+      'xr_project/Source/xr_project/Tabletop',
+    );
+    expect(codeTwin(paths, `${VIEWER}/Flythrough`)).toBeUndefined();
+  });
+
+  it('does not take a directory with a README of its own for the code of another', () => {
+    const both = tree('a/Geocoding/readme.md', 'b/Geocoding/readme.md', 'b/Geocoding/Main.cpp');
+    expect(codeTwin(both, 'a/Geocoding')).toBeUndefined();
+  });
+
+  it('lists such samples, and the asset-only samples next to them', () => {
+    expect(sampleDirs(paths, config).map((sample) => sample.dir)).toEqual([
+      `${VIEWER}/FeatureLayer`,
+      // Built from assets alone, in the same set of samples.
+      `${VIEWER}/Flythrough`,
+      `${VIEWER}/Geocoding`,
+      'xr_project/Content/Samples/Tabletop',
+    ]);
+  });
+
+  it('reads the sample with the code of its twin directory, named by repository path', async () => {
+    const files = Object.fromEntries(paths.map((file) => [file.path, `// ${file.path}`]));
+    const { product, source } = githubProduct(config, {}, { languages: ['cpp'] });
+    const ctx = githubCtx({
+      'Esri/engine-samples': { defaultBranch: 'main', files: { '*': files } },
+    });
+    const src = bound(ctx, product, source);
+
+    const records = (await githubRepoAdapter.enumerate?.(ctx, src)) ?? [];
+    expect(records.map((record) => record.title)).toEqual([
+      'Feature layer',
+      'Flythrough',
+      'Geocoding',
+      'Tabletop',
+    ]);
+    const geocoding = records[2];
+    if (geocoding === undefined) throw new Error('no record');
+    const page = await githubRepoAdapter.sample?.(ctx, src, geocoding);
+    const input = ctx.render.calls.at(-1)?.input as RendererInputs['source'];
+    expect(input.files.map((file) => file.name)).toEqual([
+      'viewer_project/Source/viewer_project/Geocoding/Geocoder.cpp',
+      'viewer_project/Source/viewer_project/Geocoding/Geocoder.h',
+    ]);
+    expect(page?.notices).toEqual([]);
   });
 });
 

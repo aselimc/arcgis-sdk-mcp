@@ -258,18 +258,132 @@ describe('reading files and directories', () => {
     expect(bareRef.ref).toBe(blob('README.md'));
   });
 
-  it('explains a directory without a README and a directory that does not exist', async () => {
+  // Regression: a directory URL without a README was a dead end ("open one of its files"),
+  // with no way to learn which files it has.
+  it('lists a directory that has no README, with the URL of every entry', async () => {
     const { ctx, src } = setup();
-    await expect(
-      githubRepoAdapter.read(ctx, src, {
-        url: new URL(`https://github.com/${REPO}/tree/main/proto`),
-      }),
-    ).rejects.toThrow('proto has no README');
+    const page = await githubRepoAdapter.read(ctx, src, {
+      url: new URL(`https://github.com/${REPO}/tree/main/docs`),
+    });
+    const call = ctx.render.calls.at(-1);
+    expect(call?.kind).toBe('markdown');
+    expect((call?.input as RendererInputs['markdown']).markdown).toBe(
+      [
+        '# docs',
+        `Directory of ${REPO} at main. It has no README; read an entry by its URL.`,
+        `- [v3/](https://github.com/${REPO}/tree/main/docs/v3) (2 files)`,
+      ].join('\n\n'),
+    );
+    expect(page.ref).toBe(`https://github.com/${REPO}/tree/main/docs`);
+    // The listing is this server's text, not a document of the repository.
+    expect(page.license).toBe('project');
+
+    await githubRepoAdapter.read(ctx, src, {
+      url: new URL(`https://github.com/${REPO}/tree/main/proto`),
+    });
+    expect((ctx.render.calls.at(-1)?.input as RendererInputs['markdown']).markdown).toContain(
+      `- [Feature.proto](${blob('proto/Feature.proto')})`,
+    );
+  });
+
+  it('explains a directory that does not exist', async () => {
+    const { ctx, src } = setup();
     await expect(
       githubRepoAdapter.read(ctx, src, {
         url: new URL(`https://github.com/${REPO}/tree/main/nope`),
       }),
     ).rejects.toThrow(`${REPO} has no directory "nope"`);
+  });
+
+  // Regression: starter templates are listed as samples, but a hit was its README alone:
+  // `section: "source"` named nothing, a tree URL gave the README, and the code could only
+  // be reached by guessing file paths.
+  describe('a source whose directories are samples', () => {
+    const templates = {
+      'README.md': '# Resources',
+      'templates/chat-agent/README.md': '# Chat agent template\n\nStarts a chat agent.',
+      'templates/chat-agent/index.html': '<div id="root"></div>',
+      'templates/chat-agent/package.json': '{}',
+      'templates/chat-agent/vite.config.ts': 'export default {};',
+      'templates/chat-agent/eslint.config.js': 'export default [];',
+      'templates/chat-agent/src/main.tsx': 'render();',
+      'templates/chat-agent/src/App.tsx': 'export function App() {}',
+      'templates/chat-agent/src/vite-env.d.ts': '/// <reference types="vite/client" />',
+      'templates/chat-agent/src/agent/index.ts': 'export const agent = {};',
+      'templates/chat-agent/src/tools/area/core.ts': 'export const core = {};',
+      'templates/chat-agent/src/tools/area/adapter.ts': 'export const adapter = {};',
+      'templates/chat-agent/src/tools/area/index.ts': 'export * from "./core";',
+      'templates/chat-agent/src/types/types.ts': 'export type T = string;',
+    };
+    const asSamples = () =>
+      setup(
+        { include: ['templates/**', 'README.md'] },
+        { files: { '*': templates } },
+        { id: 'templates', kinds: ['sample'] },
+      );
+    const TEMPLATE = 'templates/chat-agent';
+
+    it('reads the README of a template as the template: description, entry files, and the rest by name', async () => {
+      const { ctx, src } = asSamples();
+      const page = await githubRepoAdapter.read(ctx, src, {
+        url: new URL(blob(`${TEMPLATE}/README.md`)),
+      });
+
+      const call = ctx.render.calls.at(-1);
+      expect(call?.kind).toBe('source');
+      const input = call?.input as RendererInputs['source'];
+      expect(input.readme).toContain('Starts a chat agent.');
+      // Entry files before the configuration of build tools, nearest to the root first.
+      expect(input.files.map((file) => file.name)).toEqual([
+        'index.html',
+        'src/App.tsx',
+        'src/main.tsx',
+        'src/agent/index.ts',
+        'src/types/types.ts',
+        'src/tools/area/adapter.ts',
+      ]);
+      expect(page.kind).toBe('sample');
+      // Every file that was not fetched is named with the URL that reads it.
+      expect(page.notices).toEqual([
+        [
+          '5 more source file(s), each readable by its URL:',
+          `src/tools/area/core.ts (${blob(`${TEMPLATE}/src/tools/area/core.ts`)}),`,
+          `src/tools/area/index.ts (${blob(`${TEMPLATE}/src/tools/area/index.ts`)}),`,
+          `eslint.config.js (${blob(`${TEMPLATE}/eslint.config.js`)}),`,
+          `vite.config.ts (${blob(`${TEMPLATE}/vite.config.ts`)}),`,
+          `src/vite-env.d.ts (${blob(`${TEMPLATE}/src/vite-env.d.ts`)}).`,
+        ].join(' '),
+      ]);
+    });
+
+    it('reads the directory of a template the same way', async () => {
+      const { ctx, src } = asSamples();
+      await githubRepoAdapter.read(ctx, src, {
+        url: new URL(`https://github.com/${REPO}/tree/main/${TEMPLATE}`),
+      });
+      const input = ctx.render.calls.at(-1)?.input as RendererInputs['source'];
+      expect(ctx.render.calls.at(-1)?.kind).toBe('source');
+      expect(input.files).toHaveLength(6);
+    });
+
+    it('reads one file of a template, and the README of the repository, as the file it is', async () => {
+      const { ctx, src } = asSamples();
+      await githubRepoAdapter.read(ctx, src, {
+        url: new URL(blob(`${TEMPLATE}/src/agent/index.ts`)),
+      });
+      const one = ctx.render.calls.at(-1)?.input as RendererInputs['source'];
+      expect(one.files.map((file) => file.name)).toEqual(['index.ts']);
+      expect(one.readme).toBeUndefined();
+
+      await githubRepoAdapter.read(ctx, src, { url: new URL(blob('README.md')) });
+      expect(ctx.render.calls.at(-1)?.kind).toBe('markdown');
+    });
+
+    it('keeps reading a README as a document when the source is documentation', async () => {
+      const { ctx, src } = setup({}, { files: { '*': templates } });
+      await githubRepoAdapter.read(ctx, src, { url: new URL(blob(`${TEMPLATE}/README.md`)) });
+      expect(ctx.render.calls.at(-1)?.kind).toBe('markdown');
+    });
   });
 
   it('rejects URLs of other repositories and of pages that are not content', async () => {

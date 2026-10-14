@@ -594,11 +594,7 @@ describe('version label', () => {
     it('labels the sources an oracle speaks for and leaves the others without a version', async () => {
       const ctx = setup({ products: [rest] });
       const service = createVersionService(ctx);
-      const label = service.label as (
-        product: Product,
-        line: typeof LINE_300,
-        source?: typeof hosted,
-      ) => Promise<string | undefined>;
+      const label = service.label.bind(service);
       expect(await label(rest, LINE_300, enterprise)).toBe('300.1');
       expect(await label(rest, LINE_300, hosted)).toBeUndefined();
       // Nothing was requested for the source that no oracle describes.
@@ -610,11 +606,7 @@ describe('version label', () => {
     it('shares one label between the sources of a product whose oracles are not limited', async () => {
       const ctx = setup();
       const service = createVersionService(ctx);
-      const label = service.label as (
-        product: Product,
-        line: typeof LINE_300,
-        source?: typeof hosted,
-      ) => Promise<string | undefined>;
+      const label = service.label.bind(service);
       const [line] = jsProduct.lines;
       expect(await label(jsProduct, line!, enterprise)).toBe('5.1');
       expect(await label(jsProduct, line!, hosted)).toBe('5.1');

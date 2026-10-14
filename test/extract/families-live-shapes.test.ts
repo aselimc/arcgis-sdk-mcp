@@ -268,6 +268,8 @@ describe('code spans and fence languages', () => {
     expect(refineLanguage('json', '{ "a": 1 }')).toBe('json');
     expect(refineLanguage('json', '// a comment\n[1, 2]')).toBe('json');
     expect(refineLanguage('json', 'true')).toBe('json');
+    // Request parameters listed as `name=value` are not JavaScript.
+    expect(refineLanguage('json', 'singleline=1033 SC, Amsterdam\nstart=1')).toBe('json');
     expect(refineLanguage('python', 'print(1)')).toBe('python');
   });
 });

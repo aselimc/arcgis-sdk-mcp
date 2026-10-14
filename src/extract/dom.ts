@@ -89,9 +89,12 @@ const VISUAL_BASIC =
 const LEADING_COMMENTS = /^(?:\s*(?:\/\/|#)[^\n]*\n)*\s*/;
 /** How a JSON value can start: an object, an array, a string, a number or a literal. */
 const JSON_START = /^(?:[{["\d-]|true\b|false\b|null\b)/;
-/** A JavaScript statement: a declaration, or a call or assignment on a name. */
+/**
+ * A JavaScript statement: a declaration, or a call on a name (`form.setValue(`). A bare
+ * `name=value` is not one: request parameters are listed that way under the same label.
+ */
 const JAVASCRIPT_START =
-  /^(?:(?:const|let|var|function|import|export|await|new|return|async)\b|[\w$.[\]]+\s*(?:\(|=[^=]))/;
+  /^(?:(?:const|let|var|function|import|export|await|new|return|async)\s|[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\()/;
 
 /**
  * The fence language for code whose page names the wrong one. Two mislabels are common

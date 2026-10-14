@@ -9,7 +9,7 @@
  */
 import { budgetExhausted, newBudget, singleFlight } from '../core/async.js';
 import type { CreateVersionService } from '../core/factories.js';
-import type { CallOptions, Ctx, VersionReport } from '../core/ports.js';
+import type { CallOptions, Ctx, VersionReport, VersionService } from '../core/ports.js';
 import type { OracleSpec, Product, SourceDef, VersionFact, VersionLine } from '../core/types.js';
 import { oracleSources } from '../registry/oracle-options.js';
 import { deadPackageWarning } from '../workspace/dead-packages.js';
@@ -92,8 +92,17 @@ function labelScope(product: Product, source: SourceDef | undefined): string {
   return source === undefined || !scoped ? '' : `/${source.id}`;
 }
 
+/**
+ * The version service as this package builds it: the port, plus a label for one source of a
+ * product. The port asks for a product and a line; a caller that knows which source a page
+ * belongs to passes it, and gets no version for a source that has none.
+ */
+export interface SourceAwareVersionService extends VersionService {
+  label(product: Product, line: VersionLine, source?: SourceDef): Promise<string | undefined>;
+}
+
 /** Creates the version service. See `VersionService` in `src/core/ports.ts`. */
-export const createVersionService: CreateVersionService = (ctx) => {
+export const createVersionService = ((ctx: Ctx): SourceAwareVersionService => {
   const labels = new Map<string, CachedLabel>();
   const labelFlights = singleFlight<string, string | undefined>();
   /** The project as of at most a minute ago; empty in HTTP mode or with `workspace` off. */
@@ -203,7 +212,7 @@ export const createVersionService: CreateVersionService = (ctx) => {
      * oracles that speak for that source: the Enterprise release number is not printed on a
      * hosted location service, which has no version.
      */
-    label(product, line, source?: SourceDef): Promise<string | undefined> {
+    label(product, line, source): Promise<string | undefined> {
       // No oracle speaks for this source: it has no version, and nothing needs to be read.
       if (source !== undefined && labelOrder(product, source).length === 0) {
         return Promise.resolve(undefined);
@@ -233,4 +242,4 @@ export const createVersionService: CreateVersionService = (ctx) => {
       });
     },
   };
-};
+}) satisfies CreateVersionService;
