@@ -101,6 +101,24 @@ describe('swap rule', () => {
     expect(state).toMatchObject({ state: 'ready', records: 3 });
     expect(h.index.health()[0]).toMatchObject({ state: 'degraded' });
   });
+
+  // The guide of the JavaScript SDK probes a sitemap of 4,700 URLs (floor 2366) and indexes
+  // about 370 pages: the floor must not mark every build degraded.
+  it('caps a probe floor that counts more than the source indexes at half its page estimate', async () => {
+    const p = product({
+      sources: [
+        makeSource(
+          'gatsby',
+          { base: '/widgets/' },
+          { pagesApprox: 8, probe: { url: BASE, expect: 'html', minRecords: 50 } },
+        ),
+      ],
+    });
+    const h = makeHarness({ products: [p], records: records(6) });
+    const [state] = await h.index.ensure(p, undefined, makeLine(), h.call());
+    expect(state).toMatchObject({ state: 'ready', records: 6 });
+    expect(h.index.health()[0]).toMatchObject({ state: 'ok' });
+  });
 });
 
 describe('deadline and background completion', () => {

@@ -69,33 +69,33 @@ describe('symbolLookupOf', () => {
    * The products whose profile may not claim symbol lookups. A source that starts to yield
    * symbols (or stops) changes this list, and with it the README coverage table.
    */
-  it('names the products whose API or specification pages carry no symbols', () => {
+  it('names the products whose API or specification pages are found by title only', () => {
     const without = (lookup: string): string[] =>
       PRODUCTS.filter((product) => product.tier === 'developer')
         .filter((product) => product.sources.some((source) => /api|spec/.test(source.kinds.join())))
         .filter((product) => symbolLookupOf(product) === lookup)
         .map((product) => product.id)
         .sort();
+    // Specification pages are matched by title too (src/services/symbol/titled.ts).
     expect(without('titles')).toEqual([
+      '3d-tiles-esri-crs',
       'appstudio',
+      'arcgis-pbf',
       'autocad-api',
       'cityengine',
       'earth-automation-api',
-      'survey123-dev',
-      'web-appbuilder',
-    ]);
-    expect(without('none')).toEqual([
-      '3d-tiles-esri-crs',
-      'arcgis-pbf',
       'file-geodatabase-api',
       'i3s-spec',
       'knowledge-pbf',
       'lerc',
       'projection-engine-db',
       'spatially-optimized-parquet',
+      'survey123-dev',
       'tile-package-spec',
       'velocity-grpc',
+      'web-appbuilder',
     ]);
+    expect(without('none')).toEqual([]);
     // The flagship references stay symbol sources.
     const flagships = PRODUCTS.filter((product) =>
       ['js-maps-sdk', 'arcpy', 'python-api', 'cim-spec', 'rest-api'].includes(product.id),

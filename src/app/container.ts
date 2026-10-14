@@ -68,11 +68,15 @@ export interface Container {
   readonly adapters: AdapterRegistry;
   readonly services: Services;
   /**
-   * Esri SDKs detected in the project directory. Scanned once, on first call; `[]` in HTTP
-   * mode, with capability `workspace` off, and when the scan fails.
+   * Esri SDKs detected in the project directory. Scanned on first call and again once a scan
+   * is a minute old; `[]` in HTTP mode, with capability `workspace` off, and when the scan
+   * fails.
    */
   workspace(): Promise<WorkspaceSdk[]>;
 }
+
+/** How long one scan of the project answers; the same as the version service's scan. */
+const WORKSPACE_TTL_MS = 60 * 1000;
 
 /** Runs `create` on the first call and returns the same value afterwards. */
 function lazy<V>(create: () => V): () => V {
@@ -120,16 +124,24 @@ export function buildContainer(
     factories.createGithubClient({ config, http: http(), cache: cache(), logger, clock }),
   );
 
-  const workspace = lazy(async (): Promise<WorkspaceSdk[]> => {
-    if (config.mode !== 'stdio' || !config.capabilities.has('workspace')) return [];
-    try {
-      return await factories.detectWorkspace({ config, registry: registry(), logger });
-    } catch (error) {
-      // Version pinning is a convenience: a project that cannot be read must not fail a call.
-      logger.warn('workspace detection failed', { error });
-      return [];
-    }
-  });
+  // A project changes while the server runs (an upgrade, a new package): a scan answers for
+  // WORKSPACE_TTL_MS, and calls that arrive during a scan share it.
+  let scanned: { at: number; sdks: Promise<WorkspaceSdk[]> } | undefined;
+  const workspace = (): Promise<WorkspaceSdk[]> => {
+    if (config.mode !== 'stdio' || !config.capabilities.has('workspace')) return Promise.resolve([]);
+    if (scanned !== undefined && clock.now() - scanned.at < WORKSPACE_TTL_MS) return scanned.sdks;
+    const sdks = (async () => {
+      try {
+        return await factories.detectWorkspace({ config, registry: registry(), logger });
+      } catch (error) {
+        // Version pinning is a convenience: a project that cannot be read must not fail a call.
+        logger.warn('workspace detection failed', { error });
+        return [];
+      }
+    })();
+    scanned = { at: clock.now(), sdks };
+    return sdks;
+  };
 
   const ctx = lazy((): Ctx => ({
     config,

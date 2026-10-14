@@ -6,6 +6,7 @@
 import { formatCall } from '../../core/budget.js';
 import { McpDocError } from '../../core/errors.js';
 import { TOOLS } from '../../core/names.js';
+import { symbolLookupOf } from '../../core/symbol-sources.js';
 import type { Ctx, IndexState, SymbolRequest } from '../../core/ports.js';
 import { nearest } from '../../core/text-distance.js';
 import { normalizeSymbol } from '../../core/tokenize.js';
@@ -155,6 +156,34 @@ export function unsearchedError(
   });
 }
 
+/** Shortest query `arcgis_docs_search` accepts. */
+const MIN_QUERY = 2;
+
+/**
+ * The search that continues a miss: of the API pages when a target has an API reference, of
+ * the specification pages when the targets only have those, else of everything. A name too
+ * short to be a query gets the product's profile instead, or no `next` (the MCP layer then
+ * builds a safe recovery).
+ */
+function nextSearch(
+  req: SymbolRequest,
+  targets: readonly Target[],
+  first: string | undefined,
+): { next?: string } {
+  const product = req.product ?? first;
+  if (req.symbol.trim().length < MIN_QUERY) {
+    return product === undefined
+      ? {}
+      : { next: formatCall(TOOLS.listProducts, { product: product.split('/')[0] }) };
+  }
+  const kinds = new Set(
+    targets.flatMap((target) => target.product.sources.flatMap((source) => source.kinds)),
+  );
+  const symbols = targets.some((target) => symbolLookupOf(target.product) === 'symbols');
+  const kind = symbols || kinds.has('api') ? 'api' : kinds.has('spec') ? 'spec' : undefined;
+  return { next: formatCall(TOOLS.search, { query: req.symbol.trim(), product, kind }) };
+}
+
 /**
  * Builds the error. It is `retryable` when a reference index was building or failing, since
  * the same call may then succeed later.
@@ -174,8 +203,12 @@ export function notFoundError(
     .map((state) => `${state.product}/${state.source} (${causeOf(state.state)})`)
     .join(', ');
 
+  const lookups = targets.map((target) => symbolLookupOf(target.product));
+  const noReference = targets.length > 0 && lookups.every((lookup) => lookup === 'none');
   let why: string;
-  if (knownType !== undefined) {
+  if (noReference) {
+    why = `Not verified: ${products.join(', ')} has no API reference in this server, so names are found by search only`;
+  } else if (knownType !== undefined) {
     why = `${displayName(knownType)} is documented but no member with this name was found, in the index or on its page (an inherited member is listed under the type that declares it); not verified, and this does not prove it does not exist`;
   } else if (products.length === 0) {
     why =
@@ -188,11 +221,7 @@ export function notFoundError(
   return new McpDocError('SYMBOL_NOT_FOUND', `No symbol "${req.symbol}" was found`, {
     why,
     ...(names.length > 0 ? { candidates: names.slice(0, MAX_NEAREST) } : {}),
-    next: formatCall(TOOLS.search, {
-      query: req.symbol,
-      product: req.product ?? products[0],
-      kind: 'api',
-    }),
+    ...nextSearch(req, targets, products[0]),
     retryable: knownType === undefined && transient,
   });
 }

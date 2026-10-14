@@ -203,7 +203,12 @@ export function createUnitManager(
     }
 
     const { records } = outcome;
-    const expected = source.probe.minRecords ?? 0;
+    // The probe's floor counts what the probe reads, which can be far more than the source
+    // indexes (the guide of the JavaScript SDK probes a sitemap of 4,700 URLs and indexes
+    // about 370 of them): half the registry's page estimate caps it.
+    const floor = source.probe.minRecords ?? 0;
+    const expected =
+      source.pagesApprox === undefined ? floor : Math.min(floor, Math.ceil(source.pagesApprox / 2));
     const previousCount =
       previous !== undefined && previous.origin !== 'seed' ? previous.records.length : 0;
     // Swap rule: a rebuilt index must not be much smaller than the one it replaces. The

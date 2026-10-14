@@ -39,7 +39,8 @@ export async function pageVersion(
   if (line === undefined) return undefined;
   const own = /\d/.test(line.label) ? line.label : undefined;
   try {
-    return (await services.versions.label(product, line)) ?? own;
+    const source = product.sources.find((candidate) => candidate.id === page.source);
+    return (await services.versions.label(product, line, source)) ?? own;
   } catch {
     // The label is decoration: a failing oracle must not fail a read that succeeded.
     return own;

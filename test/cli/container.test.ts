@@ -189,6 +189,19 @@ describe('container.workspace', () => {
     expect(seen.workspaceCalls).toBe(1);
   });
 
+  it('scans again once the scan is a minute old', async () => {
+    const { factories, seen } = makeFactories();
+    const clock = new FakeClock();
+    const container = buildContainer(makeConfig(), factories, { clock });
+    await container.workspace();
+    clock.advance(59_000);
+    await container.workspace();
+    expect(seen.workspaceCalls).toBe(1);
+    clock.advance(2_000);
+    await container.workspace();
+    expect(seen.workspaceCalls).toBe(2);
+  });
+
   it('is empty in HTTP mode without scanning', async () => {
     const { factories, seen } = makeFactories();
     const container = buildContainer(makeConfig({ mode: 'http' }), factories);

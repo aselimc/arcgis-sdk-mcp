@@ -58,7 +58,7 @@ describe('product presenters', () => {
       sources: [makeSource('gatsby', { base: '/widgets/' }, { kinds: ['guide', 'release-notes'] })],
     });
     expect(profileOf(product, {}, fakePolicy()).capabilities).toEqual({
-      symbols: false,
+      symbols: 'none',
       samples: false,
       releaseNotes: true,
       search: 'local',

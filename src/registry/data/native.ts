@@ -526,7 +526,7 @@ const flutter = nativeSdk({
       'dartdoc',
       // Unlike the SDK reference, the toolkit reference has no `reference/` segment.
       { base: '/flutter/{prefix}toolkit-api-reference/', index: 'index.json' },
-      { url: `${D}/flutter/toolkit-api-reference/index.json`, expect: 'json', minRecords: 30 },
+      { url: `${D}/flutter/toolkit-api-reference/index.json`, expect: 'json', minRecords: 35 },
       { pagesApprox: 70 },
     ),
     // Tags ahead of the release exist in this repository, so samples follow the default branch.

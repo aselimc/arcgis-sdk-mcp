@@ -92,17 +92,8 @@ function labelScope(product: Product, source: SourceDef | undefined): string {
   return source === undefined || !scoped ? '' : `/${source.id}`;
 }
 
-/**
- * The version service as this package builds it: the port, plus a label for one source of a
- * product. The port asks for a product and a line; a caller that knows which source a page
- * belongs to passes it, and gets no version for a source that has none.
- */
-export interface SourceAwareVersionService extends VersionService {
-  label(product: Product, line: VersionLine, source?: SourceDef): Promise<string | undefined>;
-}
-
 /** Creates the version service. See `VersionService` in `src/core/ports.ts`. */
-export const createVersionService = ((ctx: Ctx): SourceAwareVersionService => {
+export const createVersionService = ((ctx: Ctx): VersionService => {
   const labels = new Map<string, CachedLabel>();
   const labelFlights = singleFlight<string, string | undefined>();
   /** The project as of at most a minute ago; empty in HTTP mode or with `workspace` off. */

@@ -1,6 +1,6 @@
 # Product coverage
 
-<!-- The tables are generated from the registry (src/registry/data). Refresh them when products are added. -->
+<!-- The tables are a snapshot of the registry (src/registry/data), maintained by hand. Refresh them when products are added. -->
 
 This page lists what the registry contained on 2026-10-13: 136 entries, of which 53 are
 current developer products, 7 are tombstones for deprecated or retired developer products,
@@ -22,8 +22,9 @@ Columns:
 - **Sources**: the documentation sources of the product. Pass an id as `section` to
   `arcgis_docs_list_products` for its table of contents, or scope a search with
   `product/section` (for example `rest-api/portal`).
-- **Lookups**: what the product profile reports. `symbols`: a source lists API or
-  specification entities, so `arcgis_docs_lookup_symbol` has names to resolve against.
+- **Lookups**: what the product profile reports. `symbols`: a source indexes symbol records,
+  so `arcgis_docs_lookup_symbol` has names to resolve against; `symbols by page title`: it
+  matches a name against the titles of API or specification pages instead.
   `samples`: `arcgis_docs_find_samples` has a sample source. `release notes`:
   `arcgis_docs_get_versions` returns release-notes refs. Every product can be searched and
   read.
@@ -73,27 +74,27 @@ Columns:
 
 ## Desktop and Enterprise extensibility
 
-| Id                     | Product                     | Lines   | Sources                                     | Lookups                         |
-| ---------------------- | --------------------------- | ------- | ------------------------------------------- | ------------------------------- |
-| `arcgis-pro-sdk`       | ArcGIS Pro SDK for .NET     | Pro 3.x | `wiki`, `api`, `samples`, `snippets`        | symbols, samples                |
-| `enterprise-sdk`       | ArcGIS Enterprise SDK       | Current | `guide`, `java-api`, `samples`              | symbols, samples, release notes |
-| `cityengine`           | ArcGIS CityEngine           | Current | `help`, `sdk`, `examples`, `pyprt-examples` | symbols, samples, release notes |
-| `earth-automation-api` | ArcGIS Earth Automation API | Current | `api`                                       | symbols                         |
-| `autocad-api`          | ArcGIS for AutoCAD API      | Current | `api`                                       | symbols                         |
+| Id                     | Product                     | Lines   | Sources                                     | Lookups                                       |
+| ---------------------- | --------------------------- | ------- | ------------------------------------------- | --------------------------------------------- |
+| `arcgis-pro-sdk`       | ArcGIS Pro SDK for .NET     | Pro 3.x | `wiki`, `api`, `samples`, `snippets`        | symbols, samples                              |
+| `enterprise-sdk`       | ArcGIS Enterprise SDK       | Current | `guide`, `java-api`, `samples`              | symbols, samples, release notes               |
+| `cityengine`           | ArcGIS CityEngine           | Current | `help`, `sdk`, `examples`, `pyprt-examples` | symbols by page title, samples, release notes |
+| `earth-automation-api` | ArcGIS Earth Automation API | Current | `api`                                       | symbols by page title                         |
+| `autocad-api`          | ArcGIS for AutoCAD API      | Current | `api`                                       | symbols by page title                         |
 
 ## REST APIs, services and platform
 
 | Id                     | Product                                | Lines   | Sources                                                                                                                                                                                                                                                                                 | Lookups                         |
 | ---------------------- | -------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
 | `rest-api`             | ArcGIS REST APIs                       | Current | `services-enterprise`, `portal`, `location-services`, `geocode`, `routing`, `services-online`, `geoenrichment`, `analysis`, `elevation-analysis`, `packaging`, `services-mission`, `admin-enterprise`, `admin-server`, `admin-portal`, `admin-notebook`, `admin-mission`, `admin-video` | symbols, release notes          |
-| `developer-guide`      | ArcGIS developer guide                 | Current | `guide`                                                                                                                                                                                                                                                                                 |                                 |
+| `developer-guide`      | ArcGIS developer guide                 | Current | `guide`                                                                                                                                                                                                                                                                                 | symbols                         |
 | `location-platform`    | ArcGIS Location Platform help          | Current | `help`                                                                                                                                                                                                                                                                                  | release notes                   |
 | `hub-dev`              | ArcGIS Hub developer APIs              | Current | `guide`, `api`                                                                                                                                                                                                                                                                          | symbols                         |
 | `site-scan-api`        | Site Scan for ArcGIS API               | Current | `api`                                                                                                                                                                                                                                                                                   | symbols                         |
 | `urban-api`            | ArcGIS Urban API                       | Current | `guide`                                                                                                                                                                                                                                                                                 | samples, release notes          |
 | `workflow-manager-dev` | ArcGIS Workflow Manager developer APIs | Current | `guide`, `samples`                                                                                                                                                                                                                                                                      | symbols, samples, release notes |
-| `survey123-dev`        | ArcGIS Survey123 developer resources   | Current | `guide`, `tools`, `webhooks`                                                                                                                                                                                                                                                            | symbols, samples                |
-| `velocity-grpc`        | ArcGIS Velocity gRPC feeds (beta)      | Current | `repo`                                                                                                                                                                                                                                                                                  | symbols                         |
+| `survey123-dev`        | ArcGIS Survey123 developer resources   | Current | `guide`, `tools`, `webhooks`                                                                                                                                                                                                                                                            | symbols by page title, samples  |
+| `velocity-grpc`        | ArcGIS Velocity gRPC feeds (beta)      | Current | `repo`                                                                                                                                                                                                                                                                                  | symbols by page title           |
 
 ## AI
 
@@ -103,18 +104,18 @@ Columns:
 
 ## Specifications and formats
 
-| Id                            | Product                                            | Lines   | Sources | Lookups |
-| ----------------------------- | -------------------------------------------------- | ------- | ------- | ------- |
-| `i3s-spec`                    | Indexed 3D Scene Layer (I3S) specification         | Current | `spec`  | symbols |
-| `cim-spec`                    | Cartographic Information Model (CIM) specification | Current | `spec`  | symbols |
-| `arcgis-pbf`                  | ArcGIS feature service protocol buffers (PBF)      | Current | `spec`  | symbols |
-| `knowledge-pbf`               | ArcGIS Knowledge protocol buffers                  | Current | `spec`  | symbols |
-| `lerc`                        | LERC (Limited Error Raster Compression)            | Current | `spec`  | symbols |
-| `tile-package-spec`           | Tile package specification (TPKX)                  | Current | `spec`  | symbols |
-| `spatially-optimized-parquet` | Spatially optimized Parquet                        | Current | `spec`  | symbols |
-| `3d-tiles-esri-crs`           | 3D Tiles layer with Esri coordinate systems        | Current | `spec`  | symbols |
-| `projection-engine-db`        | Projection engine database documentation           | Current | `spec`  | symbols |
-| `file-geodatabase-api`        | File Geodatabase API                               | Current | `spec`  | symbols |
+| Id                            | Product                                            | Lines   | Sources | Lookups               |
+| ----------------------------- | -------------------------------------------------- | ------- | ------- | --------------------- |
+| `i3s-spec`                    | Indexed 3D Scene Layer (I3S) specification         | Current | `spec`  | symbols by page title |
+| `cim-spec`                    | Cartographic Information Model (CIM) specification | Current | `spec`  | symbols               |
+| `arcgis-pbf`                  | ArcGIS feature service protocol buffers (PBF)      | Current | `spec`  | symbols by page title |
+| `knowledge-pbf`               | ArcGIS Knowledge protocol buffers                  | Current | `spec`  | symbols by page title |
+| `lerc`                        | LERC (Limited Error Raster Compression)            | Current | `spec`  | symbols by page title |
+| `tile-package-spec`           | Tile package specification (TPKX)                  | Current | `spec`  | symbols by page title |
+| `spatially-optimized-parquet` | Spatially optimized Parquet                        | Current | `spec`  | symbols by page title |
+| `3d-tiles-esri-crs`           | 3D Tiles layer with Esri coordinate systems        | Current | `spec`  | symbols by page title |
+| `projection-engine-db`        | Projection engine database documentation           | Current | `spec`  | symbols by page title |
+| `file-geodatabase-api`        | File Geodatabase API                               | Current | `spec`  | symbols by page title |
 
 ## DevOps and open source
 

@@ -81,12 +81,46 @@ export function createSearchService(deps: SearchDeps): SearchService {
     return labels;
   };
 
+  /**
+   * The version label of each hit's source. A source a version oracle does not describe (a
+   * hosted REST service next to the Enterprise reference) gets none, so the label of its
+   * product line is not printed on it.
+   */
+  const sourceLabels = async (
+    hits: readonly SearchHit[],
+    labels: ReadonlyMap<string, string | undefined>,
+  ): Promise<Map<string, string | undefined>> => {
+    const bySource = new Map<string, string | undefined>();
+    for (const hit of hits) {
+      const key = `${hit.product}/${hit.line}/${hit.source}`;
+      if (bySource.has(key)) continue;
+      const product = ctx.registry.get(hit.product);
+      const line = product?.lines.find((candidate) => candidate.id === hit.line);
+      const source = product?.sources.find((candidate) => candidate.id === hit.source);
+      let label = labels.get(`${hit.product}/${hit.line}`);
+      if (product !== undefined && line !== undefined && source !== undefined) {
+        try {
+          label = await versions.label(product, line, source);
+        } catch (error) {
+          ctx.logger.debug('version label unavailable', { product: product.id, error });
+        }
+      }
+      bySource.set(key, label);
+    }
+    return bySource;
+  };
+
   const labelled = (
     hits: SearchHit[],
     labels: ReadonlyMap<string, string | undefined>,
   ): SearchHit[] =>
     hits.map((hit) => {
-      const version = hit.version ?? labels.get(`${hit.product}/${hit.line}`);
+      const version =
+        hit.version ??
+        labels.get(`${hit.product}/${hit.line}/${hit.source}`) ??
+        (labels.has(`${hit.product}/${hit.line}/${hit.source}`)
+          ? undefined
+          : labels.get(`${hit.product}/${hit.line}`));
       const excerpt = excerptOf(hit.excerpt);
       const { excerpt: _dropped, ...rest } = hit;
       return {
@@ -301,7 +335,7 @@ export function createSearchService(deps: SearchDeps): SearchService {
         mode,
         // The number of hits that paging reaches: an agent told of 4,600 cannot get to them.
         total: ranked.length,
-        hits: labelled(page, labels),
+        hits: labelled(page, await sourceLabels(page, labels)),
         ...(more
           ? {
               nextCursor: encodeCursor({

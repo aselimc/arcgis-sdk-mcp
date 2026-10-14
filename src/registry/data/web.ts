@@ -140,8 +140,7 @@ const jsSources: AnySourceDef[] = [
     probe: {
       url: `${D}${JS}sitemap-0.xml`,
       expect: 'xml',
-      // Also the swap rule's bar for the index: about half of the ~370 guide pages listed.
-      minRecords: 180,
+      minRecords: 2366,
       family: 'astro',
     },
   },

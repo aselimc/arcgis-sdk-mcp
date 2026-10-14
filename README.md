@@ -427,67 +427,69 @@ ArcGIS Enterprise, ArcGIS Pro, Survey123 and so on) under the category `product-
 [docs/products.md](docs/products.md) lists all of them, the developer products with their
 version lines and documentation sources.
 
-The table is generated from the registry. "Symbols" means `arcgis_docs_lookup_symbol` has an
-API or specification source to resolve names against, "Samples" that
+The table is a snapshot of the registry, maintained by hand (`arcgis_docs_list_products` is
+the live source). "Symbols" means `arcgis_docs_lookup_symbol` has a source that indexes symbol
+records (classes, members, tools, operations) to resolve names against; "by page title" that it
+matches a name against the titles of API or specification pages instead. "Samples" that
 `arcgis_docs_find_samples` has a sample source, and "Release notes" that
 `arcgis_docs_get_versions` returns release-notes refs. Every product can be searched and
 read.
 
-| Product id                    | Product                                            | Category                             | Current line | Symbols | Samples | Release notes |
-| ----------------------------- | -------------------------------------------------- | ------------------------------------ | ------------ | ------- | ------- | ------------- |
-| `js-maps-sdk`                 | ArcGIS Maps SDK for JavaScript                     | Web                                  | 5.x          | yes     | yes     | yes           |
-| `calcite`                     | Calcite Design System                              | Web                                  | Current      | yes     |         | yes           |
-| `arcade`                      | ArcGIS Arcade                                      | Web                                  | Current      | yes     | yes     | yes           |
-| `rest-js`                     | ArcGIS REST JS                                     | Web                                  | Current      | yes     | yes     | yes           |
-| `experience-builder`          | ArcGIS Experience Builder (developer edition)      | Web                                  | Current      | yes     | yes     | yes           |
-| `esri-leaflet`                | Esri Leaflet                                       | Web                                  | Current      | yes     |         |               |
-| `maplibre-arcgis`             | MapLibre GL JS with ArcGIS                         | Web                                  | Current      | yes     |         | yes           |
-| `openlayers-arcgis`           | OpenLayers with ArcGIS                             | Web                                  | Current      |         |         |               |
-| `cesium-arcgis`               | CesiumJS with ArcGIS                               | Web                                  | Current      |         |         |               |
-| `web-map-spec`                | Web map specification                              | Web                                  | Current      | yes     |         |               |
-| `web-scene-spec`              | Web scene specification                            | Web                                  | Current      | yes     |         |               |
-| `swift-maps-sdk`              | ArcGIS Maps SDK for Swift                          | Native                               | 300.x        | yes     | yes     | yes           |
-| `kotlin-maps-sdk`             | ArcGIS Maps SDK for Kotlin                         | Native                               | 300.x        | yes     | yes     | yes           |
-| `dotnet-maps-sdk`             | ArcGIS Maps SDK for .NET                           | Native                               | 300.x        | yes     | yes     | yes           |
-| `qt-maps-sdk`                 | ArcGIS Maps SDK for Qt                             | Native                               | 300.x        | yes     | yes     | yes           |
-| `flutter-maps-sdk`            | ArcGIS Maps SDK for Flutter                        | Native                               | 300.x        | yes     | yes     | yes           |
-| `unity-maps-sdk`              | ArcGIS Maps SDK for Unity                          | Game engines                         | 2.x          | yes     | yes     | yes           |
-| `unreal-maps-sdk`             | ArcGIS Maps SDK for Unreal Engine                  | Game engines                         | 2.x          | yes     | yes     | yes           |
-| `python-api`                  | ArcGIS API for Python                              | Python, data science and R           | 2.4.x        | yes     | yes     | yes           |
-| `arcpy`                       | ArcPy and geoprocessing tools                      | Python, data science and R           | Pro 3.7      | yes     |         | yes           |
-| `geoanalytics-engine`         | ArcGIS GeoAnalytics Engine                         | Python, data science and R           | Current      | yes     | yes     | yes           |
-| `geoanalytics-fabric`         | ArcGIS GeoAnalytics for Microsoft Fabric           | Python, data science and R           | Current      | yes     | yes     | yes           |
-| `r-arcgis`                    | R-ArcGIS Bridge and arcgis R packages              | Python, data science and R           | Current      | yes     |         | yes           |
-| `arcgis-pro-sdk`              | ArcGIS Pro SDK for .NET                            | Desktop and Enterprise extensibility | Pro 3.x      | yes     | yes     |               |
-| `enterprise-sdk`              | ArcGIS Enterprise SDK                              | Desktop and Enterprise extensibility | Current      | yes     | yes     | yes           |
-| `cityengine`                  | ArcGIS CityEngine                                  | Desktop and Enterprise extensibility | Current      | yes     | yes     | yes           |
-| `earth-automation-api`        | ArcGIS Earth Automation API                        | Desktop and Enterprise extensibility | Current      | yes     |         |               |
-| `autocad-api`                 | ArcGIS for AutoCAD API                             | Desktop and Enterprise extensibility | Current      | yes     |         |               |
-| `rest-api`                    | ArcGIS REST APIs                                   | REST APIs, services and platform     | Current      | yes     |         | yes           |
-| `developer-guide`             | ArcGIS developer guide                             | REST APIs, services and platform     | Current      |         |         |               |
-| `location-platform`           | ArcGIS Location Platform help                      | REST APIs, services and platform     | Current      |         |         | yes           |
-| `hub-dev`                     | ArcGIS Hub developer APIs                          | REST APIs, services and platform     | Current      | yes     |         |               |
-| `site-scan-api`               | Site Scan for ArcGIS API                           | REST APIs, services and platform     | Current      | yes     |         |               |
-| `urban-api`                   | ArcGIS Urban API                                   | REST APIs, services and platform     | Current      |         | yes     | yes           |
-| `workflow-manager-dev`        | ArcGIS Workflow Manager developer APIs             | REST APIs, services and platform     | Current      | yes     | yes     | yes           |
-| `survey123-dev`               | ArcGIS Survey123 developer resources               | REST APIs, services and platform     | Current      | yes     | yes     |               |
-| `velocity-grpc`               | ArcGIS Velocity gRPC feeds (beta)                  | REST APIs, services and platform     | Current      | yes     |         |               |
-| `ai-agents`                   | AI, agents and MCP across ArcGIS (beta)            | AI                                   | Current      |         |         | yes           |
-| `i3s-spec`                    | Indexed 3D Scene Layer (I3S) specification         | Specifications and formats           | Current      | yes     |         |               |
-| `cim-spec`                    | Cartographic Information Model (CIM) specification | Specifications and formats           | Current      | yes     |         |               |
-| `arcgis-pbf`                  | ArcGIS feature service protocol buffers (PBF)      | Specifications and formats           | Current      | yes     |         |               |
-| `knowledge-pbf`               | ArcGIS Knowledge protocol buffers                  | Specifications and formats           | Current      | yes     |         |               |
-| `lerc`                        | LERC (Limited Error Raster Compression)            | Specifications and formats           | Current      | yes     |         |               |
-| `tile-package-spec`           | Tile package specification (TPKX)                  | Specifications and formats           | Current      | yes     |         |               |
-| `spatially-optimized-parquet` | Spatially optimized Parquet                        | Specifications and formats           | Current      | yes     |         |               |
-| `3d-tiles-esri-crs`           | 3D Tiles layer with Esri coordinate systems        | Specifications and formats           | Current      | yes     |         |               |
-| `projection-engine-db`        | Projection engine database documentation           | Specifications and formats           | Current      | yes     |         |               |
-| `file-geodatabase-api`        | File Geodatabase API                               | Specifications and formats           | Current      | yes     |         |               |
-| `enterprise-devops`           | ArcGIS Enterprise deployment automation            | DevOps and open source               | Current      |         |         |               |
-| `koop`                        | Koop                                               | DevOps and open source               | Current      |         |         |               |
-| `developer-support`           | Esri developer support samples                     | DevOps and open source               | Current      |         | yes     |               |
-| `oss-libraries`               | Esri open-source libraries                         | DevOps and open source               | Current      |         | yes     |               |
-| `support-kb`                  | Esri Support knowledge base                        | Support                              | Current      |         |         |               |
+| Product id                    | Product                                            | Category                             | Current line | Symbols       | Samples | Release notes |
+| ----------------------------- | -------------------------------------------------- | ------------------------------------ | ------------ | ------------- | ------- | ------------- |
+| `js-maps-sdk`                 | ArcGIS Maps SDK for JavaScript                     | Web                                  | 5.x          | yes           | yes     | yes           |
+| `calcite`                     | Calcite Design System                              | Web                                  | Current      | yes           |         | yes           |
+| `arcade`                      | ArcGIS Arcade                                      | Web                                  | Current      | yes           | yes     | yes           |
+| `rest-js`                     | ArcGIS REST JS                                     | Web                                  | Current      | yes           | yes     | yes           |
+| `experience-builder`          | ArcGIS Experience Builder (developer edition)      | Web                                  | Current      | yes           | yes     | yes           |
+| `esri-leaflet`                | Esri Leaflet                                       | Web                                  | Current      | yes           |         |               |
+| `maplibre-arcgis`             | MapLibre GL JS with ArcGIS                         | Web                                  | Current      | yes           |         | yes           |
+| `openlayers-arcgis`           | OpenLayers with ArcGIS                             | Web                                  | Current      |               |         |               |
+| `cesium-arcgis`               | CesiumJS with ArcGIS                               | Web                                  | Current      |               |         |               |
+| `web-map-spec`                | Web map specification                              | Web                                  | Current      | yes           |         |               |
+| `web-scene-spec`              | Web scene specification                            | Web                                  | Current      | yes           |         |               |
+| `swift-maps-sdk`              | ArcGIS Maps SDK for Swift                          | Native                               | 300.x        | yes           | yes     | yes           |
+| `kotlin-maps-sdk`             | ArcGIS Maps SDK for Kotlin                         | Native                               | 300.x        | yes           | yes     | yes           |
+| `dotnet-maps-sdk`             | ArcGIS Maps SDK for .NET                           | Native                               | 300.x        | yes           | yes     | yes           |
+| `qt-maps-sdk`                 | ArcGIS Maps SDK for Qt                             | Native                               | 300.x        | yes           | yes     | yes           |
+| `flutter-maps-sdk`            | ArcGIS Maps SDK for Flutter                        | Native                               | 300.x        | yes           | yes     | yes           |
+| `unity-maps-sdk`              | ArcGIS Maps SDK for Unity                          | Game engines                         | 2.x          | yes           | yes     | yes           |
+| `unreal-maps-sdk`             | ArcGIS Maps SDK for Unreal Engine                  | Game engines                         | 2.x          | yes           | yes     | yes           |
+| `python-api`                  | ArcGIS API for Python                              | Python, data science and R           | 2.4.x        | yes           | yes     | yes           |
+| `arcpy`                       | ArcPy and geoprocessing tools                      | Python, data science and R           | Pro 3.7      | yes           |         | yes           |
+| `geoanalytics-engine`         | ArcGIS GeoAnalytics Engine                         | Python, data science and R           | Current      | yes           | yes     | yes           |
+| `geoanalytics-fabric`         | ArcGIS GeoAnalytics for Microsoft Fabric           | Python, data science and R           | Current      | yes           | yes     | yes           |
+| `r-arcgis`                    | R-ArcGIS Bridge and arcgis R packages              | Python, data science and R           | Current      | yes           |         | yes           |
+| `arcgis-pro-sdk`              | ArcGIS Pro SDK for .NET                            | Desktop and Enterprise extensibility | Pro 3.x      | yes           | yes     |               |
+| `enterprise-sdk`              | ArcGIS Enterprise SDK                              | Desktop and Enterprise extensibility | Current      | yes           | yes     | yes           |
+| `cityengine`                  | ArcGIS CityEngine                                  | Desktop and Enterprise extensibility | Current      | by page title | yes     | yes           |
+| `earth-automation-api`        | ArcGIS Earth Automation API                        | Desktop and Enterprise extensibility | Current      | by page title |         |               |
+| `autocad-api`                 | ArcGIS for AutoCAD API                             | Desktop and Enterprise extensibility | Current      | by page title |         |               |
+| `rest-api`                    | ArcGIS REST APIs                                   | REST APIs, services and platform     | Current      | yes           |         | yes           |
+| `developer-guide`             | ArcGIS developer guide                             | REST APIs, services and platform     | Current      | yes           |         |               |
+| `location-platform`           | ArcGIS Location Platform help                      | REST APIs, services and platform     | Current      |               |         | yes           |
+| `hub-dev`                     | ArcGIS Hub developer APIs                          | REST APIs, services and platform     | Current      | yes           |         |               |
+| `site-scan-api`               | Site Scan for ArcGIS API                           | REST APIs, services and platform     | Current      | yes           |         |               |
+| `urban-api`                   | ArcGIS Urban API                                   | REST APIs, services and platform     | Current      |               | yes     | yes           |
+| `workflow-manager-dev`        | ArcGIS Workflow Manager developer APIs             | REST APIs, services and platform     | Current      | yes           | yes     | yes           |
+| `survey123-dev`               | ArcGIS Survey123 developer resources               | REST APIs, services and platform     | Current      | by page title | yes     |               |
+| `velocity-grpc`               | ArcGIS Velocity gRPC feeds (beta)                  | REST APIs, services and platform     | Current      | by page title |         |               |
+| `ai-agents`                   | AI, agents and MCP across ArcGIS (beta)            | AI                                   | Current      |               |         | yes           |
+| `i3s-spec`                    | Indexed 3D Scene Layer (I3S) specification         | Specifications and formats           | Current      | by page title |         |               |
+| `cim-spec`                    | Cartographic Information Model (CIM) specification | Specifications and formats           | Current      | yes           |         |               |
+| `arcgis-pbf`                  | ArcGIS feature service protocol buffers (PBF)      | Specifications and formats           | Current      | by page title |         |               |
+| `knowledge-pbf`               | ArcGIS Knowledge protocol buffers                  | Specifications and formats           | Current      | by page title |         |               |
+| `lerc`                        | LERC (Limited Error Raster Compression)            | Specifications and formats           | Current      | by page title |         |               |
+| `tile-package-spec`           | Tile package specification (TPKX)                  | Specifications and formats           | Current      | by page title |         |               |
+| `spatially-optimized-parquet` | Spatially optimized Parquet                        | Specifications and formats           | Current      | by page title |         |               |
+| `3d-tiles-esri-crs`           | 3D Tiles layer with Esri coordinate systems        | Specifications and formats           | Current      | by page title |         |               |
+| `projection-engine-db`        | Projection engine database documentation           | Specifications and formats           | Current      | by page title |         |               |
+| `file-geodatabase-api`        | File Geodatabase API                               | Specifications and formats           | Current      | by page title |         |               |
+| `enterprise-devops`           | ArcGIS Enterprise deployment automation            | DevOps and open source               | Current      |               |         |               |
+| `koop`                        | Koop                                               | DevOps and open source               | Current      |               |         |               |
+| `developer-support`           | Esri developer support samples                     | DevOps and open source               | Current      |               | yes     |               |
+| `oss-libraries`               | Esri open-source libraries                         | DevOps and open source               | Current      |               | yes     |               |
+| `support-kb`                  | Esri Support knowledge base                        | Support                              | Current      |               |         |               |
 
 ## Configuration
 

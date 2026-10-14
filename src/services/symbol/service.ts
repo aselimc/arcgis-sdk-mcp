@@ -433,6 +433,7 @@ export function createSymbolService(
             (sourcesOf.get(record.product)?.size ?? 0) > 1
               ? `${record.product}/${record.source}`
               : record.product,
+          ...(req.version === undefined ? {} : { version: req.version }),
         }));
         throw new McpDocError(
           'AMBIGUOUS_SYMBOL',
@@ -522,6 +523,8 @@ export function createSymbolService(
       const productArg = scoped
         ? `${winner.record.product}/${winner.record.source}`
         : winner.record.product;
+      // Only a version the caller passed: one detected in the project is detected again.
+      const versionArg = req.version === undefined ? {} : { version: req.version };
       read ??= await reader.read(target, winner, req.detail, call);
       notices.unshift(...read.notices);
       if (inherited !== undefined) notices.push(inherited);
@@ -600,6 +603,7 @@ export function createSymbolService(
         next = formatCall(TOOLS.lookupSymbol, {
           symbol: name,
           product: productArg,
+          ...versionArg,
           detail: 'summary',
         });
       } else if (shaped.truncated) {
@@ -610,6 +614,7 @@ export function createSymbolService(
         const fuller = formatCall(TOOLS.lookupSymbol, {
           symbol: name,
           product: productArg,
+          ...versionArg,
           detail: 'full',
           ...(shaped.budgetCut ? { max_tokens: enough } : {}),
         });

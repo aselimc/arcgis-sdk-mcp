@@ -13,9 +13,9 @@ import type { AnySourceDef, Product, SourceDef } from './types.js';
 /**
  * How a product's names can be looked up:
  * - `symbols`: a source indexes symbol records (classes, members, tools, operations);
- * - `titles`: no source does, but a source lists API pages that are each titled by the
- *   name they document (AutoCAD commands, Survey123 classes), which the lookup matches by
- *   title;
+ * - `titles`: no source does, but a source lists API or specification pages that are each
+ *   titled by the name they document (AutoCAD commands, Survey123 classes, I3S objects),
+ *   which the lookup matches by title;
  * - `none`: names are found by search only.
  */
 export type SymbolLookup = 'symbols' | 'titles' | 'none';

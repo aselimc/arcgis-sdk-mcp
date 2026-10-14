@@ -762,8 +762,16 @@ export interface VersionReport {
 /** Version facts per product. */
 export interface VersionService {
   report(req: { product?: string; version?: string }, call: CallOptions): Promise<VersionReport>;
-  /** Cheap, cached: the version label to print on results for a product line (`5.1`, `300.1`). */
-  label(product: T.Product, line: T.VersionLine): Promise<string | undefined>;
+  /**
+   * Cheap, cached: the version label to print on results for a product line (`5.1`, `300.1`).
+   * With `source`, only the oracles that describe that source count: a hosted REST service
+   * (location services, geocoding) has no Enterprise release and gets no label.
+   */
+  label(
+    product: T.Product,
+    line: T.VersionLine,
+    source?: T.SourceDef,
+  ): Promise<string | undefined>;
 }
 
 /** Every service the MCP surface calls. */

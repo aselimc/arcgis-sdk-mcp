@@ -52,8 +52,9 @@ export interface ErrorDetails {
   next?: string;
   /**
    * Nearest product ids, symbol names, section ids or version lines, most likely first. For
-   * `AMBIGUOUS_SYMBOL` each entry is the JSON text of one `{ "symbol", "product" }` pair,
-   * ready to be passed to `arcgis_docs_lookup_symbol`.
+   * `AMBIGUOUS_SYMBOL` each entry is the JSON text of one `{ "symbol", "product" }` pair
+   * (with the request's `version` when it had one), ready to be passed to
+   * `arcgis_docs_lookup_symbol`.
    */
   candidates?: string[];
   url?: string;
