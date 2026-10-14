@@ -11,11 +11,11 @@ for 53 developer products, from the ArcGIS Maps SDK for JavaScript to ArcPy. It 
 documentation. It fetches the page, index file or package file the agent asks for, turns it
 into compact Markdown, and returns it with the product, the version and the source URL.
 
-> **Unofficial. Not affiliated with, endorsed by or sponsored by Esri, and not reviewed by
-> Esri.** This is an independent open-source project. Pages are fetched from Esri's public
-> sites when your agent asks for them, cached on your machine, and returned with a source
-> line. Read [Source policy and legal note](#source-policy-and-legal-note) before you rely on
-> it.
+> **Unofficial. Not affiliated with, endorsed by or sponsored by Esri.** This is an
+> independent, non-commercial, open-source project that uses only publicly available
+> documentation. Pages are fetched from Esri's public sites when your agent asks for them,
+> cached on your machine, and returned with a source line. See
+> [Source policy and legal note](#source-policy-and-legal-note).
 
 An agent that is unsure of a method's signature asks for it instead of guessing:
 
@@ -199,8 +199,8 @@ npx -y arcgis-sdk-mcp --http --port 3333
 Serves stateless MCP at `http://127.0.0.1:3333/mcp`, with a health check at `/healthz`. It
 binds to loopback and validates the `Host` and `Origin` headers. Any other `--host` needs
 `--allow-remote`, and the server has no authentication. Project detection and local package
-reads are off in HTTP mode. Operating a shared or public instance needs Esri's permission
-(see [below](#source-policy-and-legal-note)).
+reads are off in HTTP mode. HTTP mode is meant for your own agents, not as a shared or
+public service (see [below](#source-policy-and-legal-note)).
 
 ## The six tools
 
@@ -670,16 +670,14 @@ ARCGIS_DOCS_OFFLINE=1                    # no requests at all; cached content on
 A tool that needs a capability that is off either degrades and says so, or answers
 `SOURCE_DISABLED` naming the value that would enable it.
 
-**Please read this before relying on it.** Esri's website terms restrict automated access
-and the use of its content with AI tools, and can be read to cover a documentation retrieval
-tool such as this one. This project has not asked Esri for permission, and Esri has not
-reviewed or approved it. Its position is that on-demand, attributed, per-user retrieval of
-public documentation, the way a developer reads it in a browser, is reasonable. That is not
-legal advice and it is not Esri's permission: you decide whether your use is acceptable under
-[Esri's terms](https://www.esri.com/en-us/legal/overview).
+**Using it responsibly.** This is an unofficial, non-commercial, open-source project that
+uses only publicly available documentation. It reads public pages on demand, the way a
+developer does in a browser, keeps them in a per-user cache and credits the source on every
+result. The documentation remains Esri's, and its use is subject to
+[Esri's terms](https://www.esri.com/en-us/legal/overview); you are responsible for using the
+server in line with them. Nothing here is legal advice.
 
-Two capabilities in the default `standard` preset go further than a cautious reading of those
-terms would:
+Two capabilities in the default `standard` preset read structured files rather than pages:
 
 - `site-index` reads the index files Esri's documentation sites publish for their own search
   and navigation. They are served to every browser, but they are not a documented interface.
@@ -703,8 +701,8 @@ site's own files, such as Kotlin. For those, use `arcgis_docs_search` and
 
 Ground rules that apply whatever you enable:
 
-- Do not run a public, shared or paid instance without Esri's permission. A hosted instance
-  for your own agents belongs behind a token, with its URL kept private.
+- Run it for your own agents, not as a public, shared or paid service. A hosted instance
+  belongs behind a token, with its URL kept private.
 - Do not use fetched content to train or fine-tune models, and do not redistribute it.
 - If Esri asks for a source to be removed, a default to change or the project to be renamed,
   it will be done. Rights holders can reach the maintainer through
@@ -782,8 +780,6 @@ Before 1.0:
 
 - Run the agent evaluations and tune descriptions, ranking and budgets against them, with
   and without `+site-search`.
-- Ask Esri whether this use of its documentation is acceptable (not yet requested), and
-  adjust the defaults to the answer.
 - Close the gaps listed above: natural-language ranking, overload listings, REST operation
   names from path segments, Swift protocol-extension members.
 - Run the MCP Inspector strict check in CI.

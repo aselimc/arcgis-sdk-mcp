@@ -26,8 +26,8 @@ export const EXIT = { ok: 0, failure: 1, usage: 2 } as const;
 export const REMOTE_WARNING = [
   'WARNING: --allow-remote exposes this server to other machines.',
   '  - It has no authentication: anyone who can reach the port can use it.',
-  "  - Esri's website terms cover personal, on-demand use. Operating a shared or public",
-  "    instance needs Esri's permission (see docs/source-policy.md).",
+  '  - It is meant for your own agents, not as a shared or public service',
+  '    (see docs/source-policy.md).',
   '  - Workspace detection and local package reading are off in HTTP mode.',
   '',
 ].join('\n');

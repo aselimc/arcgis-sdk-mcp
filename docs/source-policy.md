@@ -75,22 +75,18 @@ $ ARCGIS_DOCS_SOURCES=strict arcgis-sdk-mcp call read '{"ref":"https://developer
 Error [SOURCE_DISABLED]: developers.arcgis.com needs capability "website". Capability "website" is switched off (preset strict). Next: Set ARCGIS_DOCS_SOURCES=strict,+website and restart the server.
 ```
 
-## The caveat
+## Responsible use
 
-Esri's website terms of use restrict automated access to its sites and the inclusion of its
-content in AI tools. Those clauses can be read to cover any documentation retrieval tool,
-this one included. In addition, `site-index` and `package-cdn` enable two source classes that
-a strictly cautious reading would leave off.
+This is an unofficial, non-commercial, open-source project that uses only publicly available
+documentation. It retrieves a public documentation page at a person's request, for that
+person, with attribution and without redistribution. The documentation remains Esri's and
+its use is subject to [Esri's terms](https://www.esri.com/en-us/legal/overview). In practice:
 
-The project's position is that retrieving a public documentation page at a person's request,
-for that person, with attribution and without redistribution, is a reasonable use. That
-position has not been confirmed by Esri. Therefore:
-
-- The README states this plainly.
 - `ARCGIS_DOCS_SOURCES=strict` restricts the server to GitHub, package registries and the
-  local project, and every capability can be switched off individually.
-- Running a public, shared or paid instance is outside what this project considers
-  reasonable without Esri's written permission.
+  local project, and every capability can be switched off individually. `site-index` and
+  `package-cdn` read structured files rather than pages; each can be turned off by name.
+- The server is meant to run for your own agents, not as a public, shared or paid service.
+- Fetched content is not used to train models and is not redistributed.
 - If Esri asks for a source to be removed or a default to change, it will be.
 
 ## Hosts

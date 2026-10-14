@@ -92,7 +92,7 @@ describe('runCli: serving', () => {
     await runCli(['--http', '--host', '0.0.0.0', '--allow-remote'], cli.deps);
     expect(cli.err[0]).toBe(REMOTE_WARNING);
     expect(REMOTE_WARNING).toMatch(/no authentication/);
-    expect(REMOTE_WARNING).toMatch(/Esri's permission/);
+    expect(REMOTE_WARNING).toMatch(/not as a shared or public service/);
     expect(cli.served).toEqual([{ kind: 'http', host: '0.0.0.0', port: 3333 }]);
   });
 

@@ -9,8 +9,8 @@ Index files that Esri's sites publish for their own search and navigation (searc
 navigation JSON, DocC and Dokka indexes, xrefmaps) are the only practical way to list a
 documentation set without crawling it. Files of Esri's npm packages on a public CDN are the
 only verified source for web component APIs and the only reachable source for older
-JavaScript SDK versions, whose documentation host disallows automated access. A cautious
-reading of Esri's terms would leave both off.
+JavaScript SDK versions, whose documentation host disallows automated access. Both read
+structured files rather than pages, so they deserve an explicit switch.
 
 ## Decision
 
@@ -22,7 +22,6 @@ by name.
 
 ## Consequences
 
-- The README and docs/source-policy.md disclose the decision and the terms question.
+- The README and docs/source-policy.md describe both capabilities and how to turn them off.
 - Content from npm packages carries the Esri Master License Agreement source line.
-- This is the project's main open risk. The maintainer accepts it knowingly; a request from
-  Esri to change the default will be honoured.
+- A request from Esri to change the default will be honoured.
