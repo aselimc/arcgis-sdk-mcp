@@ -239,8 +239,7 @@ export function buildCatalogIndex(records: readonly CatalogRecord[]): CatalogInd
         if (terms.length >= MIN_TERMS_FOR_FLOOR && single && inTitle === 0) continue;
         const fields = new Set(Object.values(result.match).flat());
         const best = LABEL_ORDER.find((field) => fields.has(field)) ?? 'description';
-        const score =
-          result.score * covered ** 2 * titleBonus(inTitle) * boilerplateWeight(record);
+        const score = result.score * covered ** 2 * titleBonus(inTitle) * boilerplateWeight(record);
         matches.push({ record, score, match: MATCH_LABEL[best], covered });
       }
       return matches.sort((a, b) => b.score - a.score);

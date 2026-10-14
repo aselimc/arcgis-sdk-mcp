@@ -37,7 +37,13 @@ export interface SymbolScope {
  * Sort key of a candidate: member after type, then product, then source, then the distance
  * of a fuzzy match or of the written qualifier, then {@link preference}.
  */
-export type Rank = [member: number, product: number, source: number, distance: number, preference: number];
+export type Rank = [
+  member: number,
+  product: number,
+  source: number,
+  distance: number,
+  preference: number,
+];
 
 /** A record that may be what the caller meant. */
 export interface Candidate {

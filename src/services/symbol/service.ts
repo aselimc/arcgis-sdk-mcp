@@ -280,12 +280,14 @@ export function createSymbolService(
         }
         // A member found in the text of the page joins its member list, so that the detail
         // levels cut it out like any other.
-        const page = listed === undefined ? { ...read, members: [...(read.members ?? []), entry] } : read;
+        const page =
+          listed === undefined ? { ...read, members: [...(read.members ?? []), entry] } : read;
         return {
           // The page spells the name; the caller may have differed in case.
           winner: memberCandidate(type, entry.name),
           page,
-          documented: page.sections.some((section) => section.id === entry.id) || listed === undefined,
+          documented:
+            page.sections.some((section) => section.id === entry.id) || listed === undefined,
           ...(entry.inheritedFrom === undefined ? {} : { inheritedFrom: entry.inheritedFrom }),
         };
       };
@@ -372,8 +374,7 @@ export function createSymbolService(
         const fromType = await readFromType(knownType, memberName);
         // A page that documents several types links to every member of each of them: such a
         // link is no statement that this type inherits the member.
-        const settled =
-          'winner' in fromType ? fromType.documented : fromType.severalTypes;
+        const settled = 'winner' in fromType ? fromType.documented : fromType.severalTypes;
         const declared = settled ? undefined : await readInherited(knownType, memberName);
         if (declared !== undefined) {
           winner = declared;
@@ -400,10 +401,19 @@ export function createSymbolService(
         if (titled === undefined) {
           throw (
             unsearchedError(ctx, req, targets, states) ??
-            notFoundError(req, targets, states, nearestNames(index, req, targets, undefined), undefined)
+            notFoundError(
+              req,
+              targets,
+              states,
+              nearestNames(index, req, targets, undefined),
+              undefined,
+            )
           );
         }
-        winner = candidateOf(namedByTitle(titled.record), titled.exact ? 'simple' : 'case-insensitive');
+        winner = candidateOf(
+          namedByTitle(titled.record),
+          titled.exact ? 'simple' : 'case-insensitive',
+        );
         alternates = others
           .slice(0, MAX_ALTERNATES)
           .map((other) => candidateOf(namedByTitle(other.record), 'case-insensitive'));
@@ -412,7 +422,10 @@ export function createSymbolService(
         // carry (`generateToken` of two REST services): the source is then part of the pair.
         const sourcesOf = new Map<string, Set<string>>();
         for (const { record } of resolution.candidates) {
-          sourcesOf.set(record.product, (sourcesOf.get(record.product) ?? new Set()).add(record.source));
+          sourcesOf.set(
+            record.product,
+            (sourcesOf.get(record.product) ?? new Set()).add(record.source),
+          );
         }
         const pairs = resolution.candidates.map(({ record }) => ({
           symbol: displayName(record),
@@ -433,7 +446,9 @@ export function createSymbolService(
       } else {
         ({ winner, alternates } = resolution);
         // A page titled with the name but indexed without a symbol is worth a mention.
-        const known = new Set([winner, ...alternates].map((candidate) => pageKey(candidate.record.ref)));
+        const known = new Set(
+          [winner, ...alternates].map((candidate) => pageKey(candidate.record.ref)),
+        );
         const titled = titledRecords(index, req.symbol, targets)
           .filter(({ record }) => record.symbol === undefined && !known.has(pageKey(record.ref)))
           .map(({ record }) => candidateOf(namedByTitle(record), 'case-insensitive'));
@@ -447,15 +462,25 @@ export function createSymbolService(
           winner.record.symbolKind === 'operation' &&
           !isPlainlyTitled(winner.record, name)
         ) {
-          alternates = [winner, ...alternates];
+          const others = titled.filter((candidate) => candidate !== plain);
+          // Named by its title from now on: by the bare name, the call would come back here.
+          const demoted = {
+            ...winner,
+            record: { ...winner.record, qualified: winner.record.title },
+          };
+          alternates = [demoted, ...alternates, ...others];
           winner = { ...plain, step: 'simple' };
+        } else {
+          alternates = [...alternates, ...titled];
         }
-        alternates = [...alternates, ...titled.filter((candidate) => candidate !== plain || winner !== plain)];
-        alternates = alternates.filter((candidate) => candidate.record !== winner.record);
         alternates = alternates.slice(0, MAX_ALTERNATES);
       }
 
-      const { target, resolution: resolved, notices: targetNotices } = placeOf(winner.record.product);
+      const {
+        target,
+        resolution: resolved,
+        notices: targetNotices,
+      } = placeOf(winner.record.product);
       const versionedSource = (record: CatalogRecord): boolean => {
         const source = target.product.sources.find((candidate) => candidate.id === record.source);
         return source !== undefined && VERSION_ADDRESSED.has(source.adapter);
@@ -548,7 +573,9 @@ export function createSymbolService(
             .get(source.adapter)
             .read(ctx, bindSource(target.product, source, owner.line, undefined, call.budget), {
               url,
-              ...(fragment === undefined ? {} : { select: { section: fragment, member: fragment } }),
+              ...(fragment === undefined
+                ? {}
+                : { select: { section: fragment, member: fragment } }),
               ...(record === undefined ? {} : { record }),
             });
           const all = pagedSections(readerPage, 'all');

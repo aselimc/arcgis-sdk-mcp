@@ -182,7 +182,9 @@ describe('lookup: answers', () => {
     expect(cut.text).not.toContain('### applyEdits');
     // Regression: the Next of a cut lookup restarted the page from its top. It now carries
     // the cursor of the place where the text stopped, and says what was left out.
-    expect(cut.text).toMatch(/_Cut at the token budget: about \d+ of \d+ tokens shown\. Not shown: .*applyEdits/);
+    expect(cut.text).toMatch(
+      /_Cut at the token budget: about \d+ of \d+ tokens shown\. Not shown: .*applyEdits/,
+    );
     const next = /^arcgis_docs_read\((.*)\)$/.exec(cut.next ?? '')?.[1] ?? '{}';
     const args = JSON.parse(next) as { ref: string; view: 'full'; cursor: string };
     expect(args).toMatchObject({ ref: FL_URL, view: 'full' });
@@ -487,7 +489,12 @@ describe('lookup: a loose match in a guessed scope', () => {
     });
     h.adapter('npm-dts').addPage(makeDocPage({ url: loose, markdown: '# rotate\n\nA helper.' }));
     h.adapter('npm-dts').addPage(
-      makeDocPage({ url: exact, product: 'spinner-lang', source: 'functions', markdown: '# Rotate\n\nTurns a value.' }),
+      makeDocPage({
+        url: exact,
+        product: 'spinner-lang',
+        source: 'functions',
+        markdown: '# Rotate\n\nTurns a value.',
+      }),
     );
     return h;
   };
@@ -536,5 +543,58 @@ describe('lookup: follow-up calls keep the scope of the answer', () => {
       detail: 'signature',
     });
     expect(response.next).toContain('"product":"rest-api/portal"');
+  });
+});
+
+// Regression: the root `search` of the portal is indexed by its title alone ("search:
+// Search"), the search of one group's content by its symbol, and the latter was the answer.
+describe('lookup: an operation page titled with the bare name', () => {
+  it('answers with that page and lists the symbol of the same name next to it', async () => {
+    const PORTAL = 'https://developers.arcgis.com/rest/users-groups-and-items';
+    const product = makeProduct({
+      id: 'rest-api',
+      name: 'ArcGIS REST APIs',
+      aliases: [],
+      keywords: [],
+      sources: [
+        makeSource(
+          'javadoc',
+          { base: '/rest/users-groups-and-items/' },
+          { id: 'portal', kinds: ['api'] },
+        ),
+      ],
+    });
+    const record = (slug: string, title: string, symbol?: string) =>
+      makeRecord({
+        ref: `${PORTAL}/${slug}/`,
+        product: 'rest-api',
+        source: 'portal',
+        kind: 'api',
+        title,
+        ...(symbol === undefined ? {} : { symbol, symbolKind: 'operation' as const }),
+      });
+    const h = makeHarness({
+      products: [product],
+      records: [
+        record('group-content-search', '/search: Group Content Search', 'search'),
+        record('search', 'search: Search'),
+      ],
+    });
+    for (const slug of ['group-content-search', 'search']) {
+      h.adapter('javadoc').addPage(
+        makeDocPage({
+          url: `${PORTAL}/${slug}/`,
+          product: 'rest-api',
+          source: 'portal',
+          markdown: `# ${slug}`,
+        }),
+      );
+    }
+    const response = await lookup(h, { symbol: 'search', product: 'rest-api' });
+    expect(response.record.ref).toBe(`${PORTAL}/search/`);
+    expect(response.alternates.map((alternate) => alternate.ref)).toContain(
+      `${PORTAL}/group-content-search/`,
+    );
+    expect(response.page.notices.join(' ')).not.toContain('was matched to');
   });
 });

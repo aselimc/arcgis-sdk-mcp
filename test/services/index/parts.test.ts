@@ -45,16 +45,22 @@ describe('queryTerms', () => {
     expect(stemsOf('layer')).toEqual([]);
     expect(queryTerms('editing')[0]?.synonyms).toContainEqual(['edit']);
 
-    const sample = makeRecord({ ref: 'https://developers.arcgis.com/widgets/s/', title: 'Click a feature' });
+    const sample = makeRecord({
+      ref: 'https://developers.arcgis.com/widgets/s/',
+      title: 'Click a feature',
+    });
     const index = buildCatalogIndex([sample]);
-    expect(index.search(queryTerms('clicking'), 'and').map((match) => match.record.title)).toEqual(
-      ['Click a feature'],
-    );
+    expect(index.search(queryTerms('clicking'), 'and').map((match) => match.record.title)).toEqual([
+      'Click a feature',
+    ]);
   });
 
   // Regression: `cross` (of "zebra crossing"), spelt loosely, matched `class`.
   it('matches derived forms exactly or by prefix, never within an edit distance', () => {
-    const record = makeRecord({ ref: 'https://developers.arcgis.com/widgets/c/', title: 'Class list' });
+    const record = makeRecord({
+      ref: 'https://developers.arcgis.com/widgets/c/',
+      title: 'Class list',
+    });
     const index = buildCatalogIndex([record]);
     expect(index.search(queryTerms('crossing'), 'fuzzy')).toEqual([]);
   });

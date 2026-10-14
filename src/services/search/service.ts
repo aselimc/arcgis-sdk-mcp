@@ -161,7 +161,8 @@ export function createSearchService(deps: SearchDeps): SearchService {
           : [];
 
       if (targets.length === 0) {
-        if (briefs.length === 0) notes.push(...zeroHitNotes(ctx, index, req, products, siteEnabled));
+        if (briefs.length === 0)
+          notes.push(...zeroHitNotes(ctx, index, req, products, siteEnabled));
         const hits = labelled(briefs.slice(0, req.limit), new Map());
         return { query: req.query, scope: responseScope, mode, total: hits.length, hits, notes };
       }
@@ -212,7 +213,8 @@ export function createSearchService(deps: SearchDeps): SearchService {
         offset: 0,
         synonyms: SYNONYMS,
       });
-      const names = query.shape === 'symbol' ? symbolHits(index, query.names, targets, req.kind) : [];
+      const names =
+        query.shape === 'symbol' ? symbolHits(index, query.names, targets, req.kind) : [];
       const lists: SearchHit[][] = [
         names,
         catalogue.hits.filter(inScope),

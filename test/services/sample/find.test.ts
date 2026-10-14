@@ -82,7 +82,13 @@ describe('find samples', () => {
       samplePage('layers-scenelayer', {
         files: [
           { name: 'App.xaml', language: 'xml', text: '<App/>', ref: `${url}App.xaml`, bytes: 6 },
-          { name: 'App.xaml.cs', language: 'csharp', text: 'class App {}', ref: `${url}App.cs`, bytes: 12 },
+          {
+            name: 'App.xaml.cs',
+            language: 'csharp',
+            text: 'class App {}',
+            ref: `${url}App.cs`,
+            bytes: 12,
+          },
         ],
       }),
     );
@@ -310,7 +316,9 @@ describe('find samples: uses_api', () => {
     const h = makeHarness({ products: [product], records: [...naming, wanted] });
     const page = (record: CatalogRecord, code: string): DocPage => ({
       ...makeDocPage({ url: record.ref, kind: 'sample', markdown: `# ${record.title}\n\nText.` }),
-      files: [{ name: 'main.js', language: 'js', text: code, ref: `${record.ref}main.js`, bytes: 1 }],
+      files: [
+        { name: 'main.js', language: 'js', text: code, ref: `${record.ref}main.js`, bytes: 1 },
+      ],
     });
     h.adapter('docc').addPage(page(wanted, 'const layer = new TideLayer({ grouping: true });'));
     for (const record of naming) h.adapter('docc').addPage(page(record, 'new TideLayer();'));

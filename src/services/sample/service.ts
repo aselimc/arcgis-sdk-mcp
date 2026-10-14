@@ -174,7 +174,8 @@ export function createSampleService(
         product: req.product,
         query: req.query,
         max: 1,
-        eligible: (candidate) => candidate.sources.some((source) => source.kinds.includes('sample')),
+        eligible: (candidate) =>
+          candidate.sources.some((source) => source.kinds.includes('sample')),
       });
       const [resolution] = scope.resolutions;
       if (resolution === undefined) {

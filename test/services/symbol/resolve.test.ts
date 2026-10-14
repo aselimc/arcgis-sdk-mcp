@@ -386,11 +386,17 @@ describe('resolveSymbol: the resolution table', () => {
     ];
     const tied = scope('widgets-sdk', [...tool('Harbour.Mapping'), ...tool('Harbour.Editing')]);
     const ambiguous = resolveSymbol('DockTool', [tied]);
-    expect(ambiguous.kind === 'ambiguous' ? ambiguous.candidates.map((c) => displayName(c.record)) : [])
-      .toEqual(['Harbour.Mapping.DockTool', 'Harbour.Editing.DockTool']);
+    expect(
+      ambiguous.kind === 'ambiguous' ? ambiguous.candidates.map((c) => displayName(c.record)) : [],
+    ).toEqual(['Harbour.Mapping.DockTool', 'Harbour.Editing.DockTool']);
 
-    const mixed = scope('widgets-sdk', [...tool('Harbour.Internal.Editing'), ...tool('Harbour.Mapping')]);
-    expect(outcome(resolveSymbol('DockTool', [mixed]))).toBe('found:Harbour.Mapping.DockTool@simple');
+    const mixed = scope('widgets-sdk', [
+      ...tool('Harbour.Internal.Editing'),
+      ...tool('Harbour.Mapping'),
+    ]);
+    expect(outcome(resolveSymbol('DockTool', [mixed]))).toBe(
+      'found:Harbour.Mapping.DockTool@simple',
+    );
   });
 
   // Regression: `esriConfig.apiKey` was ambiguous between eight types with an `apiKey`, and
@@ -405,7 +411,12 @@ describe('resolveSymbol: the resolution table', () => {
         symbolKind: 'method',
       });
     const records = [
-      makeRecord({ ref: 'https://d/gis/', symbol: 'gis', qualified: 'tides.gis', symbolKind: 'module' }),
+      makeRecord({
+        ref: 'https://d/gis/',
+        symbol: 'gis',
+        qualified: 'tides.gis',
+        symbolKind: 'module',
+      }),
       member('tides.gis._impl._content.Folder', 'add'),
       member('tides.gis.ContentManager', 'add'),
       member('tides.gis.SharingManager', 'add'),

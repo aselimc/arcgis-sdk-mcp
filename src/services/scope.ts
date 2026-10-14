@@ -252,6 +252,7 @@ export function projectLine(
     return { line: current, version, pinned: false, unreadable: false };
   }
   if (own.current) return { line: own, version, pinned: false, unreadable: false };
-  if (own.access === 'link-only') return { line: current, version, pinned: false, unreadable: true };
+  if (own.access === 'link-only')
+    return { line: current, version, pinned: false, unreadable: true };
   return { line: own, version, pinned: true, unreadable: false };
 }
