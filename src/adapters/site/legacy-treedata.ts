@@ -31,8 +31,6 @@ export interface TreePage {
   ancestors: string[];
 }
 
-
-
 /**
  * The index just past the `}` that closes the object literal starting at `open`, or -1 when
  * the literal is not closed. Braces inside string literals are skipped.

@@ -189,5 +189,3 @@ export function shiftHeadings(markdown: string, minLevel: number): string {
 export function headingText(title: string): string {
   return /[*_<>[\]`#\\]/.test(title) ? inlineCode(title) : oneLine(title);
 }
-
-

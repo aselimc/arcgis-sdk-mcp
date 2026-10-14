@@ -57,7 +57,6 @@ function hasVisibleText(html: string, enough: number): boolean {
   return false;
 }
 
-
 /**
  * The absolute target of a meta-refresh stub, or `undefined` when `html` is a real page, a
  * plain timed reload without a URL, or has no refresh tag.

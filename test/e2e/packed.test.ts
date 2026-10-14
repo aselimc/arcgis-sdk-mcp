@@ -90,12 +90,26 @@ beforeAll(() => {
   };
 }, 120_000);
 
-afterAll(() => {
-  for (const child of children) child.kill();
+afterAll(async () => {
+  // On Windows a process keeps its working directory locked until it has exited, and `kill`
+  // only asks it to: the directory is removed after every child has closed.
+  await Promise.all(
+    [...children].map(
+      (child) =>
+        new Promise<void>((done) => {
+          if (child.exitCode !== null || child.signalCode !== null) {
+            done();
+            return;
+          }
+          child.once('close', () => done());
+          child.kill();
+        }),
+    ),
+  );
   // The link is removed first so that deleting the directory cannot follow it.
   rmSync(join(work, 'package', 'node_modules'), { recursive: false, force: true });
-  rmSync(work, { recursive: true, force: true, maxRetries: 3 });
-});
+  rmSync(work, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+}, 30_000);
 
 describe('the packed tarball', () => {
   it('contains the build output and the three root documents only', () => {

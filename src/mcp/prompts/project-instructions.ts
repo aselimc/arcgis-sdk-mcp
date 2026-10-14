@@ -45,8 +45,6 @@ const Args = z.object({
     .describe('Which instructions file to write.'),
 });
 
-
-
 /**
  * The text behind the first copy button (`button[data-code]`) of a documentation page, or
  * `undefined` when the page has none. The site stores line breaks as U+007F in that attribute.

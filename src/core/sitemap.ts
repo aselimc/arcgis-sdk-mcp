@@ -16,8 +16,6 @@ export interface Sitemap {
   entries: SitemapEntry[];
 }
 
-
-
 /** Text content of the first un-prefixed `<name>` element (so `<image:loc>` is never taken for `<loc>`). */
 function elementText(xml: string, name: string): string | undefined {
   const match = new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}\\s*>`, 'i').exec(xml);
