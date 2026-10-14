@@ -259,7 +259,8 @@ export const HOSTING_PLATFORMS: ReadonlyArray<{ variable: string; name: string }
 const VERCEL_HOST_VARIABLES = ['VERCEL_PROJECT_PRODUCTION_URL', 'VERCEL_URL', 'VERCEL_BRANCH_URL'];
 
 /** A DNS name, an IPv4 address or a bracketed IPv6 address; no scheme, port or path. */
-const HOST_NAME = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*|\[[0-9a-f:.]+\])$/;
+const HOST_NAME =
+  /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*|\[[0-9a-f:.]+\])$/;
 
 function httpToken(env: NodeJS.ProcessEnv): string | undefined {
   const token = text(env, 'ARCGIS_DOCS_HTTP_TOKEN');
@@ -307,14 +308,20 @@ function hostList(raw: string | undefined, name: string): string[] {
  */
 export function loadHttpSettings(env: NodeJS.ProcessEnv): HttpSettings {
   const platform = HOSTING_PLATFORMS.find(({ variable }) => text(env, variable) !== undefined);
-  const allowed = hostList(text(env, 'ARCGIS_DOCS_HTTP_ALLOWED_HOSTS'), 'ARCGIS_DOCS_HTTP_ALLOWED_HOSTS');
+  const allowed = hostList(
+    text(env, 'ARCGIS_DOCS_HTTP_ALLOWED_HOSTS'),
+    'ARCGIS_DOCS_HTTP_ALLOWED_HOSTS',
+  );
   if (platform?.variable === 'VERCEL') {
-    for (const variable of VERCEL_HOST_VARIABLES) allowed.push(...hostList(text(env, variable), variable));
+    for (const variable of VERCEL_HOST_VARIABLES)
+      allowed.push(...hostList(text(env, variable), variable));
   }
   return {
     token: httpToken(env),
     port:
-      text(env, 'PORT') === undefined ? undefined : integer(env, 'PORT', 0, { min: 0, max: 65_535 }),
+      text(env, 'PORT') === undefined
+        ? undefined
+        : integer(env, 'PORT', 0, { min: 0, max: 65_535 }),
     allowedHosts: [...new Set(allowed)],
     platform: platform?.name,
   };

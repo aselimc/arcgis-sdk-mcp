@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "arcgis-docs": {
+      "command": "node",
+      "args": ["/absolute/path/to/arcgis-sdk-mcp/dist/cli/main.js"]
+    }
+  }
+}

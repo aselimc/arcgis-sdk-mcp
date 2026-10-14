@@ -107,7 +107,11 @@ function sendJson(
   body: unknown,
   headers: Record<string, string> = {},
 ): void {
-  res.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store', ...headers });
+  res.writeHead(status, {
+    'content-type': 'application/json',
+    'cache-control': 'no-store',
+    ...headers,
+  });
   res.end(JSON.stringify(body));
 }
 

@@ -29,6 +29,13 @@ export const FETCH_MCP_PATHS: readonly string[] = ['/mcp', '/api/mcp'];
 /** Paths answered as the health check. */
 export const FETCH_HEALTH_PATHS: readonly string[] = ['/healthz', '/api/healthz'];
 
+/**
+ * Query parameter that marks a request on an MCP path as the health check. A platform
+ * rewrite (`/healthz` to `/api/mcp?healthz=1` in `vercel.json`) may hand the function either
+ * the original or the rewritten URL; with the flag both reach the health check.
+ */
+export const HEALTH_QUERY = 'healthz';
+
 /** Headers on every answer: nothing here may be stored by a shared cache or indexed. */
 export const NO_STORE_HEADERS: Readonly<Record<string, string>> = {
   'cache-control': 'no-store',
@@ -126,9 +133,12 @@ export function createFetchApp(options: FetchAppOptions): FetchApp {
       const rejected = rejectedByHost(request, allowedHosts);
       if (rejected !== undefined) return rejected;
     }
-    const path = URL.parse(request.url)?.pathname;
-    if (path === undefined) return json(400, { error: 'Bad request target' });
-    if (healthPaths.includes(path)) {
+    const url = URL.parse(request.url);
+    if (url === null) return json(400, { error: 'Bad request target' });
+    const path = url.pathname;
+    const health =
+      healthPaths.includes(path) || (mcpPaths.includes(path) && url.searchParams.has(HEALTH_QUERY));
+    if (health) {
       if (request.method !== 'GET' && request.method !== 'HEAD') {
         return json(405, { error: 'Method not allowed' }, { allow: 'GET, HEAD' });
       }

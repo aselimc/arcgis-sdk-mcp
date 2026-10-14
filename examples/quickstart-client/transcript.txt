@@ -13,7 +13,7 @@ Task:   add clustered points with popups to a web map
   - maplibre-arcgis: MapLibre GL JS with ArcGIS, Current. Guides and tutorials for using MapLibre GL JS with ArcGIS basemaps, data services and location services.
   
   Next: arcgis_docs_list_products({"query":"web map javascript","limit":3,"cursor":"eyJ2IjoxLCJ0IjoiYXJjZ2lzX2RvY3NfbGlzdF9wcm9kdWN0cyIsImsiOiJmOGM3MzAzNDE4Yzg...
-  (59 ms)
+  (62 ms)
   -> using "js-maps-sdk" (structuredContent.products[0].id)
 
 [2/5] Check the version
@@ -36,12 +36,12 @@ Task:   add clustered points with popups to a web map
   
   Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/javascript/latest/release-notes/"})
   Source: Esri documentation at the refs above (retrieved 2026-10-14). Copyright (c) Esri and respective authors. Use subject to Esri's terms: https://www.esri...
-  (15 ms)
+  (14 ms)
   -> docs describe 5.1 (structuredContent.products[0].documented.version)
 
 [3/5] Search the docs
 > arcgis_docs_search {"query":"cluster points popup","product":"js-maps-sdk","limit":4}
-  Search "cluster points popup" | products: js-maps-sdk, resolved from "js-maps-sdk" | line: latest | mode: local index (site search off) | hits 1-4 of 87
+  Search "cluster points popup" | products: js-maps-sdk, resolved from "js-maps-sdk" | line: latest | mode: local index (site search off) | hits 1-4 of 88
   Note: No page matches every word of the query: these are partial matches, so check a hit before relying on it. Fewer or different words may find the page.
   Note: More hits: arcgis_docs_search({"query":"cluster points popup","product":"js-maps-sdk","limit":4,"cursor":"eyJ2IjoxLCJ0IjoiYXJjZ2lzX2RvY3Nfc2VhcmNoIiwia...
   
@@ -57,7 +57,7 @@ Task:   add clustered points with popups to a web map
   
   Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-popup-chart/"})
   Source: Esri documentation at the refs above (retrieved 2026-10-14). Copyright (c) Esri and respective authors. Use subject to Esri's terms: https://www.esri...
-  (723 ms)
+  (872 ms)
   -> best hit: https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-popup-chart/
 
 [4/5] Look up the API
@@ -74,7 +74,7 @@ Task:   add clustered points with popups to a web map
   [...]
   
   Source: Esri, https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/#featureReduction (retrieved 2026-10-13, cached). Copyright...
-  (349 ms)
+  (412 ms)
 
 [5/5] Find a sample
 > arcgis_docs_find_samples {"query":"clustering","product":"js-maps-sdk","limit":3}
@@ -95,7 +95,7 @@ Task:   add clustered points with popups to a web map
   
   Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-query/","section":"source"})
   Source: Esri documentation at the refs above (retrieved 2026-10-14). Copyright (c) Esri and respective authors. Use subject to Esri's terms: https://www.esri...
-  (154 ms)
+  (181 ms)
   -> next an agent would read its code:
      arcgis_docs_read {"ref":"https://developers.arcgis.com/javascript/latest/sample-code/featurereduction-cluster-query/","section":"source"}
 

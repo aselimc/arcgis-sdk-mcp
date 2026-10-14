@@ -40,7 +40,8 @@ export function tokenRequirement(
 ): string | undefined {
   if (platform !== undefined) return `it runs on ${platform}`;
   if (host === undefined) return 'it runs as a hosted function';
-  if (host !== undefined && !isLoopbackHost(host)) return `--host ${host} is not a loopback address`;
+  if (host !== undefined && !isLoopbackHost(host))
+    return `--host ${host} is not a loopback address`;
   return undefined;
 }
 
