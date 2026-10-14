@@ -84,6 +84,10 @@ const LOG_LEVELS = [
 
 const positiveInt = z.number().int().positive();
 
+/** Bounds of `ARCGIS_DOCS_MAX_TOKENS`, the same as of `max_tokens` on `arcgis_docs_read`. */
+const MIN_MAX_TOKENS = 500;
+const MAX_MAX_TOKENS = 20_000;
+
 /** Validates a complete {@link Config}; `loadConfig` runs its result through this schema. */
 export const ConfigSchema: z.ZodType<Config> = z.object({
   version: z.string().min(1),
@@ -96,7 +100,7 @@ export const ConfigSchema: z.ZodType<Config> = z.object({
   cacheMaxMb: positiveInt,
   memoryMaxMb: positiveInt,
   projectDir: z.string().min(1),
-  defaultMaxTokens: z.number().int().min(500).max(20_000),
+  defaultMaxTokens: z.number().int().min(MIN_MAX_TOKENS).max(MAX_MAX_TOKENS),
   githubToken: z.string().min(1).optional(),
   logLevel: z.enum(LOG_LEVELS),
   limits: z.object({
@@ -114,11 +118,29 @@ function text(env: NodeJS.ProcessEnv, name: string): string | undefined {
   return value === undefined || value === '' ? undefined : value;
 }
 
-function integer(env: NodeJS.ProcessEnv, name: string, fallback: number): number {
+/** Range a variable accepts, stated in its error message. */
+interface Range {
+  min: number;
+  max?: number;
+}
+
+function integer(
+  env: NodeJS.ProcessEnv,
+  name: string,
+  fallback: number,
+  range: Range = { min: 0 },
+): number {
   const raw = text(env, name);
   if (raw === undefined) return fallback;
-  if (!/^\d+$/.test(raw)) throw new ConfigError(`${name}: expected a whole number, got "${raw}"`);
-  return Number(raw);
+  const accepted =
+    range.max === undefined
+      ? `a whole number of at least ${range.min}`
+      : `a whole number from ${range.min} to ${range.max}`;
+  const value = Number(raw);
+  if (!/^\d+$/.test(raw) || value < range.min || (range.max !== undefined && value > range.max)) {
+    throw new ConfigError(`${name}: expected ${accepted}, got "${raw}"`);
+  }
+  return value;
 }
 
 function flag(env: NodeJS.ProcessEnv, name: string): boolean {
@@ -170,10 +192,13 @@ export function loadConfig(
     capabilities,
     offline: flag(env, 'ARCGIS_DOCS_OFFLINE'),
     cacheDir: text(env, 'ARCGIS_DOCS_CACHE_DIR'),
-    cacheMaxMb: integer(env, 'ARCGIS_DOCS_CACHE_MAX_MB', CONFIG_DEFAULTS.cacheMaxMb),
+    cacheMaxMb: integer(env, 'ARCGIS_DOCS_CACHE_MAX_MB', CONFIG_DEFAULTS.cacheMaxMb, { min: 1 }),
     memoryMaxMb: CONFIG_DEFAULTS.memoryMaxMb,
     projectDir: text(env, 'ARCGIS_DOCS_PROJECT_DIR') ?? argv.cwd ?? process.cwd(),
-    defaultMaxTokens: integer(env, 'ARCGIS_DOCS_MAX_TOKENS', CONFIG_DEFAULTS.defaultMaxTokens),
+    defaultMaxTokens: integer(env, 'ARCGIS_DOCS_MAX_TOKENS', CONFIG_DEFAULTS.defaultMaxTokens, {
+      min: MIN_MAX_TOKENS,
+      max: MAX_MAX_TOKENS,
+    }),
     githubToken: text(env, 'GITHUB_TOKEN'),
     logLevel: logLevel(env),
     limits: { ...DEFAULT_LIMITS },

@@ -64,6 +64,10 @@ describe('gen-tools-doc', () => {
     expect(describeType({ type: 'string' })).toBe('string');
     expect(describeType({ type: 'string', maxLength: 80 })).toBe('string (max 80 chars)');
     expect(describeType({ type: 'integer', minimum: 1, maximum: 20 })).toBe('integer 1..20');
+    const safe = Number.MAX_SAFE_INTEGER;
+    expect(describeType({ type: 'integer', minimum: 0, maximum: safe })).toBe('integer >= 0');
+    expect(describeType({ type: 'integer', minimum: -safe, maximum: 9 })).toBe('integer <= 9');
+    expect(describeType({ type: 'integer', minimum: -safe, maximum: safe })).toBe('integer');
     expect(describeType({ type: 'string', enum: ['a', 'b'] })).toBe('"a" \\| "b"');
     expect(describeType({ type: 'array', items: { type: 'string' } })).toBe('string[]');
     expect(describeType({ type: 'array' })).toBe('any[]');

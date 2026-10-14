@@ -8,9 +8,9 @@ a minor version may change tool arguments or results; such changes are listed un
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-10-13
+## [0.1.0] - Unreleased
 
-First version.
+First version. Not tagged or published yet; the date is set when the tag is pushed.
 
 ### Added
 
@@ -52,8 +52,9 @@ First version.
 - Search is a local index over titles, headings, keywords, descriptions and symbol names;
   Esri's full-text site search is opt-in (`+site-search`). Natural-language queries rank less
   well than API names.
-- A token budget is cut at block boundaries, so a result can stop before a large list or
-  table with budget left over.
+- A token budget is cut at block boundaries. A block larger than any budget (a long list,
+  table or source file) is divided at line boundaries into pieces of about 250 tokens, so a
+  page may stop up to one piece short of its budget.
 - Inherited members are followed across at most four base pages; Swift members that come
   from a protocol extension are not followed.
 - A .NET lookup that names one overload returns that overload only.

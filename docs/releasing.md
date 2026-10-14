@@ -13,7 +13,8 @@ the workflow itself.
 1. **npm.** Trusted publishing is configured per package on npmjs.com, and a package must
    exist before it can be configured. Publish the first version by hand from a clean
    checkout (`npm publish --access public`; `prepack` builds and runs the package content
-   check), then add this repository and the workflow file `release.yml` (environment `npm`)
+   check). Provenance is not set in `publishConfig` because npm can only attest it from CI;
+   the workflow passes `--provenance` itself. Then add this repository and the workflow file `release.yml` (environment `npm`)
    as a trusted publisher in the package settings. From then on the workflow publishes
    without a token. The workflow cannot publish a version that is already on npm, so for
    that first version also publish `server.json` by hand (`mcp-publisher login github`, then
@@ -27,6 +28,15 @@ the workflow itself.
    the published `package.json`; it must equal the `name` in `server.json`.
 4. **Labels.** The issue forms use the labels `bug`, `upstream-drift` and `registry`. The
    canary workflow creates `upstream-drift` when it first needs it.
+5. **Security reports.** Enable private vulnerability reporting (Settings, Code security),
+   or the link in `SECURITY.md` and in the issue chooser leads nowhere for an outside
+   reporter: `gh api -X PUT repos/aselimc/arcgis-sdk-mcp/private-vulnerability-reporting`.
+6. **Repository page.** Set the description, homepage and topics that the link preview and
+   the sidebar show, for example
+   `gh repo edit aselimc/arcgis-sdk-mcp --description "<the package.json description>" --add-topic mcp,mcp-server,arcgis,esri,gis,documentation`,
+   and create the two labels the issue forms assign:
+   `gh label create registry --color 0E8A16` and
+   `gh label create upstream-drift --color D93F0B`.
 
 ## Before the tag
 

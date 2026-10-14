@@ -8,7 +8,7 @@ import { defineConfig } from 'vitest/config';
  * - `live` (`npm run test:live`): invariants on live-recorded upstream responses; manual and
  *   canary only.
  *
- * Coverage is opt-in (`npm run test:coverage`) and carries the thresholds of design section 10.
+ * Coverage is opt-in (`npm run test:coverage`) and enforces the thresholds below.
  */
 export default defineConfig({
   test: {
@@ -53,8 +53,6 @@ export default defineConfig({
       },
     ],
     environment: 'node',
-    // Keeps `--project live` green before any live test exists.
-    passWithNoTests: true,
     restoreMocks: true,
     unstubEnvs: true,
     unstubGlobals: true,

@@ -144,8 +144,11 @@ arcgis-sdk-mcp --http [--port 3333] [--host 127.0.0.1]
 ```
 
 The endpoint is `/mcp`; `/healthz` answers a liveness check with the server name and
-version. The server is stateless: each request is answered with one JSON response, and there
-are no sessions or subscriptions. `Host` and `Origin` are validated for loopback use, which
+version. The server is stateless and there are no sessions or subscriptions. Each request
+gets exactly one response: a JSON body for clients of protocol version 2026-07-28, a single
+SSE-framed message (`text/event-stream`) for 2025-era clients, so a client must accept both
+media types. In HTTP mode the `arcgis-docs://status` resource leaves out the cache directory
+and the project, which are paths on the host. `Host` and `Origin` are validated for loopback use, which
 keeps a web page in a browser on the same machine from reaching the server.
 
 `--host` with a non-loopback address needs `--allow-remote`, prints a warning about Esri's
@@ -160,8 +163,9 @@ arcgis-sdk-mcp doctor --product arcpy      # one product
 arcgis-sdk-mcp doctor --tier all --json    # every product, machine readable
 ```
 
-Without `--product`, `doctor` probes the sources of the developer products at one request
-per second or slower, which takes about a minute. It exits with status 1 when the floor
+Without `--product`, `doctor` probes the floor source of each developer product (one source
+per product, about 58 probes) at one request per second or slower, which takes about a
+minute; `--product <id>` probes every source of that product. It exits with status 1 when the floor
 source of a developer product cannot be reached.
 
 ```sh

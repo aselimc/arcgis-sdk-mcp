@@ -6,7 +6,7 @@ package-lock.json
 # Fixtures and goldens are compared byte for byte.
 test/fixtures/
 
-# Generated files: `npm run gen` must leave no diff.
+# Generated files: `npm run gen` regenerates them and CI fails on any diff.
 src/registry/data/*.generated.ts
 scripts/data/
 docs/tools.md

@@ -84,7 +84,7 @@ Environment:
   ARCGIS_DOCS_CACHE_DIR    cache directory (default: the per-user cache directory)
   ARCGIS_DOCS_CACHE_MAX_MB cache size cap (default 500)
   ARCGIS_DOCS_PROJECT_DIR  project to detect SDK versions in (default: the working directory)
-  ARCGIS_DOCS_MAX_TOKENS   default size of a tool result (default 6000)
+  ARCGIS_DOCS_MAX_TOKENS   default max_tokens of arcgis_docs_read (default 6000)
   ARCGIS_DOCS_LOG_LEVEL    debug | info | warn | error | silent (default warn; logs go to stderr)
   GITHUB_TOKEN             raises the GitHub API quota from 60 to 5000 requests per hour
 `;

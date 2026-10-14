@@ -207,11 +207,23 @@ describe('loadConfig', () => {
   });
 
   it.each([
-    [{ ARCGIS_DOCS_CACHE_MAX_MB: 'lots' }, /ARCGIS_DOCS_CACHE_MAX_MB: expected a whole number/],
+    [
+      { ARCGIS_DOCS_CACHE_MAX_MB: 'lots' },
+      /ARCGIS_DOCS_CACHE_MAX_MB: expected a whole number of at least 1, got "lots"/,
+    ],
     [{ ARCGIS_DOCS_CACHE_MAX_MB: '-5' }, /ARCGIS_DOCS_CACHE_MAX_MB/],
-    [{ ARCGIS_DOCS_CACHE_MAX_MB: '0' }, /cacheMaxMb/],
-    [{ ARCGIS_DOCS_MAX_TOKENS: '10' }, /defaultMaxTokens/],
-    [{ ARCGIS_DOCS_MAX_TOKENS: '999999' }, /defaultMaxTokens/],
+    [
+      { ARCGIS_DOCS_CACHE_MAX_MB: '0' },
+      /^ARCGIS_DOCS_CACHE_MAX_MB: expected a whole number of at least 1, got "0"$/,
+    ],
+    [
+      { ARCGIS_DOCS_MAX_TOKENS: '10' },
+      /^ARCGIS_DOCS_MAX_TOKENS: expected a whole number from 500 to 20000, got "10"$/,
+    ],
+    [
+      { ARCGIS_DOCS_MAX_TOKENS: '999999' },
+      /^ARCGIS_DOCS_MAX_TOKENS: expected a whole number from 500 to 20000, got "999999"$/,
+    ],
     [{ ARCGIS_DOCS_OFFLINE: 'maybe' }, /ARCGIS_DOCS_OFFLINE: expected 1 or 0/],
     [{ ARCGIS_DOCS_LOG_LEVEL: 'verbose' }, /ARCGIS_DOCS_LOG_LEVEL: expected one of/],
     [{ ARCGIS_DOCS_SOURCES: '+everything' }, /unknown capability "everything"/],

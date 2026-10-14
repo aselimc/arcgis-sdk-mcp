@@ -1,0 +1,10 @@
+# Keeps the commit SHAs the workflows pin their actions to current (one weekly pull request).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']

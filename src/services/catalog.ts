@@ -23,6 +23,12 @@ function isLegacy(product: Product): boolean {
   return product.status === 'deprecated' || product.status === 'retired';
 }
 
+/** A query of at least this many words is a sentence, not a name. */
+const MANY_TERMS = 3;
+
+/** Of a sentence, products scoring below this share of the best are left out. */
+const RELATIVE_FLOOR = 0.3;
+
 /** Share of the query's words found in what the registry says about a product; id and name count double. */
 function relevance(product: Product, terms: readonly string[]): number {
   const strong = new Set(tokenize([product.id, product.name, ...product.aliases].join(' ')));
@@ -68,7 +74,7 @@ export function createCatalogService(ctx: Ctx, index: IndexInternals): CatalogSe
       const terms = [...new Set(tokenize(req.query ?? ''))];
       const order = new Map<string, number>(CATEGORIES.map((name, position) => [name, position]));
 
-      const matching = ctx.registry
+      const scored = ctx.registry
         .all()
         .filter((product) => {
           if (category === 'all') return true;
@@ -78,7 +84,13 @@ export function createCatalogService(ctx: Ctx, index: IndexInternals): CatalogSe
         })
         .filter((product) => req.includeLegacy || !isLegacy(product))
         .map((product) => ({ product, score: terms.length === 0 ? 0 : relevance(product, terms) }))
-        .filter((entry) => terms.length === 0 || entry.score > 0)
+        .filter((entry) => terms.length === 0 || entry.score > 0);
+      // A sentence shares a common word with nearly every product ("map", "data"): of a
+      // query of several words, products far below the best match are not matches at all.
+      const best = scored.reduce((max, entry) => Math.max(max, entry.score), 0);
+      const floor = terms.length >= MANY_TERMS ? best * RELATIVE_FLOOR : 0;
+      const matching = scored
+        .filter((entry) => entry.score >= floor)
         .sort(
           (a, b) =>
             b.score - a.score ||

@@ -153,12 +153,16 @@ export function describeType(schema: JsonSchema): string {
   const type = typeNames(schema).join(' \\| ') || 'any';
   if (type === 'array')
     return `${schema.items === undefined ? 'any' : describeType(schema.items)}[]`;
-  const range =
-    schema.minimum !== undefined || schema.maximum !== undefined
-      ? ` ${schema.minimum ?? ''}..${schema.maximum ?? ''}`
-      : schema.maxLength !== undefined
-        ? ` (max ${schema.maxLength} chars)`
-        : '';
+  // zod states the safe-integer bounds of every integer; they are no limit worth printing.
+  const bound = (value: number | undefined): number | undefined =>
+    value === undefined || Math.abs(value) >= Number.MAX_SAFE_INTEGER ? undefined : value;
+  const min = bound(schema.minimum);
+  const max = bound(schema.maximum);
+  let range = '';
+  if (min !== undefined && max !== undefined) range = ` ${min}..${max}`;
+  else if (min !== undefined) range = ` >= ${min}`;
+  else if (max !== undefined) range = ` <= ${max}`;
+  else if (schema.maxLength !== undefined) range = ` (max ${schema.maxLength} chars)`;
   return `${type}${range}`;
 }
 

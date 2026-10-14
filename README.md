@@ -45,20 +45,22 @@ a version behind. This server lets the agent check instead of guess.
 - **One kind of handle.** A document reference is its URL. The agent can pass back any Esri
   documentation URL it meets in code, in an error message or in a search result.
 - **Clear about gaps.** "Not found" is reported as "not verified", a degraded answer says
-  why, and fetched content always comes with its source URL and retrieval date.
+  why, and fetched content always comes with a source line naming where it came from.
 
 ## Quick start
 
 Requires Node.js 22.12 or later. Nothing else needs to be installed or configured: there is
 no API key and no account.
 
+> **Not on npm yet.** Version 0.1.0 has not been published, so `npx -y arcgis-sdk-mcp` does
+> not work yet (and must not be run until the package exists under this name). Until then,
+> build it [from a clone](#from-a-clone) and point your host at `node <clone>/dist/cli/main.js`
+> instead of `npx -y arcgis-sdk-mcp` in the configurations below.
+
 ```sh
 npx -y arcgis-sdk-mcp --version
 npx -y arcgis-sdk-mcp call list_products
 ```
-
-If npm answers that the package does not exist, the first release has not reached the npm
-registry yet: use [From a clone](#from-a-clone) instead.
 
 An MCP host starts the server itself. Add it to yours:
 

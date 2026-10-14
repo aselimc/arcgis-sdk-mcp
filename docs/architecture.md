@@ -113,9 +113,11 @@ A URL on an allow-listed host that no source owns is read by the generic extract
 ```
 policy.check(url)        allow-list, capability, compiled robots rules, live robots.txt (24 h, adds denials only)
  -> offline?             cache only
- -> single-flight        one request per (method, URL, body)
- -> cache                fresh entry answers
- -> budget, breaker      over budget or open breaker: stale copy or UPSTREAM_UNAVAILABLE
+ -> single-flight        one request per (method, URL, expected shape, body); a joiner whose
+                         flight ended for the starter's own budget or cancellation asks again
+ -> cache                fresh entry answers; entries are kept per expected shape
+ -> pause                the host asked for a pause (Retry-After, spent quota): UPSTREAM_BLOCKED, no request
+ -> budget, breaker      over budget or open breaker: stale copy or UPSTREAM_UNAVAILABLE (details.declined)
  -> rate limiter         token bucket and semaphore per host, global concurrency cap
  -> fetch                manual redirects; every hop is checked against the policy again
  -> validate             content type and shape; HTML where JSON was expected is a miss
@@ -125,7 +127,10 @@ policy.check(url)        allow-list, capability, compiled robots rules, live rob
 
 Failures map to a small error catalogue (`src/core/errors.ts`): `DOC_NOT_FOUND`,
 `UPSTREAM_BLOCKED` (403 and 429 are never retried or worked around), `UPSTREAM_UNAVAILABLE`,
-`OFFLINE_MISS` and so on. A stale cached copy younger than 30 days is served, labelled
+`OFFLINE_MISS` and so on. A request this server gave up on itself (spent budget, host pacing
+beyond the deadline, a cancelled call) is `UPSTREAM_UNAVAILABLE` with `details.declined`, so
+an enumeration never mistakes it for a missing file. The table on `HttpClient.get` in
+`src/core/ports.ts` lists every outcome. A stale cached copy younger than 30 days is served, labelled
 `stale`, when the upstream fails.
 
 ## Registry model

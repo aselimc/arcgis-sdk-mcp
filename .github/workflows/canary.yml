@@ -37,12 +37,12 @@ jobs:
         # An explicit shell enables pipefail, so `command | tee file` fails when the command does.
         shell: bash
     env:
-      # Raises the GitHub API quota for the repository probes.
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ARCGIS_DOCS_LOG_LEVEL: warn
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -52,11 +52,17 @@ jobs:
       - name: Doctor (developer tier, about 60 probes at one request per second or slower)
         id: doctor
         continue-on-error: true
+        env:
+          # Raises the GitHub API quota for the repository probes; only these steps get it.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node dist/cli/main.js doctor --tier developer 2>&1 | tee doctor.txt
 
       - name: Record live fixtures (git-ignored, one request per second)
         id: record
         continue-on-error: true
+        env:
+          # Raises the GitHub API quota for the repository probes; only these steps get it.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx tsx scripts/record-fixtures.ts 2>&1 | tee record.txt
 
       - name: Live suite (invariants on the recordings)
@@ -68,6 +74,9 @@ jobs:
         id: registry
         if: ${{ inputs.registry == true || github.event.schedule == '23 6 1 * *' }}
         continue-on-error: true
+        env:
+          # Raises the GitHub API quota for the repository probes; only these steps get it.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run registry:check -- --live 2>&1 | tee registry.txt
 
       - name: Open or update the drift issue

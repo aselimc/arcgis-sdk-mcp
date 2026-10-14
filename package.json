@@ -46,8 +46,7 @@
     "node": ">=22.12"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -59,7 +58,7 @@
     "test:coverage": "vitest run --project unit --coverage",
     "test:e2e": "npm run build && vitest run --project e2e",
     "test:live": "vitest run --project live",
-    "gen": "tsx scripts/import-help-registry.ts && tsx scripts/gen-briefs.ts",
+    "gen": "tsx scripts/import-help-registry.ts && tsx scripts/gen-briefs.ts && tsx scripts/gen-tools-doc.ts",
     "registry:check": "tsx scripts/registry-check.ts",
     "dev": "tsx src/cli/main.ts",
     "prepack": "npm run build && tsx scripts/check-package-contents.ts"
