@@ -4,6 +4,46 @@ import { DESCRIPTION_CUT_NOTE, symbolText } from '../../../src/services/symbol/d
 import { makeDocPage, makeRecord } from '../../support/builders.js';
 
 describe('symbolText', () => {
+  // Regression: the signature of arcpy.da.UpdateCursor.updateRow opened with the class's
+  // own Syntax call, which the page header holds.
+  it('leaves the page header out of the signature of a member that declares itself', () => {
+    const page = makeDocPage({
+      url: 'https://doc.esri.com/en/x/updatecursor.html',
+      kind: 'api',
+      header: '```python\nUpdateCursor(in_table, field_names)\n```',
+      markdown: [
+        '# UpdateCursor',
+        '',
+        'Read-write access.',
+        '',
+        '## Methods',
+        '',
+        '### `updateRow(row)`',
+        '',
+        'Updates the current row in the table.',
+      ].join('\n'),
+    });
+    const member = makeRecord({
+      ref: 'https://doc.esri.com/en/x/updatecursor.html#updaterow-row',
+      kind: 'api',
+      title: 'updateRow',
+      symbol: 'updateRow',
+      qualified: 'UpdateCursor.updateRow',
+      parent: 'UpdateCursor',
+      symbolKind: 'method',
+    });
+    const type = makeRecord({
+      ref: 'https://doc.esri.com/en/x/updatecursor.html',
+      kind: 'api',
+      title: 'UpdateCursor',
+      symbol: 'UpdateCursor',
+      qualified: 'UpdateCursor',
+      symbolKind: 'class',
+    });
+    expect(symbolText(page, member, 'signature', 1000).text).not.toContain('UpdateCursor(in_table');
+    expect(symbolText(page, type, 'signature', 1000).text).toContain('UpdateCursor(in_table');
+  });
+
   // Regression: an Arcade function is a record without a parent whose page is its own member
   // section, so `summary` replaced the whole documentation by a member index of one line.
   it('keeps the documentation of a page that consists of one member section', () => {

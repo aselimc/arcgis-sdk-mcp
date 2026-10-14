@@ -58,9 +58,11 @@ interface Unit {
   clean: boolean;
 }
 
+const HTML_ROW_END = /<\/tr\s*>/i;
+
 /** The opening of an HTML table up to and including its first row. */
 function htmlTableHead(fromTable: string): string {
-  const end = /<\/tr\s*>/i.exec(fromTable);
+  const end = HTML_ROW_END.exec(fromTable);
   return end === null ? fromTable : fromTable.slice(0, end.index + end[0].length);
 }
 
@@ -89,7 +91,9 @@ function unitsOf(lines: readonly string[]): Unit[] {
   let open: OpenFence;
   let fenceOpener = '';
   let tableHeader: string[] | undefined;
-  let htmlHead = '';
+  // The opening tag and the first row of an open HTML table, which a continuation repeats.
+  let htmlHead: string[] = [];
+  let headDone = true;
   let htmlDepth = 0;
   lines.forEach((line, position) => {
     let reopen: string[] = [];
@@ -98,7 +102,7 @@ function unitsOf(lines: readonly string[]): Unit[] {
       reopen = [fenceOpener];
       close = [`${FENCE_OPENING.exec(fenceOpener)?.[1] ?? ''}${open}`];
     } else if (htmlDepth > 0) {
-      reopen = [htmlHead];
+      reopen = htmlHead;
       close = ['</table>'];
     } else if (tableHeader !== undefined && TABLE_ROW.test(line)) {
       reopen = tableHeader;
@@ -119,8 +123,15 @@ function unitsOf(lines: readonly string[]): Unit[] {
     }
     if (!line.trimStart().startsWith('<')) return;
     const opens = countOf(line, HTML_TABLE_OPEN);
-    if (htmlDepth === 0 && opens > 0)
-      htmlHead = htmlTableHead(line.slice(line.search(/<table\b/i)));
+    if (htmlDepth === 0 && opens > 0) {
+      const head = htmlTableHead(line.slice(line.search(/<table\b/i)));
+      htmlHead = [head];
+      headDone = HTML_ROW_END.test(head);
+    } else if (htmlDepth > 0 && !headDone) {
+      // The header row on lines of its own below the opening tag.
+      htmlHead = [...htmlHead, htmlTableHead(line)];
+      headDone = HTML_ROW_END.test(line);
+    }
     htmlDepth = Math.max(0, htmlDepth + opens - countOf(line, HTML_TABLE_CLOSE));
   });
   return units;

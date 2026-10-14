@@ -203,8 +203,8 @@ return text only; the other four also return `structuredContent` that conforms t
 schema.
 
 The examples below are real output of `arcgis-sdk-mcp call`, recorded on 2026-10-13 and
-shortened. `[...]` marks where text was removed, including the documentation prose: this
-repository does not reproduce Esri's text.
+2026-10-14 and shortened. `[...]` marks where text was removed, including the documentation
+prose: this repository does not reproduce Esri's text.
 
 ### `arcgis_docs_list_products`
 
@@ -268,22 +268,21 @@ arcgis-sdk-mcp call search '{"query":"FeatureLayer queryFeatures","product":"js-
 ```
 
 ```text
-Search "FeatureLayer queryFeatures" | products: js-maps-sdk, resolved from "js-maps-sdk" | line: latest | mode: local index (site search off) | hits 1-4 of 107
-Note: More hits: arcgis_docs_search({"query":"FeatureLayer queryFeatures","product":"js-maps-sdk","cursor":"eyJ2Ijox[...]"})
+Search "FeatureLayer queryFeatures" | products: js-maps-sdk, resolved from "js-maps-sdk" | line: latest | mode: local index (site search off) | hits 1-4 of 103
+Note: More hits: arcgis_docs_search({"query":"FeatureLayer queryFeatures","product":"js-maps-sdk","limit":4,"cursor":"eyJ2Ijox[...]"})
 
 1. queryFeatures() [api, method] js-maps-sdk/core 5.1
    https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/#queryFeatures
    In: @arcgis/core/layers/FeatureLayer
    [...]
-2. queryTopFeatures() [api, method] js-maps-sdk/core 5.1
-   https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/#queryTopFeatures
-   In: @arcgis/core/layers/FeatureLayer
-3. FeatureLayer [api] js-maps-sdk/core 5.1
-   https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/
-   [...]
+2. Query features from a FeatureLayerView [sample] js-maps-sdk/samples 5.1
+   https://developers.arcgis.com/javascript/latest/sample-code/featurelayerview-query/
+3. Query FeatureLayer [sample] js-maps-sdk/samples 5.1
+   https://developers.arcgis.com/javascript/latest/sample-code/featurelayer-query/
+[...]
 
 Next: arcgis_docs_read({"ref":"https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/#queryFeatures"})
-Source: Esri documentation at the refs above (retrieved 2026-10-13). [...]
+Source: Esri documentation at the refs above (retrieved 2026-10-14). [...]
 ```
 
 Without `product` the search uses the SDKs detected in the project, or picks at most three
@@ -385,7 +384,7 @@ source file of the best hit.
 A failed call says what went wrong and what to do next, in one line:
 
 ```text
-Error [LINK_ONLY]: https://archive.developers.arcgis.com/javascript/v4-34/ is not fetched by this server. archive.developers.arcgis.com excludes automated access. Next: Open https://archive.developers.arcgis.com/javascript/v4-34/ in a browser, or search the current documentation with arcgis_docs_search({"query":"v4 34"}).
+Error [LINK_ONLY]: https://archive.developers.arcgis.com/javascript/v4-34/ is not fetched by this server. archive.developers.arcgis.com excludes automated access. Next: Open https://archive.developers.arcgis.com/javascript/v4-34/ in a browser, or see what that version is with arcgis_docs_get_versions({"product":"js-maps-sdk","version":"4.34"}).
 ```
 
 ### Prompts and resources

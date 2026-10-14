@@ -86,6 +86,23 @@ describe('chunkFences', () => {
     }
   });
 
+  it('repeats an HTML header row written on lines of its own', () => {
+    const table = [
+      '<table class="tg">',
+      '<tr>',
+      '<th>TypeID</th>',
+      '</tr>',
+      '',
+      ...Array.from({ length: 300 }, (_, i) => `<tr><td>id_${i}</td></tr>`),
+      '</table>',
+    ].join('\n');
+    const pages = pagesOf(chunkFences([section(table)]), 500);
+    expect(pages.length).toBeGreaterThan(1);
+    for (const page of pages) {
+      expect(page.startsWith('<table class="tg">\n<tr>\n<th>TypeID</th>\n</tr>')).toBe(true);
+    }
+  });
+
   it('loses no line of a list across pages', () => {
     const text = pagesOf(chunkFences([section(LIST)]), 500).join('\n');
     expect(text.split('\n').filter((line) => line.startsWith('- Item'))).toHaveLength(400);

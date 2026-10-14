@@ -321,7 +321,7 @@ export function symbolText(
   const ownDeclaration =
     signature !== undefined &&
     !isType &&
-    signature.some((section) => /^ {0,3}(?:`{3,}|~{3,})/m.test(section.markdown));
+    signature.some((section) => /^ {0,3}(?:`{3,}|~{3,}|#{1,6} +`)/m.test(section.markdown));
   const header = ownDeclaration ? '' : (page.header?.trim() ?? '');
   const headerTokens = header === '' ? 0 : estimateTokens(header);
   const budget = Math.max(50, maxTokens - headerTokens);
