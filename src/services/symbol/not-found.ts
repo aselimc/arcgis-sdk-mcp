@@ -102,17 +102,25 @@ function searched(state: IndexState): boolean {
   return state.state === 'ready' || state.state === 'stale';
 }
 
-/** The capabilities that are switched off among the symbol sources of the targets. */
+/**
+ * The capabilities that are switched off among the symbol sources of the targets. A
+ * `website` source also counts `site-index` when that is off: the symbol index of an API
+ * reference is a file the site publishes for itself, and the adapter skips it without an
+ * error, so the source's own capability alone would hide the cause.
+ */
 function disabledCapabilities(ctx: Ctx, targets: readonly Target[]): Capability[] {
   const off = new Set<Capability>();
+  let website = false;
   for (const { product } of targets) {
     const ids = symbolSources(product, undefined);
     for (const source of product.sources) {
       if (ids !== undefined && !ids.includes(source.id)) continue;
       const { capability } = source;
+      if (capability === 'website') website = true;
       if (capability !== undefined && !ctx.policy.enabled(capability)) off.add(capability);
     }
   }
+  if (website && !ctx.policy.enabled('site-index')) off.add('site-index');
   return [...off];
 }
 
@@ -140,9 +148,11 @@ export function unsearchedError(
       next: 'Unset ARCGIS_DOCS_OFFLINE to fetch it',
     });
   }
+  // Nothing was searched, so a switched-off capability is the cause to report first, whether
+  // the index came back unavailable or empty; "retry" would never help.
   const off = disabledCapabilities(ctx, targets);
   const [capability] = off;
-  if (states.every((state) => state.state === 'unavailable') && capability !== undefined) {
+  if (capability !== undefined) {
     return new McpDocError('SOURCE_DISABLED', what, {
       why: `Its reference sources need ${off.map((name) => `capability "${name}"`).join(' or ')}, which is switched off`,
       next: `Set ARCGIS_DOCS_SOURCES=+${capability}`,

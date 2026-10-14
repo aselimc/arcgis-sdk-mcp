@@ -18,8 +18,8 @@ page at a person's request, for that person. A hosted instance fits that only wh
 you and your own agents:
 
 - **Do not share the URL and token, publish them, or offer the endpoint to others.** A shared,
-  public or paid instance would redistribute Esri's documentation as a service, which needs
-  Esri's permission. Ask Esri first if you want to run one.
+  public or paid instance would redistribute Esri's documentation as a service, which is
+  outside what this project is for.
 - Vercel's Hobby plan is for non-commercial, personal use only
   ([Vercel fair use](https://vercel.com/docs/limits/fair-use-guidelines#commercial-usage)).
 - The server enforces the token, not the sharing: without `ARCGIS_DOCS_HTTP_TOKEN` a hosted
