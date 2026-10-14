@@ -71,7 +71,14 @@ function sourceRef(product: Product, source: AnySourceDef, line: VersionLine | u
     return slug === undefined ? product.homepage : `${BRIEF_PREFIX}${slug}`;
   }
   if (line === undefined) return product.homepage;
-  return sourceRootUrl(source, line, product.homepage);
+  // A source that exists only on older lines (the help of earlier releases) is cited on the
+  // first line it has, as its table of contents is (`CatalogService.toc`).
+  const own = source.lines;
+  const shown =
+    own === undefined || own.includes(line.id)
+      ? line
+      : (product.lines.find((candidate) => own.includes(candidate.id)) ?? line);
+  return sourceRootUrl(source, shown, product.homepage);
 }
 
 /**

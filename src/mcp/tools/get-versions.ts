@@ -42,7 +42,9 @@ const ProductVersions = z.object({
   project: z
     .object({ version: z.string(), file: z.string(), behind: z.string().optional() })
     .optional(),
-  prerelease: z.array(z.object({ tag: z.string(), version: z.string() })),
+  prerelease: z.array(
+    z.object({ tag: z.string(), version: z.string(), package: z.string().optional() }),
+  ),
   lines: z.array(
     z.object({
       id: z.string(),

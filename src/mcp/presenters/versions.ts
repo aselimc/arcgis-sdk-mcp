@@ -103,7 +103,14 @@ export function versionsProduct(entry: ReportEntry): VersionsProduct {
       }),
     prerelease: facts
       .filter((fact) => fact.role === 'prerelease')
-      .map((fact) => ({ tag: fact.tag ?? 'prerelease', version: fact.value })),
+      // A product of several packages names the one a pre-release belongs to.
+      .map((fact) =>
+        compact({
+          tag: fact.tag ?? 'prerelease',
+          version: fact.value,
+          package: product.packages.length > 1 ? fact.package : undefined,
+        }),
+      ),
     lines: product.lines.map((line) => lineRow(product, line)),
     install: installLines(product),
     compatibility: entry.compatibility,
@@ -147,7 +154,10 @@ export function renderVersionsProduct(item: VersionsProduct): string {
     ),
     ...list(
       'Pre-release',
-      item.prerelease.map((entry) => `${entry.tag}: ${entry.version}`),
+      item.prerelease.map(
+        (entry) =>
+          `${entry.tag}: ${entry.version}${entry.package === undefined ? '' : ` (${entry.package})`}`,
+      ),
     ),
     ...list('Install', item.install),
     ...list(

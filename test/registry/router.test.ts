@@ -189,6 +189,17 @@ describe('query routing', () => {
     },
   );
 
+  it('reads a qualified identifier by its parts, not by their humps', () => {
+    expect(route('GeometryEngine.project')).toEqual(
+      DEFAULT_SYMBOL.map((product) => ({ product, confidence: DEFAULT_CONFIDENCE })),
+    );
+  });
+
+  it('sends a REST operation name that no SDK uses to the REST APIs', () => {
+    expect(productsOf('findAddressCandidates')).toEqual(['rest-api']);
+    expect(productsOf('generateToken')).toEqual(['rest-api']);
+  });
+
   it('still routes an identifier that a product lists whole', () => {
     expect(productsOf('FeatureLayer')).toEqual(['js-maps-sdk']);
     expect(productsOf('SearchCursor')[0]).toBe('arcpy');

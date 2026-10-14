@@ -511,6 +511,19 @@ export function createSymbolService(
             `Version ${target.version} of this member could not be read from the package; this is the documentation of the current release.`,
           );
         }
+      } else if (
+        read === undefined &&
+        target.preferVersioned &&
+        winner.record.parent === undefined &&
+        !versionedSource(winner.record) &&
+        target.version !== undefined &&
+        target.line.current
+      ) {
+        // A type from an unversioned source (a website page, a package outside the typings):
+        // the version asked for was not applied, and the answer has to say so.
+        notices.push(
+          `Version ${target.version} of ${displayName(winner.record)} could not be read from a package; this is the documentation of the current release.`,
+        );
       }
 
       const name = displayName(winner.record);

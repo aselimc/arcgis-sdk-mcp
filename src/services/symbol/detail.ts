@@ -314,15 +314,22 @@ export function symbolText(
   // divides them, so that a cut can fall inside one and a read can continue at its offset.
   const undivided = ownSections(page, record);
   const own = detail === 'signature' ? undivided : chunkFences(undivided);
-  const header = page.header?.trim() ?? '';
+  const isType = record.parent === undefined;
+  const signature = detail === 'signature' ? signatureOf(own, simpleName(record)) : undefined;
+  // The header describes the whole page (a class's constructor call, its import line). A
+  // member with a declaration of its own is that declaration at the signature level.
+  const ownDeclaration =
+    signature !== undefined &&
+    !isType &&
+    signature.some((section) => /^ {0,3}(?:`{3,}|~{3,})/m.test(section.markdown));
+  const header = ownDeclaration ? '' : (page.header?.trim() ?? '');
   const headerTokens = header === '' ? 0 : estimateTokens(header);
   const budget = Math.max(50, maxTokens - headerTokens);
-  const isType = record.parent === undefined;
 
   let sections: DocSection[];
   let historyDropped = false;
-  if (detail === 'signature') {
-    sections = signatureOf(own, simpleName(record));
+  if (signature !== undefined) {
+    sections = signature;
   } else if (detail === 'summary') {
     const summary = isType ? typeSummary(page, own) : [...own];
     sections = withoutHistory(summary, budget);

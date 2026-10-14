@@ -182,6 +182,11 @@ const SHAPES: ReadonlyArray<readonly [RegExp, string]> = [
   [/^arcgis(?:layers|utils|geocode|places|binding)(?:::|$)/, 'r-arcgis'],
   [/^pyprt(?:\.|$)/, 'cityengine'],
   [/^\$(?:feature|layer|map|datastore)\b/i, 'arcade'],
+  // Operations of the REST APIs that no SDK names a class or method after.
+  [
+    /^\/?(?:findAddressCandidates|geocodeAddresses|reverseGeocode|generateToken|solveServiceArea|solveClosestFacility|exportImage|exportTiles)$/,
+    'rest-api',
+  ],
 ];
 
 /**
@@ -198,8 +203,23 @@ const COMPANIONS: ReadonlyArray<readonly [RegExp, string]> = [
  * looked up one by one: "TotallyMadeUpClass" is not a question about feature classes.
  */
 function isIdentifier(query: string): boolean {
+  return identifierParts(query) !== undefined;
+}
+
+const HUMPED = /[a-z][A-Z]|[A-Za-z]_[A-Za-z]/;
+
+/**
+ * The parts of an identifier, qualified or not (`GeometryEngine.project`, `Esri::Point`),
+ * that are written like code; `undefined` when the query is not one identifier. The humps of
+ * a part are not words either: `engine` in `GeometryEngine` does not make the name a question
+ * about Unreal Engine or GeoAnalytics Engine.
+ */
+function identifierParts(query: string): string[] | undefined {
   const word = query.trim();
-  return /^[A-Za-z_$][\w$]*$/.test(word) && /[a-z][A-Z]|[A-Za-z]_[A-Za-z]/.test(word);
+  const parts = word.split(/::|[.#/]/);
+  if (!parts.every((part) => /^[A-Za-z_$][\w$]*$/.test(part))) return undefined;
+  const humped = parts.filter((part) => HUMPED.test(part));
+  return humped.length === 0 ? undefined : humped;
 }
 
 /** Plural-insensitive form of a term; there is no other stemming. */
@@ -421,7 +441,10 @@ export function createRouter(
       ];
     } else {
       // An identifier is one name: only a product that lists it whole knows it.
-      const evidence = byVocabulary(identifier ? [stem(query.trim().toLowerCase())] : terms(query));
+      const parts = identifier ? (identifierParts(query) ?? []) : [];
+      const evidence = byVocabulary(
+        identifier ? parts.map((part) => stem(part.toLowerCase())) : terms(query),
+      );
       const best = evidence[0];
       if (best === undefined) return undecided();
       // Words that many products share equally (`maps sdk`) single none of them out. The

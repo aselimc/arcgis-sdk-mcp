@@ -60,11 +60,20 @@ const NOT_PROSE = /^ {0,3}(?:#{1,6}[ \t]|>|`{3,}|~{3,}|\||[-*+][ \t]|\d+\.[ \t]|
  */
 function firstSentence(page: DocPage | undefined): string | undefined {
   const blocks = page?.sections[0]?.markdown.split(/\n\s*\n/) ?? [];
-  const prose = blocks.find((block) => block.trim() !== '' && !NOT_PROSE.test(block));
-  if (prose === undefined) return undefined;
-  const paragraph = plainText(prose).replace(/\s+/g, ' ').trim();
-  const sentence = /^.*?[.!?](?=\s|$)/.exec(paragraph)?.[0] ?? paragraph;
-  return sentence === '' ? undefined : sentence.slice(0, 240);
+  let fallback: string | undefined;
+  for (const block of blocks) {
+    if (block.trim() === '' || NOT_PROSE.test(block)) continue;
+    const paragraph = plainText(block).replace(/\s+/g, ' ').trim();
+    const sentence = /^.*?[.!?](?=\s|$)/.exec(paragraph)?.[0] ?? paragraph;
+    if (sentence === '') continue;
+    // A lead-in to a list ("Two sign ins are required for this sample:") says nothing alone.
+    if (sentence.endsWith(':')) {
+      fallback ??= sentence;
+      continue;
+    }
+    return sentence.slice(0, 240);
+  }
+  return fallback?.slice(0, 240);
 }
 
 /**

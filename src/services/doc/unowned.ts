@@ -134,10 +134,15 @@ export function createUnownedReader(ctx: Ctx, titleOf: (url: string) => string):
 
   return {
     generic(route, call, options, reroute) {
+      // A file on a package CDN is under its package's licence (calcite and Esri Leaflet are
+      // Apache-2.0), not Esri's website terms; it is cited neutrally.
+      const cdn = ctx.registry
+        .hosts()
+        .some((host) => host.host === route.url.host && host.capability === 'package-cdn');
       const meta = {
         url: route.url.href,
         kind: 'guide',
-        license: 'esri-website-terms',
+        license: cdn ? 'unlicensed' : 'esri-website-terms',
       } as const satisfies RenderMeta;
       return guarded(meta, async () => {
         const requested = route.url.href.replace(/#.*$/, '');
