@@ -11,10 +11,11 @@ for 53 developer products, from the ArcGIS Maps SDK for JavaScript to ArcPy. It 
 documentation. It fetches the page, index file or package file the agent asks for, turns it
 into compact Markdown, and returns it with the product, the version and the source URL.
 
-> **Unofficial. Not affiliated with, endorsed by or sponsored by Esri.** This is an
-> independent open-source project. Pages are fetched from Esri's public sites when your agent
-> asks for them, cached on your machine, and returned with a source line. Read
-> [Source policy and legal note](#source-policy-and-legal-note) before you rely on it.
+> **Unofficial. Not affiliated with, endorsed by or sponsored by Esri, and not reviewed by
+> Esri.** This is an independent open-source project. Pages are fetched from Esri's public
+> sites when your agent asks for them, cached on your machine, and returned with a source
+> line. Read [Source policy and legal note](#source-policy-and-legal-note) before you rely on
+> it.
 
 An agent that is unsure of a method's signature asks for it instead of guessing:
 
@@ -671,15 +672,43 @@ A tool that needs a capability that is off either degrades and says so, or answe
 
 **Please read this before relying on it.** Esri's website terms restrict automated access
 and the use of its content with AI tools, and can be read to cover a documentation retrieval
-tool such as this one. The default preset also reads two kinds of files a cautious reading
-would leave off: index files the sites publish for their own search and navigation, and
-files of Esri npm packages (licensed under the Esri Master License Agreement) from a public
-CDN. This project's position is that on-demand, attributed, per-user retrieval of public
-documentation is reasonable. That is not legal advice, and it is not Esri's permission. You
-decide whether your use is acceptable under
-[Esri's terms](https://www.esri.com/en-us/legal/overview). Do not operate a public, shared or
-paid instance without Esri's permission. If Esri asks for a source to be removed or a default
-to change, it will be.
+tool such as this one. This project has not asked Esri for permission, and Esri has not
+reviewed or approved it. Its position is that on-demand, attributed, per-user retrieval of
+public documentation, the way a developer reads it in a browser, is reasonable. That is not
+legal advice and it is not Esri's permission: you decide whether your use is acceptable under
+[Esri's terms](https://www.esri.com/en-us/legal/overview).
+
+Two capabilities in the default `standard` preset go further than a cautious reading of those
+terms would:
+
+- `site-index` reads the index files Esri's documentation sites publish for their own search
+  and navigation. They are served to every browser, but they are not a documented interface.
+- `package-cdn` reads single files of Esri npm packages, which are licensed under the Esri
+  Master License Agreement rather than an open-source licence, from the public jsDelivr CDN.
+
+They are on because they are the only structured source for some of the most used APIs: web
+component and Arcade references, JavaScript SDK 4.x typings, and the symbol indexes of the
+Swift, Kotlin, .NET, Flutter and JavaScript references. To leave them off:
+
+```sh
+ARCGIS_DOCS_SOURCES=-site-index,-package-cdn
+```
+
+The server still works without them, with less precision: pages are listed from sitemaps and
+can still be read, and a component page is read from the guide site with a note saying so.
+What you lose is `arcgis_docs_lookup_symbol` for the APIs those files index: web components,
+Arcade functions, JavaScript SDK 4.x, and SDK references whose symbol index comes from the
+site's own files, such as Kotlin. For those, use `arcgis_docs_search` and
+`arcgis_docs_read` instead.
+
+Ground rules that apply whatever you enable:
+
+- Do not run a public, shared or paid instance without Esri's permission. A hosted instance
+  for your own agents belongs behind a token, with its URL kept private.
+- Do not use fetched content to train or fine-tune models, and do not redistribute it.
+- If Esri asks for a source to be removed, a default to change or the project to be renamed,
+  it will be done. Rights holders can reach the maintainer through
+  [GitHub issues](https://github.com/aselimc/arcgis-sdk-mcp/issues).
 
 The reasoning is recorded in [docs/source-policy.md](docs/source-policy.md) and
 [ADR-0002](docs/adr/0002-site-index-and-package-cdn-defaults.md).
@@ -753,8 +782,8 @@ Before 1.0:
 
 - Run the agent evaluations and tune descriptions, ranking and budgets against them, with
   and without `+site-search`.
-- Ask Esri whether this use of its documentation is acceptable, and adjust the defaults to
-  the answer.
+- Ask Esri whether this use of its documentation is acceptable (not yet requested), and
+  adjust the defaults to the answer.
 - Close the gaps listed above: natural-language ranking, overload listings, REST operation
   names from path segments, Swift protocol-extension members.
 - Run the MCP Inspector strict check in CI.
