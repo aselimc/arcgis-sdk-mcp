@@ -247,7 +247,10 @@ async function fetchPage(
   const listed = Object.entries(src.source.config.paths ?? {}).find(
     ([name]) => name.toLowerCase() === page.toLowerCase(),
   )?.[1];
-  const first = [...(listed === undefined ? [] : [listed]), ...(known === undefined ? [] : [known.path])];
+  const first = [
+    ...(listed === undefined ? [] : [listed]),
+    ...(known === undefined ? [] : [known.path]),
+  ];
   for (const path of new Set([...first, page])) {
     const res = await attempt(path);
     if (res !== undefined) return { res };

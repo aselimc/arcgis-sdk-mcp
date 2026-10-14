@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { estimateTokens, fitSections, joinSections, splitBlocks } from '../../../src/core/budget.js';
+import {
+  estimateTokens,
+  fitSections,
+  joinSections,
+  splitBlocks,
+} from '../../../src/core/budget.js';
 import type { DocSection } from '../../../src/core/types.js';
 import { CHUNK_CHARS, chunkFences, mergeChunks } from '../../../src/services/doc/paging.js';
 
@@ -20,15 +25,19 @@ function pagesOf(sections: readonly DocSection[], maxTokens: number): string[] {
   return pages;
 }
 
-const LIST = Array.from({ length: 400 }, (_, i) => `- Item ${i}: ${'change '.repeat(8)}`).join('\n');
+const LIST = Array.from({ length: 400 }, (_, i) => `- Item ${i}: ${'change '.repeat(8)}`).join(
+  '\n',
+);
 const TABLE = [
   '| Name | Description |',
   '| --- | --- |',
   ...Array.from({ length: 300 }, (_, i) => `| row${i} | ${'text '.repeat(6)}|`),
 ].join('\n');
-const FENCE = ['```swift', ...Array.from({ length: 500 }, (_, i) => `let x${i} = ${i}`), '```'].join(
-  '\n',
-);
+const FENCE = [
+  '```swift',
+  ...Array.from({ length: 500 }, (_, i) => `let x${i} = ${i}`),
+  '```',
+].join('\n');
 const HTML = [
   '<table><tr><th>TypeID</th><th>FilterFlags</th></tr>',
   '',

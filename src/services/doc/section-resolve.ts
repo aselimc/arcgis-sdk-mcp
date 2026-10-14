@@ -63,7 +63,8 @@ const FENCE = /^ {0,3}(?:`{3,}|~{3,})/;
  * Headings under which a page keeps its code: "Sample code" on the sample pages of Esri's
  * site, "Source code", "Code", "Example code", "Usage".
  */
-const SOURCE_HEADING = /^(?:sample[\s-]?code|source(?:[\s-]?code)?|code|example|usage)(?![\p{L}\p{N}])/iu;
+const SOURCE_HEADING =
+  /^(?:sample[\s-]?code|source(?:[\s-]?code)?|code|example|usage)(?![\p{L}\p{N}])/iu;
 
 function fences(section: DocSection): string[] {
   return splitBlocks(section.markdown).filter((block) => FENCE.test(block));

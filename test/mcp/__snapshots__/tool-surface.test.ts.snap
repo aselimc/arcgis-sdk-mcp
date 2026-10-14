@@ -114,7 +114,13 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
                   "type": "string",
                 },
                 "symbols": {
-                  "type": "boolean",
+                  "description": "How arcgis_docs_lookup_symbol finds names: symbol records, API or specification pages by their title, or not at all (search only).",
+                  "enum": [
+                    "symbols",
+                    "titles",
+                    "none",
+                  ],
+                  "type": "string",
                 },
               },
               "required": [
@@ -634,6 +640,9 @@ exports[`tools/list > matches the snapshot of names, titles, annotations and sch
                 "items": {
                   "additionalProperties": false,
                   "properties": {
+                    "package": {
+                      "type": "string",
+                    },
                     "tag": {
                       "type": "string",
                     },

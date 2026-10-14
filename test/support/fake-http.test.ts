@@ -203,7 +203,9 @@ describe('FakeHttp budget', () => {
       expect.unreachable();
     } catch (error) {
       expect(isMcpDocError(error) && error.code).toBe('UPSTREAM_UNAVAILABLE');
-      expect(isMcpDocError(error) && error.details?.why).toBe('request budget');
+      // Worded and marked like the gateway's own refusal.
+      expect(isMcpDocError(error) && error.details?.declined).toBe('budget');
+      expect(isMcpDocError(error) && error.message).toMatch(/within the request budget$/);
     }
     // Cache hits stay free even when the budget is spent.
     await expect(

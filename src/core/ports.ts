@@ -767,11 +767,7 @@ export interface VersionService {
    * With `source`, only the oracles that describe that source count: a hosted REST service
    * (location services, geocoding) has no Enterprise release and gets no label.
    */
-  label(
-    product: T.Product,
-    line: T.VersionLine,
-    source?: T.SourceDef,
-  ): Promise<string | undefined>;
+  label(product: T.Product, line: T.VersionLine, source?: T.SourceDef): Promise<string | undefined>;
 }
 
 /** Every service the MCP surface calls. */

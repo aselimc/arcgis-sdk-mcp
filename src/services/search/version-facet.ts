@@ -48,7 +48,10 @@ export interface Faceted {
  *   out; hits outside any version directory stay.
  * - Without a version: of the copies of one document, only the newest directory's stays.
  */
-export function applyVersionFacet(hits: readonly SearchHit[], version: string | undefined): Faceted {
+export function applyVersionFacet(
+  hits: readonly SearchHit[],
+  version: string | undefined,
+): Faceted {
   const directories = hits.map((hit) => versionDirectory(hit.ref));
   const wanted = version?.trim().replace(/^v(?=\d)/i, '');
   if (wanted !== undefined) {

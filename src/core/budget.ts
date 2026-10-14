@@ -67,7 +67,10 @@ export function splitBlocks(markdown: string): string[] {
     else current.push(line);
     // Only a line of markup counts: prose that names `<table>` opens nothing.
     if (!wasOpen && open === undefined && line.trimStart().startsWith('<')) {
-      tables = Math.max(0, tables + countMatches(line, TABLE_OPEN) - countMatches(line, TABLE_CLOSE));
+      tables = Math.max(
+        0,
+        tables + countMatches(line, TABLE_OPEN) - countMatches(line, TABLE_CLOSE),
+      );
     }
   }
   flush();

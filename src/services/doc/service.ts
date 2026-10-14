@@ -49,9 +49,7 @@ const BRANCH_NAME = /^[A-Za-z][A-Za-z/_-]*$/;
 function branchVersion(page: DocPage): string | undefined {
   if (page.kind !== 'sample' || page.version !== undefined) return undefined;
   const ref = parseGithubUrl(page.url)?.ref;
-  return ref !== undefined && BRANCH_NAME.test(ref)
-    ? `${ref} (branch, not a release)`
-    : undefined;
+  return ref !== undefined && BRANCH_NAME.test(ref) ? `${ref} (branch, not a release)` : undefined;
 }
 
 /** Creates the document service. */

@@ -119,7 +119,8 @@ function unitsOf(lines: readonly string[]): Unit[] {
     }
     if (!line.trimStart().startsWith('<')) return;
     const opens = countOf(line, HTML_TABLE_OPEN);
-    if (htmlDepth === 0 && opens > 0) htmlHead = htmlTableHead(line.slice(line.search(/<table\b/i)));
+    if (htmlDepth === 0 && opens > 0)
+      htmlHead = htmlTableHead(line.slice(line.search(/<table\b/i)));
     htmlDepth = Math.max(0, htmlDepth + opens - countOf(line, HTML_TABLE_CLOSE));
   });
   return units;

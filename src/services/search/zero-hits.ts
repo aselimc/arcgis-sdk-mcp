@@ -18,7 +18,11 @@ const MIN_NEIGHBOUR_CONFIDENCE = 0.3;
  * relates to a searched product. An unrelated guess is not named. The router weighs single
  * words, and "route" pointing a Flutter question at the R bridge helps nobody.
  */
-function neighbourOf(ctx: Ctx, req: SearchRequest, products: readonly string[]): string | undefined {
+function neighbourOf(
+  ctx: Ctx,
+  req: SearchRequest,
+  products: readonly string[],
+): string | undefined {
   const guesses = ctx.registry
     .route(req.query, NEIGHBOUR_CANDIDATES)
     .filter((candidate) => candidate.confidence >= MIN_NEIGHBOUR_CONFIDENCE)

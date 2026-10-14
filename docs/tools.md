@@ -86,12 +86,12 @@ Markdown text plus `structuredContent` with these fields:
     - `id`: string
     - `title`: string
     - `kinds`: string[]
-    - `pages`: integer -9007199254740991..9007199254740991 (optional)
+    - `pages`: integer >= 0 (optional)
     - `ref`: string
     - `enabled`: boolean
     - `health`: "ok" \| "degraded" \| "failing" \| "unknown"
   - `capabilities`: object
-    - `symbols`: boolean
+    - `symbols`: "symbols" \| "titles" \| "none"
     - `samples`: boolean
     - `releaseNotes`: boolean
     - `search`: "local" \| "local+site"
@@ -106,9 +106,9 @@ Markdown text plus `structuredContent` with these fields:
 - `toc`: object[] (optional)
   - `title`: string
   - `ref`: string (optional)
-  - `depth`: integer -9007199254740991..9007199254740991
+  - `depth`: integer >= 0
   - `kind`: string (optional)
-- `total`: integer -9007199254740991..9007199254740991
+- `total`: integer >= 0
 - `nextCursor`: string (optional)
 - `notes`: string[]
 
@@ -166,6 +166,7 @@ Markdown text plus `structuredContent` with these fields:
   - `prerelease`: object[]
     - `tag`: string
     - `version`: string
+    - `package`: string (optional)
   - `lines`: object[]
     - `id`: string
     - `label`: string
@@ -229,9 +230,9 @@ Markdown text plus `structuredContent` with these fields:
   - `kind`: string (optional)
   - `line`: string
 - `mode`: "local" \| "local+site"
-- `total`: integer -9007199254740991..9007199254740991
+- `total`: integer >= 0
 - `results`: object[]
-  - `rank`: integer -9007199254740991..9007199254740991
+  - `rank`: integer >= 1
   - `title`: string
   - `ref`: string
   - `product`: string
@@ -347,9 +348,9 @@ Markdown text plus `structuredContent` with these fields:
   - `line`: string
   - `platform`: string (optional)
   - `pinnedTo`: string (optional)
-- `total`: integer -9007199254740991..9007199254740991
+- `total`: integer >= 0
 - `results`: object[]
-  - `rank`: integer -9007199254740991..9007199254740991
+  - `rank`: integer >= 1
   - `title`: string
   - `ref`: string
   - `product`: string
@@ -361,7 +362,7 @@ Markdown text plus `structuredContent` with these fields:
   - `files`: object[] (optional)
     - `name`: string
     - `ref`: string
-    - `bytes`: integer -9007199254740991..9007199254740991 (optional)
+    - `bytes`: integer >= 0 (optional)
   - `origin`: "esri-site" \| "github"
   - `license`: string
   - `apiConfirmed`: boolean (optional)

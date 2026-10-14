@@ -57,18 +57,22 @@ export function isCommitRef(location: GithubLocation): boolean {
 
 function unverified(url: URL, location: GithubLocation, why: string, branch?: string): McpDocError {
   const path = location.path === undefined ? '' : `/${location.path}`;
-  return new McpDocError('LINK_ONLY', `Commit ${location.ref ?? ''} of ${location.repo} is not read`, {
-    why,
-    url: url.href,
-    host: url.host,
-    ...(branch === undefined
-      ? {}
-      : {
-          next: formatCall(TOOLS.read, {
-            ref: `https://github.com/${location.repo}/blob/${branch}${path}`,
+  return new McpDocError(
+    'LINK_ONLY',
+    `Commit ${location.ref ?? ''} of ${location.repo} is not read`,
+    {
+      why,
+      url: url.href,
+      host: url.host,
+      ...(branch === undefined
+        ? {}
+        : {
+            next: formatCall(TOOLS.read, {
+              ref: `https://github.com/${location.repo}/blob/${branch}${path}`,
+            }),
           }),
-        }),
-  });
+    },
+  );
 }
 
 /**

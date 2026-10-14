@@ -151,13 +151,17 @@ export class FakeHttp implements HttpClient {
       req.budget !== undefined &&
       !consumeBudget(req.budget, this.clock)
     ) {
-      throw new McpDocError('UPSTREAM_UNAVAILABLE', `No answer from ${host} within the request budget`, {
-        why: 'The request budget of this call (a number of requests and a deadline) is spent',
-        url,
-        host,
-        retryable: true,
-        declined: 'budget',
-      });
+      throw new McpDocError(
+        'UPSTREAM_UNAVAILABLE',
+        `No answer from ${host} within the request budget`,
+        {
+          why: 'The request budget of this call (a number of requests and a deadline) is spent',
+          url,
+          host,
+          retryable: true,
+          declined: 'budget',
+        },
+      );
     }
 
     if (fault !== undefined) return this.applyFault(fault, req, url, host, recorded);

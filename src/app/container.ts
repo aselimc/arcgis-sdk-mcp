@@ -128,7 +128,8 @@ export function buildContainer(
   // WORKSPACE_TTL_MS, and calls that arrive during a scan share it.
   let scanned: { at: number; sdks: Promise<WorkspaceSdk[]> } | undefined;
   const workspace = (): Promise<WorkspaceSdk[]> => {
-    if (config.mode !== 'stdio' || !config.capabilities.has('workspace')) return Promise.resolve([]);
+    if (config.mode !== 'stdio' || !config.capabilities.has('workspace'))
+      return Promise.resolve([]);
     if (scanned !== undefined && clock.now() - scanned.at < WORKSPACE_TTL_MS) return scanned.sdks;
     const sdks = (async () => {
       try {
