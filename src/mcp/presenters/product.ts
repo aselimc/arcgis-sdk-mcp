@@ -5,6 +5,7 @@
 import { BREADCRUMB_SEPARATOR, BRIEF_PREFIX } from '../../core/names.js';
 import type { SourcePolicy } from '../../core/ports.js';
 import { sourceRootUrl } from '../../core/source-urls.js';
+import { symbolLookupOf, type SymbolLookup } from '../../core/symbol-sources.js';
 import type {
   AnySourceDef,
   CatalogRecord,
@@ -110,7 +111,7 @@ export function profileOf(
       });
     }),
     capabilities: {
-      symbols: kinds.has('api') || kinds.has('spec'),
+      symbols: symbolLookupOf(product),
       samples: kinds.has('sample'),
       releaseNotes: product.releaseNotes !== undefined || kinds.has('release-notes'),
       search:
@@ -130,6 +131,12 @@ export function profileOf(
 function bullets(title: string, items: readonly string[]): string[] {
   return items.length === 0 ? [] : ['', `## ${title}`, ...items.map((item) => `- ${item}`)];
 }
+
+const LOOKUP_WORDS: Readonly<Record<SymbolLookup, string>> = {
+  symbols: 'yes',
+  titles: 'by page title',
+  none: 'no',
+};
 
 function yesNo(value: boolean): string {
   return value ? 'yes' : 'no';
@@ -152,7 +159,7 @@ export function renderProfile(profile: ProductProfile): string {
       ? undefined
       : `- Repositories: ${profile.repos.map((repo) => `https://github.com/${repo.repo} (${repo.role}, ${repo.license})`).join(', ')}`,
     `- Version lines: ${profile.lines.map((line) => `${line.id} "${line.label}"${line.current ? ' (current)' : ''}${line.access === 'link-only' ? ' (link only)' : ''}`).join('; ')}`,
-    `- Lookups: symbols ${yesNo(capabilities.symbols)}, samples ${yesNo(capabilities.samples)}, release notes ${yesNo(capabilities.releaseNotes)}, search ${capabilities.search}`,
+    `- Lookups: symbols ${LOOKUP_WORDS[capabilities.symbols]}, samples ${yesNo(capabilities.samples)}, release notes ${yesNo(capabilities.releaseNotes)}, search ${capabilities.search}`,
     profile.related.length === 0 ? undefined : `- Related products: ${profile.related.join(', ')}`,
     `- Licence tier: ${profile.licenseTier}; registry entry verified on ${profile.verifiedOn}`,
   ].filter((fact): fact is string => fact !== undefined);

@@ -30,6 +30,20 @@ const BARE_HEADING_TOKENS = 30;
 /** Outline depth below the shallowest heading. */
 const OUTLINE_DEPTH = 2;
 
+/**
+ * Outline depth of `sections`: {@link OUTLINE_DEPTH} below the shallowest heading, or one
+ * more when a single heading at that level spans the page (a title H1 over everything), so
+ * the members and parameters under its H2s are still listed.
+ */
+function outlineDepth(sections: readonly DocSection[]): number {
+  const levels = sections.filter((s) => s.level > 0).map((s) => s.level);
+  const top = Math.min(6, ...levels);
+  return levels.filter((level) => level === top).length === 1 ? OUTLINE_DEPTH + 1 : OUTLINE_DEPTH;
+}
+
+/** A section a reader of an outline most likely wants first, before the largest one. */
+const PREFERRED_NEXT = /^(?:(?:request|query|url|input) )?parameters$/i;
+
 /** A page listing more member sections than this shows their counts instead. */
 const MEMBER_HEAVY = 25;
 
@@ -112,11 +126,12 @@ export function renderOutline(
     return entries.map((entry) => row(entry, top));
   };
 
-  let rows = build(OUTLINE_DEPTH);
+  const depth = outlineDepth(sections);
+  let rows = build(depth);
   const text = (): string => joinParts([heading, rows.join('\n'), summary]);
-  if (estimateTokens(text()) > budget) {
-    // One level is only worth showing when the document has several top-level sections.
-    const shallow = build(1);
+  // Fewer levels while it does not fit, as long as a level still shows several sections.
+  for (let level = depth - 1; level >= 1 && estimateTokens(text()) > budget; level--) {
+    const shallow = build(level);
     if (shallow.length > 2) rows = shallow;
   }
   if (estimateTokens(text()) > budget) {
@@ -150,7 +165,7 @@ export function renderOutline(
 /** The largest section below the opening: the most likely next read after an outline. */
 function largestSection(page: DocPage, sections: readonly DocSection[]): string | undefined {
   const memberIds = new Set((page.members ?? []).map((member) => member.id));
-  const candidates = outlineOf(sections, OUTLINE_DEPTH).filter(
+  const candidates = outlineOf(sections, outlineDepth(sections)).filter(
     (entry, position) => position > 0 && entry.id !== LEAD_SECTION_ID && !memberIds.has(entry.id),
   );
   // A section that is the whole document (a single top-level heading) is no narrowing.
@@ -158,7 +173,8 @@ function largestSection(page: DocPage, sections: readonly DocSection[]): string 
   const narrower = candidates.filter((entry) => entry.tokens < whole);
   // One section below a bare title is no choice either: a source file under its name.
   if (candidates.length === 1 && sections.length === 2) return undefined;
-  return narrower.sort((a, b) => b.tokens - a.tokens)[0]?.id;
+  const preferred = narrower.find((entry) => PREFERRED_NEXT.test(entry.title.trim()));
+  return preferred?.id ?? narrower.sort((a, b) => b.tokens - a.tokens)[0]?.id;
 }
 
 /** Renders one view of a page within `maxTokens`. */

@@ -102,7 +102,11 @@ const Profile = z.object({
     }),
   ),
   capabilities: z.object({
-    symbols: z.boolean(),
+    symbols: z
+      .enum(['symbols', 'titles', 'none'])
+      .describe(
+        'How arcgis_docs_lookup_symbol finds names: symbol records, API or specification pages by their title, or not at all (search only).',
+      ),
     samples: z.boolean(),
     releaseNotes: z.boolean(),
     search: z.enum(['local', 'local+site']),

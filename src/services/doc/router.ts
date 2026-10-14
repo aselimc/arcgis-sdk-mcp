@@ -77,7 +77,32 @@ const PRODUCT_RESOURCE = /^arcgis-docs:\/\/product\/([^/#?]+)/i;
  */
 export function normalizeRef(ref: string): string {
   const resource = BRIEF_RESOURCE.exec(ref.trim());
-  return resource === null ? ref : `brief:${resource[1] ?? ''}`;
+  if (resource !== null) return `brief:${resource[1] ?? ''}`;
+  // A URL copied out of Markdown can keep its backslash escapes (`tojson\(\)`), and URL
+  // parsing would turn each backslash into a slash.
+  return /^\s*https?:\/\//i.test(ref) ? ref.replace(MARKDOWN_ESCAPE, '$1') : ref;
+}
+
+const MARKDOWN_ESCAPE = /\\([\\`*_{}()#+.!~<>|[\]-])/g;
+
+/** An archived version of the JavaScript SDK reference: `/javascript/v4-34/...`. */
+const JS_ARCHIVE = /^\/javascript\/v?(\d+)[-.](\d+)\/(.*)$/;
+
+/**
+ * The recovery for a page of the archived JavaScript SDK documentation, which is link-only:
+ * the same symbol at that version through the typings, or the version's release facts.
+ */
+function archiveRecovery(url: URL): string | undefined {
+  if (url.hostname !== 'archive.developers.arcgis.com') return undefined;
+  const match = JS_ARCHIVE.exec(url.pathname);
+  if (match === null) return undefined;
+  const version = `${match[1] ?? ''}.${match[2] ?? ''}`;
+  const symbol = /api-reference\/esri-(?:[\w-]+-)?(\w+)\.html$/.exec(match[3] ?? '')?.[1];
+  const call =
+    symbol === undefined
+      ? formatCall(TOOLS.getVersions, { product: 'js-maps-sdk', version })
+      : formatCall(TOOLS.lookupSymbol, { symbol, product: 'js-maps-sdk', version });
+  return `Open ${url.href} in a browser, or ${symbol === undefined ? 'see what that version is with' : 'look the symbol up at that version with'} ${call}`;
 }
 
 /** A GitHub page that is not a file, wiki page or repository: an issue, a pull request, a commit. */
@@ -228,6 +253,10 @@ export function routeRef(
 
 /** Adds the recovery the catalogue promises when the policy's error carries none. */
 function withRecovery(ctx: Ctx, error: McpDocError, url: URL): McpDocError {
+  const archived = error.code === 'LINK_ONLY' ? archiveRecovery(url) : undefined;
+  if (archived !== undefined) {
+    return new McpDocError(error.code, error.message, { ...error.details, next: archived });
+  }
   if (error.details?.next !== undefined) return error;
   if (error.code === 'HOST_NOT_ALLOWED') {
     const hosts = ctx.registry

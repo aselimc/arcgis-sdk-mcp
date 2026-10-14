@@ -476,6 +476,8 @@ const urbanApi: Product = {
       adapter: 'gatsby',
       config: {
         base: '/arcgis-urban-api/',
+        // Superseded copies of the guide, still in the sitemap.
+        exclude: ['^OLD/'],
         classify: [
           ['^release-notes/', 'release-notes'],
           ['^sample-code/', 'sample'],

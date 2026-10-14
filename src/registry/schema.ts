@@ -164,6 +164,7 @@ const adapterConfigs: { [A in AdapterType]: z.ZodType<AdapterConfigMap[A]> } = {
     include: z.array(z.string().min(1)).exactOptional(),
     exclude: z.array(z.string().min(1)).exactOptional(),
     symbolsFromHeadings: z.number().int().min(1).max(6).exactOptional(),
+    paths: z.record(z.string().min(1), z.string().min(1)).exactOptional(),
   }),
   xmldoc: z.strictObject({
     repo: repoName,

@@ -8,7 +8,7 @@
  * on, which this module states once, so that the product profile, the coverage table and
  * the registry tests make the same claim. Each rule names the adapter code it mirrors.
  */
-import type { AnySourceDef, Product, SourceDef } from '../core/types.js';
+import type { AnySourceDef, Product, SourceDef } from './types.js';
 
 /**
  * How a product's names can be looked up:
@@ -97,6 +97,10 @@ function pageKinds(source: SourceDef): readonly string[] {
 /** How names of the product can be looked up; see {@link SymbolLookup}. */
 export function symbolLookupOf(product: Product): SymbolLookup {
   if (product.sources.some((source) => sourceYieldsSymbols(product, source))) return 'symbols';
-  // The title match of the lookup reads API pages only (src/services/symbol/titled.ts).
-  return product.sources.some((source) => pageKinds(source).includes('api')) ? 'titles' : 'none';
+  // The title match of the lookup reads API and specification pages (src/services/symbol/titled.ts).
+  return product.sources.some((source) =>
+    pageKinds(source).some((kind) => kind === 'api' || kind === 'spec'),
+  )
+    ? 'titles'
+    : 'none';
 }

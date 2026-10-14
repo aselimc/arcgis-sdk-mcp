@@ -29,7 +29,7 @@ const GUIDE = [
 ].join('\n');
 
 describe('renderOutline', () => {
-  it('lists ids, titles and subtree sizes, two levels deep', () => {
+  it('lists ids, titles and subtree sizes, two levels below a title that spans the page', () => {
     const page = makeDocPage({ markdown: GUIDE });
     const outline = renderOutline(page, page.sections, 600);
     expect(outline.split('\n')).toEqual([
@@ -37,9 +37,17 @@ describe('renderOutline', () => {
       '',
       expect.stringMatching(/^- `styling-widgets` Styling widgets \(~\d+ tokens\)$/),
       expect.stringMatching(/^ {2}- `colours` Colours \(~\d+ tokens\)$/),
+      expect.stringMatching(/^ {4}- `dark-mode` Dark mode \(~\d+ tokens\)$/),
       expect.stringMatching(/^ {2}- `typography-fonts` Typography & fonts \(~\d+ tokens\)$/),
       expect.stringMatching(/^ {2}- `parameters` Parameters \(~\d+ tokens\)$/),
     ]);
+  });
+
+  it('lists two levels when several sections share the top level', () => {
+    const page = makeDocPage({ markdown: '# A\n\nx\n\n## B\n\ny\n\n### C\n\nz\n\n# D\n\nw' });
+    const outline = renderOutline(page, page.sections, 600);
+    expect(outline).toContain('`b`');
+    expect(outline).not.toContain('`c`');
   });
 
   it('reports the size of a section with its children', () => {

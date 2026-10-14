@@ -14,6 +14,18 @@ const TITLE_CANDIDATES = 20;
 
 const HTTP_VERB = /^(?:GET|POST|PUT|PATCH|DELETE)\s+/i;
 
+/**
+ * A word or bracket that qualifies a name in a title without being part of it: CityEngine's
+ * `alignScopeToAxes operation`, I3S's `nodePageDefinition [common profile]`.
+ */
+const QUALIFIER = /\s+(?:operation|function|\[[^\]]*\])$/i;
+
+/** The profile suffix of an I3S specification file name (`nodePageDefinition.cmn`). */
+const PROFILE_SUFFIX = /\.(?:cmn|psl|pcsl|bld|msh)$/i;
+
+/** Kinds of the pages a title can name a symbol on: API references and specifications. */
+const TITLED_KINDS = ['api', 'spec'] as const;
+
 function lastSegment(name: string): string {
   return name.split(/::|[.#/]/).at(-1) ?? name;
 }
@@ -24,7 +36,15 @@ function titleNames(title: string): Set<string> {
   const bare = whole.replace(HTTP_VERB, '');
   // `search: Search` and `/generateToken: Generate Token` open with the operation's name.
   const beforeColon = /^([^\s:]+):\s/.exec(bare)?.[1];
-  const forms = [whole, bare, ...(beforeColon === undefined ? [] : [beforeColon])];
+  const unqualified = bare.replace(QUALIFIER, '');
+  const stem = unqualified.replace(PROFILE_SUFFIX, '');
+  const forms = [
+    whole,
+    bare,
+    ...(beforeColon === undefined ? [] : [beforeColon]),
+    ...(unqualified === bare ? [] : [unqualified]),
+    ...(stem === unqualified ? [] : [stem]),
+  ];
   const names = new Set<string>();
   for (const form of forms) {
     const plain = form.replace(/^\//, '').replace(/\(\)$/, '');
@@ -44,7 +64,7 @@ export interface TitledMatch {
 }
 
 /**
- * The API pages of the targets whose title names `symbol`, best first: titles equal to the
+ * The API and specification pages of the targets whose title names `symbol`, best first: titles equal to the
  * input before titles that only end with it. Records that carry a symbol of their own are
  * included, since a page may be titled differently from its symbol (`places.nearPointGet`).
  */
@@ -57,13 +77,16 @@ export function titledRecords(
   if (input === '' || targets.length === 0) return [];
   const wanted = new Set([input, input.replace(/^\//, '')].map((form) => form.toLowerCase()));
   const lines = new Map(targets.map((target) => [target.product.id, target.line.id]));
-  const { hits } = index.query({
-    text: input,
-    products: [...lines.keys()],
-    kind: 'api',
-    limit: TITLE_CANDIDATES,
-    offset: 0,
-  });
+  const hits = TITLED_KINDS.flatMap(
+    (kind) =>
+      index.query({
+        text: input,
+        products: [...lines.keys()],
+        kind,
+        limit: TITLE_CANDIDATES,
+        offset: 0,
+      }).hits,
+  );
   const matches: TitledMatch[] = [];
   const seen = new Set<string>();
   for (const hit of hits) {

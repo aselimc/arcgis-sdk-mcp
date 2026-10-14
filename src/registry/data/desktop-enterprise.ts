@@ -93,7 +93,16 @@ const PRO_SDK_WIKI_DIRECTORIES = [
   'Features/Tasks',
   'Features/WorkflowManager',
   'Reference',
+  'AddInFundamentals',
 ];
+
+/**
+ * Wiki pages whose file name differs from their link in letter case (checked on
+ * raw.githubusercontent.com): no guess from the link or its text reaches them.
+ */
+const PRO_SDK_WIKI_PATHS: Record<string, string> = {
+  'ProGuide-Build-Your-First-Add-in': 'AddInFundamentals/ProGuide-Build-your-first-add-in',
+};
 
 const arcgisProSdk: Product = {
   id: 'arcgis-pro-sdk',
@@ -153,7 +162,12 @@ const arcgisProSdk: Product = {
       'Concepts and guides (wiki)',
       // The wiki keeps its pages in directories, which its links do not name and GitHub does
       // not list: these are the directories a page is looked for in (verified on the raw host).
-      { repo: PRO_SDK_REPO, preset: 'wiki', include: PRO_SDK_WIKI_DIRECTORIES },
+      {
+        repo: PRO_SDK_REPO,
+        preset: 'wiki',
+        include: PRO_SDK_WIKI_DIRECTORIES,
+        paths: PRO_SDK_WIKI_PATHS,
+      },
       { kinds: ['guide'], floor: true },
     ),
     {

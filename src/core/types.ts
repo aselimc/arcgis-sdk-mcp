@@ -399,6 +399,12 @@ export interface AdapterConfigMap {
     include?: string[];
     exclude?: string[];
     symbolsFromHeadings?: number;
+    /**
+     * Preset `wiki` only: the path in the wiki repository of a page whose file name differs
+     * from its link in more than letter case can be guessed from (page name -> path without
+     * `.md`). Looked up case-insensitively, before any guessing.
+     */
+    paths?: Record<string, string>;
   };
   xmldoc: { repo: string; ref?: string; dir: string; docUrlHost?: string };
   pkgdown: { host: string; packages: string[] };

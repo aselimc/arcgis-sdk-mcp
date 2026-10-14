@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Product } from '../../src/core/types.js';
-import { sourceYieldsSymbols, symbolLookupOf } from '../../src/registry/symbol-sources.js';
+import { sourceYieldsSymbols, symbolLookupOf } from '../../src/core/symbol-sources.js';
 import { makeProduct, makeSource } from '../support/builders.js';
 import { PRODUCTS } from './registry-data.js';
 

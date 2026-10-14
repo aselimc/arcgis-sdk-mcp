@@ -62,7 +62,7 @@ describe('catalogue tools', () => {
       );
       expect(data.product).toMatchObject({
         id: 'js-maps-sdk',
-        capabilities: { symbols: true, samples: true, releaseNotes: true, search: 'local' },
+        capabilities: { symbols: 'symbols', samples: true, releaseNotes: true, search: 'local' },
         sources: [
           { id: 'guide', pages: 118, enabled: true, health: 'ok' },
           { id: 'references', enabled: true, health: 'degraded' },

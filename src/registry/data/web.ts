@@ -120,6 +120,13 @@ const jsSources: AnySourceDef[] = [
         '^(?:release-notes/)?\\d+\\.\\d+/$',
         '^references/',
         '^sample-code/',
+        // Legacy paths that redirect, and pages that are only a meta-refresh to another site.
+        '^guide/',
+        '^amd-build/$',
+        '^esri-loader/$',
+        '^get-started-(?:npm|react|angular|cdn)/$',
+        '^get-api/$',
+        '^forum/$',
       ],
       classify: [
         ['^tutorials/', 'tutorial'],
@@ -133,7 +140,8 @@ const jsSources: AnySourceDef[] = [
     probe: {
       url: `${D}${JS}sitemap-0.xml`,
       expect: 'xml',
-      minRecords: 2366,
+      // Also the swap rule's bar for the index: about half of the ~370 guide pages listed.
+      minRecords: 180,
       family: 'astro',
     },
   },
