@@ -5,7 +5,7 @@
  */
 import { bindSource } from '../../core/adapter-helpers.js';
 import { formatCall, joinSections } from '../../core/budget.js';
-import { McpDocError } from '../../core/errors.js';
+import { isMcpDocError, McpDocError } from '../../core/errors.js';
 import { TOOLS } from '../../core/names.js';
 import type {
   AdapterRegistry,
@@ -42,6 +42,8 @@ import {
   displayName,
   resolveSymbol,
   type Candidate,
+  type Resolution,
+  type Step,
   type SymbolScope,
 } from './resolve.js';
 import { VERSION_ADDRESSED, sourceRank, symbolSources, targetOf, type Target } from './target.js';
@@ -77,6 +79,18 @@ interface Prepared {
 type FromType =
   | { winner: Candidate; page?: DocPage; documented: boolean; inheritedFrom?: string }
   | { names: string[]; severalTypes: boolean };
+
+/** Steps that only approximate the name that was asked for. */
+const LOOSE_STEPS: ReadonlySet<Step> = new Set(['case-insensitive', 'fuzzy']);
+
+/** True when a resolution found the name only without case, by its prefix or misspelt. */
+function onlyLoosely(resolution: Resolution): boolean {
+  if (resolution.kind === 'found') return LOOSE_STEPS.has(resolution.winner.step);
+  if (resolution.kind === 'ambiguous') {
+    return resolution.candidates.every((candidate) => LOOSE_STEPS.has(candidate.step));
+  }
+  return false;
+}
 
 function fragmentOf(ref: string): string | undefined {
   const raw = ref.includes('#') ? ref.slice(ref.indexOf('#') + 1) : '';
@@ -165,9 +179,22 @@ export function createSymbolService(
       });
       const states: IndexState[] = [];
       const prepared: Prepared[] = [];
-      const extend = async (resolutions: readonly ProductResolution[]): Promise<void> => {
+      /**
+       * Prepares more products. `tolerant` skips one that cannot be prepared (a version the
+       * caller gave that a fallback product does not have): the lookup already has an answer
+       * and only looks for a better one.
+       */
+      const extend = async (
+        resolutions: readonly ProductResolution[],
+        tolerant = false,
+      ): Promise<void> => {
         for (const resolution of resolutions) {
-          prepared.push(await prepare(resolution, scope, req, call, states));
+          try {
+            prepared.push(await prepare(resolution, scope, req, call, states));
+          } catch (error) {
+            if (!tolerant || !isMcpDocError(error)) throw error;
+            ctx.logger.debug('fallback product skipped', { product: resolution.product.id, error });
+          }
         }
       };
       const scopes = (): SymbolScope[] =>
@@ -187,6 +214,13 @@ export function createSymbolService(
         // Nothing in the project's SDKs or the first guess: the products next in line are
         // asked before the name is reported missing.
         await extend(scope.fallbacks);
+        if (prepared.length > asked) resolution = resolveSymbol(req.symbol, scopes());
+      } else if (scope.origin !== 'argument' && onlyLoosely(resolution)) {
+        // A guessed scope that knows the name only loosely (`Round`: the prefix of `roundUp`
+        // in the JavaScript SDK) may have missed the product that has it exactly (the Arcade
+        // function). The step decides before the product does, so an exact name of a
+        // product next in line wins, and a loose one does not displace the first answer.
+        await extend(scope.fallbacks, true);
         if (prepared.length > asked) resolution = resolveSymbol(req.symbol, scopes());
       }
       const targets = prepared.map((entry) => entry.target);
@@ -438,6 +472,15 @@ export function createSymbolService(
       }
 
       const name = displayName(winner.record);
+      // A follow-up call is made in the scope this answer came from. A REST operation is
+      // named without its service (`search` of the portal, `search` of a knowledge graph),
+      // so the bare product would resolve it to another one.
+      const scoped =
+        resolved.source !== undefined ||
+        (winner.record.parent === undefined && winner.record.symbolKind === 'operation');
+      const productArg = scoped
+        ? `${winner.record.product}/${winner.record.source}`
+        : winner.record.product;
       read ??= await reader.read(target, winner, req.detail, call);
       notices.unshift(...read.notices);
       if (inherited !== undefined) notices.push(inherited);
@@ -513,7 +556,7 @@ export function createSymbolService(
       if (shaped.truncated && req.detail === 'signature') {
         next = formatCall(TOOLS.lookupSymbol, {
           symbol: name,
-          product: winner.record.product,
+          product: productArg,
           detail: 'summary',
         });
       } else if (shaped.truncated) {
@@ -523,7 +566,7 @@ export function createSymbolService(
         const enough = Math.min(MAX_TOKENS, Math.ceil((shaped.totalTokens + 500) / 500) * 500);
         const fuller = formatCall(TOOLS.lookupSymbol, {
           symbol: name,
-          product: winner.record.product,
+          product: productArg,
           detail: 'full',
           ...(shaped.budgetCut ? { max_tokens: enough } : {}),
         });

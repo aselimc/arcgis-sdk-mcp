@@ -132,12 +132,27 @@ const GENERATED_COMMENT =
   /^(?:A strongly-typed resource class\b|Looks up a localized (?:string|resource)\b|Returns the cached ResourceManager instance\b|Overrides the current thread's CurrentUICulture\b|Interaction logic for \S+\.xaml\b|InitializeComponent\b)/i;
 
 /** What a comment says of an entry that is public only for the product's own assemblies. */
-const NOT_FOR_CALLERS = /\bnot (?:intended )?for public use\b|\b(?:for )?internal use only\b/i;
+const NOT_FOR_CALLERS =
+  /\bnot (?:intended )?for public use\b|\b(?:for )?internal use only\b|\bis an internal (?:object|class|type)\b/i;
 
-/** The boost of a record, when it should rank behind the API a caller is meant to use. */
-function boostOf(path: string, summary: string | undefined): number | undefined {
+/**
+ * The name of a class generated from a `.resx` file (`TableRes`, `EditingRes`,
+ * `Properties.Resources`). Not every one carries the tool-written comment: the Pro SDK
+ * documents some of their string properties by hand ("Second line for the ribbon tooltip
+ * for the time filter table button"), which then matches a search for the words of a label
+ * just as well. The name is the sign that holds.
+ */
+const RESOURCE_TYPE = /(?:Res|Resources)$/;
+
+/**
+ * The boost of a record, when it should rank behind the API a caller is meant to use.
+ *
+ * @param owner the simple name of the type the entry is, or is a member of.
+ */
+function boostOf(path: string, owner: string, summary: string | undefined): number | undefined {
   const support =
     INTERNAL_NAMESPACE.test(path) ||
+    RESOURCE_TYPE.test(owner) ||
     (summary !== undefined && (GENERATED_COMMENT.test(summary) || NOT_FOR_CALLERS.test(summary)));
   return support ? SUPPORT_BOOST : undefined;
 }
@@ -151,8 +166,9 @@ function published(id: string, block: string): boolean {
  * Catalogue records of one documentation file: types, and their methods, properties,
  * fields and events as members. Members marked `<exclude/>` are hidden from the published
  * reference and are dropped, as are generated helpers and underscore-named members; static
- * constructors and malformed ids are skipped. Entries of `Internal` namespaces and entries
- * with a tool-written comment are kept with a low `boost` ({@link SUPPORT_BOOST}).
+ * constructors and malformed ids are skipped. Entries of `Internal` namespaces, of resource
+ * classes and entries with a tool-written comment are kept with a low `boost`
+ * ({@link SUPPORT_BOOST}).
  *
  * @param fileUrl the github.com blob URL of the file; a record's ref is this URL plus the id.
  */
@@ -197,7 +213,11 @@ export function xmldocRecords(src: BoundSource, fileUrl: string, xml: string): C
           parent,
           breadcrumb: [parent ?? container],
           description,
-          boost: boostOf(path, description),
+          boost: boostOf(
+            path,
+            isType ? withoutArity(last) : withoutArity(container.split('.').at(-1) ?? ''),
+            description,
+          ),
           locator: { memberId: id },
         },
       ),

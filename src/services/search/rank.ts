@@ -107,6 +107,25 @@ export function bestSectionPerPage(hits: readonly SearchHit[]): SearchHit[] {
   });
 }
 
+/**
+ * Gives a page one place in a fused list. A section that only the body index found
+ * ("Add a feature layer: Add a line feature layer") is left out when the page itself, or
+ * another of its sections, is listed above it: the catalogue and the body index both found
+ * the tutorial, and the list showed it twice in the first eight. Anchored entries of the
+ * catalogue (API members, named sections of a specification) are entries of their own.
+ */
+export function oneSlotPerPage(hits: readonly SearchHit[]): SearchHit[] {
+  const pages = new Set<string>();
+  return hits.filter((hit) => {
+    const anchored = hit.ref.includes('#');
+    if (anchored && hit.match !== 'body') return true;
+    const page = canonicalRef(hit.ref.replace(/#.*$/, ''));
+    if (pages.has(page) && hit.match === 'body') return false;
+    pages.add(page);
+    return true;
+  });
+}
+
 /** Members of one name listed for a query in plain words, before the rest is left out. */
 export const MAX_SAME_NAME = 2;
 

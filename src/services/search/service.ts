@@ -27,7 +27,7 @@ import { briefHits } from './briefs.js';
 import { classifyQuery } from './classify.js';
 import { coveredBySiteSearch } from './esearch/provider.js';
 import { excerptOf } from './excerpt.js';
-import { bestSectionPerPage, collapseRepeats, dedupe, rerank } from './rank.js';
+import { bestSectionPerPage, collapseRepeats, dedupe, oneSlotPerPage, rerank } from './rank.js';
 import {
   SECONDARY_DEPTH,
   createSiteRetriever,
@@ -231,14 +231,16 @@ export function createSearchService(deps: SearchDeps): SearchService {
       ];
 
       const workspace = new Set(scope.workspace.map((sdk) => sdk.product));
-      const fused = dedupe(
-        rerank(rrf(lists), {
-          query: req.query,
-          versionGiven: lineChosen,
-          lines: lineOf,
-          products: new Map(targets.map((target) => [target.product.id, target.product])),
-          workspace,
-        }),
+      const fused = oneSlotPerPage(
+        dedupe(
+          rerank(rrf(lists), {
+            query: req.query,
+            versionGiven: lineChosen,
+            lines: lineOf,
+            products: new Map(targets.map((target) => [target.product.id, target.product])),
+            workspace,
+          }),
+        ),
       );
       const faceted = applyVersionFacet(fused, req.version);
       let ranked = collapseRepeats(faceted.hits, query.shape === 'text');

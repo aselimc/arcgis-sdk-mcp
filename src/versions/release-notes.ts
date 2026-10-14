@@ -8,7 +8,8 @@
  * - `pattern`, in one of two forms. A regular expression whose first capture group is the
  *   version slug of a per-version page (`/release-notes-for-(\d+-\d+)/$`) names the pages
  *   among the sitemap URLs; a second capture group, when there is one, names the variant of
- *   a page (`net`, `java`) where a release has several, and every variant is listed. A URL
+ *   a page (`net`, `java`) where a release has several, and every variant is listed (named
+ *   groups `version`, `variant` and `part` may be used instead, in any order). A URL
  *   template with `{version}` (also `{dashed}`, `{compact}`, `{major}`, `{minor}`, `{patch}`
  *   and the line variables) builds the page of a version without any request.
  *
@@ -77,18 +78,40 @@ export function expandReleaseNotesPattern(
 
 /** A per-version page, with the variant it is when a release has several pages. */
 export interface ReleaseNotesPage extends VersionedPage {
-  /** `net`, `java`, `cdf`: the second capture group of a regex `pattern`. */
+  /** `net`, `java`, `cdf`: the variant group of a regex `pattern`. */
   variant?: string;
+  /**
+   * `api`: the part group of a regex `pattern`, for a variant whose release has more than
+   * one page (the .NET overview and the .NET API changes of Enterprise SDK 12.1).
+   */
+  part?: string;
+}
+
+/** The version slug, variant and part of a URL that `pattern` matches. */
+function pageParts(
+  match: RegExpExecArray,
+): { slug?: string; variant?: string; part?: string } | undefined {
+  const named = match.groups;
+  // Named groups may appear in any order: `(?<part>api)-` stands in front of the version.
+  if (named?.version !== undefined) {
+    return {
+      slug: named.version,
+      ...(named.variant === undefined ? {} : { variant: named.variant }),
+      ...(named.part === undefined ? {} : { part: named.part }),
+    };
+  }
+  return { ...(match[1] === undefined ? {} : { slug: match[1] }), ...(match[2] === undefined ? {} : { variant: match[2] }) };
 }
 
 /**
- * Pages whose URL matches a regex `pattern`; its first capture group is the version slug.
- * Newest first.
+ * Pages whose URL matches a regex `pattern`. Newest first. The version slug is the first
+ * capture group and the variant the second, or the named groups `version`, `variant` and
+ * `part`, which may stand in any order.
  *
- * Without a second capture group there is one page per version (the first URL in sitemap
- * order, which keeps the current page ahead of a `prior-releases` copy). With one, every
- * matching URL is kept and the variants of a version are ordered as the pattern names them
- * (`(net|java|cdf)` lists the .NET page first).
+ * Without a variant there is one page per version (the first URL in sitemap order, which
+ * keeps the current page ahead of a `prior-releases` copy). With one, every matching URL is
+ * kept and the variants of a version are ordered as the pattern names them (`(net|java|cdf)`
+ * lists the .NET page first). A `part` tells the pages of one variant apart in their label.
  */
 export function pagesByPattern(urls: readonly string[], pattern: RegExp): ReleaseNotesPage[] {
   const pages: ReleaseNotesPage[] = [];
@@ -96,14 +119,19 @@ export function pagesByPattern(urls: readonly string[], pattern: RegExp): Releas
   const seenUrls = new Set<string>();
   for (const url of urls) {
     const match = pattern.exec(url);
-    const slug = match?.[1];
-    if (slug === undefined || seenUrls.has(url)) continue;
-    const version = versionFromSlugText(slug);
-    const variant = match?.[2];
+    const parts = match === null ? undefined : pageParts(match);
+    if (parts?.slug === undefined || seenUrls.has(url)) continue;
+    const version = versionFromSlugText(parts.slug);
+    const { variant, part } = parts;
     if (variant === undefined && seenVersions.has(version)) continue;
     seenVersions.add(version);
     seenUrls.add(url);
-    pages.push({ version, url, ...(variant === undefined ? {} : { variant }) });
+    pages.push({
+      version,
+      url,
+      ...(variant === undefined ? {} : { variant }),
+      ...(part === undefined ? {} : { part }),
+    });
   }
   const rank = (page: ReleaseNotesPage): number => {
     const at = page.variant === undefined ? -1 : pattern.source.indexOf(page.variant);
@@ -199,8 +227,10 @@ export async function locateReleaseNotes(
     }
   }
   const same = (a: string, b: string): boolean => compareAtSharedPrecision(a, b) === 0;
-  const labelOf = (page: ReleaseNotesPage, version = page.version): string =>
-    page.variant === undefined ? version : `${version} (${page.variant})`;
+  const labelOf = (page: ReleaseNotesPage, version = page.version): string => {
+    const qualifiers = [page.variant, page.part].filter((word) => word !== undefined);
+    return qualifiers.length === 0 ? version : `${version} (${qualifiers.join(' ')})`;
+  };
 
   const refs: ReleaseNotesRef[] = [];
   /** The releases the refs cover, to stop at {@link MAX_VERSIONS} whatever their page count. */

@@ -19,33 +19,59 @@ const WORD = /[\p{L}\p{N}_]+/gu;
 /**
  * Words that carry no meaning in a documentation query. They are dropped only when other
  * words remain, so a query made of them alone still searches for something.
+ *
+ * Some are also API names (`when()` of every loadable class, `use*` properties): in a
+ * question of several words they matched those members, so that "display a popup when
+ * clicking a feature" ranked a property whose description says "used when querying" above
+ * the tutorial "Display a pop-up". A query that is only that name still finds it.
  */
 const STOP_WORDS = new Set([
   'a',
+  'about',
   'an',
   'and',
   'are',
   'at',
+  'be',
   'by',
   'can',
+  'could',
   'do',
   'does',
   'for',
   'from',
+  'has',
+  'have',
   'how',
   'i',
+  'if',
   'in',
+  'into',
   'is',
   'it',
+  'its',
+  'me',
   'my',
+  'need',
   'of',
   'on',
   'or',
+  'should',
+  'that',
   'the',
+  'this',
   'to',
+  'use',
   'using',
+  'want',
+  'we',
   'what',
+  'when',
+  'which',
+  'will',
   'with',
+  'would',
+  'you',
 ]);
 
 /** Shortest plural that is reduced to its singular; `gis` and `bus` are not plurals. */
@@ -53,6 +79,26 @@ const MIN_PLURAL_LENGTH = 4;
 
 const LETTERS_ONLY = /^\p{L}+$/u;
 const ONE_LETTER = /^\p{L}$/u;
+
+/** Shortest stem kept for a word in `-ing`; `thing` and `ring` have none. */
+const MIN_STEM_LENGTH = 3;
+
+const VOWEL = /[aeiouy]/;
+const DOUBLED_END = /([b-df-hj-np-tv-z])\1$/;
+
+/**
+ * The stems of a word in `-ing`: `click` for `clicking`, `map` (and `mapp`) for `mapping`,
+ * `creat` for `creating`, which matches `create` and `creation` as a prefix. Questions are
+ * written with gerunds ("clicking a feature", "editing attributes") and titles and member
+ * names with the stem, and documents are indexed without stemming. A stem without a vowel
+ * (`str` of `string`) is no word and is not offered.
+ */
+export function stemsOf(word: string): string[] {
+  if (!word.endsWith('ing') || !LETTERS_ONLY.test(word)) return [];
+  const stem = word.slice(0, -3);
+  const stems = DOUBLED_END.test(stem) ? [stem, stem.slice(0, -1)] : [stem];
+  return stems.filter((candidate) => candidate.length >= MIN_STEM_LENGTH && VOWEL.test(candidate));
+}
 
 /**
  * The other grammatical number of a word: `buttons` for `button`, `layer` for `layers`.
@@ -73,7 +119,8 @@ export function otherNumber(word: string): string | undefined {
  * when other words remain.
  *
  * @param synonyms lower-case word to alternative phrases (`popup` to `pop up`); see
- *   `search/synonyms.ts`. The other grammatical number of each word is added to them.
+ *   `search/synonyms.ts`. The other grammatical number of each word and the stems of a
+ *   word in `-ing` are added to them.
  */
 export function queryTerms(
   text: string,
@@ -90,7 +137,11 @@ export function queryTerms(
     const [whole = '', ...parts] = tokenize(word);
     if (whole === '' || terms.has(whole)) continue;
     const number = otherNumber(whole);
-    const phrases = new Set([...(synonyms.get(whole) ?? []), ...(number === undefined ? [] : [number])]);
+    const phrases = new Set([
+      ...(synonyms.get(whole) ?? []),
+      ...(number === undefined ? [] : [number]),
+      ...stemsOf(whole),
+    ]);
     terms.set(whole, {
       whole,
       parts,

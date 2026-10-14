@@ -237,6 +237,18 @@ describe('xmldoc: enumerate', () => {
         'Explains which internals are visible to tests.',
       ),
       member('T:Widgets.Desktop.Framework.Button', 'A button of the ribbon.'),
+      // Resource strings documented by hand still match every search for a label's words.
+      member(
+        'P:Widgets.Desktop.Editing.EditingRes.TimeFilterAll',
+        'Second line for the ribbon tooltip for the time filter table button.',
+      ),
+      member('P:Widgets.Desktop.Framework.Properties.Resources.Ok', 'The OK label of a button.'),
+      // A member that is merely named "Resources" belongs to an ordinary class.
+      member('P:Widgets.Desktop.Framework.Button.Resources', 'The resources of the button.'),
+      member(
+        'T:Widgets.Desktop.Editing.EditOperationGroupImpl',
+        'This is an internal object implementing the COM interface.',
+      ),
       '</members></doc>',
     ].join('\n');
     const boosts = (): Record<string, number | undefined> =>
@@ -261,6 +273,10 @@ describe('xmldoc: enumerate', () => {
         // A name that merely starts with "Internal" is not a namespace.
         'Widgets.Desktop.Framework.InternalsVisible': undefined,
         'Widgets.Desktop.Framework.Button': undefined,
+        'Widgets.Desktop.Editing.EditingRes.TimeFilterAll': 0.1,
+        'Widgets.Desktop.Framework.Properties.Resources.Ok': 0.1,
+        'Widgets.Desktop.Framework.Button.Resources': undefined,
+        'Widgets.Desktop.Editing.EditOperationGroupImpl': 0.1,
       });
     });
 

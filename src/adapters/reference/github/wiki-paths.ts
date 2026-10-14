@@ -51,6 +51,23 @@ function compounds(parts: readonly string[]): string[] {
   return runs;
 }
 
+/** Shortest name that may count as the opening of a longer directory name. */
+const MIN_OPENING = 5;
+
+/**
+ * True when a directory name is a longer name that opens with one of `names`, in the
+ * singular or the plural: the group "Add-ins" opens `AddInFundamentals`, where the pages of
+ * that group are kept, though the two share no whole word.
+ */
+function opensWithOneOf(segment: string, names: readonly string[]): boolean {
+  return names.some((name) => {
+    const singular = name.length > MIN_OPENING && name.endsWith('s') ? name.slice(0, -1) : name;
+    return (
+      singular.length >= MIN_OPENING && segment.length > name.length && segment.startsWith(singular)
+    );
+  });
+}
+
 /**
  * The directories of a wiki source as plain paths. An entry may hold `*` for one segment
  * (`Features`, `*`, `ProSnippet`): it stands for every name the other entries have at that
@@ -85,8 +102,9 @@ export function expandDirectories(include: readonly string[]): string[] {
  * for each of its path segments that names the page or one of its sidebar groups as a whole
  * (`MapAuthoring` for the group "Map Authoring", `ProSnippet` for `ProSnippets-...`), and one
  * for each longer word of its name that occurs among theirs (`Network` in `UtilityNetwork`
- * for the group "Networks"). Short words do not count on their own: the `Pro` of
- * `ProSnippet` would otherwise match every `ProGuide` page.
+ * for the group "Networks"), and one for each segment that a name of theirs opens
+ * (`AddInFundamentals` for the group "Add-ins"). Short words do not count on their own: the
+ * `Pro` of `ProSnippet` would otherwise match every `ProGuide` page.
  *
  * @param breadcrumb the sidebar groups of the page, in any separator.
  */
@@ -106,7 +124,10 @@ export function rankDirectories(
     const partial = words(directory).filter(
       (word) => word.length >= MIN_STEM && wanted.some((other) => sameWord(word, other)),
     ).length;
-    return 2 * whole + partial;
+    const opening = directory
+      .split('/')
+      .filter((segment) => opensWithOneOf(words(segment).join(''), wantedCompounds)).length;
+    return 2 * whole + partial + opening;
   };
   return expandDirectories(directories)
     .map((directory, index) => ({ directory, index, score: score(directory) }))

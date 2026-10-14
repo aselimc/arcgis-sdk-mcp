@@ -75,6 +75,35 @@ describe('rankDirectories', () => {
   });
 });
 
+// Regression: the "Add-ins" pages of the Pro SDK wiki (ProGuide-Diagnosing-ArcGIS-Pro-Add-ins)
+// are kept in the root directory `AddInFundamentals`, which shares no whole word with the
+// group, so it ranked with the unrelated directories and was never tried.
+describe('a directory that a sidebar group opens', () => {
+  const directories = ['Features/Framework', 'Features/Editing', 'Reference', 'AddInFundamentals'];
+
+  it('ranks it right behind the directory of the outer group', () => {
+    expect(
+      rankDirectories(directories, 'ProGuide-Diagnosing-ArcGIS-Pro-Add-ins', 'Framework > Add-ins'),
+    ).toEqual(['Features/Framework', 'AddInFundamentals', 'Features/Editing', 'Reference']);
+  });
+
+  it('puts it among the paths a read tries', () => {
+    const candidates = pathCandidates(directories, 'ProGuide-Diagnosing-ArcGIS-Pro-Add-ins', {
+      trail: ['Framework', 'Add-ins'],
+      title: 'ProGuide: Diagnosing ArcGIS Pro Add-ins',
+    });
+    expect(candidates.slice(0, 8)).toContain(
+      'AddInFundamentals/ProGuide-Diagnosing-ArcGIS-Pro-Add-ins',
+    );
+  });
+
+  it('needs a name of five letters or more, and a longer directory name', () => {
+    // "Map" is too short to open `MapAuthoring`; "Layouts" is the whole of `Layouts`.
+    expect(rankDirectories(['A/Other', 'B/MapAuthoring'], 'Page', 'Map')[0]).toBe('A/Other');
+    expect(rankDirectories(['A/Other', 'B/Layouts'], 'Page', 'Layouts')[0]).toBe('B/Layouts');
+  });
+});
+
 describe('expandDirectories', () => {
   it('writes a wildcard segment out for every name the other entries have there', () => {
     expect(

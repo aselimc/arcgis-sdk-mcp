@@ -163,6 +163,13 @@ export async function resolveScope(
       };
     };
     const routedProducts = guesses.map((entry) => entry.product);
+    /** The searchable products that `products` list as related, in their order. */
+    const relatedTo = (products: readonly Product[]): Product[] =>
+      products
+        .flatMap((product) => product.related)
+        .map((id) => ctx.registry.get(id))
+        .filter((product) => product !== undefined)
+        .filter((product) => product.tier !== 'link' && usable(product));
 
     // A symbol-shaped query that spells out a product (`arcpy.da.SearchCursor`) is about
     // that product whatever the project holds.
@@ -171,7 +178,13 @@ export async function resolveScope(
       isSymbolShaped(input.query) &&
       (second === undefined || top.confidence >= second.confidence * CLEAR_MARGIN);
     if (shaped && (top.confidence >= NAMED_CONFIDENCE || inProject.length === 0)) {
-      return scope([top.product], 'query', input.query, [...inProject, ...routedProducts]);
+      // A name the guessed product lacks is most often in a product it belongs with
+      // (`LLMAgent`: routed to the AI product, documented in the JavaScript SDK).
+      return scope([top.product], 'query', input.query, [
+        ...inProject,
+        ...routedProducts,
+        ...relatedTo([top.product]),
+      ]);
     }
     if (phrased.length > 0) {
       return scope([...phrased, ...inProject, ...routedProducts], 'query', input.query, []);
@@ -183,14 +196,18 @@ export async function resolveScope(
       const ordered = [...inProject].sort(
         (a, b) => (rank.get(a.id) ?? rank.size) - (rank.get(b.id) ?? rank.size),
       );
-      const related = ordered
-        .flatMap((product) => product.related)
-        .map((id) => ctx.registry.get(id))
-        .filter((product) => product !== undefined)
-        .filter((product) => product.tier !== 'link' && usable(product));
-      return scope(ordered, 'workspace', 'project', [...routedProducts, ...related]);
+      return scope(ordered, 'workspace', 'project', [...routedProducts, ...relatedTo(ordered)]);
     }
-    if (guesses.length > 0) return scope(routedProducts, 'router', input.query, []);
+    if (guesses.length > 0) {
+      // The guesses beyond `max`, then the products related to those taken: a router guess
+      // made from no word it knows is the default list, and `Round` was then answered with
+      // a fuzzy JavaScript name although Arcade, related to that SDK, has the function.
+      const taken = routedProducts.slice(0, input.max);
+      return scope(routedProducts, 'router', input.query, [
+        ...routedProducts.slice(input.max),
+        ...relatedTo(taken),
+      ]);
+    }
     return undefined;
   };
 

@@ -271,6 +271,28 @@ describe('locateReleaseNotes', () => {
     ]);
   });
 
+  // Enterprise SDK 12.1 has a .NET overview and a .NET API-changes page; both used to be
+  // labelled "12.1 (net)", so the reader could not tell which one to open.
+  it('labels the pages of one variant apart by the named group `part`', () => {
+    const guide = `${D}/enterprise-widgets/guide`;
+    const pattern = new RegExp(
+      createRegistry().get('enterprise-sdk')?.releaseNotes?.pattern ?? '^$',
+    );
+    const pages = pagesByPattern(
+      [
+        `${guide}/net/whats-new-api-12-1-net/`,
+        `${guide}/net/whats-new-12-1-net/`,
+        `${guide}/feeds/whats-new-12-1-cdf/`,
+      ],
+      pattern,
+    );
+    expect(pages).toEqual([
+      { version: '12.1', url: `${guide}/net/whats-new-api-12-1-net/`, variant: 'net', part: 'api' },
+      { version: '12.1', url: `${guide}/net/whats-new-12-1-net/`, variant: 'net' },
+      { version: '12.1', url: `${guide}/feeds/whats-new-12-1-cdf/`, variant: 'cdf' },
+    ]);
+  });
+
   it('labels the current page "current" when no version is known, without listing anything', async () => {
     const ctx = sites();
     const { refs } = await locateReleaseNotes(ctx, jsProduct, {});
