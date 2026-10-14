@@ -23,13 +23,16 @@
  */
 import type { PageRow, SymbolEntry, SymbolInput } from './symbols.js';
 
-/** `/<path>` with an optional `: label`; the path may hold `{parameters}`. */
-const OPERATION_TITLE = /^\/([A-Za-z0-9_{}<>.\-/]*[A-Za-z0-9_}>])(?::\s*(.+))?$/;
+/** `/<path>` with an optional `: label`; the path may hold `{parameters}` or `[parameters]`. */
+const OPERATION_TITLE = /^\/([A-Za-z0-9_{}<>[\].\-/]*[A-Za-z0-9_}>\]])(?::\s*(.+))?$/;
+
+/** A path segment that is a parameter: `{itemId}`, `<layerId>`, `[runID]`. */
+const PARAMETER_SEGMENT = /^[{<[].*[}>\]]$/;
 
 /**
- * `<name>: <Label>` without the leading slash (`search: Search`, `applyEdits: Apply Edits
- * (Feature Service)`). Only read as an operation when the label spells the name, so that a
- * prose title with a colon is not taken for one.
+ * `<name>: <Label>` without the leading slash (`search: Search`, `invitations: User
+ * Invitations`). Only read as an operation when the label ends with the words of the name,
+ * so that a prose title with a colon is not taken for one.
  */
 const BARE_OPERATION_TITLE = /^([a-z][A-Za-z0-9]*):\s*(.+)$/;
 
@@ -65,7 +68,7 @@ function camelName(label: string): string {
   return lead + rest.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('');
 }
 
-/** A {@link BARE_OPERATION_TITLE} whose label spells its name, else `null`. */
+/** A {@link BARE_OPERATION_TITLE} whose label ends with its name, else `null`. */
 function bareOperation(title: string): RegExpExecArray | null {
   const match = BARE_OPERATION_TITLE.exec(title);
   if (match?.[1] === undefined || match[2] === undefined) return null;
@@ -73,12 +76,13 @@ function bareOperation(title: string): RegExpExecArray | null {
     .replace(RESOURCE, '')
     .replace(/[^A-Za-z0-9]/g, '')
     .toLowerCase();
-  return spelled === match[1].toLowerCase() ? match : null;
+  return spelled.endsWith(match[1].toLowerCase()) ? match : null;
 }
 
 /**
  * The operation a page title names, or `undefined` when the title is not an operation.
- * Path parameters are not names: `/items/{itemId}/update` is `update`.
+ * Path parameters are not names: `/items/{itemId}/update` is `update`, `/[runID]/delete` is
+ * `delete`.
  */
 export function parseOperationTitle(
   title: string,
@@ -87,7 +91,7 @@ export function parseOperationTitle(
   if (match?.[1] === undefined) return undefined;
   const segments = match[1]
     .split('/')
-    .filter((segment) => segment !== '' && !/^[{<].*[}>]$/.test(segment));
+    .filter((segment) => segment !== '' && !PARAMETER_SEGMENT.test(segment));
   const symbol = segments.at(-1);
   if (symbol === undefined) return undefined;
   const resource = compactName(RESOURCE.exec(match[2] ?? '')?.[1]);

@@ -16,6 +16,26 @@ into compact Markdown, and returns it with the product, the version and the sour
 > asks for them, cached on your machine, and returned with a source line. Read
 > [Source policy and legal note](#source-policy-and-legal-note) before you rely on it.
 
+An agent that is unsure of a method's signature asks for it instead of guessing:
+
+````text
+$ arcgis-sdk-mcp call lookup_symbol '{"symbol":"FeatureLayer.queryFeatures","detail":"signature"}'
+@arcgis/core/layers/FeatureLayer.queryFeatures (method) | ArcGIS Maps SDK for JavaScript (js-maps-sdk), resolved from "FeatureLayer.queryFeatures" | version 5.1 | api | cached
+Note: The product js-maps-sdk was inferred from the name; pass "product" to look in another.
+
+### queryFeatures
+
+```ts
+queryFeatures (query?: QueryProperties | null | undefined, options?: RequestOptions): Promise<FeatureSet>
+```
+
+[...]
+Source: Esri, https://developers.arcgis.com/javascript/latest/references/core/layers/FeatureLayer/#queryFeatures (retrieved 2026-10-13, cached). [...]
+````
+
+The answer names the product, the version it describes and the page it came from, in a few
+hundred tokens. [The six tools](#the-six-tools) shows one call of each.
+
 ## Contents
 
 - [Why](#why)
@@ -437,6 +457,9 @@ matches a name against the titles of API or specification pages instead. "Sample
 `arcgis_docs_get_versions` returns release-notes refs. Every product can be searched and
 read.
 
+<details>
+<summary>The 53 developer products, with symbol, sample and release-notes coverage</summary>
+
 | Product id                    | Product                                            | Category                             | Current line | Symbols       | Samples | Release notes |
 | ----------------------------- | -------------------------------------------------- | ------------------------------------ | ------------ | ------------- | ------- | ------------- |
 | `js-maps-sdk`                 | ArcGIS Maps SDK for JavaScript                     | Web                                  | 5.x          | yes           | yes     | yes           |
@@ -492,6 +515,8 @@ read.
 | `developer-support`           | Esri developer support samples                     | DevOps and open source               | Current      |               | yes     |               |
 | `oss-libraries`               | Esri open-source libraries                         | DevOps and open source               | Current      |               | yes     |               |
 | `support-kb`                  | Esri Support knowledge base                        | Support                              | Current      |               |         |               |
+
+</details>
 
 ## Configuration
 

@@ -87,6 +87,10 @@ describe('symbols: rest-operations', () => {
     // Titles without the leading slash (regression: `search: Search` had no symbol).
     ['search: Search', 'search', undefined],
     ['applyEdits: Apply Edits (Gadget Service)', 'applyEdits', 'GadgetService.applyEdits'],
+    ['invitations: User Invitations', 'invitations', undefined],
+    // Parameters in brackets (regression: the portal's `/[runID]/delete` had no symbol).
+    ['/[runID]/delete: Delete Run', 'delete', undefined],
+    ['/[taskID]/runs: Runs for Task', 'runs', undefined],
   ])('parses %s', (title, symbol, qualified) => {
     expect(parseOperationTitle(title)).toEqual(
       qualified === undefined ? { symbol } : { symbol, qualified },

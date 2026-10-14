@@ -53,6 +53,16 @@ describe('catalog list', () => {
     expect(list(h, { query: 'no such thing' }).total).toBe(0);
   });
 
+  // Regression: a goal sentence matched "for" and "with" in product names, and "clustered"
+  // or "points" did not meet the keywords "cluster" and "point".
+  it('reads a sentence by its content words, in any inflection', () => {
+    const h = makeHarness();
+    expect(
+      list(h, { query: 'I want to build an app for kotlin' }).products.map((p) => p.id),
+    ).toEqual(['kotlin-maps-sdk']);
+    expect(list(h, { query: 'featurelayers' }).products.map((p) => p.id)).toEqual(['js-maps-sdk']);
+  });
+
   it('pages with a cursor and rejects a cursor of another listing', () => {
     const h = makeHarness();
     const first = list(h, { limit: 3 });

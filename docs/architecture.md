@@ -103,8 +103,10 @@ sequenceDiagram
   T-->>H: status line, body, Next line, Source line
 ```
 
-A URL on an allow-listed host that no source owns is read by the generic extractor. A
-`brief:<slug>` ref is answered from the briefs bundled with the package, without a request.
+A URL on an allow-listed host that no source owns is read by the generic extractor; a file
+on the package CDN (`package.json`, a README, a declaration file) is shown as the file it is
+and cited under the licence the registry records for its package. A `brief:<slug>` ref is
+answered from the briefs bundled with the package, without a request.
 
 ## The HTTP gateway
 

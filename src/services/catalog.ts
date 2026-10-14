@@ -29,11 +29,72 @@ const MANY_TERMS = 3;
 /** Of a sentence, products scoring below this share of the best are left out. */
 const RELATIVE_FLOOR = 0.3;
 
+/**
+ * Words of a sentence that say nothing about a product: "I want to build a web app that
+ * shows a map" is about `web` and `map`. Without this, `with` in the name "MapLibre GL JS
+ * with ArcGIS" counted as a match of the name.
+ */
+const FILLER = new Set([
+  'a',
+  'an',
+  'and',
+  'are',
+  'be',
+  'build',
+  'can',
+  'create',
+  'do',
+  'does',
+  'for',
+  'from',
+  'how',
+  'i',
+  'in',
+  'into',
+  'is',
+  'it',
+  'make',
+  'my',
+  'need',
+  'of',
+  'on',
+  'or',
+  'our',
+  'show',
+  'that',
+  'the',
+  'this',
+  'to',
+  'use',
+  'using',
+  'want',
+  'we',
+  'what',
+  'which',
+  'with',
+  'you',
+]);
+
+/** One form for the inflections of a word: `points` and `point`, `clustered` and `cluster`. */
+function fold(term: string): string {
+  if (term.length > 5 && term.endsWith('ing')) return term.slice(0, -3);
+  if (term.length > 4 && term.endsWith('ed')) return term.slice(0, -2);
+  if (term.length > 3 && term.endsWith('s') && !term.endsWith('ss')) return term.slice(0, -1);
+  return term;
+}
+
+/** The terms of a text as {@link relevance} compares them. */
+function folded(text: string): string[] {
+  return tokenize(text)
+    .map(fold)
+    .filter((term) => !FILLER.has(term));
+}
+
 /** Share of the query's words found in what the registry says about a product; id and name count double. */
 function relevance(product: Product, terms: readonly string[]): number {
-  const strong = new Set(tokenize([product.id, product.name, ...product.aliases].join(' ')));
+  const strong = new Set(folded([product.id, product.name, ...product.aliases].join(' ')));
   const weak = new Set(
-    tokenize(
+    folded(
       [
         product.summary,
         ...product.keywords,
@@ -71,7 +132,7 @@ export function createCatalogService(ctx: Ctx, index: IndexInternals): CatalogSe
   return {
     list(req) {
       const category = req.category;
-      const terms = [...new Set(tokenize(req.query ?? ''))];
+      const terms = [...new Set(folded(req.query ?? ''))];
       const order = new Map<string, number>(CATEGORIES.map((name, position) => [name, position]));
 
       const scored = ctx.registry
