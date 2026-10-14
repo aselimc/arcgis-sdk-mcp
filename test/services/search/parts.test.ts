@@ -191,6 +191,54 @@ describe('multipliers', () => {
     ]);
   });
 
+  // Regression: a web component listed by the site reference and by its Custom Elements
+  // Manifest was reported under whichever of the two ranked higher (js-maps-sdk/core or
+  // js-maps-sdk/components), so one page changed source from one query to the next.
+  it('reports a page listed by two sources of a product under the primary one', () => {
+    const page =
+      'https://developers.arcgis.com/javascript/latest/references/map-components/arcgis-map/';
+    const primary = (product: string, source: string, other: string): boolean =>
+      product === 'js-maps-sdk' && source === 'components' && other === 'core';
+    const coreFirst = dedupe(
+      [
+        hit({ ref: page, source: 'core', score: 3, title: 'Map' }),
+        hit({ ref: 'https://developers.arcgis.com/other/', score: 2 }),
+        hit({ ref: page, source: 'components', score: 1, title: 'arcgis-map' }),
+      ],
+      primary,
+    );
+    expect(coreFirst.map((entry) => [entry.ref, entry.source, entry.score])).toEqual([
+      [page, 'components', 3],
+      ['https://developers.arcgis.com/other/', 'guide', 2],
+    ]);
+    expect(coreFirst[0]?.title).toBe('arcgis-map');
+
+    const componentsFirst = dedupe(
+      [
+        hit({ ref: page, source: 'components', score: 3 }),
+        hit({ ref: page, source: 'core', score: 1 }),
+      ],
+      primary,
+    );
+    expect(componentsFirst.map((entry) => [entry.source, entry.score])).toEqual([
+      ['components', 3],
+    ]);
+
+    // Without the relation, or across products, the best hit stays as it was.
+    expect(
+      dedupe([hit({ ref: page, source: 'core' }), hit({ ref: page, source: 'components' })]),
+    ).toHaveLength(1);
+    expect(
+      dedupe(
+        [
+          hit({ ref: page, source: 'core' }),
+          hit({ ref: page, product: 'other', source: 'components' }),
+        ],
+        primary,
+      )[0]?.source,
+    ).toBe('core');
+  });
+
   // Regression: "add a feature layer to a map" listed the tutorial from the catalogue and,
   // further down, one of its sections from the body index.
   it('gives a page one place: body sections of a listed page are left out', () => {

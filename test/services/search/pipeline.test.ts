@@ -159,6 +159,23 @@ describe('search pipeline', () => {
     expect(response.hits[0]).toMatchObject({ source: 'core', title: 'FeatureLayer' });
   });
 
+  // Regression: a page listed by two sources was reported under whichever record ranked
+  // higher, so an AI component showed js-maps-sdk/core for one query and /components for the
+  // next. The source that lists the other among its fallbacks is now always the one named.
+  it('names the primary source of a page two sources list, whichever ranked higher', async () => {
+    const h = makeHarness();
+    for (const query of ['FeatureLayer', 'Typings of the feature layer class']) {
+      const response = await h.services.search.search(
+        { query, product: 'js-maps-sdk', limit: 20 },
+        h.call(),
+      );
+      const page = response.hits.filter(
+        (hit) => hit.ref === `${JS}/references/core/layers/FeatureLayer/`,
+      );
+      expect(page.map((hit) => hit.source)).toEqual(['core']);
+    }
+  });
+
   it('finds text of pages read earlier through the body index', async () => {
     const h = makeHarness();
     const before = await h.services.search.search(

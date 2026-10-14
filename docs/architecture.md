@@ -170,6 +170,12 @@ qualified name, headings, keywords, description and breadcrumb. A symbol side ta
 exact-name lookups. Pages the agent has already read contribute their section text to a
 per-product body index. There is no full-text crawl; see the limitations in the README.
 
+The retrievers' lists are merged by reciprocal rank fusion (`src/core/rrf.ts`), re-weighted
+(`src/services/search/rank.ts`) and de-duplicated on the canonical URL. A page that two sources
+of one product list (a web component in the site reference and in its Custom Elements
+Manifest, a class in the site reference and in the typings) appears once, in the place of its
+best copy, and always under the source that names the other among its `fallbacks`.
+
 ## Output
 
 Every text result has the same envelope: a status line (resolved product, version, kind,

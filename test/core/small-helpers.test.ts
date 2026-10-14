@@ -5,7 +5,7 @@ import { sha256Hex, shortHash } from '../../src/core/hash.js';
 import { TOOL_ORDER, TOOLS } from '../../src/core/names.js';
 import { rrf } from '../../src/core/rrf.js';
 import { levenshtein, nearest } from '../../src/core/text-distance.js';
-import { LICENSE_TIERS } from '../../src/core/types.js';
+import { LICENSE_TIERS, type SearchHit } from '../../src/core/types.js';
 import { makeHit } from '../support/builders.js';
 
 describe('hash', () => {
@@ -132,6 +132,29 @@ describe('rrf', () => {
     expect(rrf([[a], [b]]).map((hit) => hit.title)).toEqual(['A', 'B']);
     expect(a.score).toBe(1);
     expect(rrf([])).toEqual([]);
+  });
+
+  it('takes the identity of a preferred copy and keeps score, match and excerpt', () => {
+    const site = makeHit({ ref: a.ref, source: 'core', title: 'A', match: 'symbol', excerpt: 'x' });
+    const twin = makeHit({ ref: a.ref, source: 'components', title: 'a-el', match: 'title' });
+    const prefer = (candidate: SearchHit): boolean => candidate.source === 'components';
+
+    // Within one list the copy does not vote twice, but still names the hit.
+    const [same] = rrf([[site, twin, b]], 1, prefer);
+    expect(same).toMatchObject({
+      source: 'components',
+      title: 'a-el',
+      match: 'symbol',
+      excerpt: 'x',
+    });
+    expect(same?.score).toBeCloseTo(1 / 2, 10);
+
+    const [across] = rrf([[site], [twin]], 60, prefer);
+    expect(across).toMatchObject({ source: 'components', match: 'symbol' });
+    expect(across?.score).toBeCloseTo(2 / 61, 10);
+    expect(site.source).toBe('core');
+
+    expect(rrf([[site], [twin]])[0]?.source).toBe('core');
   });
 });
 

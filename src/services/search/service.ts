@@ -17,7 +17,7 @@ import type {
   SearchService,
   VersionService,
 } from '../../core/ports.js';
-import { rrf } from '../../core/rrf.js';
+import { rrf, type PreferCopy } from '../../core/rrf.js';
 import type { SearchHit } from '../../core/types.js';
 import { queryTerms } from '../index/query-terms.js';
 import type { IndexInternals } from '../index/types.js';
@@ -27,7 +27,14 @@ import { briefHits } from './briefs.js';
 import { classifyQuery } from './classify.js';
 import { coveredBySiteSearch } from './esearch/provider.js';
 import { excerptOf } from './excerpt.js';
-import { bestSectionPerPage, collapseRepeats, dedupe, oneSlotPerPage, rerank } from './rank.js';
+import {
+  bestSectionPerPage,
+  collapseRepeats,
+  dedupe,
+  oneSlotPerPage,
+  rerank,
+  type PrimarySource,
+} from './rank.js';
 import {
   SECONDARY_DEPTH,
   createSiteRetriever,
@@ -68,6 +75,17 @@ function sameRelease(label: string, version: string): boolean {
 export function createSearchService(deps: SearchDeps): SearchService {
   const { ctx, index, versions } = deps;
   const site = createSiteRetriever(ctx, deps.provider, deps.siteSoftDeadlineMs);
+  const primarySource: PrimarySource = (product, source, other) =>
+    ctx.registry
+      .get(product)
+      ?.sources.find((candidate) => candidate.id === source)
+      ?.fallbacks?.includes(other) === true;
+  // A page listed by two sources of one product (a web component by the site reference and
+  // by its Custom Elements Manifest) is always reported under the primary of the two.
+  const preferCopy: PreferCopy = (candidate, current) =>
+    candidate.product === current.product &&
+    candidate.source !== current.source &&
+    primarySource(candidate.product, candidate.source, current.source);
 
   const labelsOf = async (targets: SearchTarget[]): Promise<Map<string, string | undefined>> => {
     const labels = new Map<string, string | undefined>();
@@ -272,7 +290,7 @@ export function createSearchService(deps: SearchDeps): SearchService {
       const workspace = new Set(scope.workspace.map((sdk) => sdk.product));
       const fused = oneSlotPerPage(
         dedupe(
-          rerank(rrf(lists), {
+          rerank(rrf(lists, undefined, preferCopy), {
             query: req.query,
             versionGiven: lineChosen,
             lines: lineOf,
