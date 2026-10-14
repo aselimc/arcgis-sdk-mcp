@@ -177,6 +177,26 @@ describe('read: routing', () => {
     });
   });
 
+  it('points a GitHub release page at the files of its tag, and an issue at the repository', async () => {
+    const h = harness();
+    await expect(
+      read(h, { ref: 'https://github.com/Esri/some-tool/releases/tag/v1.2.0' }),
+    ).rejects.toMatchObject({
+      code: 'HOST_NOT_ALLOWED',
+      details: {
+        why: expect.stringContaining('at tag v1.2.0') as string,
+        next: 'arcgis_docs_read({"ref":"https://github.com/Esri/some-tool/blob/v1.2.0/README.md"})',
+      },
+    });
+    await expect(
+      read(h, { ref: 'https://github.com/Esri/some-tool/issues/3' }),
+    ).rejects.toMatchObject({
+      code: 'HOST_NOT_ALLOWED',
+      details: { next: 'arcgis_docs_read({"ref":"https://github.com/Esri/some-tool"})' },
+    });
+    expect(h.ctx.http.requests).toEqual([]);
+  });
+
   it('attributes a GitHub file conservatively when the licence cannot be read', async () => {
     const h = harness();
     h.ctx.github

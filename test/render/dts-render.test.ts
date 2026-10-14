@@ -245,6 +245,43 @@ describe('renderDts: raw-declaration fallback', () => {
   });
 });
 
+// Regression: `identity/IdentityManager` (a module whose default export is an instance)
+// rendered as an empty module page, and named exports were imported from the package root.
+describe('renderDts: module pages of a package of entry-point modules (synthetic)', () => {
+  const meta = makeMeta({ url: 'https://developers.arcgis.com/tides-js/references/core/x/' });
+
+  it('lists a default-exported constant and imports it from the module', () => {
+    const source = [
+      'import type { KeeperBase } from "./KeeperBase.js";',
+      '',
+      '/**',
+      ' * The keeper instance shared by the application.',
+      ' */',
+      'declare const keeper: KeeperBase;',
+      'export default keeper;',
+      '',
+    ].join('\n');
+    const page = renderDts(
+      { source, modulePath: 'identity/Keeper.d.ts', packageName: '@example/core' },
+      meta,
+    );
+    expect(page.header).toBe(
+      '_Module_ · `@example/core/identity/Keeper`\n\n```js\nimport keeper from "@example/core/identity/Keeper.js";\n```',
+    );
+    expect(pageText(page)).toContain('const keeper: KeeperBase;');
+    expect(pageText(page)).toContain('The keeper instance shared by the application.');
+  });
+
+  it('imports named exports from the module, not the package root', () => {
+    const source = 'export declare function measure(value: number): number;\n';
+    const page = renderDts(
+      { source, modulePath: 'core/measureUtils.d.ts', packageName: '@example/core' },
+      meta,
+    );
+    expect(page.header).toContain('import { measure } from "@example/core/core/measureUtils.js";');
+  });
+});
+
 describe('renderDts: @esri/arcgis-rest-request typings (Apache-2.0)', () => {
   const dir = ['oss', 'arcgis-rest-request'];
   const packageName = '@esri/arcgis-rest-request';

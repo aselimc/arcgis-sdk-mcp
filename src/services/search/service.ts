@@ -175,9 +175,12 @@ export function createSearchService(deps: SearchDeps): SearchService {
       const responseScope: SearchResponse['scope'] = {
         products,
         ...(sources === undefined ? {} : { sources }),
+        // No product searched means nothing was resolved: there is no origin to report.
         ...(scope.origin === 'argument'
           ? { resolvedFrom: req.product ?? '' }
-          : { resolvedFrom: scope.origin }),
+          : scope.origin === 'none'
+            ? {}
+            : { resolvedFrom: scope.origin }),
         ...(req.kind === undefined ? {} : { kind: req.kind }),
         line:
           lineIds.length === 1

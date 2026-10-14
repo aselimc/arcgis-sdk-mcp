@@ -11,7 +11,13 @@ import { TOOLS } from '../../core/names.js';
 import type { AdapterRegistry, Ctx, RequestBudget, SourceAdapter } from '../../core/ports.js';
 import { nearest } from '../../core/text-distance.js';
 import type { Product, SourceDef, VersionLine } from '../../core/types.js';
-import { githubBlobToRaw, parseGithubUrl, splitRef, type GithubLocation } from '../../core/url.js';
+import {
+  githubBlobToRaw,
+  parseGithubUrl,
+  safeDecode,
+  splitRef,
+  type GithubLocation,
+} from '../../core/url.js';
 import { refusedGithubRef } from './github-ref.js';
 
 /** A curated brief as the registry holds it. */
@@ -112,13 +118,21 @@ function unreadableGithubPage(ctx: Ctx, url: URL): McpDocError {
   if (owner !== '' && name !== '') {
     ctx.policy.check(new URL(`https://api.github.com/repos/${owner}/${name}`));
   }
+  // A release page names a tag: the files at that tag are readable, the release page is not.
+  const tag = /^\/[^/]+\/[^/]+\/releases\/tag\/([^/]+)\/?$/.exec(url.pathname)?.[1];
+  const repository = `https://github.com/${owner}/${name}`;
+  const next =
+    tag === undefined
+      ? formatCall(TOOLS.read, { ref: repository })
+      : formatCall(TOOLS.read, { ref: `${repository}/blob/${tag}/README.md` });
   return new McpDocError('HOST_NOT_ALLOWED', `${url.href} is not a readable GitHub page`, {
-    why: 'Of a repository, only files (github.com/<owner>/<repo>/blob/<branch or tag>/<path>), wiki pages (/wiki/<page>) and the repository root are read; issues, pull requests and commit pages are not',
+    why:
+      tag === undefined
+        ? 'Of a repository, only files (github.com/<owner>/<repo>/blob/<branch or tag>/<path>), wiki pages (/wiki/<page>) and the repository root are read; issues, pull requests, releases and commit pages are not'
+        : `Release pages are not read; the files of the repository at tag ${safeDecode(tag)} are (github.com/<owner>/<repo>/blob/<tag>/<path>)`,
     url: url.href,
     host: url.host,
-    ...(owner === '' || name === ''
-      ? {}
-      : { next: formatCall(TOOLS.read, { ref: `https://github.com/${owner}/${name}` }) }),
+    ...(owner === '' || name === '' ? {} : { next }),
   });
 }
 

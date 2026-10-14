@@ -84,13 +84,16 @@ describe('symbols: rest-operations', () => {
     ['/items/{itemId}', 'items', undefined],
     ['/query: Query (Map Service/Layer)', 'query', 'MapServiceLayer.query'],
     ['/export: Export Map', 'export', undefined],
+    // Titles without the leading slash (regression: `search: Search` had no symbol).
+    ['search: Search', 'search', undefined],
+    ['applyEdits: Apply Edits (Gadget Service)', 'applyEdits', 'GadgetService.applyEdits'],
   ])('parses %s', (title, symbol, qualified) => {
     expect(parseOperationTitle(title)).toEqual(
       qualified === undefined ? { symbol } : { symbol, qualified },
     );
   });
 
-  it.each(['Feature Service', 'What is new', '/', '/{id}', 'a/b: c'])(
+  it.each(['Feature Service', 'What is new', '/', '/{id}', 'a/b: c', 'note: Read this first'])(
     'does not take "%s" for an operation',
     (title) => {
       expect(parseOperationTitle(title)).toBeUndefined();

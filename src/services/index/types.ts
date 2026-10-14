@@ -11,7 +11,7 @@ import type { SymbolMap } from './symbol-map.js';
  * Version of the persisted snapshot format and of the way records are indexed. Raising it
  * invalidates every snapshot on disk.
  */
-export const INDEX_SCHEMA_VERSION = 2;
+export const INDEX_SCHEMA_VERSION = 3;
 
 /** A snapshot is trusted without a rebuild for this long. */
 export const REVALIDATE_AFTER_MS = 24 * 60 * 60 * 1000;

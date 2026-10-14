@@ -208,7 +208,7 @@ describe('search and sample tools', () => {
         suite.harness.services.search.search = async (req) => ({
           query: req.query,
           // What the search service reports when no product matched: no line either.
-          scope: { products: [], line: '', resolvedFrom: 'none' },
+          scope: { products: [], line: '' },
           mode: 'local',
           total: 0,
           hits: [],

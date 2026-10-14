@@ -79,6 +79,8 @@ describe('search scope', () => {
     const h = makeHarness();
     const response = await h.services.search.search({ query: 'zzzz qqqq', limit: 3 }, h.call());
     expect(response).toMatchObject({ total: 0, hits: [], scope: { products: [] } });
+    // Nothing was resolved, so the scope names no origin (it read "none").
+    expect(response.scope).not.toHaveProperty('resolvedFrom');
     expect(response.notes[0]).toContain('No product matched the query');
     expect(response.notes.at(-1)).toContain('does not prove');
   });

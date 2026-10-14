@@ -26,6 +26,13 @@ import type { PageRow, SymbolEntry, SymbolInput } from './symbols.js';
 /** `/<path>` with an optional `: label`; the path may hold `{parameters}`. */
 const OPERATION_TITLE = /^\/([A-Za-z0-9_{}<>.\-/]*[A-Za-z0-9_}>])(?::\s*(.+))?$/;
 
+/**
+ * `<name>: <Label>` without the leading slash (`search: Search`, `applyEdits: Apply Edits
+ * (Feature Service)`). Only read as an operation when the label spells the name, so that a
+ * prose title with a colon is not taken for one.
+ */
+const BARE_OPERATION_TITLE = /^([a-z][A-Za-z0-9]*):\s*(.+)$/;
+
 /** A trailing `(Resource Name)` in the label. */
 const RESOURCE = /\(([^()]+)\)\s*$/;
 
@@ -58,6 +65,17 @@ function camelName(label: string): string {
   return lead + rest.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('');
 }
 
+/** A {@link BARE_OPERATION_TITLE} whose label spells its name, else `null`. */
+function bareOperation(title: string): RegExpExecArray | null {
+  const match = BARE_OPERATION_TITLE.exec(title);
+  if (match?.[1] === undefined || match[2] === undefined) return null;
+  const spelled = match[2]
+    .replace(RESOURCE, '')
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toLowerCase();
+  return spelled === match[1].toLowerCase() ? match : null;
+}
+
 /**
  * The operation a page title names, or `undefined` when the title is not an operation.
  * Path parameters are not names: `/items/{itemId}/update` is `update`.
@@ -65,7 +83,7 @@ function camelName(label: string): string {
 export function parseOperationTitle(
   title: string,
 ): { symbol: string; qualified?: string } | undefined {
-  const match = OPERATION_TITLE.exec(title.trim());
+  const match = OPERATION_TITLE.exec(title.trim()) ?? bareOperation(title.trim());
   if (match?.[1] === undefined) return undefined;
   const segments = match[1]
     .split('/')

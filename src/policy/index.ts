@@ -50,7 +50,11 @@ export const createPolicy: CreatePolicy = ({ config, hosts }): SourcePolicy => {
       }
       const host = table.get(url.hostname);
       if (host === undefined) {
-        throw hostNotAllowed(url, `${url.hostname} is not on the allow-list`, hosts);
+        throw hostNotAllowed(
+          url,
+          'Only the hosts on the allow-list are read: Esri documentation sites, the GitHub repositories of Esri and a few related owners, and package registries',
+          hosts,
+        );
       }
       const capability = host.policy.capability;
       if (capability === null) {
