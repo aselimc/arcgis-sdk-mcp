@@ -100,7 +100,10 @@ function pageParts(
       ...(named.part === undefined ? {} : { part: named.part }),
     };
   }
-  return { ...(match[1] === undefined ? {} : { slug: match[1] }), ...(match[2] === undefined ? {} : { variant: match[2] }) };
+  return {
+    ...(match[1] === undefined ? {} : { slug: match[1] }),
+    ...(match[2] === undefined ? {} : { variant: match[2] }),
+  };
 }
 
 /**

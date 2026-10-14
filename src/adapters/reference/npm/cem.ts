@@ -11,7 +11,15 @@ import type { BoundSource, Ctx, ReadTarget, SourceAdapter } from '../../../core/
 import type { CatalogRecord, DocPage } from '../../../core/types.js';
 import { loadPackageJson, packageMeta } from './package-file.js';
 import { resolvePackageVersion, withVersionNotice } from './resolve-version.js';
-import { summaryOf, tolerate } from '../../kit/index.js';
+import {
+  assertLive,
+  budgetOf,
+  renderMeta,
+  skipOptional,
+  summaryOf,
+  tolerate,
+} from '../../kit/index.js';
+import { withPageGuidance } from './cem-page.js';
 import {
   baseRecord,
   docTemplate,
@@ -225,6 +233,33 @@ function addressOf(src: Src, target: ReadTarget): Address | undefined {
   };
 }
 
+/**
+ * A whole-page read with the guidance of the published page added (`cem-page.ts`). A symbol
+ * lookup (`target.detail`) and a read the manifest answered with one part are left as they
+ * are: what they asked for is in the manifest, and the page would cost a request. A page
+ * that cannot be fetched leaves the manifest's rendering, which is complete as an API
+ * reference.
+ */
+async function withGuidance(
+  ctx: Ctx,
+  src: Src,
+  target: ReadTarget,
+  manifest: DocPage,
+): Promise<DocPage> {
+  if (target.detail !== undefined || manifest.sections[0]?.level !== 1) return manifest;
+  try {
+    assertLive(src, manifest.url);
+    const url = manifest.url.replace(/#.*$/, '');
+    const res = await ctx.http.get({ url, expect: 'html', ttl: 'page', ...budgetOf(src) });
+    // The text of the site is under the site's terms (the product's), not the package's.
+    const meta = { ...renderMeta(src, {}, url, res), license: src.product.licenseTier };
+    return withPageGuidance(manifest, ctx.render.render('html', { html: res.text }, meta));
+  } catch (error) {
+    skipOptional(ctx, src, error, `The page ${manifest.url}`);
+    return manifest;
+  }
+}
+
 async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
   const { config } = src.source;
   const template = docTemplate(src, config.docUrl);
@@ -251,7 +286,7 @@ async function read(ctx: Ctx, src: Src, target: ReadTarget): Promise<DocPage> {
       ),
       entryRenderOptions(target),
     );
-    return withVersionNotice(page, pkg);
+    return withVersionNotice(await withGuidance(ctx, src, target, page), pkg);
   }
   const wanted = address?.wanted ?? target.url.href;
   throw notFound(

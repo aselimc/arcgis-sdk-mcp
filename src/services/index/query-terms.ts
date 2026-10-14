@@ -84,7 +84,8 @@ const ONE_LETTER = /^\p{L}$/u;
 const MIN_STEM_LENGTH = 3;
 
 const VOWEL = /[aeiouy]/;
-const DOUBLED_END = /([b-df-hj-np-tv-z])\1$/;
+/** A consonant that English doubles before `-ing` (`mapping`, `getting`); `ss` of `crossing` is the stem. */
+const DOUBLED_END = /([bdgmnprt])\1$/;
 
 /**
  * The stems of a word in `-ing`: `click` for `clicking`, `map` (and `mapp`) for `mapping`,

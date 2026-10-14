@@ -67,6 +67,21 @@ function firstSentence(page: DocPage | undefined): string | undefined {
   return sentence === '' ? undefined : sentence.slice(0, 240);
 }
 
+/** File languages that say how a sample is laid out, not what it is written in. */
+const MARKUP = new Set(['html', 'xml', 'xaml', 'json', 'yaml', 'css', 'markdown', 'md', 'text']);
+
+/**
+ * The record of a hit, labelled with the language its source files are written in. A
+ * repository that holds samples in several languages is indexed with one language for all
+ * of them: the C# samples of the Enterprise SDK under `dot net/` were listed as java. A page
+ * whose only file is markup (`index.html` of a JavaScript sample) keeps the record's label.
+ */
+function withFileLanguage(record: CatalogRecord, page: DocPage | undefined): CatalogRecord {
+  const code = page?.files?.find((file) => !MARKUP.has(file.language.toLowerCase()));
+  if (code === undefined || code.language === record.language) return record;
+  return { ...record, language: code.language };
+}
+
 function originOf(record: CatalogRecord): SampleHit['origin'] {
   return isGithubSample(record) ? 'github' : 'esri-site';
 }
@@ -117,7 +132,7 @@ export function createSampleService(
       bytes: file.bytes,
     }));
     return {
-      record,
+      record: withFileLanguage(record, page),
       summary: record.description ?? firstSentence(page) ?? record.title,
       ...(apis === undefined || apis.length === 0 ? {} : { relevantApis: apis }),
       ...(files === undefined || files.length === 0 ? {} : { files }),

@@ -291,8 +291,7 @@ const enterpriseSdk: Product = {
   // extensions first, since they are what the SDK is installed for.
   releaseNotes: {
     sitemapFilter: '/whats-new-',
-    pattern:
-      '/whats-new-(?:(?<part>api)-)?(?<version>\\d+(?:-\\d+)+)-(?<variant>net|java|cdf)/$',
+    pattern: '/whats-new-(?:(?<part>api)-)?(?<version>\\d+(?:-\\d+)+)-(?<variant>net|java|cdf)/$',
   },
   startHere: [{ title: 'ArcGIS Enterprise SDK', ref: `${D}/enterprise-sdk/` }],
   pitfalls: [

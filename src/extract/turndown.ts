@@ -6,6 +6,7 @@
 import { gfm } from '@joplin/turndown-plugin-gfm';
 import TurndownService from 'turndown';
 import { ID_ATTR, LANG_ATTR } from './dom.js';
+import { addLinearTableRules } from './table-rules.js';
 
 /** Opens the heading marker; private-use characters cannot occur in documentation text. */
 const MARK_OPEN = '\ue001';
@@ -105,6 +106,8 @@ export function createMarkdownConverter(): (html: string) => Converted {
     hr: '---',
   });
   service.use(gfm);
+  // The plugin's own table rules are quadratic in the number of rows; see `table-rules.ts`.
+  addLinearTableRules(service);
 
   service.addRule('fencedPre', {
     filter: (node) => asRuleNode(node).nodeName === 'PRE',

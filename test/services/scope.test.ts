@@ -131,6 +131,20 @@ describe('resolveScope: the project outranks a router guess', () => {
     expect(ids(routed.resolutions)).toContain('widget-kit');
     expect((await resolveScope(ctxWith([]), { query: 'zzzz', max: 3 })).origin).toBe('none');
   });
+
+  // Regression: without a project, a lookup of `LLMAgent` (routed to the AI product) and of
+  // `Round` (routed to the default products) had no product to fall back on, although the
+  // JavaScript SDK and Arcade, related to the products taken, have those names.
+  it('falls back on the products related to a guess, without a project', async () => {
+    const routed = await resolveScope(ctxWith([]), { query: 'harbour gauges', max: 1 });
+    expect(routed.origin).toBe('router');
+    expect(ids(routed.resolutions)).toEqual(['tides-sdk']);
+    expect(ids(routed.fallbacks)).toContain('formula');
+    const shaped = await resolveScope(ctxWith([]), { query: 'Tides.harbourGauge', max: 3 });
+    expect(shaped.origin).toBe('query');
+    expect(ids(shaped.resolutions)).toEqual(['tides-sdk']);
+    expect(ids(shaped.fallbacks)).toContain('formula');
+  });
 });
 
 // Regression: "Field Maps URL scheme deep link" was routed to three products that list

@@ -746,16 +746,25 @@ describe('Esri Leaflet and Experience Builder', () => {
   // server object extensions, which the SDK is named after, were dropped as duplicates.
   it('names the audience of an Enterprise SDK release page in its release-notes pattern', () => {
     const pattern = new RegExp(product('enterprise-sdk').releaseNotes?.pattern ?? '^$');
-    const match = (path: string): string[] | undefined => pattern.exec(path)?.slice(1, 3);
-    expect(match('/enterprise-sdk/guide/net/whats-new-12-1-net/')).toEqual(['12-1', 'net']);
-    expect(match('/enterprise-sdk/guide/java/whats-new-api-10-9-1-java/')).toEqual([
-      '10-9-1',
-      'java',
-    ]);
-    expect(match('/enterprise-sdk/guide/custom-data-feeds/whats-new-12-1-cdf/')).toEqual([
-      '12-1',
-      'cdf',
-    ]);
+    const match = (path: string): Record<string, string | undefined> | undefined => {
+      const groups = pattern.exec(path)?.groups;
+      return groups === undefined ? undefined : { ...groups };
+    };
+    expect(match('/enterprise-sdk/guide/net/whats-new-12-1-net/')).toEqual({
+      part: undefined,
+      version: '12-1',
+      variant: 'net',
+    });
+    expect(match('/enterprise-sdk/guide/java/whats-new-api-10-9-1-java/')).toEqual({
+      part: 'api',
+      version: '10-9-1',
+      variant: 'java',
+    });
+    expect(match('/enterprise-sdk/guide/custom-data-feeds/whats-new-12-1-cdf/')).toEqual({
+      part: undefined,
+      version: '12-1',
+      variant: 'cdf',
+    });
     // The extensions come first: the pattern names them before the data feeds.
     expect(pattern.source.indexOf('net')).toBeLessThan(pattern.source.indexOf('cdf'));
   });

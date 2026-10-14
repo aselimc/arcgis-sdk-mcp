@@ -7,7 +7,7 @@ import {
   documentBoost,
   titleBonus,
 } from '../../../src/services/index/minisearch-index.js';
-import { otherNumber, queryTerms } from '../../../src/services/index/query-terms.js';
+import { otherNumber, queryTerms, stemsOf } from '../../../src/services/index/query-terms.js';
 import { kindMatches, runCatalogQuery } from '../../../src/services/index/query.js';
 import { buildSymbolMap, mergeSymbolMaps } from '../../../src/services/index/symbol-map.js';
 import { makeDocPage, makeRecord } from '../../support/builders.js';
@@ -18,10 +18,45 @@ import { JS_RECORDS, KOTLIN_RECORDS, REST_RECORDS } from '../support/catalogue.j
 describe('queryTerms', () => {
   it('splits words, drops stop words and keeps camelCase parts', () => {
     expect(queryTerms('how to use queryFeatures with a FeatureLayer')).toEqual([
-      { whole: 'use', parts: [], synonyms: [['uses']] },
       { whole: 'queryfeatures', parts: ['query', 'features'], synonyms: [['queryfeature']] },
       { whole: 'featurelayer', parts: ['feature', 'layer'], synonyms: [['featurelayers']] },
     ]);
+  });
+
+  // Regression: "display a popup when clicking a feature" ranked a property described as
+  // "used when querying and displaying content" above the tutorial "Display a pop-up", and
+  // "which SDK should I use" ranked `use*` properties first.
+  it('drops question words that are also member names, unless nothing else remains', () => {
+    expect(queryTerms('display a popup when clicking a feature').map((term) => term.whole)).toEqual(
+      ['display', 'popup', 'clicking', 'feature'],
+    );
+    expect(queryTerms('which SDK should I use').map((term) => term.whole)).toEqual(['sdk']);
+    expect(queryTerms('when').map((term) => term.whole)).toEqual(['when']);
+  });
+
+  it('offers the stem of a word in -ing as an alternative', () => {
+    expect(stemsOf('clicking')).toEqual(['click']);
+    expect(stemsOf('mapping')).toEqual(['mapp', 'map']);
+    expect(stemsOf('adding')).toEqual(['add']);
+    expect(stemsOf('crossing')).toEqual(['cross']);
+    // No stem: too short, no vowel, or not a word in -ing.
+    expect(stemsOf('thing')).toEqual([]);
+    expect(stemsOf('string')).toEqual([]);
+    expect(stemsOf('layer')).toEqual([]);
+    expect(queryTerms('editing')[0]?.synonyms).toContainEqual(['edit']);
+
+    const sample = makeRecord({ ref: 'https://developers.arcgis.com/widgets/s/', title: 'Click a feature' });
+    const index = buildCatalogIndex([sample]);
+    expect(index.search(queryTerms('clicking'), 'and').map((match) => match.record.title)).toEqual(
+      ['Click a feature'],
+    );
+  });
+
+  // Regression: `cross` (of "zebra crossing"), spelt loosely, matched `class`.
+  it('matches derived forms exactly or by prefix, never within an edit distance', () => {
+    const record = makeRecord({ ref: 'https://developers.arcgis.com/widgets/c/', title: 'Class list' });
+    const index = buildCatalogIndex([record]);
+    expect(index.search(queryTerms('crossing'), 'fuzzy')).toEqual([]);
   });
 
   // Regression: "migrate widgets to components 4.x to 5.0" listed three properties named `x`.

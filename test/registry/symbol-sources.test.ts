@@ -97,10 +97,9 @@ describe('symbolLookupOf', () => {
       'velocity-grpc',
     ]);
     // The flagship references stay symbol sources.
-    for (const id of ['js-maps-sdk', 'arcpy', 'python-api', 'cim-spec', 'rest-api']) {
-      expect(symbolLookupOf(PRODUCTS.find((product) => product.id === id) as Product)).toBe(
-        'symbols',
-      );
-    }
+    const flagships = PRODUCTS.filter((product) =>
+      ['js-maps-sdk', 'arcpy', 'python-api', 'cim-spec', 'rest-api'].includes(product.id),
+    );
+    expect(flagships.map(symbolLookupOf)).toEqual(Array(5).fill('symbols'));
   });
 });

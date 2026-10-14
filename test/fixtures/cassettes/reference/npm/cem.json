@@ -3,27 +3,82 @@
   "interactions": [
     {
       "url": "https://registry.npmjs.org/-/package/@arcgis/widget-components/dist-tags",
-      "response": { "json": { "latest": "7.2.4", "next": "8.0.0-next.3" } }
+      "response": {
+        "json": {
+          "latest": "7.2.4",
+          "next": "8.0.0-next.3"
+        }
+      }
     },
     {
       "url": "https://cdn.jsdelivr.net/npm/@arcgis/widget-components@7.2.4/dist/docs/api.json",
-      "response": { "bodyFile": "widget-components.api.json" }
+      "response": {
+        "bodyFile": "widget-components.api.json"
+      }
     },
     {
       "url": "https://registry.npmjs.org/-/package/@arcgis/chart-widgets/dist-tags",
-      "response": { "json": { "latest": "7.2.1" } }
+      "response": {
+        "json": {
+          "latest": "7.2.1"
+        }
+      }
     },
     {
       "url": "https://cdn.jsdelivr.net/npm/@arcgis/chart-widgets@7.2.1/dist/docs/api.json",
-      "response": { "bodyFile": "chart-widgets.api.json" }
+      "response": {
+        "bodyFile": "chart-widgets.api.json"
+      }
     },
     {
       "url": "https://registry.npmjs.org/-/package/@esri/gadget-components/dist-tags",
-      "response": { "json": { "latest": "3.0.2", "hotfix": "2.8.1-hotfix.0" } }
+      "response": {
+        "json": {
+          "latest": "3.0.2",
+          "hotfix": "2.8.1-hotfix.0"
+        }
+      }
     },
     {
       "url": "https://cdn.jsdelivr.net/npm/@esri/gadget-components@3.0.2/dist/docs/api.json",
-      "response": { "bodyFile": "gadget-components.api.json" }
+      "response": {
+        "bodyFile": "gadget-components.api.json"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/latest/references/widget-components/components/arcgis-gadget-panel/",
+      "response": {
+        "contentType": "text/html; charset=utf-8",
+        "body": "<!doctype html><html><head><title>Gadget panel</title></head><body><main><h1>Gadget panel</h1><p>How to use the Gadget panel.</p></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/latest/references/chart-widgets/components/arcgis-spark-chart/",
+      "response": {
+        "contentType": "text/html; charset=utf-8",
+        "body": "<!doctype html><html><head><title>Spark chart</title></head><body><main><h1>Spark chart</h1><p>How to use the Spark chart.</p></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/widgets/latest/components/arcgis-spark-chart/",
+      "response": {
+        "contentType": "text/html; charset=utf-8",
+        "body": "<!doctype html><html><head><title>Spark chart</title></head><body><main><h1>Spark chart</h1><p>How to use the Spark chart.</p></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/gadget-design-system/components/split-button/",
+      "response": {
+        "contentType": "text/html; charset=utf-8",
+        "body": "<!doctype html><html><head><title>Split button</title></head><body><main><h1>Split button</h1><p>How to use the Split button.</p></main></body></html>"
+      }
+    },
+    {
+      "url": "https://developers.arcgis.com/gadget-design-system/components/button/",
+      "response": {
+        "contentType": "text/html; charset=utf-8",
+        "body": "<!doctype html><html><head><title>Button</title></head><body><main><h1>Button</h1><p>How to use the Button.</p></main></body></html>"
+      }
     }
   ]
 }

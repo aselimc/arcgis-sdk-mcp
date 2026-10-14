@@ -3,9 +3,11 @@ import { bindSource } from '../../../../src/core/adapter-helpers.js';
 import { newBudget } from '../../../../src/core/async.js';
 import { npmCemAdapter } from '../../../../src/adapters/reference/npm/cem.js';
 import type { RendererInputs } from '../../../../src/core/ports.js';
-import type { SourceDef } from '../../../../src/core/types.js';
+import { pageProvenance } from '../../../../src/core/provenance.js';
+import type { DocPage, SourceDef } from '../../../../src/core/types.js';
 import { describeAdapterContract } from '../../../support/adapter-contract.js';
-import { makeLine } from '../../../support/builders.js';
+import { makeDocPage, makeLine } from '../../../support/builders.js';
+import type { RenderCall } from '../../../support/fake-render.js';
 import { readFixture, readJsonFixture } from '../../../support/fixtures.js';
 import {
   cdnFile,
@@ -231,6 +233,8 @@ describe('npm-cem read', () => {
     expect(ctx.http.requests.map((request) => request.url)).toEqual([
       distTags(CHARTS),
       cdnFile(CHARTS, '7.2.1', FILE),
+      // The published page, for the guidance above its API reference (see below).
+      CHART_REF,
     ]);
     const [call] = ctx.render.calls;
     expect(call?.kind).toBe('cem');
@@ -283,8 +287,9 @@ describe('npm-cem read', () => {
     await npmCemAdapter.read(ctx, bindTo(shortTagSource), {
       url: new URL('https://developers.arcgis.com/gadget-design-system/components/gadget-button/'),
     });
-    expect(ctx.render.calls[1]?.input).toMatchObject({ tag: 'gadget-button' });
-    expect(ctx.render.calls[1]?.meta.url).toBe(
+    // Each read renders the manifest, then the published page.
+    expect(ctx.render.calls[2]?.input).toMatchObject({ tag: 'gadget-button' });
+    expect(ctx.render.calls[2]?.meta.url).toBe(
       'https://developers.arcgis.com/gadget-design-system/components/button/',
     );
   });
@@ -299,7 +304,7 @@ describe('npm-cem read', () => {
       url: new URL('https://developers.arcgis.com/widgets/latest/components/arcgis-spark-chart/'),
     });
     expect(ctx.render.calls[0]?.input).toMatchObject({ packageName: CHARTS });
-    expect(ctx.http.count()).toBe(4);
+    expect(ctx.http.count()).toBe(5);
   });
 
   it('uses the record that led here and parses a manifest once', async () => {
@@ -329,7 +334,7 @@ describe('npm-cem read', () => {
     ]);
   });
 
-  it('reads an installed package without any request', async () => {
+  it('reads the manifest of an installed package without a request', async () => {
     const { projectDir } = makeProject({
       [CHARTS]: {
         version: '7.1.9',
@@ -337,7 +342,10 @@ describe('npm-cem read', () => {
       },
     });
     const ctx = npmCtx({ projectDir });
-    const page = await npmCemAdapter.read(ctx, bound(), { url: new URL(CHART_REF) });
+    const page = await npmCemAdapter.read(ctx, bound(), {
+      url: new URL(CHART_REF),
+      detail: 'full',
+    });
     expect(ctx.http.count()).toBe(0);
     expect(page).toMatchObject({ version: '7.1.9', retrievedAt: ctx.clock.iso(), cache: 'miss' });
     expect(page.notices[0]).toContain('as installed');
@@ -351,6 +359,7 @@ describe('npm-cem read', () => {
     const page = await npmCemAdapter.read(ctx, bound(), { url: new URL(CHART_REF) });
     expect(ctx.http.requests.map((request) => request.url)).toEqual([
       cdnFile(CHARTS, '7.2.1', FILE),
+      CHART_REF,
     ]);
     expect(page.version).toBe('7.2.1');
   });
@@ -379,6 +388,103 @@ describe('npm-cem read', () => {
     await expect(
       npmCemAdapter.read(ctx, bound(), { url: new URL(CHART_REF) }),
     ).rejects.toMatchObject({ code: 'UPSTREAM_UNAVAILABLE', details: { retryable: false } });
+  });
+});
+
+// Regression: a read of https://developers.arcgis.com/calcite-design-system/components/shell/
+// returned the manifest only; the Overview, Usage and Best practices of the page were out of
+// reach through every tool call.
+describe('npm-cem read of a component page with guidance', () => {
+  const API = '```html\n<arcgis-spark-chart></arcgis-spark-chart>\n```';
+  /** The manifest rendering: a lead and the API sections, as the `cem` renderer makes them. */
+  const manifestPage = (call: RenderCall): DocPage =>
+    makeDocPage({
+      ...pageProvenance(call.meta),
+      markdown: `# arcgis-spark-chart\n\n${API}\n\n## Properties\n\nfield\n\n## Events\n\narcgisChartDrawn`,
+    });
+  /** The published page: guidance, then a generated API reference that repeats the manifest. */
+  const sitePage = (call: RenderCall): DocPage =>
+    makeDocPage({
+      ...pageProvenance(call.meta),
+      markdown: [
+        '# Spark chart',
+        'A small chart for one field.',
+        '## Overview',
+        'Use it inline.',
+        '### Usage',
+        'Put it in a table cell.',
+        '## Properties',
+        'A heading of the guidance that clashes with an id of the manifest.',
+        '## API reference',
+        '### Properties',
+        'field (from the HTML)',
+      ].join('\n\n'),
+    });
+  const withRenderers = () => {
+    const ctx = npmCtx({ cassette: 'cem.json' });
+    ctx.render.when('cem', manifestPage).when('html', sitePage);
+    return ctx;
+  };
+
+  it('adds the guidance above the API reference and keeps the reference of the manifest', async () => {
+    const ctx = withRenderers();
+    const page = await npmCemAdapter.read(ctx, bound(), { url: new URL(CHART_REF) });
+    expect(page.sections.map((section) => [section.id, section.level, section.parent])).toEqual([
+      ['arcgis-spark-chart', 1, undefined],
+      ['overview', 2, 'arcgis-spark-chart'],
+      ['usage', 3, 'overview'],
+      ['properties-2', 2, 'arcgis-spark-chart'],
+      ['properties', 2, 'arcgis-spark-chart'],
+      ['events', 2, 'arcgis-spark-chart'],
+    ]);
+    const [lead] = page.sections;
+    expect(lead?.markdown).toContain(API);
+    expect(lead?.markdown).toContain('A small chart for one field.');
+    expect(lead?.markdown).not.toContain('# Spark chart');
+    expect(page.sections.map((section) => section.markdown).join('\n')).not.toContain(
+      'from the HTML',
+    );
+    // The page is the site's text, under the site's terms; both sources are cited.
+    expect(ctx.render.calls[1]?.meta).toMatchObject({
+      url: CHART_REF,
+      license: 'esri-website-terms',
+    });
+    expect(page.attribution).toContain('From @arcgis/chart-widgets 7.2.1.');
+    expect(page.attribution).toContain(`Source: Esri, ${CHART_REF}`);
+  });
+
+  it('asks nothing of the page for a symbol lookup or a part of the manifest', async () => {
+    const ctx = withRenderers();
+    await npmCemAdapter.read(ctx, bound(), { url: new URL(CHART_REF), detail: 'summary' });
+    ctx.render.when('cem', (call) =>
+      makeDocPage({ ...pageProvenance(call.meta), markdown: '## Properties\n\nfield' }),
+    );
+    await npmCemAdapter.read(ctx, bound(), {
+      url: new URL(CHART_REF),
+      select: { section: 'properties' },
+    });
+    expect(ctx.http.requests.map((request) => request.url)).not.toContain(CHART_REF);
+  });
+
+  it('returns the manifest alone when the page fails or has no API reference', async () => {
+    const ctx = withRenderers();
+    ctx.http.fail(CHART_REF, 503);
+    const failed = await npmCemAdapter.read(ctx, bound(), { url: new URL(CHART_REF) });
+    expect(failed.sections.map((section) => section.id)).toEqual([
+      'arcgis-spark-chart',
+      'properties',
+      'events',
+    ]);
+
+    const plain = npmCtx({ cassette: 'cem.json' });
+    plain.render.when('cem', manifestPage);
+    const page = await npmCemAdapter.read(plain, bound(), { url: new URL(CHART_REF) });
+    expect(page.sections.map((section) => section.id)).toEqual([
+      'arcgis-spark-chart',
+      'properties',
+      'events',
+    ]);
+    expect(page.attribution).not.toContain('Source: Esri');
   });
 });
 

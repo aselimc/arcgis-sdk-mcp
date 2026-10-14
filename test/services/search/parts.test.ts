@@ -16,6 +16,7 @@ import {
   WORKSPACE_WEIGHT,
   dedupe,
   multiplier,
+  oneSlotPerPage,
   rerank,
   type RankContext,
 } from '../../../src/services/search/rank.js';
@@ -187,6 +188,26 @@ describe('multipliers', () => {
       'https://developers.arcgis.com/x/?utm_source=a',
       'https://developers.arcgis.com/x/#member',
       'brief:ai/overview',
+    ]);
+  });
+
+  // Regression: "add a feature layer to a map" listed the tutorial from the catalogue and,
+  // further down, one of its sections from the body index.
+  it('gives a page one place: body sections of a listed page are left out', () => {
+    const page = 'https://developers.arcgis.com/x/tutorials/add-a-layer/';
+    const kept = oneSlotPerPage([
+      hit({ ref: page, match: 'title' }),
+      hit({ ref: 'https://developers.arcgis.com/x/Layer/#visible', match: 'symbol' }),
+      hit({ ref: `${page}#add-a-line-layer`, match: 'body' }),
+      hit({ ref: 'https://developers.arcgis.com/x/Layer/#title', match: 'symbol' }),
+      hit({ ref: 'https://developers.arcgis.com/x/other/#intro', match: 'body' }),
+      hit({ ref: 'https://developers.arcgis.com/x/other/#steps', match: 'body' }),
+    ]);
+    expect(kept.map((entry) => entry.ref)).toEqual([
+      page,
+      'https://developers.arcgis.com/x/Layer/#visible',
+      'https://developers.arcgis.com/x/Layer/#title',
+      'https://developers.arcgis.com/x/other/#intro',
     ]);
   });
 });

@@ -171,7 +171,11 @@ export function termQuery(terms: readonly QueryTerm[], mode: MatchMode): Query {
   const groups = terms.map((term): Query => {
     const alternatives: Query[] = [term.whole];
     if (term.parts.length > 1) alternatives.push({ combineWith: 'AND', queries: term.parts });
-    for (const phrase of term.synonyms) alternatives.push({ combineWith: 'AND', queries: phrase });
+    // Typo tolerance is for what the caller typed. A derived form spelt loosely as well
+    // matched nonsense (`cross` of `crossing` within two edits of `class`).
+    for (const phrase of term.synonyms) {
+      alternatives.push({ combineWith: 'AND', queries: phrase, fuzzy: false });
+    }
     return alternatives.length === 1 ? term.whole : { combineWith: 'OR', queries: alternatives };
   });
   return { combineWith: mode === 'and' ? 'AND' : 'OR', queries: groups };
