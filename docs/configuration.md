@@ -20,16 +20,19 @@ The server is configured through environment variables, set in the MCP host's se
 
 ## Variables
 
-| Variable                   | Default                  | Meaning                                                                                                               |
-| -------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| `ARCGIS_DOCS_SOURCES`      | `standard`               | Source policy; see below                                                                                              |
-| `ARCGIS_DOCS_OFFLINE`      | off                      | `1` answers from the cache only. A document that is not cached fails with `OFFLINE_MISS`                              |
-| `ARCGIS_DOCS_CACHE_DIR`    | per-user cache directory | Where responses and indexes are stored. `arcgis-sdk-mcp cache info` prints the path in use                            |
-| `ARCGIS_DOCS_CACHE_MAX_MB` | `500`                    | Size cap. The least recently read entries are removed first                                                           |
-| `ARCGIS_DOCS_PROJECT_DIR`  | working directory        | The project in which SDK versions are detected                                                                        |
-| `ARCGIS_DOCS_MAX_TOKENS`   | `6000`                   | Size of an `arcgis_docs_read` result when the call does not choose `max_tokens`. A whole number from 500 to 20000     |
-| `ARCGIS_DOCS_LOG_LEVEL`    | `warn`                   | `debug`, `info`, `warn`, `error` or `silent`. Logs are JSON lines on stderr; stdout carries only the MCP protocol     |
-| `GITHUB_TOKEN`             | none                     | A GitHub token. No scopes are needed for public repositories. Raises the API quota from 60 to 5,000 requests per hour |
+| Variable                         | Default                  | Meaning                                                                                                                                                              |
+| -------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ARCGIS_DOCS_SOURCES`            | `standard`               | Source policy; see below                                                                                                                                             |
+| `ARCGIS_DOCS_OFFLINE`            | off                      | `1` answers from the cache only. A document that is not cached fails with `OFFLINE_MISS`                                                                             |
+| `ARCGIS_DOCS_CACHE_DIR`          | per-user cache directory | Where responses and indexes are stored. `arcgis-sdk-mcp cache info` prints the path in use                                                                           |
+| `ARCGIS_DOCS_CACHE_MAX_MB`       | `500`                    | Size cap. The least recently read entries are removed first                                                                                                          |
+| `ARCGIS_DOCS_PROJECT_DIR`        | working directory        | The project in which SDK versions are detected                                                                                                                       |
+| `ARCGIS_DOCS_MAX_TOKENS`         | `6000`                   | Size of an `arcgis_docs_read` result when the call does not choose `max_tokens`. A whole number from 500 to 20000                                                    |
+| `ARCGIS_DOCS_LOG_LEVEL`          | `warn`                   | `debug`, `info`, `warn`, `error` or `silent`. Logs are JSON lines on stderr; stdout carries only the MCP protocol                                                    |
+| `GITHUB_TOKEN`                   | none                     | A GitHub token. No scopes are needed for public repositories. Raises the API quota from 60 to 5,000 requests per hour                                                |
+| `ARCGIS_DOCS_HTTP_TOKEN`         | none                     | HTTP mode only: bearer token every `/mcp` request must carry, 32 or more characters. Required beyond loopback and on a hosting platform; see [HTTP mode](#http-mode) |
+| `ARCGIS_DOCS_HTTP_ALLOWED_HOSTS` | none                     | HTTP mode only: extra host names (comma separated, no scheme or port) accepted in `Host` and `Origin`                                                                |
+| `PORT`                           | none (port 3333)         | HTTP mode only: the port when `--port` is not given; `--port` wins. Hosting platforms set it                                                                         |
 
 Notes:
 

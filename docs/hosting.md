@@ -5,8 +5,9 @@ shows how to run it as a **private** remote endpoint instead, so an agent that c
 local process (a cloud agent, an Agent SDK job, a second machine) can still use it. The
 recipe is Vercel's free Hobby plan; [other hosts](#other-hosts) are covered briefly at the end.
 
-The result is an endpoint such as `https://arcgis-sdk-mcp.vercel.app/api/mcp` that answers
-only requests carrying your bearer token.
+The result is an endpoint such as `https://YOUR-PROJECT.vercel.app/api/mcp` that answers
+only requests carrying your bearer token. Replace `YOUR-PROJECT` in the commands below with
+your project's host name.
 
 ## Keep it private
 
@@ -21,8 +22,9 @@ you and your own agents:
   Esri's permission. Ask Esri first if you want to run one.
 - Vercel's Hobby plan is for non-commercial, personal use only
   ([Vercel fair use](https://vercel.com/docs/limits/fair-use-guidelines#commercial-usage)).
-- The server enforces the first rule for you: without `ARCGIS_DOCS_HTTP_TOKEN` a hosted
+- The server enforces the token, not the sharing: without `ARCGIS_DOCS_HTTP_TOKEN` a hosted
   instance refuses every request (fail closed), and with it every MCP request needs the token.
+  Keeping the URL and token to yourself is up to you.
 
 ## How it works
 
@@ -59,9 +61,11 @@ You need Node 22.12 or later, a clone of this repository, and the
    Store it in your password manager. Anyone with the token can use your instance.
 
 2. **Create and link the project** from the repository root. Accept the detected settings;
-   `vercel.json` supplies the install, build and output settings. Name the project
-   `arcgis-sdk-mcp` to get `arcgis-sdk-mcp.vercel.app` (if the name is taken, Vercel adds a
-   suffix; use the URL it prints).
+   `vercel.json` supplies the install, build and output settings. The project name becomes
+   the production host `YOUR-PROJECT.vercel.app` (if the name is taken, Vercel adds a suffix;
+   use the URL it prints). A name nobody would guess keeps the endpoint out of casual
+   probing; the token is still what protects it. `vercel link` writes `.vercel/`, which
+   `.gitignore` already excludes.
 
    ```sh
    vercel link
@@ -93,10 +97,10 @@ You need Node 22.12 or later, a clone of this repository, and the
    without one:
 
    ```sh
-   curl https://arcgis-sdk-mcp.vercel.app/healthz
+   curl https://YOUR-PROJECT.vercel.app/healthz
    # {"status":"ok","server":"arcgis-sdk-docs","version":"0.1.0"}
 
-   curl -i -X POST https://arcgis-sdk-mcp.vercel.app/api/mcp
+   curl -i -X POST https://YOUR-PROJECT.vercel.app/api/mcp
    # HTTP/2 401 ... www-authenticate: Bearer realm="arcgis-sdk-docs"
    ```
 
@@ -130,7 +134,7 @@ export ARCGIS_DOCS_HTTP_TOKEN=...   # PowerShell: $env:ARCGIS_DOCS_HTTP_TOKEN = 
 
 ```sh
 claude mcp add --transport http --scope user arcgis-docs \
-  https://arcgis-sdk-mcp.vercel.app/api/mcp \
+  https://YOUR-PROJECT.vercel.app/api/mcp \
   --header "Authorization: Bearer $ARCGIS_DOCS_HTTP_TOKEN"
 ```
 
@@ -143,7 +147,7 @@ use a project `.mcp.json` with variable expansion instead; Claude Code expands `
   "mcpServers": {
     "arcgis-docs": {
       "type": "http",
-      "url": "https://arcgis-sdk-mcp.vercel.app/api/mcp",
+      "url": "https://YOUR-PROJECT.vercel.app/api/mcp",
       "headers": { "Authorization": "Bearer ${ARCGIS_DOCS_HTTP_TOKEN}" }
     }
   }
@@ -165,7 +169,7 @@ for await (const message of query({
     mcpServers: {
       'arcgis-docs': {
         type: 'http',
-        url: 'https://arcgis-sdk-mcp.vercel.app/api/mcp',
+        url: 'https://YOUR-PROJECT.vercel.app/api/mcp',
         headers: { Authorization: `Bearer ${process.env.ARCGIS_DOCS_HTTP_TOKEN}` },
       },
     },
@@ -186,7 +190,7 @@ options = ClaudeAgentOptions(
     mcp_servers={
         "arcgis-docs": {
             "type": "http",
-            "url": "https://arcgis-sdk-mcp.vercel.app/api/mcp",
+            "url": "https://YOUR-PROJECT.vercel.app/api/mcp",
             "headers": {"Authorization": f"Bearer {os.environ['ARCGIS_DOCS_HTTP_TOKEN']}"},
         }
     },
@@ -204,7 +208,7 @@ both `application/json` and `text/event-stream`. With the TypeScript SDK:
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 
 const transport = new StreamableHTTPClientTransport(
-  new URL('https://arcgis-sdk-mcp.vercel.app/api/mcp'),
+  new URL('https://YOUR-PROJECT.vercel.app/api/mcp'),
   { requestInit: { headers: { Authorization: `Bearer ${process.env.ARCGIS_DOCS_HTTP_TOKEN}` } } },
 );
 const client = new Client({ name: 'my-agent', version: '1.0.0' });
@@ -329,5 +333,4 @@ ARCGIS_DOCS_HTTP_TOKEN=... node dist/cli/main.js --http --host 0.0.0.0 --allow-r
 - Mount a persistent volume and point `ARCGIS_DOCS_CACHE_DIR` at it to keep the cache across
   restarts.
 
-A Dockerfile is not provided yet: one was not added because it could not be build-tested when
-this page was written.
+There is no Dockerfile yet; a Docker image is on the [roadmap](../README.md#roadmap).

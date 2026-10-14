@@ -20,3 +20,9 @@ Thumbs.db
 
 # Local MCP host configuration (the example file is committed)
 .mcp.json
+
+# Vercel project link and local build output (docs/hosting.md)
+.vercel/
+
+# Claude Code local state
+.claude/

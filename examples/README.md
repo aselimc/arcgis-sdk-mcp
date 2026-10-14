@@ -8,7 +8,8 @@
 
 All of them start the server from `dist/cli/main.js`, so run `npm ci` and `npm run build` in
 the repository root first. The TypeScript examples run with `npx tsx <file>` from the
-repository root and are type-checked with `npx tsc -p examples/tsconfig.json`.
+repository root and are type-checked by `npm run typecheck` (or on their own with
+`npx tsc -p examples/tsconfig.json`).
 
 This project is unofficial and not affiliated with Esri. Output shown in these examples is
 trimmed so that the repository does not reproduce Esri's documentation text.
