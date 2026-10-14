@@ -18,8 +18,7 @@ import type { BoundSource, Ctx } from '../../core/ports.js';
  * to is spent.
  */
 export function gaveUpOurselves(ctx: Ctx, src: BoundSource, error: McpDocError): boolean {
-  const declined = (error.details as { declined?: unknown } | undefined)?.declined;
-  if (typeof declined === 'string') return true;
+  if (error.details?.declined !== undefined) return true;
   return src.budget !== undefined && budgetExhausted(src.budget, ctx.clock);
 }
 

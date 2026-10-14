@@ -61,7 +61,18 @@ export interface ErrorDetails {
   capability?: Capability;
   /** True when the same call may succeed if repeated unchanged. */
   retryable?: boolean;
+  /**
+   * Set on `UPSTREAM_UNAVAILABLE` when this server gave up on the request itself, so nothing
+   * was learned about the host: `budget` (the call's request count or deadline is spent),
+   * `pacing` (the host's politeness limits leave no start time before the deadline) or
+   * `cancelled` (the caller aborted). A caller that drops a failed input and carries on must
+   * not do so for a declined request, or it presents part of a source as the whole.
+   */
+  declined?: Declined;
 }
+
+/** Why this server gave up on a request itself; see {@link ErrorDetails.declined}. */
+export type Declined = 'budget' | 'pacing' | 'cancelled';
 
 /**
  * The only error type that may cross a package boundary. `message` is the "what" sentence;

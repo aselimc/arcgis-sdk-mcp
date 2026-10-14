@@ -2,7 +2,13 @@
  * The gateway's error vocabulary. Every failure that leaves `src/net` is a `McpDocError`
  * carrying `details.url` and `details.host` (the table on `HttpClient.get`).
  */
-import { McpDocError, isMcpDocError, toMcpDocError, type ErrorDetails } from '../core/errors.js';
+import {
+  McpDocError,
+  isMcpDocError,
+  toMcpDocError,
+  type Declined,
+  type ErrorDetails,
+} from '../core/errors.js';
 
 /** Host of a URL for error details; the input itself when it does not parse. */
 export function hostOf(url: string): string {
@@ -61,31 +67,14 @@ export function unavailable(url: string, why: string, retryable = true): McpDocE
 }
 
 /**
- * Why the gateway gave up on a request by its own decision, with nothing learned about the
- * host:
- *
- * - `budget`: the caller's request count is used up or its deadline has passed (also when
- *   the deadline cut a request short that was already on its way);
- * - `pacing`: the politeness limits of the host leave no start time before the caller's
- *   deadline, although the budget itself is not spent;
- * - `cancelled`: the caller aborted its signal.
+ * The reasons the gateway gives up on a request by its own decision (`ErrorDetails.declined`
+ * in `src/core/errors.ts`): `budget` when the caller's request count is used up or its
+ * deadline has passed (also when the deadline cut a request short that was already on its
+ * way), `pacing` when the host's politeness limits leave no start time before the deadline,
+ * `cancelled` when the caller aborted its signal. `declined` tells "we did not ask" from "the
+ * host failed", which the code and `retryable` cannot: both are a retryable
+ * `UPSTREAM_UNAVAILABLE`.
  */
-export type Declined = 'budget' | 'pacing' | 'cancelled';
-
-/**
- * Error details as the gateway fills them. `declined` tells "we did not ask" from "the host
- * failed", which the code and `retryable` cannot: both are a retryable
- * `UPSTREAM_UNAVAILABLE`. A caller that drops a failed input and carries on must not do so
- * for a declined request, or it presents part of a source as the whole.
- *
- * The field travels in `McpDocError.details` like every other detail, so it survives
- * `located()` and is readable outside this package (the adapters check it before they
- * continue without an input).
- */
-export interface GatewayErrorDetails extends ErrorDetails {
-  declined?: Declined;
-}
-
 const DECLINED: Readonly<Record<Declined, { what: string; why: string; next?: string }>> = {
   budget: {
     what: 'No answer from {host} within the request budget',
@@ -108,7 +97,7 @@ const DECLINED: Readonly<Record<Declined, { what: string; why: string; next?: st
 export function declined(url: string, reason: Declined): McpDocError {
   const host = hostOf(url);
   const { what, why, next } = DECLINED[reason];
-  const details: GatewayErrorDetails = {
+  const details: ErrorDetails = {
     why: why.replace('{host}', host),
     ...(next === undefined ? {} : { next }),
     ...where(url),
@@ -121,8 +110,7 @@ export function declined(url: string, reason: Declined): McpDocError {
 /** Why the gateway declined the request behind `error`; `undefined` for any other failure. */
 export function declinedBy(error: unknown): Declined | undefined {
   if (!isMcpDocError(error)) return undefined;
-  const details: GatewayErrorDetails | undefined = error.details;
-  return details?.declined;
+  return error.details?.declined;
 }
 
 /** `OFFLINE_MISS`: offline mode and nothing usable in the cache. */

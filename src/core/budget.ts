@@ -1,6 +1,6 @@
 /**
- * Token budgeting (design section 3.1). Text is cut only at section, paragraph, fence or
- * table boundaries, and a cut is always resumable from a character offset.
+ * Token budgeting. Text is cut only at section, paragraph, fence or table boundaries, and a
+ * cut is always resumable from a character offset.
  */
 import { stepFence, type OpenFence } from './fences.js';
 import type { DocSection } from './types.js';
@@ -34,11 +34,19 @@ export function estimateTokens(text: string): number {
   return tokensFor(chars, fenced);
 }
 
+const TABLE_OPEN = /<table\b/gi;
+const TABLE_CLOSE = /<\/table\s*>/gi;
+
+function countMatches(line: string, pattern: RegExp): number {
+  return line.match(pattern)?.length ?? 0;
+}
+
 /**
  * Splits Markdown into the atomic blocks that a budget cut may fall between: paragraphs,
- * lists and tables separated by blank lines, and whole code fences (blank lines inside a
- * fence do not split it; an unclosed fence runs to the end). Blocks carry no surrounding
- * blank lines; joining them with a blank line gives the normalised text.
+ * lists and tables separated by blank lines, whole code fences (blank lines inside a fence
+ * do not split it; an unclosed fence runs to the end) and whole raw HTML tables (likewise).
+ * Blocks carry no surrounding blank lines; joining them with a blank line gives the
+ * normalised text.
  */
 export function splitBlocks(markdown: string): string[] {
   const blocks: string[] = [];
@@ -48,12 +56,19 @@ export function splitBlocks(markdown: string): string[] {
     if (current.length > 0) blocks.push(current.join('\n'));
     current = [];
   };
+  // Depth of raw HTML tables (GitHub wiki and README content): a blank line between two
+  // rows of one does not end the block.
+  let tables = 0;
   for (const line of markdown.replace(/\r\n?/g, '\n').split('\n')) {
     const wasOpen = open !== undefined;
     open = stepFence(line, open).open;
     // Lines are kept verbatim: trailing spaces are Markdown hard line breaks.
-    if (!wasOpen && open === undefined && line.trim() === '') flush();
+    if (!wasOpen && open === undefined && tables === 0 && line.trim() === '') flush();
     else current.push(line);
+    // Only a line of markup counts: prose that names `<table>` opens nothing.
+    if (!wasOpen && open === undefined && line.trimStart().startsWith('<')) {
+      tables = Math.max(0, tables + countMatches(line, TABLE_OPEN) - countMatches(line, TABLE_CLOSE));
+    }
   }
   flush();
   return blocks;
@@ -90,7 +105,9 @@ const HEADING_ONLY = /^ {0,3}#{1,6}[ \t]+\S.*$/;
  * - successive pages joined with a blank line equal `joinSections(sections)` exactly;
  * - every page holds at least one content block (with any headings directly above it), so
  *   paging always terminates and no page is a bare heading. A content block larger than the
- *   budget is returned whole; that minimal page is the only case where `used > maxTokens`;
+ *   budget is returned whole; that minimal page is the only case where `used > maxTokens`.
+ *   Callers that page whole documents divide such blocks first (`chunkFences` in
+ *   `services/doc/paging.ts`), so there it cannot happen;
  * - a page does not end on a heading when the content it introduces would start the next page.
  *
  * An offset that is not on a block boundary (a stale or altered cursor) moves forward to
