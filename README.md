@@ -727,7 +727,9 @@ evaluations have not been run yet, so there is no measured answer quality to rep
   inflates the hit count.
 - **Older versions.** The documentation sites describe the current release. For another
   version of the JavaScript SDK the server reads the TypeScript declarations of that npm
-  version; Esri's archive of older pages is link-only.
+  version; Esri's archive of older pages is link-only. Names are looked up in the module list
+  of the current release, so a module that was removed since (`watchUtils`) is not found by
+  name at the older version.
 - **Inherited members.** A member is followed to the base type that declares it, across at
   most four base pages. Swift members that come from a protocol extension are not followed.
 - **Budgets cut at block boundaries.** A list, a table or a code fence is never split, so a

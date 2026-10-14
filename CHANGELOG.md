@@ -59,6 +59,8 @@ First version. Not tagged or published yet; the date is set when the tag is push
   from a protocol extension are not followed.
 - A .NET lookup that names one overload returns that overload only.
 - REST operation names are derived from page titles, not from path segments.
+- At an older JavaScript SDK version, names are looked up in the module list of the current
+  release: a module removed since (`watchUtils`) is not found by name.
 - The agent evaluations have not been run against this version.
 
 [Unreleased]: https://github.com/aselimc/arcgis-sdk-mcp/compare/v0.1.0...HEAD
